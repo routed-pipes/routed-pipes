@@ -202,6 +202,10 @@ public class CompatGameTest {
         if (has("create:millstone")) {
             tests.add(test("compat.create.crafts_with_millstone", CompatGameTest::createCraftsWithMillstone, 2400));
         }
+        if (has("mekanism:basic_fluid_tank")) {
+            tests.add(test("compat.mekanism.container_supplier_keeps_the_emptied_tank",
+                    CompatGameTest::containerSupplierKeepsTheEmptiedMekanismTank, 400));
+        }
         if (ModList.get().isLoaded("jei")) {
             tests.add(test("compat.jei.table_transfer_links_and_reports", CompatGameTest::jeiTableTransferLinksAndReports));
         }
@@ -209,6 +213,49 @@ public class CompatGameTest {
             tests.add(test("compat.jade.sends_pipe_details", CompatGameTest::jadeSendsPipeDetails));
         }
         return tests;
+    }
+
+    // FINDING: a container supplier destroys a full container that has no crafting remainder, like a mekanism tank
+    private static void containerSupplierKeepsTheEmptiedMekanismTank(GameTestHelper helper) {
+        GameTestPower.supply(helper);
+        ItemStack full = new ItemStack(item("mekanism:basic_fluid_tank"));
+        var handler = full.getCapability(Capabilities.FluidHandler.ITEM);
+        helper.assertTrue(handler != null && handler.fill(new FluidStack(Fluids.WATER, 1000), IFluidHandler.FluidAction.EXECUTE) == 1000,
+                "could not fill the mekanism tank");
+        ItemStack container = handler.getContainer().copy();
+        PipeBlockEntity supplier = pipe(helper, PipeKind.FLUID_CONTAINER_SUPPLIER, 0, 1);
+        FluidTank target = TestTank.place(helper, new BlockPos(0, 2, 1), Fluids.EMPTY, 0);
+        pipe(helper, PipeKind.PROVIDER, 1, 1);
+        BlockPos fullChest = new BlockPos(1, 2, 1);
+        helper.setBlock(fullChest, Blocks.CHEST);
+        ((Container) helper.getBlockEntity(fullChest)).setItem(0, container.copy());
+        pipe(helper, PipeKind.BASIC, 2, 1);
+        BlockPos emptyChest = new BlockPos(2, 2, 1);
+        helper.setBlock(emptyChest, Blocks.CHEST);
+        supplier.config().setItem(0, container.copy());
+
+        helper.runAfterDelay(320, () -> {
+            helper.assertTrue(target.getFluidAmount() == 1000, "the water should be in the tank, it holds " + target.getFluidAmount());
+            int tanks = 0;
+            for (BlockPos chest : List.of(fullChest, emptyChest)) {
+                Container inventory = (Container) helper.getBlockEntity(chest);
+                for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
+                    if (inventory.getItem(slot).is(container.getItem())) {
+                        tanks += inventory.getItem(slot).getCount();
+                    }
+                }
+            }
+            for (int x = 0; x <= 2; x++) {
+                PipeBlockEntity pipe = helper.getBlockEntity(new BlockPos(x, 1, 1));
+                tanks += (int) pipe.travellingItems().stream()
+                        .filter(item -> McItemType.stackOf(item.batch()).is(container.getItem())).count();
+            }
+            tanks += helper.getLevel().getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class,
+                    new net.minecraft.world.phys.AABB(helper.absolutePos(BlockPos.ZERO)).inflate(8),
+                    entity -> entity.getItem().is(container.getItem())).size();
+            helper.assertTrue(tanks == 1, "the emptied mekanism tank should still be somewhere, found " + tanks);
+            helper.succeed();
+        });
     }
 
     private static boolean has(String id) {

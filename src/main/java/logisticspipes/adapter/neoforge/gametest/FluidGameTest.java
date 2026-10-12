@@ -518,6 +518,74 @@ public class FluidGameTest {
         });
     }
 
+    // FINDING: a satellite is never told when its fluid gives up on a routed pipe, so it never asks again
+    @GameTest(template = EMPTY, timeoutTicks = 900)
+    public static void aSatelliteAsksAgainForFluidThatGaveUpInARoutedPipe(GameTestHelper helper) {
+        GameTestPower.supply(helper);
+        PipeBlockEntity satellite = pipe(helper, PipeKind.FLUID_SATELLITE, 0, 1);
+        FluidTank target = tank(helper, 0, 2);
+        transport(helper, 1, 1);
+        transport(helper, 2, 1);
+        pipe(helper, PipeKind.FLUID_PROVIDER, 3, 1);
+        FluidTank source = tank(helper, 3, 2, Fluids.LAVA, TestTank.CAPACITY);
+
+        // the way is cut right after the order, so the lava waits in the provider pipe until it gives up
+        helper.runAfterDelay(SETTLE, () -> {
+            satellite.fluidPipe().request(lava(5000));
+            helper.destroyBlock(new BlockPos(1, 1, 1));
+        });
+        // and comes back long after that
+        helper.runAfterDelay(SETTLE + 350, () -> transport(helper, 1, 1));
+
+        helper.succeedWhen(() -> helper.assertTrue(target.getFluidAmount() == 5000, "the satellite should have its 5000 mB, it has "
+                + target.getFluidAmount() + " mB while " + (TestTank.CAPACITY - source.getFluidAmount()) + " mB left the provider"));
+    }
+
+    // FINDING: fluid that does not fit where it arrives is only partly sent on, the rest is gone though another pipe takes it
+    @GameTest(template = EMPTY, timeoutTicks = 300)
+    public static void fluidThatDoesNotFitOnArrivalIsAllSentOn(GameTestHelper helper) {
+        GameTestPower.supply(helper);
+        PipeBlockEntity insertion = pipe(helper, PipeKind.FLUID_INSERTION, 0, 1);
+        transport(helper, 1, 1);
+        PipeBlockEntity near = pipe(helper, PipeKind.FLUID_BASIC, 2, 1);
+        lists(near, 0, Fluids.WATER);
+        FluidTank nearTank = tank(helper, 2, 2);
+        transport(helper, 3, 1);
+        // two more sinks with room for 3000 each, their tanks are full and their own side tanks hold 2000
+        PipeBlockEntity second = pipe(helper, PipeKind.FLUID_BASIC, 4, 1);
+        lists(second, 0, Fluids.WATER);
+        tank(helper, 4, 2, Fluids.WATER, TestTank.CAPACITY);
+        PipeBlockEntity third = pipe(helper, PipeKind.FLUID_BASIC, 5, 1);
+        lists(third, 0, Fluids.WATER);
+        tank(helper, 5, 2, Fluids.WATER, TestTank.CAPACITY);
+        McFluidType water = new McFluidType(Fluids.WATER);
+        boolean[] filledUp = {false};
+
+        helper.runAfterDelay(SETTLE, () -> {
+            second.fluidPipe().pipeTanks().side(Side.UP).fill(new FluidBatch(water, 2000), false);
+            third.fluidPipe().pipeTanks().side(Side.UP).fill(new FluidBatch(water, 2000), false);
+            pumpInto(helper, insertion, Fluids.WATER, 5000);
+        });
+        // while the water is on its way the near pipe and its tank fill up from somewhere else
+        helper.onEachTick(() -> {
+            if (!filledUp[0] && helper.getBlockEntity(new BlockPos(1, 1, 1)) instanceof PipeBlockEntity middle
+                    && !middle.travellingItems().isEmpty()) {
+                filledUp[0] = true;
+                nearTank.fill(new FluidStack(Fluids.WATER, TestTank.CAPACITY), FluidAction.EXECUTE);
+                near.fluidPipe().pipeTanks().side(Side.UP).fill(new FluidBatch(water, 5000), false);
+                near.fluidPipe().pipeTanks().centre().fill(new FluidBatch(water, 10000), false);
+            }
+        });
+
+        helper.runAfterDelay(200, () -> {
+            helper.assertTrue(filledUp[0], "the near pipe should have been filled up");
+            int sentOn = second.fluidPipe().pipeTanks().side(Side.UP).amount() + second.fluidPipe().pipeTanks().centre().amount()
+                    + third.fluidPipe().pipeTanks().side(Side.UP).amount() + third.fluidPipe().pipeTanks().centre().amount() - 4000;
+            helper.assertTrue(sentOn == 5000, "all 5000 mB should have been sent on, but only " + sentOn + " mB arrived");
+            helper.succeed();
+        });
+    }
+
     @GameTest(template = EMPTY)
     public static void theSatelliteSettingsSetItsName(GameTestHelper helper) {
         PipeBlockEntity satellite = pipe(helper, PipeKind.FLUID_SATELLITE, 0, 1);
