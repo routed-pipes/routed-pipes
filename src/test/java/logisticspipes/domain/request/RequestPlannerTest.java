@@ -203,4 +203,47 @@ class RequestPlannerTest {
         assertThat(plan.complete()).isFalse();
         assertThat(plan.missing()).containsOnlyKeys(item("block"));
     }
+
+    @Test
+    void sharesWorkBetweenCraftersOfTheSamePriority() {
+        RequestPlan plan = new RequestPlanner(List.of(stock(NEAR, "log", 64)),
+                List.of(crafter(CRAFTER, PLANKS), crafter(OTHER_CRAFTER, PLANKS)))
+                .plan(REQUESTER, batch("planks", 16));
+
+        assertThat(plan.crafts()).containsExactlyInAnyOrder(new CraftJob(CRAFTER, REQUESTER, batch("planks", 8)),
+                new CraftJob(OTHER_CRAFTER, REQUESTER, batch("planks", 8)));
+    }
+
+    @Test
+    void fillsTheLeastBusyCrafterUpToTheOthersFirst() {
+        RequestPlan plan = new RequestPlanner(List.of(stock(NEAR, "log", 64)),
+                List.of(crafter(CRAFTER, PLANKS).withBacklog(8), crafter(OTHER_CRAFTER, PLANKS)))
+                .plan(REQUESTER, batch("planks", 16));
+
+        assertThat(plan.crafts()).containsExactlyInAnyOrder(new CraftJob(CRAFTER, REQUESTER, batch("planks", 4)),
+                new CraftJob(OTHER_CRAFTER, REQUESTER, batch("planks", 12)));
+    }
+
+    @Test
+    void usesUpTheHigherPriorityBeforeAskingAnyoneElse() {
+        Recipe fromBamboo = new Recipe(List.of(batch("bamboo", 2)), batch("planks", 1));
+        RequestPlan plan = new RequestPlanner(List.of(stock(NEAR, "log", 2), stock(FAR, "bamboo", 64)),
+                List.of(crafter(OTHER_CRAFTER, fromBamboo), crafter(CRAFTER, PLANKS).withPriority(1)))
+                .plan(REQUESTER, batch("planks", 12));
+
+        assertThat(plan.complete()).isTrue();
+        assertThat(plan.crafts()).containsExactlyInAnyOrder(new CraftJob(CRAFTER, REQUESTER, batch("planks", 8)),
+                new CraftJob(OTHER_CRAFTER, REQUESTER, batch("planks", 4)));
+    }
+
+    @Test
+    void plansTheRunsThereAreIngredientsForEvenWhenNotAllCanBeHad() {
+        RequestPlan plan = new RequestPlanner(List.of(stock(NEAR, "log", 2)), List.of(crafter(CRAFTER, PLANKS)))
+                .plan(REQUESTER, batch("planks", 20));
+
+        assertThat(plan.complete()).isFalse();
+        assertThat(plan.crafts()).containsExactly(new CraftJob(CRAFTER, REQUESTER, batch("planks", 8)));
+        assertThat(plan.provisions()).containsExactly(new Provision(NEAR, CRAFTER, batch("log", 2)));
+        assertThat(plan.missing()).containsOnly(Map.entry(item("log"), 3));
+    }
 }

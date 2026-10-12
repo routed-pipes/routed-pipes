@@ -359,12 +359,14 @@ public final class LogisticsNetwork {
 
     // plans the request and starts it right away if nothing is missing and there is power to move the items
     public RequestOutcome request(RouterId requester, ItemBatch wanted, long now) {
-        return request(requester, wanted, now, 0);
+        return request(requester, wanted, now, 0, false);
     }
 
-    private RequestOutcome request(RouterId requester, ItemBatch wanted, long now, int extraEnergy) {
+    // with partial set, whatever part of the order can be had is started
+    private RequestOutcome request(RouterId requester, ItemBatch wanted, long now, int extraEnergy, boolean partial) {
         RequestPlan plan = new RequestPlanner(stockFor(requester), craftersFor(requester)).plan(requester, wanted);
-        if (!plan.complete()) {
+        boolean nothing = plan.provisions().isEmpty() && plan.crafts().isEmpty();
+        if (!plan.complete() && (!partial || nothing)) {
             return new RequestOutcome(plan, true);
         }
         int items = plan.provisions().stream().mapToInt(provision -> provision.batch().count()).sum();
@@ -373,6 +375,15 @@ public final class LogisticsNetwork {
         }
         execute(plan, now);
         return new RequestOutcome(plan, true);
+    }
+
+    // an ordered item fell out of the pipes on its way, a crafter orders its ingredients again
+    public void itemLost(RouterId destination, ItemBatch batch, long now) {
+        pending.arrived(destination, batch.type(), batch.count());
+        RouterNode node = nodes.get(destination);
+        if (node != null && (node.kind() == PipeKind.SATELLITE || !node.crafts().isEmpty())) {
+            requestUpTo(destination, batch.type(), batch.count(), now);
+        }
     }
 
     public RouterStatus status(RouterId id) {
@@ -468,7 +479,7 @@ public final class LogisticsNetwork {
             int amount = supply.mode().amount(wanted, contents.getOrDefault(type, 0), pending.expected(id, type, now),
                     node.roomFor(type, SUPPLY_ROOM_CHECK));
             if (amount > 0 && supply.mode().allOrNothing()) {
-                request(id, new ItemBatch(type, amount), now, ENERGY_PER_SUPPLY_ORDER);
+                request(id, new ItemBatch(type, amount), now, ENERGY_PER_SUPPLY_ORDER, false);
             } else if (amount > 0) {
                 requestUpTo(id, type, amount, now);
             }
@@ -510,15 +521,9 @@ public final class LogisticsNetwork {
         }
     }
 
-    // like request, but settles for whatever part of the amount is in stock when not all of it can be had
+    // like request, but settles for whatever part of the amount can be had
     private void requestUpTo(RouterId requester, ItemType type, int count, long now) {
-        if (request(requester, new ItemBatch(type, count), now, ENERGY_PER_SUPPLY_ORDER).plan().complete()) {
-            return;
-        }
-        int inStock = stockFor(requester).stream().mapToInt(stock -> stock.items().getOrDefault(type, 0)).sum();
-        if (inStock > 0) {
-            request(requester, new ItemBatch(type, Math.min(count, inStock)), now, ENERGY_PER_SUPPLY_ORDER);
-        }
+        request(requester, new ItemBatch(type, count), now, ENERGY_PER_SUPPLY_ORDER, true);
     }
 
     // nearest first
@@ -571,14 +576,16 @@ public final class LogisticsNetwork {
             for (CraftingSetup craft : node.crafts()) {
                 int backlog = node.outputOrders().owedInTotal();
                 if (craft.satellite() == 0) {
-                    candidates.add(new Candidate(Crafter.of(id, craft.recipe(), null, Map.of(), backlog), craft.priority()));
+                    candidates.add(new Candidate(Crafter.of(id, craft.recipe(), null, Map.of(), backlog).withPriority(craft.priority()),
+                            craft.priority()));
                     continue;
                 }
                 Map<ItemType, Integer> forSatellite = new LinkedHashMap<>();
                 craft.satelliteInputs().forEach(input -> forSatellite.merge(input.type(), input.count(), Integer::sum));
                 // without its satellite the pipe cannot get its ingredients to the right place
                 satellite(reachable, craft.satellite()).ifPresent(found -> candidates.add(
-                        new Candidate(Crafter.of(id, craft.recipe(), found, forSatellite, backlog), craft.priority())));
+                        new Candidate(Crafter.of(id, craft.recipe(), found, forSatellite, backlog).withPriority(craft.priority()),
+                                craft.priority())));
             }
         }
         candidates.sort(Comparator.comparingInt(Candidate::priority).reversed()

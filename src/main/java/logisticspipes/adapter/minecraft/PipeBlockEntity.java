@@ -593,6 +593,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         TravellingItem item = departure.item();
         ItemStack stack = McItemType.stackOf(item.batch());
         if (departure.exit().isEmpty()) {
+            if (item.mode() == TransportMode.REQUESTED && item.destination().filter(wanted -> !wanted.equals(routerId)).isPresent()) {
+                network().itemLost(item.destination().get(), item.batch(), level.getGameTime());
+            }
             popOut(stack);
             return;
         }

@@ -727,4 +727,40 @@ class LogisticsNetworkRequestTest {
         assertThat(provider.shipments).containsExactlyInAnyOrder(new Shipment(batch("coal", 8), REQUEST),
                 new Shipment(batch("iron", 4), REQUEST));
     }
+
+    @Test
+    void aCrafterOrdersALostIngredientAgain() {
+        connect();
+        provider.stock("log", 64);
+        crafting.recipe = new Recipe(List.of(batch("log", 1)), batch("planks", 4));
+        network.request(REQUEST, batch("planks", 8), 0);
+
+        network.itemLost(CRAFTING, batch("log", 2), 5);
+
+        assertThat(provider.shipments).containsExactly(new Shipment(batch("log", 2), CRAFTING), new Shipment(batch("log", 2), CRAFTING));
+    }
+
+    @Test
+    void aLostItemForARequestPipeIsNotOrderedAgain() {
+        connect();
+        provider.stock("log", 64);
+        network.request(REQUEST, batch("log", 4), 0);
+
+        network.itemLost(REQUEST, batch("log", 4), 5);
+
+        assertThat(provider.shipments).hasSize(1);
+    }
+
+    @Test
+    void supplierTakesTheRunsThatCanBeCraftedWhenNotAllCan() {
+        connect();
+        provider.stock("log", 2);
+        crafting.recipe = new Recipe(List.of(batch("log", 1)), batch("planks", 4));
+        supplier.supplyMode = SupplyMode.PARTIAL;
+        supplier.supplyTargets.put(item("planks"), 20);
+
+        network.tick(SUPPLIER, 0);
+
+        assertThat(crafting.outputOrders.owed(item("planks"))).isEqualTo(8);
+    }
 }

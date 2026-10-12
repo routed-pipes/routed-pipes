@@ -11,7 +11,7 @@ import logisticspipes.domain.routing.RouterId;
 // a crafting pipe as the planner sees it: what one run makes, which ingredients go to the pipe itself
 // and which to its satellite, and how much work it already has
 public record Crafter(RouterId router, ItemBatch output, Map<ItemType, Integer> ownInputs, RouterId satellite,
-        Map<ItemType, Integer> satelliteInputs, int backlog) {
+        Map<ItemType, Integer> satelliteInputs, int backlog, int priority) {
 
     public Crafter {
         ownInputs = Map.copyOf(new LinkedHashMap<>(ownInputs));
@@ -20,7 +20,7 @@ public record Crafter(RouterId router, ItemBatch output, Map<ItemType, Integer> 
 
     // everything is delivered to the crafting pipe
     public static Crafter of(RouterId router, Recipe recipe) {
-        return new Crafter(router, recipe.output(), recipe.inputTotals(), null, Map.of(), 0);
+        return new Crafter(router, recipe.output(), recipe.inputTotals(), null, Map.of(), 0, 0);
     }
 
     // the given part of the recipe is delivered to the satellite, the rest to the crafting pipe
@@ -34,6 +34,15 @@ public record Crafter(RouterId router, ItemBatch output, Map<ItemType, Integer> 
                 own.remove(type);
             }
         });
-        return new Crafter(router, recipe.output(), own, satellite, satelliteInputs, backlog);
+        return new Crafter(router, recipe.output(), own, satellite, satelliteInputs, backlog, 0);
+    }
+
+    // crafters with a higher priority are used up before any other is asked
+    public Crafter withPriority(int value) {
+        return new Crafter(router, output, ownInputs, satellite, satelliteInputs, backlog, value);
+    }
+
+    public Crafter withBacklog(int items) {
+        return new Crafter(router, output, ownInputs, satellite, satelliteInputs, items, priority);
     }
 }
