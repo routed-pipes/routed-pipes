@@ -10,6 +10,8 @@ import java.util.UUID;
 public final class Channels {
 
     public static final int MAX_NAME = 32;
+    // channels are world data made from what clients send, so one player cannot make endless ones
+    public static final int MAX_PER_OWNER = 32;
 
     private final Map<UUID, Channel> channels = new LinkedHashMap<>();
 
@@ -41,9 +43,9 @@ public final class Channels {
         return access == ChannelAccess.SECURED && station == null ? ChannelAccess.PRIVATE : access;
     }
 
-    // empty when the name is blank
+    // empty when the name is blank or the player has made as many as they may
     public Optional<Channel> create(String name, UUID owner, String ownerName, ChannelAccess access, UUID station) {
-        if (cleaned(name).isEmpty()) {
+        if (cleaned(name).isEmpty() || channels.values().stream().filter(channel -> channel.ownedBy(owner)).count() >= MAX_PER_OWNER) {
             return Optional.empty();
         }
         ChannelAccess granted = possible(access, station);

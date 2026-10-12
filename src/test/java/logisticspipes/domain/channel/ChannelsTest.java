@@ -104,4 +104,16 @@ class ChannelsTest {
         assertThat(channels.delete(channel.id(), OWNER)).isTrue();
         assertThat(channels.find(channel.id())).isEmpty();
     }
+
+    @Test
+    void aPlayerCannotMakeEndlessChannels() {
+        Channels channels = new Channels();
+        java.util.UUID owner = java.util.UUID.randomUUID();
+        for (int index = 0; index < Channels.MAX_PER_OWNER; index++) {
+            assertThat(channels.create("c" + index, owner, "Owner", ChannelAccess.PRIVATE, null)).isPresent();
+        }
+
+        assertThat(channels.create("one more", owner, "Owner", ChannelAccess.PRIVATE, null)).isEmpty();
+        assertThat(channels.create("someone else's", java.util.UUID.randomUUID(), "Other", ChannelAccess.PRIVATE, null)).isPresent();
+    }
 }

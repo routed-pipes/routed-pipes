@@ -60,4 +60,16 @@ class MacroDiskTest {
         assertThat(disk.name()).isEqualTo("spares");
         assertThat(disk.macros()).hasSize(1);
     }
+
+    @Test
+    void aFullDiskTakesNoNewMacroButStillChangesItsOwn() {
+        MacroDisk disk = MacroDisk.EMPTY;
+        for (int index = 0; index < MacroDisk.MAX_MACROS; index++) {
+            disk = disk.saved(macro("m" + index, "coal", 1));
+        }
+
+        assertThat(disk.saved(macro("one more", "coal", 1)).macros()).hasSize(MacroDisk.MAX_MACROS);
+        assertThat(disk.saved(macro("m0", "iron", 5)).macro("m0").orElseThrow().entries())
+                .extracting(entry -> entry.count()).containsExactly(5);
+    }
 }

@@ -9,6 +9,9 @@ import java.util.Optional;
 // what a disk holds: a name of its own and macros, no two of them with the same name
 public record MacroDisk(String name, List<Macro> macros) {
 
+    // what a client sends ends up on the item, so a disk holds no more than this
+    public static final int MAX_MACROS = 32;
+
     public static final MacroDisk EMPTY = new MacroDisk("", List.of());
 
     public MacroDisk {
@@ -27,11 +30,14 @@ public record MacroDisk(String name, List<Macro> macros) {
         return macros.stream().filter(macro -> macro.name().equals(macroName.strip())).findFirst();
     }
 
-    // a macro with the same name is overwritten
+    // a macro with the same name is overwritten, a new one is left out once the disk is full
     public MacroDisk saved(Macro macro) {
         macro.problem().ifPresent(problem -> {
             throw new IllegalArgumentException("macro cannot be saved: " + problem);
         });
+        if (macro(macro.name()).isEmpty() && macros.size() >= MAX_MACROS) {
+            return this;
+        }
         List<Macro> list = new ArrayList<>(macros);
         list.add(macro);
         return new MacroDisk(name, list);

@@ -56,4 +56,15 @@ class MacroTest {
     void spacesAroundTheNameDoNotCount() {
         assertThat(Macro.EMPTY.named("  tools ").name()).isEqualTo("tools");
     }
+
+    @Test
+    void aFullMacroTakesNoNewItemButMoreOfOneItHas() {
+        Macro macro = new Macro("big", java.util.List.of());
+        for (int index = 0; index < Macro.MAX_ENTRIES; index++) {
+            macro = macro.with(logisticspipes.testing.Fixtures.batch("item" + index, 1));
+        }
+
+        assertThat(macro.with(logisticspipes.testing.Fixtures.batch("one more", 1)).entries()).hasSize(Macro.MAX_ENTRIES);
+        assertThat(macro.with(logisticspipes.testing.Fixtures.batch("item0", 4)).entries().get(0).count()).isEqualTo(5);
+    }
 }
