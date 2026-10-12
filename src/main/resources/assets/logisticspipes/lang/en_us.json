@@ -121,6 +121,8 @@
   "item.logisticspipes.upgrade_power_transportation.description": "Energy from Power Providers may go through the pipe. It travels from routed pipe to routed pipe in a straight line only, and every routed pipe on the way needs this upgrade or a Power Supplier Upgrade. A firewall that blocks power stops it.",
   "item.logisticspipes.upgrade_disconnection": "Disconnection Upgrade",
   "item.logisticspipes.upgrade_disconnection.description": "Use it on a side of a routed pipe to cut that side off from what is next to it, and again to reconnect it.",
+  "item.logisticspipes.upgrade_opaque": "Opaque Upgrade",
+  "item.logisticspipes.upgrade_opaque.description": "Nobody sees the items that travel through the pipe. Use on a pipe to install.",
   "block.logisticspipes.request_table": "Request Table",
   "block.logisticspipes.request_table.description": "A request pipe as a block: orders the ingredients of the recipe in its grid into its own buffer and crafts from there. Takes a Logistics Disk, whose macros it orders into its buffer too.",
   "logisticspipes.gui.request_table.clear": "Clear the grid",

@@ -2,8 +2,8 @@
   "multipart": [
     {
       "when": {
-        "up": "false",
-        "north": "false"
+        "up": "none",
+        "north": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/edge_up_north"
@@ -11,8 +11,8 @@
     },
     {
       "when": {
-        "up": "false",
-        "south": "false"
+        "up": "none",
+        "south": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/edge_up_south"
@@ -20,8 +20,8 @@
     },
     {
       "when": {
-        "up": "false",
-        "east": "false"
+        "up": "none",
+        "east": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/edge_up_east"
@@ -29,8 +29,8 @@
     },
     {
       "when": {
-        "up": "false",
-        "west": "false"
+        "up": "none",
+        "west": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/edge_up_west"
@@ -38,8 +38,8 @@
     },
     {
       "when": {
-        "down": "false",
-        "north": "false"
+        "down": "none",
+        "north": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/edge_down_north"
@@ -47,8 +47,8 @@
     },
     {
       "when": {
-        "down": "false",
-        "south": "false"
+        "down": "none",
+        "south": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/edge_down_south"
@@ -56,8 +56,8 @@
     },
     {
       "when": {
-        "down": "false",
-        "east": "false"
+        "down": "none",
+        "east": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/edge_down_east"
@@ -65,8 +65,8 @@
     },
     {
       "when": {
-        "down": "false",
-        "west": "false"
+        "down": "none",
+        "west": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/edge_down_west"
@@ -74,8 +74,8 @@
     },
     {
       "when": {
-        "north": "false",
-        "west": "false"
+        "north": "none",
+        "west": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/edge_north_west"
@@ -83,8 +83,8 @@
     },
     {
       "when": {
-        "north": "false",
-        "east": "false"
+        "north": "none",
+        "east": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/edge_north_east"
@@ -92,8 +92,8 @@
     },
     {
       "when": {
-        "south": "false",
-        "east": "false"
+        "south": "none",
+        "east": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/edge_south_east"
@@ -101,8 +101,8 @@
     },
     {
       "when": {
-        "south": "false",
-        "west": "false"
+        "south": "none",
+        "west": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/edge_south_west"
@@ -110,9 +110,26 @@
     },
     {
       "when": {
-        "up": "false",
-        "north": "false",
-        "west": "false"
+        "OR": [
+          {
+            "up": "none",
+            "north": "none",
+            "west": "none",
+            "south": "none"
+          },
+          {
+            "up": "none",
+            "north": "none",
+            "west": "none",
+            "east": "none"
+          },
+          {
+            "up": "none",
+            "north": "none",
+            "west": "none",
+            "down": "none"
+          }
+        ]
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_up_north_west"
@@ -120,19 +137,52 @@
     },
     {
       "when": {
-        "up": "true",
-        "north": "true",
-        "west": "true"
+        "up": "none",
+        "north": "none",
+        "west": "none",
+        "south": "unrouted|routed",
+        "east": "unrouted|routed",
+        "down": "unrouted|routed"
       },
       "apply": {
-        "model": "logisticspipes:block/pipe/corner_all_up_north_west"
+        "model": "logisticspipes:block/pipe/corner_up_north_west_dark"
       }
     },
     {
       "when": {
-        "up": "true",
-        "north": "false",
-        "west": "false"
+        "up": "unrouted|routed",
+        "north": "unrouted|routed",
+        "west": "unrouted|routed"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_all_up_north_west_dark"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "up": "unrouted|routed",
+            "north": "none",
+            "west": "none",
+            "south": "none",
+            "east": "none"
+          },
+          {
+            "up": "unrouted|routed",
+            "north": "none",
+            "west": "none",
+            "south": "none",
+            "down": "none"
+          },
+          {
+            "up": "unrouted|routed",
+            "north": "none",
+            "west": "none",
+            "east": "none",
+            "down": "none"
+          }
+        ]
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_up_north_west_up"
@@ -140,9 +190,42 @@
     },
     {
       "when": {
-        "up": "false",
-        "north": "true",
-        "west": "true"
+        "OR": [
+          {
+            "up": "unrouted|routed",
+            "north": "none",
+            "west": "none",
+            "south": "unrouted|routed",
+            "east": "unrouted|routed"
+          },
+          {
+            "up": "unrouted|routed",
+            "north": "none",
+            "west": "none",
+            "south": "unrouted|routed",
+            "down": "unrouted|routed"
+          },
+          {
+            "up": "unrouted|routed",
+            "north": "none",
+            "west": "none",
+            "east": "unrouted|routed",
+            "down": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_up_north_west_up_dark"
+      }
+    },
+    {
+      "when": {
+        "up": "none",
+        "north": "unrouted|routed",
+        "west": "unrouted|routed",
+        "south": "none",
+        "east": "none",
+        "down": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_up_north_west_up"
@@ -150,9 +233,56 @@
     },
     {
       "when": {
-        "north": "true",
-        "up": "false",
-        "west": "false"
+        "OR": [
+          {
+            "up": "none",
+            "north": "unrouted|routed",
+            "west": "unrouted|routed",
+            "south": "unrouted|routed"
+          },
+          {
+            "up": "none",
+            "north": "unrouted|routed",
+            "west": "unrouted|routed",
+            "east": "unrouted|routed"
+          },
+          {
+            "up": "none",
+            "north": "unrouted|routed",
+            "west": "unrouted|routed",
+            "down": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_up_north_west_up_dark"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "north": "unrouted|routed",
+            "up": "none",
+            "west": "none",
+            "south": "none",
+            "east": "none"
+          },
+          {
+            "north": "unrouted|routed",
+            "up": "none",
+            "west": "none",
+            "south": "none",
+            "down": "none"
+          },
+          {
+            "north": "unrouted|routed",
+            "up": "none",
+            "west": "none",
+            "east": "none",
+            "down": "none"
+          }
+        ]
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_up_north_west_north"
@@ -160,9 +290,42 @@
     },
     {
       "when": {
-        "north": "false",
-        "up": "true",
-        "west": "true"
+        "OR": [
+          {
+            "north": "unrouted|routed",
+            "up": "none",
+            "west": "none",
+            "south": "unrouted|routed",
+            "east": "unrouted|routed"
+          },
+          {
+            "north": "unrouted|routed",
+            "up": "none",
+            "west": "none",
+            "south": "unrouted|routed",
+            "down": "unrouted|routed"
+          },
+          {
+            "north": "unrouted|routed",
+            "up": "none",
+            "west": "none",
+            "east": "unrouted|routed",
+            "down": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_up_north_west_north_dark"
+      }
+    },
+    {
+      "when": {
+        "north": "none",
+        "up": "unrouted|routed",
+        "west": "unrouted|routed",
+        "south": "none",
+        "east": "none",
+        "down": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_up_north_west_north"
@@ -170,9 +333,56 @@
     },
     {
       "when": {
-        "west": "true",
-        "up": "false",
-        "north": "false"
+        "OR": [
+          {
+            "north": "none",
+            "up": "unrouted|routed",
+            "west": "unrouted|routed",
+            "south": "unrouted|routed"
+          },
+          {
+            "north": "none",
+            "up": "unrouted|routed",
+            "west": "unrouted|routed",
+            "east": "unrouted|routed"
+          },
+          {
+            "north": "none",
+            "up": "unrouted|routed",
+            "west": "unrouted|routed",
+            "down": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_up_north_west_north_dark"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "west": "unrouted|routed",
+            "up": "none",
+            "north": "none",
+            "south": "none",
+            "east": "none"
+          },
+          {
+            "west": "unrouted|routed",
+            "up": "none",
+            "north": "none",
+            "south": "none",
+            "down": "none"
+          },
+          {
+            "west": "unrouted|routed",
+            "up": "none",
+            "north": "none",
+            "east": "none",
+            "down": "none"
+          }
+        ]
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_up_north_west_west"
@@ -180,9 +390,42 @@
     },
     {
       "when": {
-        "west": "false",
-        "up": "true",
-        "north": "true"
+        "OR": [
+          {
+            "west": "unrouted|routed",
+            "up": "none",
+            "north": "none",
+            "south": "unrouted|routed",
+            "east": "unrouted|routed"
+          },
+          {
+            "west": "unrouted|routed",
+            "up": "none",
+            "north": "none",
+            "south": "unrouted|routed",
+            "down": "unrouted|routed"
+          },
+          {
+            "west": "unrouted|routed",
+            "up": "none",
+            "north": "none",
+            "east": "unrouted|routed",
+            "down": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_up_north_west_west_dark"
+      }
+    },
+    {
+      "when": {
+        "west": "none",
+        "up": "unrouted|routed",
+        "north": "unrouted|routed",
+        "south": "none",
+        "east": "none",
+        "down": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_up_north_west_west"
@@ -190,9 +433,53 @@
     },
     {
       "when": {
-        "up": "false",
-        "north": "false",
-        "east": "false"
+        "OR": [
+          {
+            "west": "none",
+            "up": "unrouted|routed",
+            "north": "unrouted|routed",
+            "south": "unrouted|routed"
+          },
+          {
+            "west": "none",
+            "up": "unrouted|routed",
+            "north": "unrouted|routed",
+            "east": "unrouted|routed"
+          },
+          {
+            "west": "none",
+            "up": "unrouted|routed",
+            "north": "unrouted|routed",
+            "down": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_up_north_west_west_dark"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "up": "none",
+            "north": "none",
+            "east": "none",
+            "south": "none"
+          },
+          {
+            "up": "none",
+            "north": "none",
+            "east": "none",
+            "west": "none"
+          },
+          {
+            "up": "none",
+            "north": "none",
+            "east": "none",
+            "down": "none"
+          }
+        ]
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_up_north_east"
@@ -200,19 +487,52 @@
     },
     {
       "when": {
-        "up": "true",
-        "north": "true",
-        "east": "true"
+        "up": "none",
+        "north": "none",
+        "east": "none",
+        "south": "unrouted|routed",
+        "west": "unrouted|routed",
+        "down": "unrouted|routed"
       },
       "apply": {
-        "model": "logisticspipes:block/pipe/corner_all_up_north_east"
+        "model": "logisticspipes:block/pipe/corner_up_north_east_dark"
       }
     },
     {
       "when": {
-        "up": "true",
-        "north": "false",
-        "east": "false"
+        "up": "unrouted|routed",
+        "north": "unrouted|routed",
+        "east": "unrouted|routed"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_all_up_north_east_dark"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "up": "unrouted|routed",
+            "north": "none",
+            "east": "none",
+            "south": "none",
+            "west": "none"
+          },
+          {
+            "up": "unrouted|routed",
+            "north": "none",
+            "east": "none",
+            "south": "none",
+            "down": "none"
+          },
+          {
+            "up": "unrouted|routed",
+            "north": "none",
+            "east": "none",
+            "west": "none",
+            "down": "none"
+          }
+        ]
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_up_north_east_up"
@@ -220,9 +540,42 @@
     },
     {
       "when": {
-        "up": "false",
-        "north": "true",
-        "east": "true"
+        "OR": [
+          {
+            "up": "unrouted|routed",
+            "north": "none",
+            "east": "none",
+            "south": "unrouted|routed",
+            "west": "unrouted|routed"
+          },
+          {
+            "up": "unrouted|routed",
+            "north": "none",
+            "east": "none",
+            "south": "unrouted|routed",
+            "down": "unrouted|routed"
+          },
+          {
+            "up": "unrouted|routed",
+            "north": "none",
+            "east": "none",
+            "west": "unrouted|routed",
+            "down": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_up_north_east_up_dark"
+      }
+    },
+    {
+      "when": {
+        "up": "none",
+        "north": "unrouted|routed",
+        "east": "unrouted|routed",
+        "south": "none",
+        "west": "none",
+        "down": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_up_north_east_up"
@@ -230,9 +583,56 @@
     },
     {
       "when": {
-        "north": "true",
-        "up": "false",
-        "east": "false"
+        "OR": [
+          {
+            "up": "none",
+            "north": "unrouted|routed",
+            "east": "unrouted|routed",
+            "south": "unrouted|routed"
+          },
+          {
+            "up": "none",
+            "north": "unrouted|routed",
+            "east": "unrouted|routed",
+            "west": "unrouted|routed"
+          },
+          {
+            "up": "none",
+            "north": "unrouted|routed",
+            "east": "unrouted|routed",
+            "down": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_up_north_east_up_dark"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "north": "unrouted|routed",
+            "up": "none",
+            "east": "none",
+            "south": "none",
+            "west": "none"
+          },
+          {
+            "north": "unrouted|routed",
+            "up": "none",
+            "east": "none",
+            "south": "none",
+            "down": "none"
+          },
+          {
+            "north": "unrouted|routed",
+            "up": "none",
+            "east": "none",
+            "west": "none",
+            "down": "none"
+          }
+        ]
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_up_north_east_north"
@@ -240,9 +640,42 @@
     },
     {
       "when": {
-        "north": "false",
-        "up": "true",
-        "east": "true"
+        "OR": [
+          {
+            "north": "unrouted|routed",
+            "up": "none",
+            "east": "none",
+            "south": "unrouted|routed",
+            "west": "unrouted|routed"
+          },
+          {
+            "north": "unrouted|routed",
+            "up": "none",
+            "east": "none",
+            "south": "unrouted|routed",
+            "down": "unrouted|routed"
+          },
+          {
+            "north": "unrouted|routed",
+            "up": "none",
+            "east": "none",
+            "west": "unrouted|routed",
+            "down": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_up_north_east_north_dark"
+      }
+    },
+    {
+      "when": {
+        "north": "none",
+        "up": "unrouted|routed",
+        "east": "unrouted|routed",
+        "south": "none",
+        "west": "none",
+        "down": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_up_north_east_north"
@@ -250,9 +683,56 @@
     },
     {
       "when": {
-        "east": "true",
-        "up": "false",
-        "north": "false"
+        "OR": [
+          {
+            "north": "none",
+            "up": "unrouted|routed",
+            "east": "unrouted|routed",
+            "south": "unrouted|routed"
+          },
+          {
+            "north": "none",
+            "up": "unrouted|routed",
+            "east": "unrouted|routed",
+            "west": "unrouted|routed"
+          },
+          {
+            "north": "none",
+            "up": "unrouted|routed",
+            "east": "unrouted|routed",
+            "down": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_up_north_east_north_dark"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "east": "unrouted|routed",
+            "up": "none",
+            "north": "none",
+            "south": "none",
+            "west": "none"
+          },
+          {
+            "east": "unrouted|routed",
+            "up": "none",
+            "north": "none",
+            "south": "none",
+            "down": "none"
+          },
+          {
+            "east": "unrouted|routed",
+            "up": "none",
+            "north": "none",
+            "west": "none",
+            "down": "none"
+          }
+        ]
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_up_north_east_east"
@@ -260,9 +740,42 @@
     },
     {
       "when": {
-        "east": "false",
-        "up": "true",
-        "north": "true"
+        "OR": [
+          {
+            "east": "unrouted|routed",
+            "up": "none",
+            "north": "none",
+            "south": "unrouted|routed",
+            "west": "unrouted|routed"
+          },
+          {
+            "east": "unrouted|routed",
+            "up": "none",
+            "north": "none",
+            "south": "unrouted|routed",
+            "down": "unrouted|routed"
+          },
+          {
+            "east": "unrouted|routed",
+            "up": "none",
+            "north": "none",
+            "west": "unrouted|routed",
+            "down": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_up_north_east_east_dark"
+      }
+    },
+    {
+      "when": {
+        "east": "none",
+        "up": "unrouted|routed",
+        "north": "unrouted|routed",
+        "south": "none",
+        "west": "none",
+        "down": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_up_north_east_east"
@@ -270,9 +783,53 @@
     },
     {
       "when": {
-        "up": "false",
-        "south": "false",
-        "west": "false"
+        "OR": [
+          {
+            "east": "none",
+            "up": "unrouted|routed",
+            "north": "unrouted|routed",
+            "south": "unrouted|routed"
+          },
+          {
+            "east": "none",
+            "up": "unrouted|routed",
+            "north": "unrouted|routed",
+            "west": "unrouted|routed"
+          },
+          {
+            "east": "none",
+            "up": "unrouted|routed",
+            "north": "unrouted|routed",
+            "down": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_up_north_east_east_dark"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "up": "none",
+            "south": "none",
+            "west": "none",
+            "north": "none"
+          },
+          {
+            "up": "none",
+            "south": "none",
+            "west": "none",
+            "east": "none"
+          },
+          {
+            "up": "none",
+            "south": "none",
+            "west": "none",
+            "down": "none"
+          }
+        ]
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_up_south_west"
@@ -280,19 +837,52 @@
     },
     {
       "when": {
-        "up": "true",
-        "south": "true",
-        "west": "true"
+        "up": "none",
+        "south": "none",
+        "west": "none",
+        "north": "unrouted|routed",
+        "east": "unrouted|routed",
+        "down": "unrouted|routed"
       },
       "apply": {
-        "model": "logisticspipes:block/pipe/corner_all_up_south_west"
+        "model": "logisticspipes:block/pipe/corner_up_south_west_dark"
       }
     },
     {
       "when": {
-        "up": "true",
-        "south": "false",
-        "west": "false"
+        "up": "unrouted|routed",
+        "south": "unrouted|routed",
+        "west": "unrouted|routed"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_all_up_south_west_dark"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "up": "unrouted|routed",
+            "south": "none",
+            "west": "none",
+            "north": "none",
+            "east": "none"
+          },
+          {
+            "up": "unrouted|routed",
+            "south": "none",
+            "west": "none",
+            "north": "none",
+            "down": "none"
+          },
+          {
+            "up": "unrouted|routed",
+            "south": "none",
+            "west": "none",
+            "east": "none",
+            "down": "none"
+          }
+        ]
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_up_south_west_up"
@@ -300,9 +890,42 @@
     },
     {
       "when": {
-        "up": "false",
-        "south": "true",
-        "west": "true"
+        "OR": [
+          {
+            "up": "unrouted|routed",
+            "south": "none",
+            "west": "none",
+            "north": "unrouted|routed",
+            "east": "unrouted|routed"
+          },
+          {
+            "up": "unrouted|routed",
+            "south": "none",
+            "west": "none",
+            "north": "unrouted|routed",
+            "down": "unrouted|routed"
+          },
+          {
+            "up": "unrouted|routed",
+            "south": "none",
+            "west": "none",
+            "east": "unrouted|routed",
+            "down": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_up_south_west_up_dark"
+      }
+    },
+    {
+      "when": {
+        "up": "none",
+        "south": "unrouted|routed",
+        "west": "unrouted|routed",
+        "north": "none",
+        "east": "none",
+        "down": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_up_south_west_up"
@@ -310,9 +933,56 @@
     },
     {
       "when": {
-        "south": "true",
-        "up": "false",
-        "west": "false"
+        "OR": [
+          {
+            "up": "none",
+            "south": "unrouted|routed",
+            "west": "unrouted|routed",
+            "north": "unrouted|routed"
+          },
+          {
+            "up": "none",
+            "south": "unrouted|routed",
+            "west": "unrouted|routed",
+            "east": "unrouted|routed"
+          },
+          {
+            "up": "none",
+            "south": "unrouted|routed",
+            "west": "unrouted|routed",
+            "down": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_up_south_west_up_dark"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "south": "unrouted|routed",
+            "up": "none",
+            "west": "none",
+            "north": "none",
+            "east": "none"
+          },
+          {
+            "south": "unrouted|routed",
+            "up": "none",
+            "west": "none",
+            "north": "none",
+            "down": "none"
+          },
+          {
+            "south": "unrouted|routed",
+            "up": "none",
+            "west": "none",
+            "east": "none",
+            "down": "none"
+          }
+        ]
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_up_south_west_south"
@@ -320,9 +990,42 @@
     },
     {
       "when": {
-        "south": "false",
-        "up": "true",
-        "west": "true"
+        "OR": [
+          {
+            "south": "unrouted|routed",
+            "up": "none",
+            "west": "none",
+            "north": "unrouted|routed",
+            "east": "unrouted|routed"
+          },
+          {
+            "south": "unrouted|routed",
+            "up": "none",
+            "west": "none",
+            "north": "unrouted|routed",
+            "down": "unrouted|routed"
+          },
+          {
+            "south": "unrouted|routed",
+            "up": "none",
+            "west": "none",
+            "east": "unrouted|routed",
+            "down": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_up_south_west_south_dark"
+      }
+    },
+    {
+      "when": {
+        "south": "none",
+        "up": "unrouted|routed",
+        "west": "unrouted|routed",
+        "north": "none",
+        "east": "none",
+        "down": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_up_south_west_south"
@@ -330,9 +1033,56 @@
     },
     {
       "when": {
-        "west": "true",
-        "up": "false",
-        "south": "false"
+        "OR": [
+          {
+            "south": "none",
+            "up": "unrouted|routed",
+            "west": "unrouted|routed",
+            "north": "unrouted|routed"
+          },
+          {
+            "south": "none",
+            "up": "unrouted|routed",
+            "west": "unrouted|routed",
+            "east": "unrouted|routed"
+          },
+          {
+            "south": "none",
+            "up": "unrouted|routed",
+            "west": "unrouted|routed",
+            "down": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_up_south_west_south_dark"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "west": "unrouted|routed",
+            "up": "none",
+            "south": "none",
+            "north": "none",
+            "east": "none"
+          },
+          {
+            "west": "unrouted|routed",
+            "up": "none",
+            "south": "none",
+            "north": "none",
+            "down": "none"
+          },
+          {
+            "west": "unrouted|routed",
+            "up": "none",
+            "south": "none",
+            "east": "none",
+            "down": "none"
+          }
+        ]
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_up_south_west_west"
@@ -340,9 +1090,42 @@
     },
     {
       "when": {
-        "west": "false",
-        "up": "true",
-        "south": "true"
+        "OR": [
+          {
+            "west": "unrouted|routed",
+            "up": "none",
+            "south": "none",
+            "north": "unrouted|routed",
+            "east": "unrouted|routed"
+          },
+          {
+            "west": "unrouted|routed",
+            "up": "none",
+            "south": "none",
+            "north": "unrouted|routed",
+            "down": "unrouted|routed"
+          },
+          {
+            "west": "unrouted|routed",
+            "up": "none",
+            "south": "none",
+            "east": "unrouted|routed",
+            "down": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_up_south_west_west_dark"
+      }
+    },
+    {
+      "when": {
+        "west": "none",
+        "up": "unrouted|routed",
+        "south": "unrouted|routed",
+        "north": "none",
+        "east": "none",
+        "down": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_up_south_west_west"
@@ -350,9 +1133,53 @@
     },
     {
       "when": {
-        "up": "false",
-        "south": "false",
-        "east": "false"
+        "OR": [
+          {
+            "west": "none",
+            "up": "unrouted|routed",
+            "south": "unrouted|routed",
+            "north": "unrouted|routed"
+          },
+          {
+            "west": "none",
+            "up": "unrouted|routed",
+            "south": "unrouted|routed",
+            "east": "unrouted|routed"
+          },
+          {
+            "west": "none",
+            "up": "unrouted|routed",
+            "south": "unrouted|routed",
+            "down": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_up_south_west_west_dark"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "up": "none",
+            "south": "none",
+            "east": "none",
+            "north": "none"
+          },
+          {
+            "up": "none",
+            "south": "none",
+            "east": "none",
+            "west": "none"
+          },
+          {
+            "up": "none",
+            "south": "none",
+            "east": "none",
+            "down": "none"
+          }
+        ]
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_up_south_east"
@@ -360,19 +1187,52 @@
     },
     {
       "when": {
-        "up": "true",
-        "south": "true",
-        "east": "true"
+        "up": "none",
+        "south": "none",
+        "east": "none",
+        "north": "unrouted|routed",
+        "west": "unrouted|routed",
+        "down": "unrouted|routed"
       },
       "apply": {
-        "model": "logisticspipes:block/pipe/corner_all_up_south_east"
+        "model": "logisticspipes:block/pipe/corner_up_south_east_dark"
       }
     },
     {
       "when": {
-        "up": "true",
-        "south": "false",
-        "east": "false"
+        "up": "unrouted|routed",
+        "south": "unrouted|routed",
+        "east": "unrouted|routed"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_all_up_south_east_dark"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "up": "unrouted|routed",
+            "south": "none",
+            "east": "none",
+            "north": "none",
+            "west": "none"
+          },
+          {
+            "up": "unrouted|routed",
+            "south": "none",
+            "east": "none",
+            "north": "none",
+            "down": "none"
+          },
+          {
+            "up": "unrouted|routed",
+            "south": "none",
+            "east": "none",
+            "west": "none",
+            "down": "none"
+          }
+        ]
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_up_south_east_up"
@@ -380,9 +1240,42 @@
     },
     {
       "when": {
-        "up": "false",
-        "south": "true",
-        "east": "true"
+        "OR": [
+          {
+            "up": "unrouted|routed",
+            "south": "none",
+            "east": "none",
+            "north": "unrouted|routed",
+            "west": "unrouted|routed"
+          },
+          {
+            "up": "unrouted|routed",
+            "south": "none",
+            "east": "none",
+            "north": "unrouted|routed",
+            "down": "unrouted|routed"
+          },
+          {
+            "up": "unrouted|routed",
+            "south": "none",
+            "east": "none",
+            "west": "unrouted|routed",
+            "down": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_up_south_east_up_dark"
+      }
+    },
+    {
+      "when": {
+        "up": "none",
+        "south": "unrouted|routed",
+        "east": "unrouted|routed",
+        "north": "none",
+        "west": "none",
+        "down": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_up_south_east_up"
@@ -390,9 +1283,56 @@
     },
     {
       "when": {
-        "south": "true",
-        "up": "false",
-        "east": "false"
+        "OR": [
+          {
+            "up": "none",
+            "south": "unrouted|routed",
+            "east": "unrouted|routed",
+            "north": "unrouted|routed"
+          },
+          {
+            "up": "none",
+            "south": "unrouted|routed",
+            "east": "unrouted|routed",
+            "west": "unrouted|routed"
+          },
+          {
+            "up": "none",
+            "south": "unrouted|routed",
+            "east": "unrouted|routed",
+            "down": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_up_south_east_up_dark"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "south": "unrouted|routed",
+            "up": "none",
+            "east": "none",
+            "north": "none",
+            "west": "none"
+          },
+          {
+            "south": "unrouted|routed",
+            "up": "none",
+            "east": "none",
+            "north": "none",
+            "down": "none"
+          },
+          {
+            "south": "unrouted|routed",
+            "up": "none",
+            "east": "none",
+            "west": "none",
+            "down": "none"
+          }
+        ]
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_up_south_east_south"
@@ -400,9 +1340,42 @@
     },
     {
       "when": {
-        "south": "false",
-        "up": "true",
-        "east": "true"
+        "OR": [
+          {
+            "south": "unrouted|routed",
+            "up": "none",
+            "east": "none",
+            "north": "unrouted|routed",
+            "west": "unrouted|routed"
+          },
+          {
+            "south": "unrouted|routed",
+            "up": "none",
+            "east": "none",
+            "north": "unrouted|routed",
+            "down": "unrouted|routed"
+          },
+          {
+            "south": "unrouted|routed",
+            "up": "none",
+            "east": "none",
+            "west": "unrouted|routed",
+            "down": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_up_south_east_south_dark"
+      }
+    },
+    {
+      "when": {
+        "south": "none",
+        "up": "unrouted|routed",
+        "east": "unrouted|routed",
+        "north": "none",
+        "west": "none",
+        "down": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_up_south_east_south"
@@ -410,9 +1383,56 @@
     },
     {
       "when": {
-        "east": "true",
-        "up": "false",
-        "south": "false"
+        "OR": [
+          {
+            "south": "none",
+            "up": "unrouted|routed",
+            "east": "unrouted|routed",
+            "north": "unrouted|routed"
+          },
+          {
+            "south": "none",
+            "up": "unrouted|routed",
+            "east": "unrouted|routed",
+            "west": "unrouted|routed"
+          },
+          {
+            "south": "none",
+            "up": "unrouted|routed",
+            "east": "unrouted|routed",
+            "down": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_up_south_east_south_dark"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "east": "unrouted|routed",
+            "up": "none",
+            "south": "none",
+            "north": "none",
+            "west": "none"
+          },
+          {
+            "east": "unrouted|routed",
+            "up": "none",
+            "south": "none",
+            "north": "none",
+            "down": "none"
+          },
+          {
+            "east": "unrouted|routed",
+            "up": "none",
+            "south": "none",
+            "west": "none",
+            "down": "none"
+          }
+        ]
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_up_south_east_east"
@@ -420,9 +1440,42 @@
     },
     {
       "when": {
-        "east": "false",
-        "up": "true",
-        "south": "true"
+        "OR": [
+          {
+            "east": "unrouted|routed",
+            "up": "none",
+            "south": "none",
+            "north": "unrouted|routed",
+            "west": "unrouted|routed"
+          },
+          {
+            "east": "unrouted|routed",
+            "up": "none",
+            "south": "none",
+            "north": "unrouted|routed",
+            "down": "unrouted|routed"
+          },
+          {
+            "east": "unrouted|routed",
+            "up": "none",
+            "south": "none",
+            "west": "unrouted|routed",
+            "down": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_up_south_east_east_dark"
+      }
+    },
+    {
+      "when": {
+        "east": "none",
+        "up": "unrouted|routed",
+        "south": "unrouted|routed",
+        "north": "none",
+        "west": "none",
+        "down": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_up_south_east_east"
@@ -430,9 +1483,53 @@
     },
     {
       "when": {
-        "down": "false",
-        "north": "false",
-        "west": "false"
+        "OR": [
+          {
+            "east": "none",
+            "up": "unrouted|routed",
+            "south": "unrouted|routed",
+            "north": "unrouted|routed"
+          },
+          {
+            "east": "none",
+            "up": "unrouted|routed",
+            "south": "unrouted|routed",
+            "west": "unrouted|routed"
+          },
+          {
+            "east": "none",
+            "up": "unrouted|routed",
+            "south": "unrouted|routed",
+            "down": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_up_south_east_east_dark"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "down": "none",
+            "north": "none",
+            "west": "none",
+            "south": "none"
+          },
+          {
+            "down": "none",
+            "north": "none",
+            "west": "none",
+            "east": "none"
+          },
+          {
+            "down": "none",
+            "north": "none",
+            "west": "none",
+            "up": "none"
+          }
+        ]
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_down_north_west"
@@ -440,19 +1537,52 @@
     },
     {
       "when": {
-        "down": "true",
-        "north": "true",
-        "west": "true"
+        "down": "none",
+        "north": "none",
+        "west": "none",
+        "south": "unrouted|routed",
+        "east": "unrouted|routed",
+        "up": "unrouted|routed"
       },
       "apply": {
-        "model": "logisticspipes:block/pipe/corner_all_down_north_west"
+        "model": "logisticspipes:block/pipe/corner_down_north_west_dark"
       }
     },
     {
       "when": {
-        "down": "true",
-        "north": "false",
-        "west": "false"
+        "down": "unrouted|routed",
+        "north": "unrouted|routed",
+        "west": "unrouted|routed"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_all_down_north_west_dark"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "down": "unrouted|routed",
+            "north": "none",
+            "west": "none",
+            "south": "none",
+            "east": "none"
+          },
+          {
+            "down": "unrouted|routed",
+            "north": "none",
+            "west": "none",
+            "south": "none",
+            "up": "none"
+          },
+          {
+            "down": "unrouted|routed",
+            "north": "none",
+            "west": "none",
+            "east": "none",
+            "up": "none"
+          }
+        ]
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_down_north_west_down"
@@ -460,9 +1590,42 @@
     },
     {
       "when": {
-        "down": "false",
-        "north": "true",
-        "west": "true"
+        "OR": [
+          {
+            "down": "unrouted|routed",
+            "north": "none",
+            "west": "none",
+            "south": "unrouted|routed",
+            "east": "unrouted|routed"
+          },
+          {
+            "down": "unrouted|routed",
+            "north": "none",
+            "west": "none",
+            "south": "unrouted|routed",
+            "up": "unrouted|routed"
+          },
+          {
+            "down": "unrouted|routed",
+            "north": "none",
+            "west": "none",
+            "east": "unrouted|routed",
+            "up": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_down_north_west_down_dark"
+      }
+    },
+    {
+      "when": {
+        "down": "none",
+        "north": "unrouted|routed",
+        "west": "unrouted|routed",
+        "south": "none",
+        "east": "none",
+        "up": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_down_north_west_down"
@@ -470,9 +1633,56 @@
     },
     {
       "when": {
-        "north": "true",
-        "down": "false",
-        "west": "false"
+        "OR": [
+          {
+            "down": "none",
+            "north": "unrouted|routed",
+            "west": "unrouted|routed",
+            "south": "unrouted|routed"
+          },
+          {
+            "down": "none",
+            "north": "unrouted|routed",
+            "west": "unrouted|routed",
+            "east": "unrouted|routed"
+          },
+          {
+            "down": "none",
+            "north": "unrouted|routed",
+            "west": "unrouted|routed",
+            "up": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_down_north_west_down_dark"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "north": "unrouted|routed",
+            "down": "none",
+            "west": "none",
+            "south": "none",
+            "east": "none"
+          },
+          {
+            "north": "unrouted|routed",
+            "down": "none",
+            "west": "none",
+            "south": "none",
+            "up": "none"
+          },
+          {
+            "north": "unrouted|routed",
+            "down": "none",
+            "west": "none",
+            "east": "none",
+            "up": "none"
+          }
+        ]
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_down_north_west_north"
@@ -480,9 +1690,42 @@
     },
     {
       "when": {
-        "north": "false",
-        "down": "true",
-        "west": "true"
+        "OR": [
+          {
+            "north": "unrouted|routed",
+            "down": "none",
+            "west": "none",
+            "south": "unrouted|routed",
+            "east": "unrouted|routed"
+          },
+          {
+            "north": "unrouted|routed",
+            "down": "none",
+            "west": "none",
+            "south": "unrouted|routed",
+            "up": "unrouted|routed"
+          },
+          {
+            "north": "unrouted|routed",
+            "down": "none",
+            "west": "none",
+            "east": "unrouted|routed",
+            "up": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_down_north_west_north_dark"
+      }
+    },
+    {
+      "when": {
+        "north": "none",
+        "down": "unrouted|routed",
+        "west": "unrouted|routed",
+        "south": "none",
+        "east": "none",
+        "up": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_down_north_west_north"
@@ -490,9 +1733,56 @@
     },
     {
       "when": {
-        "west": "true",
-        "down": "false",
-        "north": "false"
+        "OR": [
+          {
+            "north": "none",
+            "down": "unrouted|routed",
+            "west": "unrouted|routed",
+            "south": "unrouted|routed"
+          },
+          {
+            "north": "none",
+            "down": "unrouted|routed",
+            "west": "unrouted|routed",
+            "east": "unrouted|routed"
+          },
+          {
+            "north": "none",
+            "down": "unrouted|routed",
+            "west": "unrouted|routed",
+            "up": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_down_north_west_north_dark"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "west": "unrouted|routed",
+            "down": "none",
+            "north": "none",
+            "south": "none",
+            "east": "none"
+          },
+          {
+            "west": "unrouted|routed",
+            "down": "none",
+            "north": "none",
+            "south": "none",
+            "up": "none"
+          },
+          {
+            "west": "unrouted|routed",
+            "down": "none",
+            "north": "none",
+            "east": "none",
+            "up": "none"
+          }
+        ]
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_down_north_west_west"
@@ -500,9 +1790,42 @@
     },
     {
       "when": {
-        "west": "false",
-        "down": "true",
-        "north": "true"
+        "OR": [
+          {
+            "west": "unrouted|routed",
+            "down": "none",
+            "north": "none",
+            "south": "unrouted|routed",
+            "east": "unrouted|routed"
+          },
+          {
+            "west": "unrouted|routed",
+            "down": "none",
+            "north": "none",
+            "south": "unrouted|routed",
+            "up": "unrouted|routed"
+          },
+          {
+            "west": "unrouted|routed",
+            "down": "none",
+            "north": "none",
+            "east": "unrouted|routed",
+            "up": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_down_north_west_west_dark"
+      }
+    },
+    {
+      "when": {
+        "west": "none",
+        "down": "unrouted|routed",
+        "north": "unrouted|routed",
+        "south": "none",
+        "east": "none",
+        "up": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_down_north_west_west"
@@ -510,9 +1833,53 @@
     },
     {
       "when": {
-        "down": "false",
-        "north": "false",
-        "east": "false"
+        "OR": [
+          {
+            "west": "none",
+            "down": "unrouted|routed",
+            "north": "unrouted|routed",
+            "south": "unrouted|routed"
+          },
+          {
+            "west": "none",
+            "down": "unrouted|routed",
+            "north": "unrouted|routed",
+            "east": "unrouted|routed"
+          },
+          {
+            "west": "none",
+            "down": "unrouted|routed",
+            "north": "unrouted|routed",
+            "up": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_down_north_west_west_dark"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "down": "none",
+            "north": "none",
+            "east": "none",
+            "south": "none"
+          },
+          {
+            "down": "none",
+            "north": "none",
+            "east": "none",
+            "west": "none"
+          },
+          {
+            "down": "none",
+            "north": "none",
+            "east": "none",
+            "up": "none"
+          }
+        ]
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_down_north_east"
@@ -520,19 +1887,52 @@
     },
     {
       "when": {
-        "down": "true",
-        "north": "true",
-        "east": "true"
+        "down": "none",
+        "north": "none",
+        "east": "none",
+        "south": "unrouted|routed",
+        "west": "unrouted|routed",
+        "up": "unrouted|routed"
       },
       "apply": {
-        "model": "logisticspipes:block/pipe/corner_all_down_north_east"
+        "model": "logisticspipes:block/pipe/corner_down_north_east_dark"
       }
     },
     {
       "when": {
-        "down": "true",
-        "north": "false",
-        "east": "false"
+        "down": "unrouted|routed",
+        "north": "unrouted|routed",
+        "east": "unrouted|routed"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_all_down_north_east_dark"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "down": "unrouted|routed",
+            "north": "none",
+            "east": "none",
+            "south": "none",
+            "west": "none"
+          },
+          {
+            "down": "unrouted|routed",
+            "north": "none",
+            "east": "none",
+            "south": "none",
+            "up": "none"
+          },
+          {
+            "down": "unrouted|routed",
+            "north": "none",
+            "east": "none",
+            "west": "none",
+            "up": "none"
+          }
+        ]
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_down_north_east_down"
@@ -540,9 +1940,42 @@
     },
     {
       "when": {
-        "down": "false",
-        "north": "true",
-        "east": "true"
+        "OR": [
+          {
+            "down": "unrouted|routed",
+            "north": "none",
+            "east": "none",
+            "south": "unrouted|routed",
+            "west": "unrouted|routed"
+          },
+          {
+            "down": "unrouted|routed",
+            "north": "none",
+            "east": "none",
+            "south": "unrouted|routed",
+            "up": "unrouted|routed"
+          },
+          {
+            "down": "unrouted|routed",
+            "north": "none",
+            "east": "none",
+            "west": "unrouted|routed",
+            "up": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_down_north_east_down_dark"
+      }
+    },
+    {
+      "when": {
+        "down": "none",
+        "north": "unrouted|routed",
+        "east": "unrouted|routed",
+        "south": "none",
+        "west": "none",
+        "up": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_down_north_east_down"
@@ -550,9 +1983,56 @@
     },
     {
       "when": {
-        "north": "true",
-        "down": "false",
-        "east": "false"
+        "OR": [
+          {
+            "down": "none",
+            "north": "unrouted|routed",
+            "east": "unrouted|routed",
+            "south": "unrouted|routed"
+          },
+          {
+            "down": "none",
+            "north": "unrouted|routed",
+            "east": "unrouted|routed",
+            "west": "unrouted|routed"
+          },
+          {
+            "down": "none",
+            "north": "unrouted|routed",
+            "east": "unrouted|routed",
+            "up": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_down_north_east_down_dark"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "north": "unrouted|routed",
+            "down": "none",
+            "east": "none",
+            "south": "none",
+            "west": "none"
+          },
+          {
+            "north": "unrouted|routed",
+            "down": "none",
+            "east": "none",
+            "south": "none",
+            "up": "none"
+          },
+          {
+            "north": "unrouted|routed",
+            "down": "none",
+            "east": "none",
+            "west": "none",
+            "up": "none"
+          }
+        ]
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_down_north_east_north"
@@ -560,9 +2040,42 @@
     },
     {
       "when": {
-        "north": "false",
-        "down": "true",
-        "east": "true"
+        "OR": [
+          {
+            "north": "unrouted|routed",
+            "down": "none",
+            "east": "none",
+            "south": "unrouted|routed",
+            "west": "unrouted|routed"
+          },
+          {
+            "north": "unrouted|routed",
+            "down": "none",
+            "east": "none",
+            "south": "unrouted|routed",
+            "up": "unrouted|routed"
+          },
+          {
+            "north": "unrouted|routed",
+            "down": "none",
+            "east": "none",
+            "west": "unrouted|routed",
+            "up": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_down_north_east_north_dark"
+      }
+    },
+    {
+      "when": {
+        "north": "none",
+        "down": "unrouted|routed",
+        "east": "unrouted|routed",
+        "south": "none",
+        "west": "none",
+        "up": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_down_north_east_north"
@@ -570,9 +2083,56 @@
     },
     {
       "when": {
-        "east": "true",
-        "down": "false",
-        "north": "false"
+        "OR": [
+          {
+            "north": "none",
+            "down": "unrouted|routed",
+            "east": "unrouted|routed",
+            "south": "unrouted|routed"
+          },
+          {
+            "north": "none",
+            "down": "unrouted|routed",
+            "east": "unrouted|routed",
+            "west": "unrouted|routed"
+          },
+          {
+            "north": "none",
+            "down": "unrouted|routed",
+            "east": "unrouted|routed",
+            "up": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_down_north_east_north_dark"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "east": "unrouted|routed",
+            "down": "none",
+            "north": "none",
+            "south": "none",
+            "west": "none"
+          },
+          {
+            "east": "unrouted|routed",
+            "down": "none",
+            "north": "none",
+            "south": "none",
+            "up": "none"
+          },
+          {
+            "east": "unrouted|routed",
+            "down": "none",
+            "north": "none",
+            "west": "none",
+            "up": "none"
+          }
+        ]
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_down_north_east_east"
@@ -580,9 +2140,42 @@
     },
     {
       "when": {
-        "east": "false",
-        "down": "true",
-        "north": "true"
+        "OR": [
+          {
+            "east": "unrouted|routed",
+            "down": "none",
+            "north": "none",
+            "south": "unrouted|routed",
+            "west": "unrouted|routed"
+          },
+          {
+            "east": "unrouted|routed",
+            "down": "none",
+            "north": "none",
+            "south": "unrouted|routed",
+            "up": "unrouted|routed"
+          },
+          {
+            "east": "unrouted|routed",
+            "down": "none",
+            "north": "none",
+            "west": "unrouted|routed",
+            "up": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_down_north_east_east_dark"
+      }
+    },
+    {
+      "when": {
+        "east": "none",
+        "down": "unrouted|routed",
+        "north": "unrouted|routed",
+        "south": "none",
+        "west": "none",
+        "up": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_down_north_east_east"
@@ -590,9 +2183,53 @@
     },
     {
       "when": {
-        "down": "false",
-        "south": "false",
-        "west": "false"
+        "OR": [
+          {
+            "east": "none",
+            "down": "unrouted|routed",
+            "north": "unrouted|routed",
+            "south": "unrouted|routed"
+          },
+          {
+            "east": "none",
+            "down": "unrouted|routed",
+            "north": "unrouted|routed",
+            "west": "unrouted|routed"
+          },
+          {
+            "east": "none",
+            "down": "unrouted|routed",
+            "north": "unrouted|routed",
+            "up": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_down_north_east_east_dark"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "down": "none",
+            "south": "none",
+            "west": "none",
+            "north": "none"
+          },
+          {
+            "down": "none",
+            "south": "none",
+            "west": "none",
+            "east": "none"
+          },
+          {
+            "down": "none",
+            "south": "none",
+            "west": "none",
+            "up": "none"
+          }
+        ]
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_down_south_west"
@@ -600,19 +2237,52 @@
     },
     {
       "when": {
-        "down": "true",
-        "south": "true",
-        "west": "true"
+        "down": "none",
+        "south": "none",
+        "west": "none",
+        "north": "unrouted|routed",
+        "east": "unrouted|routed",
+        "up": "unrouted|routed"
       },
       "apply": {
-        "model": "logisticspipes:block/pipe/corner_all_down_south_west"
+        "model": "logisticspipes:block/pipe/corner_down_south_west_dark"
       }
     },
     {
       "when": {
-        "down": "true",
-        "south": "false",
-        "west": "false"
+        "down": "unrouted|routed",
+        "south": "unrouted|routed",
+        "west": "unrouted|routed"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_all_down_south_west_dark"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "down": "unrouted|routed",
+            "south": "none",
+            "west": "none",
+            "north": "none",
+            "east": "none"
+          },
+          {
+            "down": "unrouted|routed",
+            "south": "none",
+            "west": "none",
+            "north": "none",
+            "up": "none"
+          },
+          {
+            "down": "unrouted|routed",
+            "south": "none",
+            "west": "none",
+            "east": "none",
+            "up": "none"
+          }
+        ]
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_down_south_west_down"
@@ -620,9 +2290,42 @@
     },
     {
       "when": {
-        "down": "false",
-        "south": "true",
-        "west": "true"
+        "OR": [
+          {
+            "down": "unrouted|routed",
+            "south": "none",
+            "west": "none",
+            "north": "unrouted|routed",
+            "east": "unrouted|routed"
+          },
+          {
+            "down": "unrouted|routed",
+            "south": "none",
+            "west": "none",
+            "north": "unrouted|routed",
+            "up": "unrouted|routed"
+          },
+          {
+            "down": "unrouted|routed",
+            "south": "none",
+            "west": "none",
+            "east": "unrouted|routed",
+            "up": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_down_south_west_down_dark"
+      }
+    },
+    {
+      "when": {
+        "down": "none",
+        "south": "unrouted|routed",
+        "west": "unrouted|routed",
+        "north": "none",
+        "east": "none",
+        "up": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_down_south_west_down"
@@ -630,9 +2333,56 @@
     },
     {
       "when": {
-        "south": "true",
-        "down": "false",
-        "west": "false"
+        "OR": [
+          {
+            "down": "none",
+            "south": "unrouted|routed",
+            "west": "unrouted|routed",
+            "north": "unrouted|routed"
+          },
+          {
+            "down": "none",
+            "south": "unrouted|routed",
+            "west": "unrouted|routed",
+            "east": "unrouted|routed"
+          },
+          {
+            "down": "none",
+            "south": "unrouted|routed",
+            "west": "unrouted|routed",
+            "up": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_down_south_west_down_dark"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "south": "unrouted|routed",
+            "down": "none",
+            "west": "none",
+            "north": "none",
+            "east": "none"
+          },
+          {
+            "south": "unrouted|routed",
+            "down": "none",
+            "west": "none",
+            "north": "none",
+            "up": "none"
+          },
+          {
+            "south": "unrouted|routed",
+            "down": "none",
+            "west": "none",
+            "east": "none",
+            "up": "none"
+          }
+        ]
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_down_south_west_south"
@@ -640,9 +2390,42 @@
     },
     {
       "when": {
-        "south": "false",
-        "down": "true",
-        "west": "true"
+        "OR": [
+          {
+            "south": "unrouted|routed",
+            "down": "none",
+            "west": "none",
+            "north": "unrouted|routed",
+            "east": "unrouted|routed"
+          },
+          {
+            "south": "unrouted|routed",
+            "down": "none",
+            "west": "none",
+            "north": "unrouted|routed",
+            "up": "unrouted|routed"
+          },
+          {
+            "south": "unrouted|routed",
+            "down": "none",
+            "west": "none",
+            "east": "unrouted|routed",
+            "up": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_down_south_west_south_dark"
+      }
+    },
+    {
+      "when": {
+        "south": "none",
+        "down": "unrouted|routed",
+        "west": "unrouted|routed",
+        "north": "none",
+        "east": "none",
+        "up": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_down_south_west_south"
@@ -650,9 +2433,56 @@
     },
     {
       "when": {
-        "west": "true",
-        "down": "false",
-        "south": "false"
+        "OR": [
+          {
+            "south": "none",
+            "down": "unrouted|routed",
+            "west": "unrouted|routed",
+            "north": "unrouted|routed"
+          },
+          {
+            "south": "none",
+            "down": "unrouted|routed",
+            "west": "unrouted|routed",
+            "east": "unrouted|routed"
+          },
+          {
+            "south": "none",
+            "down": "unrouted|routed",
+            "west": "unrouted|routed",
+            "up": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_down_south_west_south_dark"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "west": "unrouted|routed",
+            "down": "none",
+            "south": "none",
+            "north": "none",
+            "east": "none"
+          },
+          {
+            "west": "unrouted|routed",
+            "down": "none",
+            "south": "none",
+            "north": "none",
+            "up": "none"
+          },
+          {
+            "west": "unrouted|routed",
+            "down": "none",
+            "south": "none",
+            "east": "none",
+            "up": "none"
+          }
+        ]
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_down_south_west_west"
@@ -660,9 +2490,42 @@
     },
     {
       "when": {
-        "west": "false",
-        "down": "true",
-        "south": "true"
+        "OR": [
+          {
+            "west": "unrouted|routed",
+            "down": "none",
+            "south": "none",
+            "north": "unrouted|routed",
+            "east": "unrouted|routed"
+          },
+          {
+            "west": "unrouted|routed",
+            "down": "none",
+            "south": "none",
+            "north": "unrouted|routed",
+            "up": "unrouted|routed"
+          },
+          {
+            "west": "unrouted|routed",
+            "down": "none",
+            "south": "none",
+            "east": "unrouted|routed",
+            "up": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_down_south_west_west_dark"
+      }
+    },
+    {
+      "when": {
+        "west": "none",
+        "down": "unrouted|routed",
+        "south": "unrouted|routed",
+        "north": "none",
+        "east": "none",
+        "up": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_down_south_west_west"
@@ -670,9 +2533,53 @@
     },
     {
       "when": {
-        "down": "false",
-        "south": "false",
-        "east": "false"
+        "OR": [
+          {
+            "west": "none",
+            "down": "unrouted|routed",
+            "south": "unrouted|routed",
+            "north": "unrouted|routed"
+          },
+          {
+            "west": "none",
+            "down": "unrouted|routed",
+            "south": "unrouted|routed",
+            "east": "unrouted|routed"
+          },
+          {
+            "west": "none",
+            "down": "unrouted|routed",
+            "south": "unrouted|routed",
+            "up": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_down_south_west_west_dark"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "down": "none",
+            "south": "none",
+            "east": "none",
+            "north": "none"
+          },
+          {
+            "down": "none",
+            "south": "none",
+            "east": "none",
+            "west": "none"
+          },
+          {
+            "down": "none",
+            "south": "none",
+            "east": "none",
+            "up": "none"
+          }
+        ]
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_down_south_east"
@@ -680,19 +2587,52 @@
     },
     {
       "when": {
-        "down": "true",
-        "south": "true",
-        "east": "true"
+        "down": "none",
+        "south": "none",
+        "east": "none",
+        "north": "unrouted|routed",
+        "west": "unrouted|routed",
+        "up": "unrouted|routed"
       },
       "apply": {
-        "model": "logisticspipes:block/pipe/corner_all_down_south_east"
+        "model": "logisticspipes:block/pipe/corner_down_south_east_dark"
       }
     },
     {
       "when": {
-        "down": "true",
-        "south": "false",
-        "east": "false"
+        "down": "unrouted|routed",
+        "south": "unrouted|routed",
+        "east": "unrouted|routed"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_all_down_south_east_dark"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "down": "unrouted|routed",
+            "south": "none",
+            "east": "none",
+            "north": "none",
+            "west": "none"
+          },
+          {
+            "down": "unrouted|routed",
+            "south": "none",
+            "east": "none",
+            "north": "none",
+            "up": "none"
+          },
+          {
+            "down": "unrouted|routed",
+            "south": "none",
+            "east": "none",
+            "west": "none",
+            "up": "none"
+          }
+        ]
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_down_south_east_down"
@@ -700,9 +2640,42 @@
     },
     {
       "when": {
-        "down": "false",
-        "south": "true",
-        "east": "true"
+        "OR": [
+          {
+            "down": "unrouted|routed",
+            "south": "none",
+            "east": "none",
+            "north": "unrouted|routed",
+            "west": "unrouted|routed"
+          },
+          {
+            "down": "unrouted|routed",
+            "south": "none",
+            "east": "none",
+            "north": "unrouted|routed",
+            "up": "unrouted|routed"
+          },
+          {
+            "down": "unrouted|routed",
+            "south": "none",
+            "east": "none",
+            "west": "unrouted|routed",
+            "up": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_down_south_east_down_dark"
+      }
+    },
+    {
+      "when": {
+        "down": "none",
+        "south": "unrouted|routed",
+        "east": "unrouted|routed",
+        "north": "none",
+        "west": "none",
+        "up": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_down_south_east_down"
@@ -710,9 +2683,56 @@
     },
     {
       "when": {
-        "south": "true",
-        "down": "false",
-        "east": "false"
+        "OR": [
+          {
+            "down": "none",
+            "south": "unrouted|routed",
+            "east": "unrouted|routed",
+            "north": "unrouted|routed"
+          },
+          {
+            "down": "none",
+            "south": "unrouted|routed",
+            "east": "unrouted|routed",
+            "west": "unrouted|routed"
+          },
+          {
+            "down": "none",
+            "south": "unrouted|routed",
+            "east": "unrouted|routed",
+            "up": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_down_south_east_down_dark"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "south": "unrouted|routed",
+            "down": "none",
+            "east": "none",
+            "north": "none",
+            "west": "none"
+          },
+          {
+            "south": "unrouted|routed",
+            "down": "none",
+            "east": "none",
+            "north": "none",
+            "up": "none"
+          },
+          {
+            "south": "unrouted|routed",
+            "down": "none",
+            "east": "none",
+            "west": "none",
+            "up": "none"
+          }
+        ]
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_down_south_east_south"
@@ -720,9 +2740,42 @@
     },
     {
       "when": {
-        "south": "false",
-        "down": "true",
-        "east": "true"
+        "OR": [
+          {
+            "south": "unrouted|routed",
+            "down": "none",
+            "east": "none",
+            "north": "unrouted|routed",
+            "west": "unrouted|routed"
+          },
+          {
+            "south": "unrouted|routed",
+            "down": "none",
+            "east": "none",
+            "north": "unrouted|routed",
+            "up": "unrouted|routed"
+          },
+          {
+            "south": "unrouted|routed",
+            "down": "none",
+            "east": "none",
+            "west": "unrouted|routed",
+            "up": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_down_south_east_south_dark"
+      }
+    },
+    {
+      "when": {
+        "south": "none",
+        "down": "unrouted|routed",
+        "east": "unrouted|routed",
+        "north": "none",
+        "west": "none",
+        "up": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_down_south_east_south"
@@ -730,9 +2783,56 @@
     },
     {
       "when": {
-        "east": "true",
-        "down": "false",
-        "south": "false"
+        "OR": [
+          {
+            "south": "none",
+            "down": "unrouted|routed",
+            "east": "unrouted|routed",
+            "north": "unrouted|routed"
+          },
+          {
+            "south": "none",
+            "down": "unrouted|routed",
+            "east": "unrouted|routed",
+            "west": "unrouted|routed"
+          },
+          {
+            "south": "none",
+            "down": "unrouted|routed",
+            "east": "unrouted|routed",
+            "up": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_down_south_east_south_dark"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "east": "unrouted|routed",
+            "down": "none",
+            "south": "none",
+            "north": "none",
+            "west": "none"
+          },
+          {
+            "east": "unrouted|routed",
+            "down": "none",
+            "south": "none",
+            "north": "none",
+            "up": "none"
+          },
+          {
+            "east": "unrouted|routed",
+            "down": "none",
+            "south": "none",
+            "west": "none",
+            "up": "none"
+          }
+        ]
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_down_south_east_east"
@@ -740,9 +2840,42 @@
     },
     {
       "when": {
-        "east": "false",
-        "down": "true",
-        "south": "true"
+        "OR": [
+          {
+            "east": "unrouted|routed",
+            "down": "none",
+            "south": "none",
+            "north": "unrouted|routed",
+            "west": "unrouted|routed"
+          },
+          {
+            "east": "unrouted|routed",
+            "down": "none",
+            "south": "none",
+            "north": "unrouted|routed",
+            "up": "unrouted|routed"
+          },
+          {
+            "east": "unrouted|routed",
+            "down": "none",
+            "south": "none",
+            "west": "unrouted|routed",
+            "up": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_down_south_east_east_dark"
+      }
+    },
+    {
+      "when": {
+        "east": "none",
+        "down": "unrouted|routed",
+        "south": "unrouted|routed",
+        "north": "none",
+        "west": "none",
+        "up": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_down_south_east_east"
@@ -750,12 +2883,39 @@
     },
     {
       "when": {
-        "north": "false",
-        "south": "false",
-        "east": "false",
-        "west": "false",
-        "up": "true",
-        "down": "true"
+        "OR": [
+          {
+            "east": "none",
+            "down": "unrouted|routed",
+            "south": "unrouted|routed",
+            "north": "unrouted|routed"
+          },
+          {
+            "east": "none",
+            "down": "unrouted|routed",
+            "south": "unrouted|routed",
+            "west": "unrouted|routed"
+          },
+          {
+            "east": "none",
+            "down": "unrouted|routed",
+            "south": "unrouted|routed",
+            "up": "unrouted|routed"
+          }
+        ]
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_down_south_east_east_dark"
+      }
+    },
+    {
+      "when": {
+        "north": "none",
+        "south": "none",
+        "east": "none",
+        "west": "none",
+        "up": "unrouted|routed",
+        "down": "unrouted|routed"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/support_down_e_s"
@@ -763,12 +2923,12 @@
     },
     {
       "when": {
-        "north": "false",
-        "south": "false",
-        "east": "false",
-        "west": "false",
-        "up": "true",
-        "down": "true"
+        "north": "none",
+        "south": "none",
+        "east": "none",
+        "west": "none",
+        "up": "unrouted|routed",
+        "down": "unrouted|routed"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/support_down_w_s"
@@ -776,12 +2936,12 @@
     },
     {
       "when": {
-        "north": "false",
-        "south": "false",
-        "east": "false",
-        "west": "false",
-        "up": "true",
-        "down": "true"
+        "north": "none",
+        "south": "none",
+        "east": "none",
+        "west": "none",
+        "up": "unrouted|routed",
+        "down": "unrouted|routed"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/support_down_n_s"
@@ -789,12 +2949,12 @@
     },
     {
       "when": {
-        "north": "false",
-        "south": "false",
-        "east": "false",
-        "west": "false",
-        "up": "true",
-        "down": "true"
+        "north": "none",
+        "south": "none",
+        "east": "none",
+        "west": "none",
+        "up": "unrouted|routed",
+        "down": "unrouted|routed"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/support_down_s_s"
@@ -802,12 +2962,12 @@
     },
     {
       "when": {
-        "north": "true",
-        "south": "true",
-        "east": "false",
-        "west": "false",
-        "up": "false",
-        "down": "false"
+        "north": "unrouted|routed",
+        "south": "unrouted|routed",
+        "east": "none",
+        "west": "none",
+        "up": "none",
+        "down": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/support_north_e_u"
@@ -815,12 +2975,12 @@
     },
     {
       "when": {
-        "north": "true",
-        "south": "true",
-        "east": "false",
-        "west": "false",
-        "up": "false",
-        "down": "false"
+        "north": "unrouted|routed",
+        "south": "unrouted|routed",
+        "east": "none",
+        "west": "none",
+        "up": "none",
+        "down": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/support_north_w_u"
@@ -828,12 +2988,12 @@
     },
     {
       "when": {
-        "north": "true",
-        "south": "true",
-        "east": "false",
-        "west": "false",
-        "up": "false",
-        "down": "false"
+        "north": "unrouted|routed",
+        "south": "unrouted|routed",
+        "east": "none",
+        "west": "none",
+        "up": "none",
+        "down": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/support_north_u_s"
@@ -841,12 +3001,12 @@
     },
     {
       "when": {
-        "north": "true",
-        "south": "true",
-        "east": "false",
-        "west": "false",
-        "up": "false",
-        "down": "false"
+        "north": "unrouted|routed",
+        "south": "unrouted|routed",
+        "east": "none",
+        "west": "none",
+        "up": "none",
+        "down": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/support_north_d_s"
@@ -854,12 +3014,12 @@
     },
     {
       "when": {
-        "north": "false",
-        "south": "false",
-        "east": "true",
-        "west": "true",
-        "up": "false",
-        "down": "false"
+        "north": "none",
+        "south": "none",
+        "east": "unrouted|routed",
+        "west": "unrouted|routed",
+        "up": "none",
+        "down": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/support_west_u_u"
@@ -867,12 +3027,12 @@
     },
     {
       "when": {
-        "north": "false",
-        "south": "false",
-        "east": "true",
-        "west": "true",
-        "up": "false",
-        "down": "false"
+        "north": "none",
+        "south": "none",
+        "east": "unrouted|routed",
+        "west": "unrouted|routed",
+        "up": "none",
+        "down": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/support_west_d_u"
@@ -880,12 +3040,12 @@
     },
     {
       "when": {
-        "north": "false",
-        "south": "false",
-        "east": "true",
-        "west": "true",
-        "up": "false",
-        "down": "false"
+        "north": "none",
+        "south": "none",
+        "east": "unrouted|routed",
+        "west": "unrouted|routed",
+        "up": "none",
+        "down": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/support_west_n_u"
@@ -893,12 +3053,12 @@
     },
     {
       "when": {
-        "north": "false",
-        "south": "false",
-        "east": "true",
-        "west": "true",
-        "up": "false",
-        "down": "false"
+        "north": "none",
+        "south": "none",
+        "east": "unrouted|routed",
+        "west": "unrouted|routed",
+        "up": "none",
+        "down": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/support_west_s_u"
@@ -906,7 +3066,7 @@
     },
     {
       "when": {
-        "north": "true"
+        "north": "unrouted|routed"
       },
       "apply": {
         "model": "logisticspipes:block/transport_pipe_side_north"
@@ -914,7 +3074,7 @@
     },
     {
       "when": {
-        "north": "false"
+        "north": "none"
       },
       "apply": {
         "model": "logisticspipes:block/transport_pipe_plate_north"
@@ -922,7 +3082,7 @@
     },
     {
       "when": {
-        "south": "true"
+        "south": "unrouted|routed"
       },
       "apply": {
         "model": "logisticspipes:block/transport_pipe_side_south"
@@ -930,7 +3090,7 @@
     },
     {
       "when": {
-        "south": "false"
+        "south": "none"
       },
       "apply": {
         "model": "logisticspipes:block/transport_pipe_plate_south"
@@ -938,7 +3098,7 @@
     },
     {
       "when": {
-        "east": "true"
+        "east": "unrouted|routed"
       },
       "apply": {
         "model": "logisticspipes:block/transport_pipe_side_east"
@@ -946,7 +3106,7 @@
     },
     {
       "when": {
-        "east": "false"
+        "east": "none"
       },
       "apply": {
         "model": "logisticspipes:block/transport_pipe_plate_east"
@@ -954,7 +3114,7 @@
     },
     {
       "when": {
-        "west": "true"
+        "west": "unrouted|routed"
       },
       "apply": {
         "model": "logisticspipes:block/transport_pipe_side_west"
@@ -962,7 +3122,7 @@
     },
     {
       "when": {
-        "west": "false"
+        "west": "none"
       },
       "apply": {
         "model": "logisticspipes:block/transport_pipe_plate_west"
@@ -970,7 +3130,7 @@
     },
     {
       "when": {
-        "up": "true"
+        "up": "unrouted|routed"
       },
       "apply": {
         "model": "logisticspipes:block/transport_pipe_side_up"
@@ -978,7 +3138,7 @@
     },
     {
       "when": {
-        "up": "false"
+        "up": "none"
       },
       "apply": {
         "model": "logisticspipes:block/transport_pipe_plate_up"
@@ -986,7 +3146,7 @@
     },
     {
       "when": {
-        "down": "true"
+        "down": "unrouted|routed"
       },
       "apply": {
         "model": "logisticspipes:block/transport_pipe_side_down"
@@ -994,7 +3154,7 @@
     },
     {
       "when": {
-        "down": "false"
+        "down": "none"
       },
       "apply": {
         "model": "logisticspipes:block/transport_pipe_plate_down"

@@ -43,6 +43,7 @@ import logisticspipes.domain.logistics.ProviderSettings;
 import logisticspipes.domain.logistics.SinkRule;
 import logisticspipes.domain.logistics.Supply;
 import logisticspipes.domain.logistics.SupplyMode;
+import logisticspipes.domain.routing.Link;
 import logisticspipes.domain.routing.RouterId;
 import logisticspipes.domain.routing.Side;
 import logisticspipes.domain.security.Permission;
@@ -108,6 +109,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     private final OutputOrders outputOrders = new OutputOrders();
     private final PipeStatistics statistics = new PipeStatistics();
     private final PipeSecurity security = new PipeSecurity(this);
+    private final PipeLook look = new PipeLook(this);
     private final ContainerData data = new ContainerData() {
         @Override
         public int get(int index) {
@@ -182,6 +184,8 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     private long surroundingsCachedAt;
     private long contentsCachedAt;
     private boolean linksDirty;
+    // what the server told a client about the opaque upgrade
+    private boolean opaqueOnClient;
     // null unless this is a fluid pipe
     private final FluidPipe fluids;
     private final PowerPipe power = new PowerPipe(this);
@@ -220,6 +224,10 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             transport.setBoost(boost());
             neighbourChanged();
             setChanged();
+            if (level != null && !level.isClientSide) {
+                // clients have to know about the opaque upgrade
+                level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
+            }
         });
         moduleUpgrades.addListener(container -> settingsChanged());
     }
@@ -312,6 +320,11 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
 
     public List<TravellingItem> travellingItems() {
         return transport.items();
+    }
+
+    // an opaque pipe does not tell clients what travels through it
+    public boolean opaque() {
+        return level != null && level.isClientSide ? opaqueOnClient : upgradeCount(UpgradeKind.OPAQUE) > 0;
     }
 
     public Container config() {
@@ -587,12 +600,16 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     void acceptFromTube(TravellingItem item) {
         transport.insert(item);
         setChanged();
-        level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
+        if (!opaque()) {
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
+        }
     }
 
     // a viewer guessing that an item came out of a tube
     void expectFromTube(TravellingItem item) {
-        transport.expect(item);
+        if (!opaque()) {
+            transport.expect(item);
+        }
     }
 
     // empty for plain pipes and on the client
@@ -896,7 +913,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             Side exit = departure.exit().orElseThrow();
             BlockPos target = worldPosition.relative(Directions.toMinecraft(exit));
             if (level.getBlockEntity(target) instanceof PipeBlockEntity neighbour) {
-                neighbour.transport.expect(departure.item().enteringFrom(exit.opposite()));
+                if (!neighbour.opaque()) {
+                    neighbour.transport.expect(departure.item().enteringFrom(exit.opposite()));
+                }
             } else {
                 TubeBlockEntity.expectFromPipe(level, target, Directions.toMinecraft(exit.opposite()), departure.item());
             }
@@ -917,8 +936,13 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         security.tick();
         if (linksDirty && pipe().routed()) {
             linksDirty = false;
-            network().updateLinks(routerId, PipeTopology.discoverLinks(level, worldPosition), level.getGameTime());
+            List<Link> links = PipeTopology.discoverLinks(level, worldPosition);
+            network().updateLinks(routerId, links, level.getGameTime());
             network().subSystemPower().updateStraightLinks(routerId, PipeTopology.straightNeighbours(level, worldPosition));
+            look.showLinks(links);
+        }
+        if (pipe().routed()) {
+            look.tick();
         }
         if (table != null) {
             table.tick();
@@ -941,7 +965,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             }
             setChanged();
         }
-        if (transport.pollChanged()) {
+        if (transport.pollChanged() && !opaque()) {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
         }
     }
@@ -955,7 +979,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         }
         Set<Side> connections = EnumSet.noneOf(Side.class);
         for (Direction side : Direction.values()) {
-            if (getBlockState().getValue(LogisticsPipeBlock.CONNECTED.get(side))) {
+            if (LogisticsPipeBlock.connected(getBlockState(), side)) {
                 connections.add(Directions.toDomain(side));
             }
         }
@@ -998,7 +1022,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             neighbour.transport.insert(item.enteringFrom(exit.opposite()));
             neighbour.setChanged();
             // tell clients now, a neighbour that already ticked would only do so a tick later and the item would blink
-            level.sendBlockUpdated(target, neighbour.getBlockState(), neighbour.getBlockState(), Block.UPDATE_CLIENTS);
+            if (!neighbour.opaque()) {
+                level.sendBlockUpdated(target, neighbour.getBlockState(), neighbour.getBlockState(), Block.UPDATE_CLIENTS);
+            }
             return;
         }
         if (connector != null && connector.handsOver(item, side)) {
@@ -1053,7 +1079,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             }
             if (level.getBlockEntity(target) instanceof PowerJunctionBlockEntity) {
                 junctions.add(target);
-            } else if (fluids == null && getBlockState().getValue(LogisticsPipeBlock.CONNECTED.get(side))
+            } else if (fluids == null && LogisticsPipeBlock.connected(getBlockState(), side)
                     && !(level.getBlockState(target).getBlock() instanceof LogisticsPipeBlock)
                     && storage().exists(level, target, accessFace(side))) {
                 sides.add(side);
@@ -1293,11 +1319,15 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         return ClientboundBlockEntityDataPacket.create(this);
     }
 
-    // clients only need the items for drawing them
+    // clients only need the items for drawing them, and not even those of an opaque pipe
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = new CompoundTag();
-        tag.put("Items", TransportTags.save(transport, registries));
+        if (opaque()) {
+            tag.putBoolean("Opaque", true);
+        } else {
+            tag.put("Items", TransportTags.save(transport, registries));
+        }
         return tag;
     }
 
@@ -1364,6 +1394,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             routerId = new RouterId(tag.getUUID("Router"));
         }
         TransportTags.load(transport, tag.getList("Items", Tag.TAG_COMPOUND), registries);
+        opaqueOnClient = tag.getBoolean("Opaque");
         // updates for clients carry only the items, and commands may set any part alone, so every part is optional
         if (tag.contains("Satellite")) {
             satelliteId = tag.getInt("Satellite");

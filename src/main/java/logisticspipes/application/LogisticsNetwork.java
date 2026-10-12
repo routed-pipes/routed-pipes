@@ -98,6 +98,11 @@ public final class LogisticsNetwork {
     private final Set<RouterId> sinksForAnything = new HashSet<>();
     private final FluidLogistics fluids = new FluidLogistics(this);
     private final SubSystemPower subSystemPower = new SubSystemPower(this);
+    // how long the answer to which groups of routers have energy is good for, in ticks
+    public static final int POWER_LOOK_INTERVAL = 20;
+    private final Set<Integer> poweredComponents = new HashSet<>();
+    private long powerLookedAt = Long.MIN_VALUE / 2;
+    private long powerLookedAfter = Long.MIN_VALUE / 2;
 
     public FluidLogistics fluids() {
         return fluids;
@@ -659,6 +664,43 @@ public final class LogisticsNetwork {
             left -= source.drawPower(left, false);
         }
         return true;
+    }
+
+    // whether the router could use any energy right now, for the look of its pipe
+    // every routed pipe keeps asking, so one walk over all routers answers for all of them until the network
+    // changes or POWER_LOOK_INTERVAL ticks have passed. empty when there is no telling in this tick
+    public Optional<Boolean> hasPower(RouterId at, long now) {
+        if (now == lastChangeAnywhere) {
+            // routers are still registering, see settling
+            return Optional.empty();
+        }
+        OptionalInt component = routing.component(at);
+        if (component.isEmpty()) {
+            return Optional.of(false);
+        }
+        if (now - powerLookedAt >= POWER_LOOK_INTERVAL || powerLookedAfter != lastChangeAnywhere) {
+            poweredComponents.clear();
+            nodes.forEach((id, node) -> routing.component(id).ifPresent(group -> {
+                if (!poweredComponents.contains(group) && node.drawPower(1, true) > 0) {
+                    poweredComponents.add(group);
+                }
+            }));
+            powerLookedAt = now;
+            powerLookedAfter = lastChangeAnywhere;
+        }
+        if (!poweredComponents.contains(component.getAsInt())) {
+            return Optional.of(false);
+        }
+        if (firewalls.stream().noneMatch(firewall -> routing.component(firewall).equals(component))
+                || nodes.get(at).drawPower(1, true) > 0) {
+            return Optional.of(true);
+        }
+        // a firewall may keep the energy on its other side from this router
+        if (!mayRouteFrom(at, now)) {
+            return Optional.empty();
+        }
+        return Optional.of(reachableFrom(at).stream()
+                .anyMatch(id -> passes(at, id, FirewallRule::blockPower) && nodes.get(id).drawPower(1, true) > 0));
     }
 
     private void execute(RequestPlan plan, long now) {

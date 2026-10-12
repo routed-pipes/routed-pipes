@@ -1,0 +1,11 @@
+{
+  "loader": "neoforge:obj",
+  "model": "logisticspipes:models/block/pipe/corner_inner_up_south_west_south.obj",
+  "flip_v": true,
+  "automatic_culling": false,
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "frame": "logisticspipes:block/pipe_frame_inactive",
+    "particle": "logisticspipes:block/pipe_frame_inactive"
+  }
+}

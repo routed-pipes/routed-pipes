@@ -43,7 +43,7 @@ final class PipeTopology {
                 ? self.security().station() : Optional.empty();
         for (Direction direction : Direction.values()) {
             // a side can be cut off from the pipe next to it
-            if (state.getBlock() instanceof LogisticsPipeBlock && !state.getValue(LogisticsPipeBlock.CONNECTED.get(direction))) {
+            if (state.getBlock() instanceof LogisticsPipeBlock && !LogisticsPipeBlock.connected(state, direction)) {
                 continue;
             }
             explore(level, routerPos, direction, false).forEach((router, distance) -> {
@@ -65,7 +65,7 @@ final class PipeTopology {
             return routers;
         }
         for (Direction direction : Direction.values()) {
-            if (!own.getValue(LogisticsPipeBlock.CONNECTED.get(direction))) {
+            if (!LogisticsPipeBlock.connected(own, direction)) {
                 continue;
             }
             BlockPos pos = routerPos.relative(direction);
@@ -81,7 +81,7 @@ final class PipeTopology {
                     }
                     break;
                 }
-                if (!state.getValue(LogisticsPipeBlock.CONNECTED.get(direction))) {
+                if (!LogisticsPipeBlock.connected(state, direction)) {
                     break;
                 }
                 pos = pos.relative(direction);
@@ -120,7 +120,7 @@ final class PipeTopology {
         Direction best = null;
         int shortest = Integer.MAX_VALUE;
         for (Direction direction : Direction.values()) {
-            if (!level.getBlockState(fork).getValue(LogisticsPipeBlock.CONNECTED.get(direction))) {
+            if (!LogisticsPipeBlock.connected(level.getBlockState(fork), direction)) {
                 continue;
             }
             for (Map.Entry<PipeBlockEntity, Integer> found : explore(level, fork, direction, false).entrySet()) {
@@ -164,7 +164,7 @@ final class PipeTopology {
                 continue;
             }
             for (Direction side : Direction.values()) {
-                if (state.getValue(LogisticsPipeBlock.CONNECTED.get(side))) {
+                if (LogisticsPipeBlock.connected(state, side)) {
                     open.add(new Step(step.pos().relative(side), step.distance() + TubeKind.PIPE_WEIGHT, side.getOpposite(),
                             false, order++));
                 }

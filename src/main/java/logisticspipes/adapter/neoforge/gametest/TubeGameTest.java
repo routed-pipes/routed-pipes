@@ -3,6 +3,7 @@ package logisticspipes.adapter.neoforge.gametest;
 import java.util.List;
 
 import logisticspipes.adapter.minecraft.LogisticsPipeBlock;
+import logisticspipes.adapter.minecraft.PipeArm;
 import logisticspipes.adapter.minecraft.PipeBlockEntity;
 import logisticspipes.adapter.minecraft.PowerJunctionBlockEntity;
 import logisticspipes.adapter.minecraft.TubeBlock;
@@ -163,10 +164,10 @@ public class TubeGameTest {
         helper.setBlock(at(1, 4), LogisticsPipes.TRANSPORT_PIPE.get());
 
         helper.runAfterDelay(3, () -> {
-            helper.assertBlockProperty(at(1, 1), LogisticsPipeBlock.CONNECTED.get(Direction.EAST), true);
-            helper.assertBlockProperty(at(6, 1), LogisticsPipeBlock.CONNECTED.get(Direction.WEST), false);
-            helper.assertBlockProperty(at(2, 2), LogisticsPipeBlock.CONNECTED.get(Direction.NORTH), false);
-            helper.assertBlockProperty(at(1, 4), LogisticsPipeBlock.CONNECTED.get(Direction.EAST), false);
+            helper.assertBlockProperty(at(1, 1), LogisticsPipeBlock.ARMS.get(Direction.EAST), PipeArm.UNROUTED);
+            helper.assertBlockProperty(at(6, 1), LogisticsPipeBlock.ARMS.get(Direction.WEST), PipeArm.NONE);
+            helper.assertBlockProperty(at(2, 2), LogisticsPipeBlock.ARMS.get(Direction.NORTH), PipeArm.NONE);
+            helper.assertBlockProperty(at(1, 4), LogisticsPipeBlock.ARMS.get(Direction.EAST), PipeArm.NONE);
             helper.succeed();
         });
     }

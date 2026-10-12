@@ -65,7 +65,7 @@ public class PowerProviderGameTest {
         helper.setBlock(pipe, LogisticsPipes.pipe(PipeKind.BASIC));
 
         helper.runAfterDelay(2, () -> {
-            helper.assertBlockProperty(pipe, LogisticsPipeBlock.CONNECTED.get(Direction.DOWN), true);
+            helper.assertTrue(LogisticsPipeBlock.connected(helper.getBlockState(pipe), Direction.DOWN), "the pipe connects to the provider");
             helper.succeed();
         });
     }

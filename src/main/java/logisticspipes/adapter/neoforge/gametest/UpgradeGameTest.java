@@ -350,17 +350,17 @@ public class UpgradeGameTest {
         Direction towardsRight = Direction.EAST;
 
         helper.runAfterDelay(15, () -> {
-            helper.assertTrue(helper.getBlockState(leftPos).getValue(LogisticsPipeBlock.CONNECTED.get(towardsRight)), "connected at first");
+            helper.assertTrue(LogisticsPipeBlock.connected(helper.getBlockState(leftPos), towardsRight), "connected at first");
             left.toggleDisconnected(held, towardsRight);
             helper.assertTrue(held.isEmpty(), "the upgrade goes into the pipe");
-            helper.assertTrue(!helper.getBlockState(leftPos).getValue(LogisticsPipeBlock.CONNECTED.get(towardsRight))
-                    && !helper.getBlockState(rightPos).getValue(LogisticsPipeBlock.CONNECTED.get(towardsRight.getOpposite())),
+            helper.assertTrue(!LogisticsPipeBlock.connected(helper.getBlockState(leftPos), towardsRight)
+                    && !LogisticsPipeBlock.connected(helper.getBlockState(rightPos), towardsRight.getOpposite()),
                     "both pipes let go of each other");
         });
         helper.runAfterDelay(40, () -> {
             helper.assertTrue(left.networkStatus().orElseThrow().routers() == 0, "the pipe sees no other router any more");
             left.removeUpgrades();
-            helper.assertTrue(helper.getBlockState(leftPos).getValue(LogisticsPipeBlock.CONNECTED.get(towardsRight)),
+            helper.assertTrue(LogisticsPipeBlock.connected(helper.getBlockState(leftPos), towardsRight),
                     "taking the upgrade out reconnects");
             helper.succeed();
         });

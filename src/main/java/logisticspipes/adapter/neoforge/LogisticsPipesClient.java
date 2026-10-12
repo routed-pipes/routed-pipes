@@ -1,8 +1,15 @@
 package logisticspipes.adapter.neoforge;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 
 import logisticspipes.adapter.minecraft.FluidContents;
+import logisticspipes.adapter.minecraft.LogisticsPipeBlock;
+import logisticspipes.adapter.minecraft.PipeMounts;
+import logisticspipes.adapter.minecraft.RequestTableBlock;
 import logisticspipes.adapter.minecraft.client.ChannelScreen;
 import logisticspipes.adapter.minecraft.client.ChassisScreen;
 import logisticspipes.adapter.minecraft.client.ClientMenuLink;
@@ -26,16 +33,34 @@ import logisticspipes.adapter.minecraft.client.UpgradeScreen;
 import logisticspipes.adapter.minecraft.menu.RequestMenu;
 import logisticspipes.adapter.neoforge.visualtest.ClientBenchmark;
 import logisticspipes.adapter.neoforge.visualtest.VisualTest;
+import logisticspipes.domain.look.Mount;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.block.BlockModelShaper;
+import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
+import net.neoforged.neoforge.client.model.BakedModelWrapper;
+import net.neoforged.neoforge.client.model.data.ModelData;
+import net.neoforged.neoforge.client.model.data.ModelProperty;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.network.PacketDistributor;
 
@@ -47,6 +72,8 @@ public class LogisticsPipesClient {
         modEventBus.addListener(LogisticsPipesClient::registerScreens);
         modEventBus.addListener(LogisticsPipesClient::registerRenderers);
         modEventBus.addListener(LogisticsPipesClient::registerItemColors);
+        modEventBus.addListener(LogisticsPipesClient::registerMountModels);
+        modEventBus.addListener(LogisticsPipesClient::addMountsToPipes);
         modEventBus.addListener((RegisterKeyMappingsEvent event) -> event.register(RemoteOrdererKey.MAPPING));
         NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post event) -> RemoteOrdererKey.tick());
         ClientMenuLink.setSender(new ClientMenuLink.Sender() {
@@ -99,6 +126,69 @@ public class LogisticsPipesClient {
         event.register((stack, layer) -> layer == 1 && stack.get(FluidContents.TYPE) != null
                 ? IClientFluidTypeExtensions.of(stack.get(FluidContents.TYPE).fluid()).getTintColor() | 0xFF000000 : -1,
                 LogisticsPipes.FLUID_CONTAINER.get());
+    }
+
+    private static ModelResourceLocation mountModel(Mount mount) {
+        return ModelResourceLocation.standalone(ResourceLocation.fromNamespaceAndPath(LogisticsPipes.MODID, PipeMounts.modelPath(mount)));
+    }
+
+    // no block state uses the mounts, so their models have to be asked for
+    private static void registerMountModels(ModelEvent.RegisterAdditional event) {
+        Mount.all().forEach(mount -> event.register(mountModel(mount)));
+    }
+
+    private static void addMountsToPipes(ModelEvent.ModifyBakingResult event) {
+        Map<Mount, BakedModel> mounts = new HashMap<>();
+        Mount.all().forEach(mount -> mounts.put(mount, event.getModels().get(mountModel(mount))));
+        // many states of a pipe share a model
+        Map<BakedModel, BakedModel> mounted = new IdentityHashMap<>();
+        for (Block block : BuiltInRegistries.BLOCK) {
+            if (!(block instanceof LogisticsPipeBlock) || block instanceof RequestTableBlock) {
+                continue;
+            }
+            for (BlockState state : block.getStateDefinition().getPossibleStates()) {
+                event.getModels().computeIfPresent(BlockModelShaper.stateToModelLocation(state),
+                        (location, model) -> mounted.computeIfAbsent(model, plain -> new MountedPipeModel(plain, mounts)));
+            }
+        }
+    }
+
+    // a pipe with the mounts that hold it to the solid blocks around it
+    // which ones depends on those blocks, so they are picked whenever the chunk is drawn again
+    private static final class MountedPipeModel extends BakedModelWrapper<BakedModel> {
+
+        private static final ModelProperty<List<Mount>> MOUNTS = new ModelProperty<>();
+
+        private final Map<Mount, BakedModel> mounts;
+
+        MountedPipeModel(BakedModel pipe, Map<Mount, BakedModel> mounts) {
+            super(pipe);
+            this.mounts = mounts;
+        }
+
+        @Override
+        public ModelData getModelData(BlockAndTintGetter level, BlockPos pos, BlockState state, ModelData data) {
+            ModelData pipeData = super.getModelData(level, pos, state, data);
+            List<Mount> chosen = PipeMounts.at(level, pos, state);
+            return chosen.isEmpty() ? pipeData : pipeData.derive().with(MOUNTS, chosen).build();
+        }
+
+        @Override
+        public List<BakedQuad> getQuads(BlockState state, Direction side, RandomSource random, ModelData data, RenderType renderType) {
+            List<BakedQuad> pipe = super.getQuads(state, side, random, data, renderType);
+            List<Mount> chosen = data.get(MOUNTS);
+            if (chosen == null) {
+                return pipe;
+            }
+            List<BakedQuad> quads = new ArrayList<>(pipe);
+            for (Mount mount : chosen) {
+                BakedModel model = mounts.get(mount);
+                if (renderType == null || model.getRenderTypes(state, random, ModelData.EMPTY).contains(renderType)) {
+                    quads.addAll(model.getQuads(state, side, random, ModelData.EMPTY, renderType));
+                }
+            }
+            return quads;
+        }
     }
 
     private static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {

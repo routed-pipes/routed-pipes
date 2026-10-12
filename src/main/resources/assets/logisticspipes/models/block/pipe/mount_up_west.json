@@ -1,0 +1,11 @@
+{
+  "loader": "neoforge:obj",
+  "model": "logisticspipes:models/block/pipe/mount_up_west.obj",
+  "flip_v": true,
+  "automatic_culling": false,
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "frame": "logisticspipes:block/pipe_frame",
+    "particle": "logisticspipes:block/pipe_frame"
+  }
+}

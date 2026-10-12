@@ -1,6 +1,8 @@
 package logisticspipes.adapter.minecraft;
 
+import java.util.EnumMap;
 import java.util.Map;
+import java.util.Set;
 
 import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.domain.logistics.UpgradeKind;
@@ -18,13 +20,13 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
-import net.minecraft.world.level.block.PipeBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -33,7 +35,9 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 // both pipe kinds, routed ones take part in the network and connect to inventories
 public class LogisticsPipeBlock extends Block implements EntityBlock {
 
-    public static final Map<Direction, BooleanProperty> CONNECTED = PipeBlock.PROPERTY_BY_DIRECTION;
+    public static final Map<Direction, EnumProperty<PipeArm>> ARMS = arms();
+    // the frame of a routed pipe is lit while its network has energy
+    public static final BooleanProperty POWERED = BooleanProperty.create("powered");
 
     private static final VoxelShape[] SHAPES = buildShapes();
 
@@ -48,10 +52,22 @@ public class LogisticsPipeBlock extends Block implements EntityBlock {
         this.moduleSlots = moduleSlots;
         this.services = services;
         BlockState state = stateDefinition.any();
-        for (BooleanProperty property : CONNECTED.values()) {
-            state = state.setValue(property, false);
+        for (EnumProperty<PipeArm> property : ARMS.values()) {
+            state = state.setValue(property, PipeArm.NONE);
         }
-        registerDefaultState(state);
+        registerDefaultState(state.setValue(POWERED, false));
+    }
+
+    private static Map<Direction, EnumProperty<PipeArm>> arms() {
+        Map<Direction, EnumProperty<PipeArm>> arms = new EnumMap<>(Direction.class);
+        for (Direction direction : Direction.values()) {
+            arms.put(direction, EnumProperty.create(direction.getName(), PipeArm.class));
+        }
+        return arms;
+    }
+
+    public static boolean connected(BlockState state, Direction direction) {
+        return state.getValue(ARMS.get(direction)) != PipeArm.NONE;
     }
 
     public boolean routed() {
@@ -147,7 +163,8 @@ public class LogisticsPipeBlock extends Block implements EntityBlock {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        CONNECTED.values().forEach(builder::add);
+        ARMS.values().forEach(builder::add);
+        builder.add(POWERED);
     }
 
     @Override
@@ -162,7 +179,7 @@ public class LogisticsPipeBlock extends Block implements EntityBlock {
             if (world.getBlockEntity(pos) instanceof PipeBlockEntity pipe) {
                 pipe.neighbourChanged();
             }
-            return state.setValue(CONNECTED.get(direction), connectsTo(world, pos, direction));
+            return withArm(state, direction, connectsTo(world, pos, direction));
         }
         return state;
     }
@@ -190,9 +207,31 @@ public class LogisticsPipeBlock extends Block implements EntityBlock {
 
     private BlockState withConnections(BlockState state, Level level, BlockPos pos) {
         for (Direction direction : Direction.values()) {
-            state = state.setValue(CONNECTED.get(direction), connectsTo(level, pos, direction));
+            state = withArm(state, direction, connectsTo(level, pos, direction));
         }
         return state;
+    }
+
+    // an arm that stays keeps its light
+    private static BlockState withArm(BlockState state, Direction direction, boolean connected) {
+        if (connected == connected(state, direction)) {
+            return state;
+        }
+        return state.setValue(ARMS.get(direction), connected ? PipeArm.UNROUTED : PipeArm.NONE);
+    }
+
+    // green light on the arms that lead to another routed pipe, red on the others
+    void showRoutedExits(BlockState state, Level level, BlockPos pos, Set<Direction> exits) {
+        BlockState lit = state;
+        for (Direction direction : Direction.values()) {
+            if (connected(state, direction)) {
+                lit = lit.setValue(ARMS.get(direction), exits.contains(direction) ? PipeArm.ROUTED : PipeArm.UNROUTED);
+            }
+        }
+        if (lit != state) {
+            // only the look changes, nothing next to the pipe has to hear of it
+            level.setBlock(pos, lit, Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
+        }
     }
 
     private static boolean cutOff(Level level, BlockPos pos, Direction direction) {
@@ -229,7 +268,7 @@ public class LogisticsPipeBlock extends Block implements EntityBlock {
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         int index = 0;
         for (Direction direction : Direction.values()) {
-            if (state.getValue(CONNECTED.get(direction))) {
+            if (connected(state, direction)) {
                 index |= 1 << direction.ordinal();
             }
         }

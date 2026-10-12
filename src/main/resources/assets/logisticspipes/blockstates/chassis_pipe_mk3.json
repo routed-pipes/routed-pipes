@@ -2,8 +2,8 @@
   "multipart": [
     {
       "when": {
-        "up": "false",
-        "north": "false"
+        "up": "none",
+        "north": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/edge_up_north"
@@ -11,8 +11,8 @@
     },
     {
       "when": {
-        "up": "false",
-        "south": "false"
+        "up": "none",
+        "south": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/edge_up_south"
@@ -20,8 +20,8 @@
     },
     {
       "when": {
-        "up": "false",
-        "east": "false"
+        "up": "none",
+        "east": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/edge_up_east"
@@ -29,8 +29,8 @@
     },
     {
       "when": {
-        "up": "false",
-        "west": "false"
+        "up": "none",
+        "west": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/edge_up_west"
@@ -38,8 +38,8 @@
     },
     {
       "when": {
-        "down": "false",
-        "north": "false"
+        "down": "none",
+        "north": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/edge_down_north"
@@ -47,8 +47,8 @@
     },
     {
       "when": {
-        "down": "false",
-        "south": "false"
+        "down": "none",
+        "south": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/edge_down_south"
@@ -56,8 +56,8 @@
     },
     {
       "when": {
-        "down": "false",
-        "east": "false"
+        "down": "none",
+        "east": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/edge_down_east"
@@ -65,8 +65,8 @@
     },
     {
       "when": {
-        "down": "false",
-        "west": "false"
+        "down": "none",
+        "west": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/edge_down_west"
@@ -74,8 +74,8 @@
     },
     {
       "when": {
-        "north": "false",
-        "west": "false"
+        "north": "none",
+        "west": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/edge_north_west"
@@ -83,8 +83,8 @@
     },
     {
       "when": {
-        "north": "false",
-        "east": "false"
+        "north": "none",
+        "east": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/edge_north_east"
@@ -92,8 +92,8 @@
     },
     {
       "when": {
-        "south": "false",
-        "east": "false"
+        "south": "none",
+        "east": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/edge_south_east"
@@ -101,8 +101,8 @@
     },
     {
       "when": {
-        "south": "false",
-        "west": "false"
+        "south": "none",
+        "west": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/edge_south_west"
@@ -110,9 +110,10 @@
     },
     {
       "when": {
-        "up": "false",
-        "north": "false",
-        "west": "false"
+        "up": "none",
+        "north": "none",
+        "west": "none",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_up_north_west"
@@ -120,9 +121,21 @@
     },
     {
       "when": {
-        "up": "true",
-        "north": "true",
-        "west": "true"
+        "up": "none",
+        "north": "none",
+        "west": "none",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_up_north_west_dark"
+      }
+    },
+    {
+      "when": {
+        "up": "unrouted|routed",
+        "north": "unrouted|routed",
+        "west": "unrouted|routed",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_all_up_north_west"
@@ -130,9 +143,21 @@
     },
     {
       "when": {
-        "up": "true",
-        "north": "false",
-        "west": "false"
+        "up": "unrouted|routed",
+        "north": "unrouted|routed",
+        "west": "unrouted|routed",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_all_up_north_west_dark"
+      }
+    },
+    {
+      "when": {
+        "up": "unrouted|routed",
+        "north": "none",
+        "west": "none",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_up_north_west_up"
@@ -140,9 +165,21 @@
     },
     {
       "when": {
-        "up": "false",
-        "north": "true",
-        "west": "true"
+        "up": "unrouted|routed",
+        "north": "none",
+        "west": "none",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_up_north_west_up_dark"
+      }
+    },
+    {
+      "when": {
+        "up": "none",
+        "north": "unrouted|routed",
+        "west": "unrouted|routed",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_up_north_west_up"
@@ -150,9 +187,21 @@
     },
     {
       "when": {
-        "north": "true",
-        "up": "false",
-        "west": "false"
+        "up": "none",
+        "north": "unrouted|routed",
+        "west": "unrouted|routed",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_up_north_west_up_dark"
+      }
+    },
+    {
+      "when": {
+        "north": "unrouted|routed",
+        "up": "none",
+        "west": "none",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_up_north_west_north"
@@ -160,9 +209,21 @@
     },
     {
       "when": {
-        "north": "false",
-        "up": "true",
-        "west": "true"
+        "north": "unrouted|routed",
+        "up": "none",
+        "west": "none",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_up_north_west_north_dark"
+      }
+    },
+    {
+      "when": {
+        "north": "none",
+        "up": "unrouted|routed",
+        "west": "unrouted|routed",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_up_north_west_north"
@@ -170,9 +231,21 @@
     },
     {
       "when": {
-        "west": "true",
-        "up": "false",
-        "north": "false"
+        "north": "none",
+        "up": "unrouted|routed",
+        "west": "unrouted|routed",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_up_north_west_north_dark"
+      }
+    },
+    {
+      "when": {
+        "west": "unrouted|routed",
+        "up": "none",
+        "north": "none",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_up_north_west_west"
@@ -180,9 +253,21 @@
     },
     {
       "when": {
-        "west": "false",
-        "up": "true",
-        "north": "true"
+        "west": "unrouted|routed",
+        "up": "none",
+        "north": "none",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_up_north_west_west_dark"
+      }
+    },
+    {
+      "when": {
+        "west": "none",
+        "up": "unrouted|routed",
+        "north": "unrouted|routed",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_up_north_west_west"
@@ -190,9 +275,21 @@
     },
     {
       "when": {
-        "up": "false",
-        "north": "false",
-        "east": "false"
+        "west": "none",
+        "up": "unrouted|routed",
+        "north": "unrouted|routed",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_up_north_west_west_dark"
+      }
+    },
+    {
+      "when": {
+        "up": "none",
+        "north": "none",
+        "east": "none",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_up_north_east"
@@ -200,9 +297,21 @@
     },
     {
       "when": {
-        "up": "true",
-        "north": "true",
-        "east": "true"
+        "up": "none",
+        "north": "none",
+        "east": "none",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_up_north_east_dark"
+      }
+    },
+    {
+      "when": {
+        "up": "unrouted|routed",
+        "north": "unrouted|routed",
+        "east": "unrouted|routed",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_all_up_north_east"
@@ -210,9 +319,21 @@
     },
     {
       "when": {
-        "up": "true",
-        "north": "false",
-        "east": "false"
+        "up": "unrouted|routed",
+        "north": "unrouted|routed",
+        "east": "unrouted|routed",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_all_up_north_east_dark"
+      }
+    },
+    {
+      "when": {
+        "up": "unrouted|routed",
+        "north": "none",
+        "east": "none",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_up_north_east_up"
@@ -220,9 +341,21 @@
     },
     {
       "when": {
-        "up": "false",
-        "north": "true",
-        "east": "true"
+        "up": "unrouted|routed",
+        "north": "none",
+        "east": "none",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_up_north_east_up_dark"
+      }
+    },
+    {
+      "when": {
+        "up": "none",
+        "north": "unrouted|routed",
+        "east": "unrouted|routed",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_up_north_east_up"
@@ -230,9 +363,21 @@
     },
     {
       "when": {
-        "north": "true",
-        "up": "false",
-        "east": "false"
+        "up": "none",
+        "north": "unrouted|routed",
+        "east": "unrouted|routed",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_up_north_east_up_dark"
+      }
+    },
+    {
+      "when": {
+        "north": "unrouted|routed",
+        "up": "none",
+        "east": "none",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_up_north_east_north"
@@ -240,9 +385,21 @@
     },
     {
       "when": {
-        "north": "false",
-        "up": "true",
-        "east": "true"
+        "north": "unrouted|routed",
+        "up": "none",
+        "east": "none",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_up_north_east_north_dark"
+      }
+    },
+    {
+      "when": {
+        "north": "none",
+        "up": "unrouted|routed",
+        "east": "unrouted|routed",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_up_north_east_north"
@@ -250,9 +407,21 @@
     },
     {
       "when": {
-        "east": "true",
-        "up": "false",
-        "north": "false"
+        "north": "none",
+        "up": "unrouted|routed",
+        "east": "unrouted|routed",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_up_north_east_north_dark"
+      }
+    },
+    {
+      "when": {
+        "east": "unrouted|routed",
+        "up": "none",
+        "north": "none",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_up_north_east_east"
@@ -260,9 +429,21 @@
     },
     {
       "when": {
-        "east": "false",
-        "up": "true",
-        "north": "true"
+        "east": "unrouted|routed",
+        "up": "none",
+        "north": "none",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_up_north_east_east_dark"
+      }
+    },
+    {
+      "when": {
+        "east": "none",
+        "up": "unrouted|routed",
+        "north": "unrouted|routed",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_up_north_east_east"
@@ -270,9 +451,21 @@
     },
     {
       "when": {
-        "up": "false",
-        "south": "false",
-        "west": "false"
+        "east": "none",
+        "up": "unrouted|routed",
+        "north": "unrouted|routed",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_up_north_east_east_dark"
+      }
+    },
+    {
+      "when": {
+        "up": "none",
+        "south": "none",
+        "west": "none",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_up_south_west"
@@ -280,9 +473,21 @@
     },
     {
       "when": {
-        "up": "true",
-        "south": "true",
-        "west": "true"
+        "up": "none",
+        "south": "none",
+        "west": "none",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_up_south_west_dark"
+      }
+    },
+    {
+      "when": {
+        "up": "unrouted|routed",
+        "south": "unrouted|routed",
+        "west": "unrouted|routed",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_all_up_south_west"
@@ -290,9 +495,21 @@
     },
     {
       "when": {
-        "up": "true",
-        "south": "false",
-        "west": "false"
+        "up": "unrouted|routed",
+        "south": "unrouted|routed",
+        "west": "unrouted|routed",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_all_up_south_west_dark"
+      }
+    },
+    {
+      "when": {
+        "up": "unrouted|routed",
+        "south": "none",
+        "west": "none",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_up_south_west_up"
@@ -300,9 +517,21 @@
     },
     {
       "when": {
-        "up": "false",
-        "south": "true",
-        "west": "true"
+        "up": "unrouted|routed",
+        "south": "none",
+        "west": "none",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_up_south_west_up_dark"
+      }
+    },
+    {
+      "when": {
+        "up": "none",
+        "south": "unrouted|routed",
+        "west": "unrouted|routed",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_up_south_west_up"
@@ -310,9 +539,21 @@
     },
     {
       "when": {
-        "south": "true",
-        "up": "false",
-        "west": "false"
+        "up": "none",
+        "south": "unrouted|routed",
+        "west": "unrouted|routed",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_up_south_west_up_dark"
+      }
+    },
+    {
+      "when": {
+        "south": "unrouted|routed",
+        "up": "none",
+        "west": "none",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_up_south_west_south"
@@ -320,9 +561,21 @@
     },
     {
       "when": {
-        "south": "false",
-        "up": "true",
-        "west": "true"
+        "south": "unrouted|routed",
+        "up": "none",
+        "west": "none",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_up_south_west_south_dark"
+      }
+    },
+    {
+      "when": {
+        "south": "none",
+        "up": "unrouted|routed",
+        "west": "unrouted|routed",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_up_south_west_south"
@@ -330,9 +583,21 @@
     },
     {
       "when": {
-        "west": "true",
-        "up": "false",
-        "south": "false"
+        "south": "none",
+        "up": "unrouted|routed",
+        "west": "unrouted|routed",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_up_south_west_south_dark"
+      }
+    },
+    {
+      "when": {
+        "west": "unrouted|routed",
+        "up": "none",
+        "south": "none",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_up_south_west_west"
@@ -340,9 +605,21 @@
     },
     {
       "when": {
-        "west": "false",
-        "up": "true",
-        "south": "true"
+        "west": "unrouted|routed",
+        "up": "none",
+        "south": "none",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_up_south_west_west_dark"
+      }
+    },
+    {
+      "when": {
+        "west": "none",
+        "up": "unrouted|routed",
+        "south": "unrouted|routed",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_up_south_west_west"
@@ -350,9 +627,21 @@
     },
     {
       "when": {
-        "up": "false",
-        "south": "false",
-        "east": "false"
+        "west": "none",
+        "up": "unrouted|routed",
+        "south": "unrouted|routed",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_up_south_west_west_dark"
+      }
+    },
+    {
+      "when": {
+        "up": "none",
+        "south": "none",
+        "east": "none",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_up_south_east"
@@ -360,9 +649,21 @@
     },
     {
       "when": {
-        "up": "true",
-        "south": "true",
-        "east": "true"
+        "up": "none",
+        "south": "none",
+        "east": "none",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_up_south_east_dark"
+      }
+    },
+    {
+      "when": {
+        "up": "unrouted|routed",
+        "south": "unrouted|routed",
+        "east": "unrouted|routed",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_all_up_south_east"
@@ -370,9 +671,21 @@
     },
     {
       "when": {
-        "up": "true",
-        "south": "false",
-        "east": "false"
+        "up": "unrouted|routed",
+        "south": "unrouted|routed",
+        "east": "unrouted|routed",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_all_up_south_east_dark"
+      }
+    },
+    {
+      "when": {
+        "up": "unrouted|routed",
+        "south": "none",
+        "east": "none",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_up_south_east_up"
@@ -380,9 +693,21 @@
     },
     {
       "when": {
-        "up": "false",
-        "south": "true",
-        "east": "true"
+        "up": "unrouted|routed",
+        "south": "none",
+        "east": "none",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_up_south_east_up_dark"
+      }
+    },
+    {
+      "when": {
+        "up": "none",
+        "south": "unrouted|routed",
+        "east": "unrouted|routed",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_up_south_east_up"
@@ -390,9 +715,21 @@
     },
     {
       "when": {
-        "south": "true",
-        "up": "false",
-        "east": "false"
+        "up": "none",
+        "south": "unrouted|routed",
+        "east": "unrouted|routed",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_up_south_east_up_dark"
+      }
+    },
+    {
+      "when": {
+        "south": "unrouted|routed",
+        "up": "none",
+        "east": "none",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_up_south_east_south"
@@ -400,9 +737,21 @@
     },
     {
       "when": {
-        "south": "false",
-        "up": "true",
-        "east": "true"
+        "south": "unrouted|routed",
+        "up": "none",
+        "east": "none",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_up_south_east_south_dark"
+      }
+    },
+    {
+      "when": {
+        "south": "none",
+        "up": "unrouted|routed",
+        "east": "unrouted|routed",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_up_south_east_south"
@@ -410,9 +759,21 @@
     },
     {
       "when": {
-        "east": "true",
-        "up": "false",
-        "south": "false"
+        "south": "none",
+        "up": "unrouted|routed",
+        "east": "unrouted|routed",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_up_south_east_south_dark"
+      }
+    },
+    {
+      "when": {
+        "east": "unrouted|routed",
+        "up": "none",
+        "south": "none",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_up_south_east_east"
@@ -420,9 +781,21 @@
     },
     {
       "when": {
-        "east": "false",
-        "up": "true",
-        "south": "true"
+        "east": "unrouted|routed",
+        "up": "none",
+        "south": "none",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_up_south_east_east_dark"
+      }
+    },
+    {
+      "when": {
+        "east": "none",
+        "up": "unrouted|routed",
+        "south": "unrouted|routed",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_up_south_east_east"
@@ -430,9 +803,21 @@
     },
     {
       "when": {
-        "down": "false",
-        "north": "false",
-        "west": "false"
+        "east": "none",
+        "up": "unrouted|routed",
+        "south": "unrouted|routed",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_up_south_east_east_dark"
+      }
+    },
+    {
+      "when": {
+        "down": "none",
+        "north": "none",
+        "west": "none",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_down_north_west"
@@ -440,9 +825,21 @@
     },
     {
       "when": {
-        "down": "true",
-        "north": "true",
-        "west": "true"
+        "down": "none",
+        "north": "none",
+        "west": "none",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_down_north_west_dark"
+      }
+    },
+    {
+      "when": {
+        "down": "unrouted|routed",
+        "north": "unrouted|routed",
+        "west": "unrouted|routed",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_all_down_north_west"
@@ -450,9 +847,21 @@
     },
     {
       "when": {
-        "down": "true",
-        "north": "false",
-        "west": "false"
+        "down": "unrouted|routed",
+        "north": "unrouted|routed",
+        "west": "unrouted|routed",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_all_down_north_west_dark"
+      }
+    },
+    {
+      "when": {
+        "down": "unrouted|routed",
+        "north": "none",
+        "west": "none",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_down_north_west_down"
@@ -460,9 +869,21 @@
     },
     {
       "when": {
-        "down": "false",
-        "north": "true",
-        "west": "true"
+        "down": "unrouted|routed",
+        "north": "none",
+        "west": "none",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_down_north_west_down_dark"
+      }
+    },
+    {
+      "when": {
+        "down": "none",
+        "north": "unrouted|routed",
+        "west": "unrouted|routed",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_down_north_west_down"
@@ -470,9 +891,21 @@
     },
     {
       "when": {
-        "north": "true",
-        "down": "false",
-        "west": "false"
+        "down": "none",
+        "north": "unrouted|routed",
+        "west": "unrouted|routed",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_down_north_west_down_dark"
+      }
+    },
+    {
+      "when": {
+        "north": "unrouted|routed",
+        "down": "none",
+        "west": "none",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_down_north_west_north"
@@ -480,9 +913,21 @@
     },
     {
       "when": {
-        "north": "false",
-        "down": "true",
-        "west": "true"
+        "north": "unrouted|routed",
+        "down": "none",
+        "west": "none",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_down_north_west_north_dark"
+      }
+    },
+    {
+      "when": {
+        "north": "none",
+        "down": "unrouted|routed",
+        "west": "unrouted|routed",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_down_north_west_north"
@@ -490,9 +935,21 @@
     },
     {
       "when": {
-        "west": "true",
-        "down": "false",
-        "north": "false"
+        "north": "none",
+        "down": "unrouted|routed",
+        "west": "unrouted|routed",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_down_north_west_north_dark"
+      }
+    },
+    {
+      "when": {
+        "west": "unrouted|routed",
+        "down": "none",
+        "north": "none",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_down_north_west_west"
@@ -500,9 +957,21 @@
     },
     {
       "when": {
-        "west": "false",
-        "down": "true",
-        "north": "true"
+        "west": "unrouted|routed",
+        "down": "none",
+        "north": "none",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_down_north_west_west_dark"
+      }
+    },
+    {
+      "when": {
+        "west": "none",
+        "down": "unrouted|routed",
+        "north": "unrouted|routed",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_down_north_west_west"
@@ -510,9 +979,21 @@
     },
     {
       "when": {
-        "down": "false",
-        "north": "false",
-        "east": "false"
+        "west": "none",
+        "down": "unrouted|routed",
+        "north": "unrouted|routed",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_down_north_west_west_dark"
+      }
+    },
+    {
+      "when": {
+        "down": "none",
+        "north": "none",
+        "east": "none",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_down_north_east"
@@ -520,9 +1001,21 @@
     },
     {
       "when": {
-        "down": "true",
-        "north": "true",
-        "east": "true"
+        "down": "none",
+        "north": "none",
+        "east": "none",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_down_north_east_dark"
+      }
+    },
+    {
+      "when": {
+        "down": "unrouted|routed",
+        "north": "unrouted|routed",
+        "east": "unrouted|routed",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_all_down_north_east"
@@ -530,9 +1023,21 @@
     },
     {
       "when": {
-        "down": "true",
-        "north": "false",
-        "east": "false"
+        "down": "unrouted|routed",
+        "north": "unrouted|routed",
+        "east": "unrouted|routed",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_all_down_north_east_dark"
+      }
+    },
+    {
+      "when": {
+        "down": "unrouted|routed",
+        "north": "none",
+        "east": "none",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_down_north_east_down"
@@ -540,9 +1045,21 @@
     },
     {
       "when": {
-        "down": "false",
-        "north": "true",
-        "east": "true"
+        "down": "unrouted|routed",
+        "north": "none",
+        "east": "none",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_down_north_east_down_dark"
+      }
+    },
+    {
+      "when": {
+        "down": "none",
+        "north": "unrouted|routed",
+        "east": "unrouted|routed",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_down_north_east_down"
@@ -550,9 +1067,21 @@
     },
     {
       "when": {
-        "north": "true",
-        "down": "false",
-        "east": "false"
+        "down": "none",
+        "north": "unrouted|routed",
+        "east": "unrouted|routed",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_down_north_east_down_dark"
+      }
+    },
+    {
+      "when": {
+        "north": "unrouted|routed",
+        "down": "none",
+        "east": "none",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_down_north_east_north"
@@ -560,9 +1089,21 @@
     },
     {
       "when": {
-        "north": "false",
-        "down": "true",
-        "east": "true"
+        "north": "unrouted|routed",
+        "down": "none",
+        "east": "none",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_down_north_east_north_dark"
+      }
+    },
+    {
+      "when": {
+        "north": "none",
+        "down": "unrouted|routed",
+        "east": "unrouted|routed",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_down_north_east_north"
@@ -570,9 +1111,21 @@
     },
     {
       "when": {
-        "east": "true",
-        "down": "false",
-        "north": "false"
+        "north": "none",
+        "down": "unrouted|routed",
+        "east": "unrouted|routed",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_down_north_east_north_dark"
+      }
+    },
+    {
+      "when": {
+        "east": "unrouted|routed",
+        "down": "none",
+        "north": "none",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_down_north_east_east"
@@ -580,9 +1133,21 @@
     },
     {
       "when": {
-        "east": "false",
-        "down": "true",
-        "north": "true"
+        "east": "unrouted|routed",
+        "down": "none",
+        "north": "none",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_down_north_east_east_dark"
+      }
+    },
+    {
+      "when": {
+        "east": "none",
+        "down": "unrouted|routed",
+        "north": "unrouted|routed",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_down_north_east_east"
@@ -590,9 +1155,21 @@
     },
     {
       "when": {
-        "down": "false",
-        "south": "false",
-        "west": "false"
+        "east": "none",
+        "down": "unrouted|routed",
+        "north": "unrouted|routed",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_down_north_east_east_dark"
+      }
+    },
+    {
+      "when": {
+        "down": "none",
+        "south": "none",
+        "west": "none",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_down_south_west"
@@ -600,9 +1177,21 @@
     },
     {
       "when": {
-        "down": "true",
-        "south": "true",
-        "west": "true"
+        "down": "none",
+        "south": "none",
+        "west": "none",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_down_south_west_dark"
+      }
+    },
+    {
+      "when": {
+        "down": "unrouted|routed",
+        "south": "unrouted|routed",
+        "west": "unrouted|routed",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_all_down_south_west"
@@ -610,9 +1199,21 @@
     },
     {
       "when": {
-        "down": "true",
-        "south": "false",
-        "west": "false"
+        "down": "unrouted|routed",
+        "south": "unrouted|routed",
+        "west": "unrouted|routed",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_all_down_south_west_dark"
+      }
+    },
+    {
+      "when": {
+        "down": "unrouted|routed",
+        "south": "none",
+        "west": "none",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_down_south_west_down"
@@ -620,9 +1221,21 @@
     },
     {
       "when": {
-        "down": "false",
-        "south": "true",
-        "west": "true"
+        "down": "unrouted|routed",
+        "south": "none",
+        "west": "none",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_down_south_west_down_dark"
+      }
+    },
+    {
+      "when": {
+        "down": "none",
+        "south": "unrouted|routed",
+        "west": "unrouted|routed",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_down_south_west_down"
@@ -630,9 +1243,21 @@
     },
     {
       "when": {
-        "south": "true",
-        "down": "false",
-        "west": "false"
+        "down": "none",
+        "south": "unrouted|routed",
+        "west": "unrouted|routed",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_down_south_west_down_dark"
+      }
+    },
+    {
+      "when": {
+        "south": "unrouted|routed",
+        "down": "none",
+        "west": "none",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_down_south_west_south"
@@ -640,9 +1265,21 @@
     },
     {
       "when": {
-        "south": "false",
-        "down": "true",
-        "west": "true"
+        "south": "unrouted|routed",
+        "down": "none",
+        "west": "none",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_down_south_west_south_dark"
+      }
+    },
+    {
+      "when": {
+        "south": "none",
+        "down": "unrouted|routed",
+        "west": "unrouted|routed",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_down_south_west_south"
@@ -650,9 +1287,21 @@
     },
     {
       "when": {
-        "west": "true",
-        "down": "false",
-        "south": "false"
+        "south": "none",
+        "down": "unrouted|routed",
+        "west": "unrouted|routed",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_down_south_west_south_dark"
+      }
+    },
+    {
+      "when": {
+        "west": "unrouted|routed",
+        "down": "none",
+        "south": "none",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_down_south_west_west"
@@ -660,9 +1309,21 @@
     },
     {
       "when": {
-        "west": "false",
-        "down": "true",
-        "south": "true"
+        "west": "unrouted|routed",
+        "down": "none",
+        "south": "none",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_down_south_west_west_dark"
+      }
+    },
+    {
+      "when": {
+        "west": "none",
+        "down": "unrouted|routed",
+        "south": "unrouted|routed",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_down_south_west_west"
@@ -670,9 +1331,21 @@
     },
     {
       "when": {
-        "down": "false",
-        "south": "false",
-        "east": "false"
+        "west": "none",
+        "down": "unrouted|routed",
+        "south": "unrouted|routed",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_down_south_west_west_dark"
+      }
+    },
+    {
+      "when": {
+        "down": "none",
+        "south": "none",
+        "east": "none",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_down_south_east"
@@ -680,9 +1353,21 @@
     },
     {
       "when": {
-        "down": "true",
-        "south": "true",
-        "east": "true"
+        "down": "none",
+        "south": "none",
+        "east": "none",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_down_south_east_dark"
+      }
+    },
+    {
+      "when": {
+        "down": "unrouted|routed",
+        "south": "unrouted|routed",
+        "east": "unrouted|routed",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_all_down_south_east"
@@ -690,9 +1375,21 @@
     },
     {
       "when": {
-        "down": "true",
-        "south": "false",
-        "east": "false"
+        "down": "unrouted|routed",
+        "south": "unrouted|routed",
+        "east": "unrouted|routed",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_all_down_south_east_dark"
+      }
+    },
+    {
+      "when": {
+        "down": "unrouted|routed",
+        "south": "none",
+        "east": "none",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_down_south_east_down"
@@ -700,9 +1397,21 @@
     },
     {
       "when": {
-        "down": "false",
-        "south": "true",
-        "east": "true"
+        "down": "unrouted|routed",
+        "south": "none",
+        "east": "none",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_down_south_east_down_dark"
+      }
+    },
+    {
+      "when": {
+        "down": "none",
+        "south": "unrouted|routed",
+        "east": "unrouted|routed",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_down_south_east_down"
@@ -710,9 +1419,21 @@
     },
     {
       "when": {
-        "south": "true",
-        "down": "false",
-        "east": "false"
+        "down": "none",
+        "south": "unrouted|routed",
+        "east": "unrouted|routed",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_down_south_east_down_dark"
+      }
+    },
+    {
+      "when": {
+        "south": "unrouted|routed",
+        "down": "none",
+        "east": "none",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_down_south_east_south"
@@ -720,9 +1441,21 @@
     },
     {
       "when": {
-        "south": "false",
-        "down": "true",
-        "east": "true"
+        "south": "unrouted|routed",
+        "down": "none",
+        "east": "none",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_down_south_east_south_dark"
+      }
+    },
+    {
+      "when": {
+        "south": "none",
+        "down": "unrouted|routed",
+        "east": "unrouted|routed",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_down_south_east_south"
@@ -730,9 +1463,21 @@
     },
     {
       "when": {
-        "east": "true",
-        "down": "false",
-        "south": "false"
+        "south": "none",
+        "down": "unrouted|routed",
+        "east": "unrouted|routed",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_down_south_east_south_dark"
+      }
+    },
+    {
+      "when": {
+        "east": "unrouted|routed",
+        "down": "none",
+        "south": "none",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/spacer_down_south_east_east"
@@ -740,9 +1485,21 @@
     },
     {
       "when": {
-        "east": "false",
-        "down": "true",
-        "south": "true"
+        "east": "unrouted|routed",
+        "down": "none",
+        "south": "none",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_down_south_east_east_dark"
+      }
+    },
+    {
+      "when": {
+        "east": "none",
+        "down": "unrouted|routed",
+        "south": "unrouted|routed",
+        "powered": "true"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/corner_inner_down_south_east_east"
@@ -750,12 +1507,23 @@
     },
     {
       "when": {
-        "north": "false",
-        "south": "false",
-        "east": "false",
-        "west": "false",
-        "up": "true",
-        "down": "true"
+        "east": "none",
+        "down": "unrouted|routed",
+        "south": "unrouted|routed",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_down_south_east_east_dark"
+      }
+    },
+    {
+      "when": {
+        "north": "none",
+        "south": "none",
+        "east": "none",
+        "west": "none",
+        "up": "unrouted|routed",
+        "down": "unrouted|routed"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/support_down_e_s"
@@ -763,12 +1531,12 @@
     },
     {
       "when": {
-        "north": "false",
-        "south": "false",
-        "east": "false",
-        "west": "false",
-        "up": "true",
-        "down": "true"
+        "north": "none",
+        "south": "none",
+        "east": "none",
+        "west": "none",
+        "up": "unrouted|routed",
+        "down": "unrouted|routed"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/support_down_w_s"
@@ -776,12 +1544,12 @@
     },
     {
       "when": {
-        "north": "false",
-        "south": "false",
-        "east": "false",
-        "west": "false",
-        "up": "true",
-        "down": "true"
+        "north": "none",
+        "south": "none",
+        "east": "none",
+        "west": "none",
+        "up": "unrouted|routed",
+        "down": "unrouted|routed"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/support_down_n_s"
@@ -789,12 +1557,12 @@
     },
     {
       "when": {
-        "north": "false",
-        "south": "false",
-        "east": "false",
-        "west": "false",
-        "up": "true",
-        "down": "true"
+        "north": "none",
+        "south": "none",
+        "east": "none",
+        "west": "none",
+        "up": "unrouted|routed",
+        "down": "unrouted|routed"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/support_down_s_s"
@@ -802,12 +1570,12 @@
     },
     {
       "when": {
-        "north": "true",
-        "south": "true",
-        "east": "false",
-        "west": "false",
-        "up": "false",
-        "down": "false"
+        "north": "unrouted|routed",
+        "south": "unrouted|routed",
+        "east": "none",
+        "west": "none",
+        "up": "none",
+        "down": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/support_north_e_u"
@@ -815,12 +1583,12 @@
     },
     {
       "when": {
-        "north": "true",
-        "south": "true",
-        "east": "false",
-        "west": "false",
-        "up": "false",
-        "down": "false"
+        "north": "unrouted|routed",
+        "south": "unrouted|routed",
+        "east": "none",
+        "west": "none",
+        "up": "none",
+        "down": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/support_north_w_u"
@@ -828,12 +1596,12 @@
     },
     {
       "when": {
-        "north": "true",
-        "south": "true",
-        "east": "false",
-        "west": "false",
-        "up": "false",
-        "down": "false"
+        "north": "unrouted|routed",
+        "south": "unrouted|routed",
+        "east": "none",
+        "west": "none",
+        "up": "none",
+        "down": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/support_north_u_s"
@@ -841,12 +1609,12 @@
     },
     {
       "when": {
-        "north": "true",
-        "south": "true",
-        "east": "false",
-        "west": "false",
-        "up": "false",
-        "down": "false"
+        "north": "unrouted|routed",
+        "south": "unrouted|routed",
+        "east": "none",
+        "west": "none",
+        "up": "none",
+        "down": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/support_north_d_s"
@@ -854,12 +1622,12 @@
     },
     {
       "when": {
-        "north": "false",
-        "south": "false",
-        "east": "true",
-        "west": "true",
-        "up": "false",
-        "down": "false"
+        "north": "none",
+        "south": "none",
+        "east": "unrouted|routed",
+        "west": "unrouted|routed",
+        "up": "none",
+        "down": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/support_west_u_u"
@@ -867,12 +1635,12 @@
     },
     {
       "when": {
-        "north": "false",
-        "south": "false",
-        "east": "true",
-        "west": "true",
-        "up": "false",
-        "down": "false"
+        "north": "none",
+        "south": "none",
+        "east": "unrouted|routed",
+        "west": "unrouted|routed",
+        "up": "none",
+        "down": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/support_west_d_u"
@@ -880,12 +1648,12 @@
     },
     {
       "when": {
-        "north": "false",
-        "south": "false",
-        "east": "true",
-        "west": "true",
-        "up": "false",
-        "down": "false"
+        "north": "none",
+        "south": "none",
+        "east": "unrouted|routed",
+        "west": "unrouted|routed",
+        "up": "none",
+        "down": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/support_west_n_u"
@@ -893,12 +1661,12 @@
     },
     {
       "when": {
-        "north": "false",
-        "south": "false",
-        "east": "true",
-        "west": "true",
-        "up": "false",
-        "down": "false"
+        "north": "none",
+        "south": "none",
+        "east": "unrouted|routed",
+        "west": "unrouted|routed",
+        "up": "none",
+        "down": "none"
       },
       "apply": {
         "model": "logisticspipes:block/pipe/support_west_s_u"
@@ -906,7 +1674,7 @@
     },
     {
       "when": {
-        "north": "true"
+        "north": "routed"
       },
       "apply": {
         "model": "logisticspipes:block/chassis_pipe_mk3_side_north"
@@ -914,7 +1682,15 @@
     },
     {
       "when": {
-        "north": "false"
+        "north": "unrouted"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/side_north_unrouted"
+      }
+    },
+    {
+      "when": {
+        "north": "none"
       },
       "apply": {
         "model": "logisticspipes:block/chassis_pipe_mk3_plate_north"
@@ -922,7 +1698,7 @@
     },
     {
       "when": {
-        "south": "true"
+        "south": "routed"
       },
       "apply": {
         "model": "logisticspipes:block/chassis_pipe_mk3_side_south"
@@ -930,7 +1706,15 @@
     },
     {
       "when": {
-        "south": "false"
+        "south": "unrouted"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/side_south_unrouted"
+      }
+    },
+    {
+      "when": {
+        "south": "none"
       },
       "apply": {
         "model": "logisticspipes:block/chassis_pipe_mk3_plate_south"
@@ -938,7 +1722,7 @@
     },
     {
       "when": {
-        "east": "true"
+        "east": "routed"
       },
       "apply": {
         "model": "logisticspipes:block/chassis_pipe_mk3_side_east"
@@ -946,7 +1730,15 @@
     },
     {
       "when": {
-        "east": "false"
+        "east": "unrouted"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/side_east_unrouted"
+      }
+    },
+    {
+      "when": {
+        "east": "none"
       },
       "apply": {
         "model": "logisticspipes:block/chassis_pipe_mk3_plate_east"
@@ -954,7 +1746,7 @@
     },
     {
       "when": {
-        "west": "true"
+        "west": "routed"
       },
       "apply": {
         "model": "logisticspipes:block/chassis_pipe_mk3_side_west"
@@ -962,7 +1754,15 @@
     },
     {
       "when": {
-        "west": "false"
+        "west": "unrouted"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/side_west_unrouted"
+      }
+    },
+    {
+      "when": {
+        "west": "none"
       },
       "apply": {
         "model": "logisticspipes:block/chassis_pipe_mk3_plate_west"
@@ -970,7 +1770,7 @@
     },
     {
       "when": {
-        "up": "true"
+        "up": "routed"
       },
       "apply": {
         "model": "logisticspipes:block/chassis_pipe_mk3_side_up"
@@ -978,7 +1778,15 @@
     },
     {
       "when": {
-        "up": "false"
+        "up": "unrouted"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/side_up_unrouted"
+      }
+    },
+    {
+      "when": {
+        "up": "none"
       },
       "apply": {
         "model": "logisticspipes:block/chassis_pipe_mk3_plate_up"
@@ -986,7 +1794,7 @@
     },
     {
       "when": {
-        "down": "true"
+        "down": "routed"
       },
       "apply": {
         "model": "logisticspipes:block/chassis_pipe_mk3_side_down"
@@ -994,7 +1802,15 @@
     },
     {
       "when": {
-        "down": "false"
+        "down": "unrouted"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/side_down_unrouted"
+      }
+    },
+    {
+      "when": {
+        "down": "none"
       },
       "apply": {
         "model": "logisticspipes:block/chassis_pipe_mk3_plate_down"

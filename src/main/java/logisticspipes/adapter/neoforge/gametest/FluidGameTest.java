@@ -1,6 +1,7 @@
 package logisticspipes.adapter.neoforge.gametest;
 
 import logisticspipes.adapter.minecraft.FluidContainerItem;
+import logisticspipes.adapter.minecraft.LogisticsPipeBlock;
 import logisticspipes.adapter.minecraft.McFluidType;
 import logisticspipes.adapter.minecraft.PipeBlockEntity;
 import logisticspipes.adapter.minecraft.menu.FluidConfigMenu;
@@ -24,6 +25,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -142,8 +144,9 @@ public class FluidGameTest {
         helper.setBlock(new BlockPos(1, 1, 1), Blocks.CHEST);
 
         helper.runAfterDelay(SETTLE, () -> {
-            helper.assertBlockProperty(new BlockPos(0, 1, 1), net.minecraft.world.level.block.PipeBlock.UP, true);
-            helper.assertBlockProperty(new BlockPos(0, 1, 1), net.minecraft.world.level.block.PipeBlock.EAST, false);
+            BlockState state = helper.getBlockState(new BlockPos(0, 1, 1));
+            helper.assertTrue(LogisticsPipeBlock.connected(state, Direction.UP), "connected to the tank");
+            helper.assertTrue(!LogisticsPipeBlock.connected(state, Direction.EAST), "not connected to the chest");
             helper.succeed();
         });
     }

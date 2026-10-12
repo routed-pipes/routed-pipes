@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """Looks for z-fighting in a pipe model: faces in one plane that look the same way and overlap,
-over every combination of connected sides. Usage: check_pipe_overlaps.py [blockstate name]"""
+over every block state, and with every pair of mounts the blocks around a pipe can call for.
+Usage: check_pipe_overlaps.py [blockstate name]"""
 import json,itertools,os,sys
+sys.dont_write_bytecode=True
+import check_pipe_mounts as M
 A='src/main/resources/assets/logisticspipes/'
 def load(path):
     V=[];F=[]
@@ -48,23 +51,51 @@ for e in bs:
     m=e['apply']['model'].split(':')[1]
     j=json.load(open(A+'models/'+m+'.json'))
     obj=A+j['model'].split(':')[1]
-    parts.append((e['when'],os.path.basename(obj),load(obj)))
-SIDES=['north','south','east','west','up','down']
+    parts.append((e.get('when',{}),os.path.basename(obj),load(obj)))
+def terms(w):
+    return [t for x in w['OR'] for t in terms(x)] if 'OR' in w else [w]
+def holds(w,state):
+    return any(all(state[k] in v.split('|') for k,v in t.items()) for t in terms(w))
+# the properties and their values are the ones the conditions name
+props={}
+for w,n,F in parts:
+    for t in terms(w):
+        for k,v in t.items(): props.setdefault(k,set()).update(v.split('|'))
 bad={}
-for bits in itertools.product(['true','false'],repeat=6):
-    state=dict(zip(SIDES,bits))
+seen=set()
+for values in itertools.product(*[sorted(v) for v in props.values()]):
+    state=dict(zip(props,values))
+    active=[(n,F) for w,n,F in parts if holds(w,state)]
+    # many states draw the same pieces with other textures
+    names=frozenset(n for n,F in active)
+    if names in seen: continue
+    seen.add(names)
     byplane={}
-    for w,n,F in parts:
-        # other properties only swap textures, their first value stands for all
-        if all(state.setdefault(k, v)==v for k,v in w.items()):
-            for f in F:
-                pl=plane(f)
-                if pl: byplane.setdefault(pl,[]).append((n,f))
+    for n,F in active:
+        for f in F:
+            pl=plane(f)
+            if pl: byplane.setdefault(pl,[]).append((n,f))
     for pl,fs in byplane.items():
         for (n1,f1),(n2,f2) in itertools.combinations(fs,2):
             a=clip(flat(f1,pl[0]),flat(f2,pl[0]))
             if a>1e-6:
                 k=tuple(sorted((n1,n2))); bad.setdefault(k,(0,pl,f1,f2)); bad[k]=(bad[k][0]+1,)+bad[k][1:]
+    if not all(s in state for s in M.SIDES): continue
+    # mounts against the frame and against each other
+    con={s for s in M.SIDES if state[s]!='none'}
+    for ms in {tuple(M.choose(con,sol)) for sol in M.subsets([s for s in M.SIDES if s not in con])}:
+        mine={}
+        for m in ms:
+            n='mount_%s_%s.obj'%m
+            for f in load(A+'models/block/pipe/'+n):
+                pl=plane(f)
+                if pl: mine.setdefault(pl,[]).append((n,f))
+        for pl,fs in mine.items():
+            pairs=list(itertools.combinations(fs,2))+[(x,y) for x in fs for y in byplane.get(pl,[])]
+            for (n1,f1),(n2,f2) in pairs:
+                a=clip(flat(f1,pl[0]),flat(f2,pl[0]))
+                if a>1e-6:
+                    k=tuple(sorted((n1,n2))); bad.setdefault(k,(0,pl,f1,f2)); bad[k]=(bad[k][0]+1,)+bad[k][1:]
 print(len(bad),'overlapping pairs')
 for k,v in sorted(bad.items(),key=lambda x:-x[1][0])[:int(sys.argv[2]) if len(sys.argv)>2 else 12]: print(k,v[0],v[1],[tuple(round(x,4) for x in p) for p in v[2]],[tuple(round(x,4) for x in p) for p in v[3]])
 sys.exit(1 if bad else 0)

@@ -3,6 +3,7 @@
 
 Pipes are cut out of the original mod's pipe model in scripts/source and loaded with the NeoForge obj loader.
 """
+import itertools
 import json
 import os
 
@@ -41,6 +42,8 @@ SPACERS = {("up", "north", "west"): (1, 14, 23), ("up", "north", "east"): (2, 9,
 # a straight run gets four supports, named by side and orientation
 SUPPORTS = {("down", "up"): ["E_S", "W_S", "N_S", "S_S"], ("north", "south"): ["E_U", "W_U", "U_S", "D_S"],
             ("west", "east"): ["U_U", "D_U", "N_U", "S_U"]}
+# where the arm of a routed pipe finds its red lights on the texture, as u and v
+RED_LIGHTS = (0, -0.37)
 
 
 def write(path, content):
@@ -87,10 +90,11 @@ def corner_i(meshes, corner, axis):
     raise ValueError(f"no inner corner for {corner} axis {axis}")
 
 
-def write_part(path, vertices, coords, mesh_lists, material, icon=False, flip=False):
+def write_part(path, vertices, coords, mesh_lists, material, icon=False, flip=False, shift=(0, 0), swell=1):
     """One obj file with the given meshes. The model brings its own back faces where they can be seen.
 
-    Flip is for vertices that were mirrored, their faces would look the wrong way otherwise."""
+    Flip is for vertices that were mirrored, their faces would look the wrong way otherwise.
+    Shift moves the part to another place on its texture. Swell makes it larger around the middle of the block."""
     lines = ["mtllib pipe.mtl", "o part", f"usemtl {material}"]
     vertex_index, coord_index, faces_out = {}, {}, []
     for faces in mesh_lists:
@@ -98,6 +102,8 @@ def write_part(path, vertices, coords, mesh_lists, material, icon=False, flip=Fa
             corners = []
             for vertex, coord in face:
                 u, v = coords[coord - 1]
+                if shift != (0, 0):
+                    u, v = u + shift[0], v + shift[1]
                 if icon:
                     # the symbol sits in the upper left 12 of 16 pixels of its texture
                     u, v = u * 0.75, 1 - (1 - v) * 0.75
@@ -118,6 +124,8 @@ def write_part(path, vertices, coords, mesh_lists, material, icon=False, flip=Fa
         if icon:
             # a hair outside the frame like in the original, a support runs through the same plane
             x, y, z = ((value - 0.5) * 1.001 + 0.5 for value in (x, y, z))
+        if swell != 1:
+            x, y, z = ((value - 0.5) * swell + 0.5 for value in (x, y, z))
         lines.append(f"v {x:.6f} {y:.6f} {z:.6f}")
     for u, v in coord_index:
         lines.append(f"vt {u:.6f} {v:.6f}")
@@ -139,12 +147,16 @@ def write_parts(vertices, coords, meshes):
     with open(folder + "pipe.mtl", "w") as file:
         file.write("newmtl frame\nmap_Kd #frame\nnewmtl icon\nmap_Kd #icon\n")
     frame = {"frame": "logisticspipes:block/pipe_frame", "particle": "logisticspipes:block/pipe_frame"}
+    dark = {"frame": "logisticspipes:block/pipe_frame_inactive", "particle": "logisticspipes:block/pipe_frame_inactive"}
     shared, item_frame = [], []
 
-    def frame_part(name, mesh_lists, when):
+    def frame_part(name, mesh_lists, when, corner=False):
         write_part(folder + name + ".obj", vertices, coords, mesh_lists, "frame")
         write(folder + name + ".json", part_model(name, frame))
-        shared.append({"when": when, "apply": {"model": f"logisticspipes:block/pipe/{name}"}})
+        if corner:
+            # the pieces around the corners go dark with the pipe
+            write(folder + name + "_dark.json", part_model(name, dark))
+        shared.append({"when": when, "apply": {"model": f"logisticspipes:block/pipe/{name}"}, "corner": corner})
 
     for first, second in EDGES:
         if first in ("up", "down"):
@@ -157,40 +169,91 @@ def write_parts(vertices, coords, meshes):
         letters = LETTER[corner[0]] + "_" + LETTER[corner[1]] + LETTER[corner[2]]
         tag = "_".join(corner)
         # no neighbour at this corner, the plain corner piece
-        frame_part(f"corner_{tag}", named(meshes, "Corner_M_" + letters), {side: "false" for side in corner})
+        frame_part(f"corner_{tag}", named(meshes, "Corner_M_" + letters), {side: "false" for side in corner}, corner=True)
         item_frame += named(meshes, "Corner_M_" + letters)
         # all three neighbours
-        frame_part(f"corner_all_{tag}", named(meshes, "Corner_I3_" + letters), {side: "true" for side in corner})
+        frame_part(f"corner_all_{tag}", named(meshes, "Corner_I3_" + letters), {side: "true" for side in corner}, corner=True)
         for axis, side in enumerate(corner):
             others = [other for other in corner if other != side]
             # one neighbour: a spacer along its side
             number = SPACERS[corner][{0: 2, 1: 0, 2: 1}[axis]]
             frame_part(f"spacer_{tag}_{side}", named(meshes, f"Spacer{number}")[:1],
-                       {side: "true", others[0]: "false", others[1]: "false"})
+                       {side: "true", others[0]: "false", others[1]: "false"}, corner=True)
             # two neighbours: the inner corner that points at the side without one
             frame_part(f"corner_inner_{tag}_{side}", corner_i(meshes, corner, axis),
-                       {side: "false", others[0]: "true", others[1]: "true"})
+                       {side: "false", others[0]: "true", others[1]: "true"}, corner=True)
     for (first, second), names in SUPPORTS.items():
         when = {side: ("true" if side in (first, second) else "false") for side in SIDES}
         for support in names:
             frame_part(f"support_{first}_{support.lower()}", named(meshes, "Support_" + support)[:1], when)
+    # the mounts are no part of any blockstate, the game adds them by the blocks around a pipe, see PipeMounts
+    for towards, flank in itertools.permutations(SIDES, 2):
+        mount = named(meshes, f"Mount_{LETTER[towards]}_{LETTER[flank]}")[:1]
+        if mount:
+            name = f"mount_{towards}_{flank}"
+            # a mount lies flat on the edge it holds, a hair larger it does not flicker with it
+            # and the two in the corner of two walls lie in each other, so they are not the same hair larger
+            write_part(folder + name + ".obj", vertices, coords, mount, "frame",
+                       swell=1.0045 if towards in ("east", "west") else 1.0005)
+            write(folder + name + ".json", part_model(name, frame))
     return shared, item_frame
 
 
+def arms(when):
+    """A side of a pipe block is none, unrouted or routed, the frame only cares whether there is an arm."""
+    return {side: "unrouted|routed" if value == "true" else "none" for side, value in when.items()}
+
+
+def junction(when):
+    """Splits the states a piece of a plain pipe is drawn in: with up to two arms on the pipe, and with more."""
+    others = [side for side in SIDES if side not in when]
+    # this many of the other sides need an arm to make it more than two
+    needed = 3 - list(when.values()).count("true")
+    if needed <= 0:
+        return [], [arms(when)]
+    few = [arms({**when, **{side: "false" for side in free}}) for free in itertools.combinations(others, len(others) - needed + 1)]
+    many = [arms({**when, **{side: "true" for side in taken}}) for taken in itertools.combinations(others, needed)]
+    return few, many
+
+
 def blockstate(name, shared):
-    parts = list(shared)
+    parts = []
+    for entry in shared:
+        model = entry["apply"]["model"]
+        if not entry["corner"]:
+            parts.append({"when": arms(entry["when"]), "apply": {"model": model}})
+        elif name == "transport_pipe":
+            # a plain pipe that joins more than two pipes has the dark frame
+            for states, apply in zip(junction(entry["when"]), (model, model + "_dark")):
+                if states:
+                    parts.append({"when": states[0] if len(states) == 1 else {"OR": states}, "apply": {"model": apply}})
+        else:
+            # a routed pipe has it while its network is without power
+            parts.append({"when": {**arms(entry["when"]), "powered": "true"}, "apply": {"model": model}})
+            parts.append({"when": {**arms(entry["when"]), "powered": "false"}, "apply": {"model": model + "_dark"}})
     for side in SIDES:
-        parts.append({"when": {side: "true"}, "apply": {"model": f"logisticspipes:block/{name}_side_{side}"}})
-        parts.append({"when": {side: "false"}, "apply": {"model": f"logisticspipes:block/{name}_plate_{side}"}})
+        arm = {"model": f"logisticspipes:block/{name}_side_{side}"}
+        if name == "transport_pipe":
+            parts.append({"when": arms({side: "true"}), "apply": arm})
+        else:
+            # green where the arm leads to another routed pipe, red where it does not
+            parts.append({"when": {side: "routed"}, "apply": arm})
+            parts.append({"when": {side: "unrouted"}, "apply": {"model": f"logisticspipes:block/pipe/side_{side}_unrouted"}})
+        parts.append({"when": arms({side: "false"}), "apply": {"model": f"logisticspipes:block/{name}_plate_{side}"}})
     return {"multipart": parts}
 
 
 def connector_blockstate(shared):
-    parts = list(shared)
-    for side in SIDES:
-        parts.append({"when": {side: "true"}, "apply": {"model": f"logisticspipes:block/{CONNECTOR}_side_{side}"}})
+    """Like any routed pipe, but the plate on an open side depends on the link state."""
+    parts = []
+    for part in blockstate(CONNECTOR, shared)["multipart"]:
+        model = part["apply"]["model"]
+        side = model.rsplit("_", 1)[-1]
+        if model != f"logisticspipes:block/{CONNECTOR}_plate_{side}":
+            parts.append(part)
+            continue
         for link in LINKS:
-            parts.append({"when": {side: "false", "link": link},
+            parts.append({"when": {**part["when"], "link": link},
                           "apply": {"model": f"logisticspipes:block/{CONNECTOR}_plate_{link}_{side}"}})
     return {"multipart": parts}
 
@@ -261,6 +324,11 @@ def main():
     shared, item_frame = write_parts(vertices, coords, meshes)
     for side in SIDES:
         write_part(folder + f"side_{side}.obj", vertices, coords, named(meshes, "Side_" + LETTER[side]), "frame")
+        # the red lights are the same piece of the texture 37 of 100 pixels further down
+        write_part(folder + f"side_{side}_unrouted.obj", vertices, coords, named(meshes, "Side_" + LETTER[side]), "frame",
+                   shift=RED_LIGHTS)
+        routed = {"frame": "logisticspipes:block/pipe_frame_routed", "particle": "logisticspipes:block/pipe_frame_routed"}
+        write(folder + f"side_{side}_unrouted.json", part_model(f"side_{side}_unrouted", routed))
         plates = [faces for name, faces in meshes.items() if " Texture_Plate_" + LETTER[side] in name]
         write_part(folder + f"plate_{side}.obj", vertices, coords, plates, "icon", icon=True)
     # what a pipe looks like in the hand: the frame of an unconnected pipe with its symbol on every side
@@ -294,7 +362,7 @@ def main():
     write_tubes(shared)
     upgrades = ["sneaky", "speed", "module_upgrade", "action_speed", "item_extraction", "item_stack_extraction",
                 "crafting_byproduct", "crafting_cleanup", "disconnection", "advanced_satellite", "power_supplier_rf",
-                "power_transportation"]
+                "power_transportation", "opaque"]
     for module in MODULES + ["remote_orderer", "pipe_controller", "settings_copier", "security_card", "disk", "frequency_card"] + ["upgrade_" + upgrade for upgrade in upgrades]:
         write(ASSETS + f"models/item/{module}.json",
               {"parent": "minecraft:item/generated", "textures": {"layer0": f"logisticspipes:item/{module}"}})

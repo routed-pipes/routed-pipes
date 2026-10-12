@@ -1,0 +1,4096 @@
+;;
+;down;down_north down_south
+;up;up_north up_south
+;north;north_east north_west
+;south;south_east south_west
+;west;west_north west_south
+;east;east_north east_south
+;down,up;down_north down_south
+;down,north;down_north down_south
+;down,south;down_north down_south
+;down,west;down_north down_south
+;down,east;down_north down_south
+;up,north;up_north up_south
+;up,south;up_north up_south
+;up,west;up_north up_south
+;up,east;up_north up_south
+;north,south;north_up south_up
+;north,west;north_east west_south
+;north,east;north_west east_south
+;south,west;south_east west_north
+;south,east;south_west east_north
+;west,east;east_up west_up
+;down,up,north;down_north down_south
+;down,up,south;down_north down_south
+;down,up,west;down_north down_south
+;down,up,east;down_north down_south
+;down,north,south;down_north down_south
+;down,north,west;down_north down_south
+;down,north,east;down_north down_south
+;down,south,west;down_north down_south
+;down,south,east;down_north down_south
+;down,west,east;down_north down_south
+;up,north,south;up_north up_south
+;up,north,west;up_north up_south
+;up,north,east;up_north up_south
+;up,south,west;up_north up_south
+;up,south,east;up_north up_south
+;up,west,east;up_north up_south
+;north,south,west;north_up south_up
+;north,south,east;north_up south_up
+;north,west,east;east_up west_up
+;south,west,east;east_up west_up
+;down,up,north,south;down_north down_south
+;down,up,north,west;down_north down_south
+;down,up,north,east;down_north down_south
+;down,up,south,west;down_north down_south
+;down,up,south,east;down_north down_south
+;down,up,west,east;down_north down_south
+;down,north,south,west;down_north down_south
+;down,north,south,east;down_north down_south
+;down,north,west,east;down_north down_south
+;down,south,west,east;down_north down_south
+;up,north,south,west;up_north up_south
+;up,north,south,east;up_north up_south
+;up,north,west,east;up_north up_south
+;up,south,west,east;up_north up_south
+;north,south,west,east;north_up south_up
+;down,up,north,south,west;down_north down_south
+;down,up,north,south,east;down_north down_south
+;down,up,north,west,east;down_north down_south
+;down,up,south,west,east;down_north down_south
+;down,north,south,west,east;down_north down_south
+;up,north,south,west,east;up_north up_south
+;down,up,north,south,west,east;down_north down_south
+down;;
+down;down;
+down;up;up_north up_south
+down;north;north_east north_west
+down;south;south_east south_west
+down;west;west_north west_south
+down;east;east_north east_south
+down;down,up;up_north up_south
+down;down,north;north_east north_west
+down;down,south;south_east south_west
+down;down,west;west_north west_south
+down;down,east;east_north east_south
+down;up,north;up_north up_south
+down;up,south;up_north up_south
+down;up,west;up_north up_south
+down;up,east;up_north up_south
+down;north,south;north_up south_up
+down;north,west;north_east west_south
+down;north,east;north_west east_south
+down;south,west;south_east west_north
+down;south,east;south_west east_north
+down;west,east;east_up west_up
+down;down,up,north;up_north up_south
+down;down,up,south;up_north up_south
+down;down,up,west;up_north up_south
+down;down,up,east;up_north up_south
+down;down,north,south;north_up south_up
+down;down,north,west;north_east west_south
+down;down,north,east;north_west east_south
+down;down,south,west;south_east west_north
+down;down,south,east;south_west east_north
+down;down,west,east;east_up west_up
+down;up,north,south;up_north up_south
+down;up,north,west;up_north up_south
+down;up,north,east;up_north up_south
+down;up,south,west;up_north up_south
+down;up,south,east;up_north up_south
+down;up,west,east;up_north up_south
+down;north,south,west;north_up south_up
+down;north,south,east;north_up south_up
+down;north,west,east;east_up west_up
+down;south,west,east;east_up west_up
+down;down,up,north,south;up_north up_south
+down;down,up,north,west;up_north up_south
+down;down,up,north,east;up_north up_south
+down;down,up,south,west;up_north up_south
+down;down,up,south,east;up_north up_south
+down;down,up,west,east;up_north up_south
+down;down,north,south,west;north_up south_up
+down;down,north,south,east;north_up south_up
+down;down,north,west,east;east_up west_up
+down;down,south,west,east;east_up west_up
+down;up,north,south,west;up_north up_south
+down;up,north,south,east;up_north up_south
+down;up,north,west,east;up_north up_south
+down;up,south,west,east;up_north up_south
+down;north,south,west,east;north_up south_up
+down;down,up,north,south,west;up_north up_south
+down;down,up,north,south,east;up_north up_south
+down;down,up,north,west,east;up_north up_south
+down;down,up,south,west,east;up_north up_south
+down;down,north,south,west,east;north_up south_up
+down;up,north,south,west,east;up_north up_south
+down;down,up,north,south,west,east;up_north up_south
+up;;
+up;down;down_north down_south
+up;up;
+up;north;north_east north_west
+up;south;south_east south_west
+up;west;west_north west_south
+up;east;east_north east_south
+up;down,up;down_north down_south
+up;down,north;down_north down_south
+up;down,south;down_north down_south
+up;down,west;down_north down_south
+up;down,east;down_north down_south
+up;up,north;north_east north_west
+up;up,south;south_east south_west
+up;up,west;west_north west_south
+up;up,east;east_north east_south
+up;north,south;north_down south_down
+up;north,west;north_east west_south
+up;north,east;north_west east_south
+up;south,west;south_east west_north
+up;south,east;south_west east_north
+up;west,east;east_down west_down
+up;down,up,north;down_north down_south
+up;down,up,south;down_north down_south
+up;down,up,west;down_north down_south
+up;down,up,east;down_north down_south
+up;down,north,south;down_north down_south
+up;down,north,west;down_north down_south
+up;down,north,east;down_north down_south
+up;down,south,west;down_north down_south
+up;down,south,east;down_north down_south
+up;down,west,east;down_north down_south
+up;up,north,south;north_down south_down
+up;up,north,west;north_east west_south
+up;up,north,east;north_west east_south
+up;up,south,west;south_east west_north
+up;up,south,east;south_west east_north
+up;up,west,east;east_down west_down
+up;north,south,west;north_down south_down
+up;north,south,east;north_down south_down
+up;north,west,east;east_down west_down
+up;south,west,east;east_down west_down
+up;down,up,north,south;down_north down_south
+up;down,up,north,west;down_north down_south
+up;down,up,north,east;down_north down_south
+up;down,up,south,west;down_north down_south
+up;down,up,south,east;down_north down_south
+up;down,up,west,east;down_north down_south
+up;down,north,south,west;down_north down_south
+up;down,north,south,east;down_north down_south
+up;down,north,west,east;down_north down_south
+up;down,south,west,east;down_north down_south
+up;up,north,south,west;north_down south_down
+up;up,north,south,east;north_down south_down
+up;up,north,west,east;east_down west_down
+up;up,south,west,east;east_down west_down
+up;north,south,west,east;north_down south_down
+up;down,up,north,south,west;down_north down_south
+up;down,up,north,south,east;down_north down_south
+up;down,up,north,west,east;down_north down_south
+up;down,up,south,west,east;down_north down_south
+up;down,north,south,west,east;down_north down_south
+up;up,north,south,west,east;north_down south_down
+up;down,up,north,south,west,east;down_north down_south
+north;;
+north;down;down_east down_west
+north;up;up_east up_west
+north;north;
+north;south;south_east south_west
+north;west;west_up west_down
+north;east;east_up east_down
+north;down,up;down_east down_west
+north;down,north;down_east down_west
+north;down,south;down_east down_west
+north;down,west;down_east down_west
+north;down,east;down_east down_west
+north;up,north;up_east up_west
+north;up,south;up_east up_west
+north;up,west;up_east up_west
+north;up,east;up_east up_west
+north;north,south;south_east south_west
+north;north,west;west_up west_down
+north;north,east;east_up east_down
+north;south,west;south_east west_up
+north;south,east;south_west east_up
+north;west,east;east_up west_up
+north;down,up,north;down_east down_west
+north;down,up,south;down_east down_west
+north;down,up,west;down_east down_west
+north;down,up,east;down_east down_west
+north;down,north,south;down_east down_west
+north;down,north,west;down_east down_west
+north;down,north,east;down_east down_west
+north;down,south,west;down_east down_west
+north;down,south,east;down_east down_west
+north;down,west,east;down_east down_west
+north;up,north,south;up_east up_west
+north;up,north,west;up_east up_west
+north;up,north,east;up_east up_west
+north;up,south,west;up_east up_west
+north;up,south,east;up_east up_west
+north;up,west,east;up_east up_west
+north;north,south,west;south_east west_up
+north;north,south,east;south_west east_up
+north;north,west,east;east_up west_up
+north;south,west,east;east_up west_up
+north;down,up,north,south;down_east down_west
+north;down,up,north,west;down_east down_west
+north;down,up,north,east;down_east down_west
+north;down,up,south,west;down_east down_west
+north;down,up,south,east;down_east down_west
+north;down,up,west,east;down_east down_west
+north;down,north,south,west;down_east down_west
+north;down,north,south,east;down_east down_west
+north;down,north,west,east;down_east down_west
+north;down,south,west,east;down_east down_west
+north;up,north,south,west;up_east up_west
+north;up,north,south,east;up_east up_west
+north;up,north,west,east;up_east up_west
+north;up,south,west,east;up_east up_west
+north;north,south,west,east;east_up west_up
+north;down,up,north,south,west;down_east down_west
+north;down,up,north,south,east;down_east down_west
+north;down,up,north,west,east;down_east down_west
+north;down,up,south,west,east;down_east down_west
+north;down,north,south,west,east;down_east down_west
+north;up,north,south,west,east;up_east up_west
+north;down,up,north,south,west,east;down_east down_west
+south;;
+south;down;down_east down_west
+south;up;up_east up_west
+south;north;north_east north_west
+south;south;
+south;west;west_up west_down
+south;east;east_up east_down
+south;down,up;down_east down_west
+south;down,north;down_east down_west
+south;down,south;down_east down_west
+south;down,west;down_east down_west
+south;down,east;down_east down_west
+south;up,north;up_east up_west
+south;up,south;up_east up_west
+south;up,west;up_east up_west
+south;up,east;up_east up_west
+south;north,south;north_east north_west
+south;north,west;north_east west_up
+south;north,east;north_west east_up
+south;south,west;west_up west_down
+south;south,east;east_up east_down
+south;west,east;east_up west_up
+south;down,up,north;down_east down_west
+south;down,up,south;down_east down_west
+south;down,up,west;down_east down_west
+south;down,up,east;down_east down_west
+south;down,north,south;down_east down_west
+south;down,north,west;down_east down_west
+south;down,north,east;down_east down_west
+south;down,south,west;down_east down_west
+south;down,south,east;down_east down_west
+south;down,west,east;down_east down_west
+south;up,north,south;up_east up_west
+south;up,north,west;up_east up_west
+south;up,north,east;up_east up_west
+south;up,south,west;up_east up_west
+south;up,south,east;up_east up_west
+south;up,west,east;up_east up_west
+south;north,south,west;north_east west_up
+south;north,south,east;north_west east_up
+south;north,west,east;east_up west_up
+south;south,west,east;east_up west_up
+south;down,up,north,south;down_east down_west
+south;down,up,north,west;down_east down_west
+south;down,up,north,east;down_east down_west
+south;down,up,south,west;down_east down_west
+south;down,up,south,east;down_east down_west
+south;down,up,west,east;down_east down_west
+south;down,north,south,west;down_east down_west
+south;down,north,south,east;down_east down_west
+south;down,north,west,east;down_east down_west
+south;down,south,west,east;down_east down_west
+south;up,north,south,west;up_east up_west
+south;up,north,south,east;up_east up_west
+south;up,north,west,east;up_east up_west
+south;up,south,west,east;up_east up_west
+south;north,south,west,east;east_up west_up
+south;down,up,north,south,west;down_east down_west
+south;down,up,north,south,east;down_east down_west
+south;down,up,north,west,east;down_east down_west
+south;down,up,south,west,east;down_east down_west
+south;down,north,south,west,east;down_east down_west
+south;up,north,south,west,east;up_east up_west
+south;down,up,north,south,west,east;down_east down_west
+west;;
+west;down;down_north down_south
+west;up;up_north up_south
+west;north;north_up north_down
+west;south;south_up south_down
+west;west;
+west;east;east_north east_south
+west;down,up;down_north down_south
+west;down,north;down_north down_south
+west;down,south;down_north down_south
+west;down,west;down_north down_south
+west;down,east;down_north down_south
+west;up,north;up_north up_south
+west;up,south;up_north up_south
+west;up,west;up_north up_south
+west;up,east;up_north up_south
+west;north,south;north_up south_up
+west;north,west;north_up north_down
+west;north,east;north_up east_south
+west;south,west;south_up south_down
+west;south,east;south_up east_north
+west;west,east;east_north east_south
+west;down,up,north;down_north down_south
+west;down,up,south;down_north down_south
+west;down,up,west;down_north down_south
+west;down,up,east;down_north down_south
+west;down,north,south;down_north down_south
+west;down,north,west;down_north down_south
+west;down,north,east;down_north down_south
+west;down,south,west;down_north down_south
+west;down,south,east;down_north down_south
+west;down,west,east;down_north down_south
+west;up,north,south;up_north up_south
+west;up,north,west;up_north up_south
+west;up,north,east;up_north up_south
+west;up,south,west;up_north up_south
+west;up,south,east;up_north up_south
+west;up,west,east;up_north up_south
+west;north,south,west;north_up south_up
+west;north,south,east;north_up south_up
+west;north,west,east;north_up east_south
+west;south,west,east;south_up east_north
+west;down,up,north,south;down_north down_south
+west;down,up,north,west;down_north down_south
+west;down,up,north,east;down_north down_south
+west;down,up,south,west;down_north down_south
+west;down,up,south,east;down_north down_south
+west;down,up,west,east;down_north down_south
+west;down,north,south,west;down_north down_south
+west;down,north,south,east;down_north down_south
+west;down,north,west,east;down_north down_south
+west;down,south,west,east;down_north down_south
+west;up,north,south,west;up_north up_south
+west;up,north,south,east;up_north up_south
+west;up,north,west,east;up_north up_south
+west;up,south,west,east;up_north up_south
+west;north,south,west,east;north_up south_up
+west;down,up,north,south,west;down_north down_south
+west;down,up,north,south,east;down_north down_south
+west;down,up,north,west,east;down_north down_south
+west;down,up,south,west,east;down_north down_south
+west;down,north,south,west,east;down_north down_south
+west;up,north,south,west,east;up_north up_south
+west;down,up,north,south,west,east;down_north down_south
+east;;
+east;down;down_north down_south
+east;up;up_north up_south
+east;north;north_up north_down
+east;south;south_up south_down
+east;west;west_north west_south
+east;east;
+east;down,up;down_north down_south
+east;down,north;down_north down_south
+east;down,south;down_north down_south
+east;down,west;down_north down_south
+east;down,east;down_north down_south
+east;up,north;up_north up_south
+east;up,south;up_north up_south
+east;up,west;up_north up_south
+east;up,east;up_north up_south
+east;north,south;north_up south_up
+east;north,west;north_up west_south
+east;north,east;north_up north_down
+east;south,west;south_up west_north
+east;south,east;south_up south_down
+east;west,east;west_north west_south
+east;down,up,north;down_north down_south
+east;down,up,south;down_north down_south
+east;down,up,west;down_north down_south
+east;down,up,east;down_north down_south
+east;down,north,south;down_north down_south
+east;down,north,west;down_north down_south
+east;down,north,east;down_north down_south
+east;down,south,west;down_north down_south
+east;down,south,east;down_north down_south
+east;down,west,east;down_north down_south
+east;up,north,south;up_north up_south
+east;up,north,west;up_north up_south
+east;up,north,east;up_north up_south
+east;up,south,west;up_north up_south
+east;up,south,east;up_north up_south
+east;up,west,east;up_north up_south
+east;north,south,west;north_up south_up
+east;north,south,east;north_up south_up
+east;north,west,east;north_up west_south
+east;south,west,east;south_up west_north
+east;down,up,north,south;down_north down_south
+east;down,up,north,west;down_north down_south
+east;down,up,north,east;down_north down_south
+east;down,up,south,west;down_north down_south
+east;down,up,south,east;down_north down_south
+east;down,up,west,east;down_north down_south
+east;down,north,south,west;down_north down_south
+east;down,north,south,east;down_north down_south
+east;down,north,west,east;down_north down_south
+east;down,south,west,east;down_north down_south
+east;up,north,south,west;up_north up_south
+east;up,north,south,east;up_north up_south
+east;up,north,west,east;up_north up_south
+east;up,south,west,east;up_north up_south
+east;north,south,west,east;north_up south_up
+east;down,up,north,south,west;down_north down_south
+east;down,up,north,south,east;down_north down_south
+east;down,up,north,west,east;down_north down_south
+east;down,up,south,west,east;down_north down_south
+east;down,north,south,west,east;down_north down_south
+east;up,north,south,west,east;up_north up_south
+east;down,up,north,south,west,east;down_north down_south
+down,up;;
+down,up;down;
+down,up;up;
+down,up;north;north_east north_west
+down,up;south;south_east south_west
+down,up;west;west_north west_south
+down,up;east;east_north east_south
+down,up;down,up;
+down,up;down,north;north_east north_west
+down,up;down,south;south_east south_west
+down,up;down,west;west_north west_south
+down,up;down,east;east_north east_south
+down,up;up,north;north_east north_west
+down,up;up,south;south_east south_west
+down,up;up,west;west_north west_south
+down,up;up,east;east_north east_south
+down,up;north,south;north_east south_east
+down,up;north,west;north_east west_south
+down,up;north,east;north_west east_south
+down,up;south,west;south_east west_north
+down,up;south,east;south_west east_north
+down,up;west,east;east_north west_north
+down,up;down,up,north;north_east north_west
+down,up;down,up,south;south_east south_west
+down,up;down,up,west;west_north west_south
+down,up;down,up,east;east_north east_south
+down,up;down,north,south;north_east south_east
+down,up;down,north,west;north_east west_south
+down,up;down,north,east;north_west east_south
+down,up;down,south,west;south_east west_north
+down,up;down,south,east;south_west east_north
+down,up;down,west,east;east_north west_north
+down,up;up,north,south;north_east south_east
+down,up;up,north,west;north_east west_south
+down,up;up,north,east;north_west east_south
+down,up;up,south,west;south_east west_north
+down,up;up,south,east;south_west east_north
+down,up;up,west,east;east_north west_north
+down,up;north,south,west;north_east south_east
+down,up;north,south,east;north_east south_east
+down,up;north,west,east;east_north west_north
+down,up;south,west,east;east_north west_north
+down,up;down,up,north,south;north_east south_east
+down,up;down,up,north,west;north_east west_south
+down,up;down,up,north,east;north_west east_south
+down,up;down,up,south,west;south_east west_north
+down,up;down,up,south,east;south_west east_north
+down,up;down,up,west,east;east_north west_north
+down,up;down,north,south,west;north_east south_east
+down,up;down,north,south,east;north_east south_east
+down,up;down,north,west,east;east_north west_north
+down,up;down,south,west,east;east_north west_north
+down,up;up,north,south,west;north_east south_east
+down,up;up,north,south,east;north_east south_east
+down,up;up,north,west,east;east_north west_north
+down,up;up,south,west,east;east_north west_north
+down,up;north,south,west,east;north_east south_east
+down,up;down,up,north,south,west;north_east south_east
+down,up;down,up,north,south,east;north_east south_east
+down,up;down,up,north,west,east;east_north west_north
+down,up;down,up,south,west,east;east_north west_north
+down,up;down,north,south,west,east;north_east south_east
+down,up;up,north,south,west,east;north_east south_east
+down,up;down,up,north,south,west,east;north_east south_east
+down,north;;
+down,north;down;
+down,north;up;up_east up_west
+down,north;north;
+down,north;south;south_east south_west
+down,north;west;west_up west_south
+down,north;east;east_up east_south
+down,north;down,up;up_east up_west
+down,north;down,north;
+down,north;down,south;south_east south_west
+down,north;down,west;west_up west_south
+down,north;down,east;east_up east_south
+down,north;up,north;up_east up_west
+down,north;up,south;up_east up_west
+down,north;up,west;up_east up_west
+down,north;up,east;up_east up_west
+down,north;north,south;south_east south_west
+down,north;north,west;west_up west_south
+down,north;north,east;east_up east_south
+down,north;south,west;south_east west_up
+down,north;south,east;south_west east_up
+down,north;west,east;east_up west_up
+down,north;down,up,north;up_east up_west
+down,north;down,up,south;up_east up_west
+down,north;down,up,west;up_east up_west
+down,north;down,up,east;up_east up_west
+down,north;down,north,south;south_east south_west
+down,north;down,north,west;west_up west_south
+down,north;down,north,east;east_up east_south
+down,north;down,south,west;south_east west_up
+down,north;down,south,east;south_west east_up
+down,north;down,west,east;east_up west_up
+down,north;up,north,south;up_east up_west
+down,north;up,north,west;up_east up_west
+down,north;up,north,east;up_east up_west
+down,north;up,south,west;up_east up_west
+down,north;up,south,east;up_east up_west
+down,north;up,west,east;up_east up_west
+down,north;north,south,west;south_east west_up
+down,north;north,south,east;south_west east_up
+down,north;north,west,east;east_up west_up
+down,north;south,west,east;east_up west_up
+down,north;down,up,north,south;up_east up_west
+down,north;down,up,north,west;up_east up_west
+down,north;down,up,north,east;up_east up_west
+down,north;down,up,south,west;up_east up_west
+down,north;down,up,south,east;up_east up_west
+down,north;down,up,west,east;up_east up_west
+down,north;down,north,south,west;south_east west_up
+down,north;down,north,south,east;south_west east_up
+down,north;down,north,west,east;east_up west_up
+down,north;down,south,west,east;east_up west_up
+down,north;up,north,south,west;up_east up_west
+down,north;up,north,south,east;up_east up_west
+down,north;up,north,west,east;up_east up_west
+down,north;up,south,west,east;up_east up_west
+down,north;north,south,west,east;east_up west_up
+down,north;down,up,north,south,west;up_east up_west
+down,north;down,up,north,south,east;up_east up_west
+down,north;down,up,north,west,east;up_east up_west
+down,north;down,up,south,west,east;up_east up_west
+down,north;down,north,south,west,east;east_up west_up
+down,north;up,north,south,west,east;up_east up_west
+down,north;down,up,north,south,west,east;up_east up_west
+down,south;;
+down,south;down;
+down,south;up;up_east up_west
+down,south;north;north_east north_west
+down,south;south;
+down,south;west;west_up west_north
+down,south;east;east_up east_north
+down,south;down,up;up_east up_west
+down,south;down,north;north_east north_west
+down,south;down,south;
+down,south;down,west;west_up west_north
+down,south;down,east;east_up east_north
+down,south;up,north;up_east up_west
+down,south;up,south;up_east up_west
+down,south;up,west;up_east up_west
+down,south;up,east;up_east up_west
+down,south;north,south;north_east north_west
+down,south;north,west;north_east west_up
+down,south;north,east;north_west east_up
+down,south;south,west;west_up west_north
+down,south;south,east;east_up east_north
+down,south;west,east;east_up west_up
+down,south;down,up,north;up_east up_west
+down,south;down,up,south;up_east up_west
+down,south;down,up,west;up_east up_west
+down,south;down,up,east;up_east up_west
+down,south;down,north,south;north_east north_west
+down,south;down,north,west;north_east west_up
+down,south;down,north,east;north_west east_up
+down,south;down,south,west;west_up west_north
+down,south;down,south,east;east_up east_north
+down,south;down,west,east;east_up west_up
+down,south;up,north,south;up_east up_west
+down,south;up,north,west;up_east up_west
+down,south;up,north,east;up_east up_west
+down,south;up,south,west;up_east up_west
+down,south;up,south,east;up_east up_west
+down,south;up,west,east;up_east up_west
+down,south;north,south,west;north_east west_up
+down,south;north,south,east;north_west east_up
+down,south;north,west,east;east_up west_up
+down,south;south,west,east;east_up west_up
+down,south;down,up,north,south;up_east up_west
+down,south;down,up,north,west;up_east up_west
+down,south;down,up,north,east;up_east up_west
+down,south;down,up,south,west;up_east up_west
+down,south;down,up,south,east;up_east up_west
+down,south;down,up,west,east;up_east up_west
+down,south;down,north,south,west;north_east west_up
+down,south;down,north,south,east;north_west east_up
+down,south;down,north,west,east;east_up west_up
+down,south;down,south,west,east;east_up west_up
+down,south;up,north,south,west;up_east up_west
+down,south;up,north,south,east;up_east up_west
+down,south;up,north,west,east;up_east up_west
+down,south;up,south,west,east;up_east up_west
+down,south;north,south,west,east;east_up west_up
+down,south;down,up,north,south,west;up_east up_west
+down,south;down,up,north,south,east;up_east up_west
+down,south;down,up,north,west,east;up_east up_west
+down,south;down,up,south,west,east;up_east up_west
+down,south;down,north,south,west,east;east_up west_up
+down,south;up,north,south,west,east;up_east up_west
+down,south;down,up,north,south,west,east;up_east up_west
+down,west;;
+down,west;down;
+down,west;up;up_north up_south
+down,west;north;north_up north_east
+down,west;south;south_up south_east
+down,west;west;
+down,west;east;east_north east_south
+down,west;down,up;up_north up_south
+down,west;down,north;north_up north_east
+down,west;down,south;south_up south_east
+down,west;down,west;
+down,west;down,east;east_north east_south
+down,west;up,north;up_north up_south
+down,west;up,south;up_north up_south
+down,west;up,west;up_north up_south
+down,west;up,east;up_north up_south
+down,west;north,south;north_up south_up
+down,west;north,west;north_up north_east
+down,west;north,east;north_up east_south
+down,west;south,west;south_up south_east
+down,west;south,east;south_up east_north
+down,west;west,east;east_north east_south
+down,west;down,up,north;up_north up_south
+down,west;down,up,south;up_north up_south
+down,west;down,up,west;up_north up_south
+down,west;down,up,east;up_north up_south
+down,west;down,north,south;north_up south_up
+down,west;down,north,west;north_up north_east
+down,west;down,north,east;north_up east_south
+down,west;down,south,west;south_up south_east
+down,west;down,south,east;south_up east_north
+down,west;down,west,east;east_north east_south
+down,west;up,north,south;up_north up_south
+down,west;up,north,west;up_north up_south
+down,west;up,north,east;up_north up_south
+down,west;up,south,west;up_north up_south
+down,west;up,south,east;up_north up_south
+down,west;up,west,east;up_north up_south
+down,west;north,south,west;north_up south_up
+down,west;north,south,east;north_up south_up
+down,west;north,west,east;north_up east_south
+down,west;south,west,east;south_up east_north
+down,west;down,up,north,south;up_north up_south
+down,west;down,up,north,west;up_north up_south
+down,west;down,up,north,east;up_north up_south
+down,west;down,up,south,west;up_north up_south
+down,west;down,up,south,east;up_north up_south
+down,west;down,up,west,east;up_north up_south
+down,west;down,north,south,west;north_up south_up
+down,west;down,north,south,east;north_up south_up
+down,west;down,north,west,east;north_up east_south
+down,west;down,south,west,east;south_up east_north
+down,west;up,north,south,west;up_north up_south
+down,west;up,north,south,east;up_north up_south
+down,west;up,north,west,east;up_north up_south
+down,west;up,south,west,east;up_north up_south
+down,west;north,south,west,east;north_up south_up
+down,west;down,up,north,south,west;up_north up_south
+down,west;down,up,north,south,east;up_north up_south
+down,west;down,up,north,west,east;up_north up_south
+down,west;down,up,south,west,east;up_north up_south
+down,west;down,north,south,west,east;north_up south_up
+down,west;up,north,south,west,east;up_north up_south
+down,west;down,up,north,south,west,east;up_north up_south
+down,east;;
+down,east;down;
+down,east;up;up_north up_south
+down,east;north;north_up north_west
+down,east;south;south_up south_west
+down,east;west;west_north west_south
+down,east;east;
+down,east;down,up;up_north up_south
+down,east;down,north;north_up north_west
+down,east;down,south;south_up south_west
+down,east;down,west;west_north west_south
+down,east;down,east;
+down,east;up,north;up_north up_south
+down,east;up,south;up_north up_south
+down,east;up,west;up_north up_south
+down,east;up,east;up_north up_south
+down,east;north,south;north_up south_up
+down,east;north,west;north_up west_south
+down,east;north,east;north_up north_west
+down,east;south,west;south_up west_north
+down,east;south,east;south_up south_west
+down,east;west,east;west_north west_south
+down,east;down,up,north;up_north up_south
+down,east;down,up,south;up_north up_south
+down,east;down,up,west;up_north up_south
+down,east;down,up,east;up_north up_south
+down,east;down,north,south;north_up south_up
+down,east;down,north,west;north_up west_south
+down,east;down,north,east;north_up north_west
+down,east;down,south,west;south_up west_north
+down,east;down,south,east;south_up south_west
+down,east;down,west,east;west_north west_south
+down,east;up,north,south;up_north up_south
+down,east;up,north,west;up_north up_south
+down,east;up,north,east;up_north up_south
+down,east;up,south,west;up_north up_south
+down,east;up,south,east;up_north up_south
+down,east;up,west,east;up_north up_south
+down,east;north,south,west;north_up south_up
+down,east;north,south,east;north_up south_up
+down,east;north,west,east;north_up west_south
+down,east;south,west,east;south_up west_north
+down,east;down,up,north,south;up_north up_south
+down,east;down,up,north,west;up_north up_south
+down,east;down,up,north,east;up_north up_south
+down,east;down,up,south,west;up_north up_south
+down,east;down,up,south,east;up_north up_south
+down,east;down,up,west,east;up_north up_south
+down,east;down,north,south,west;north_up south_up
+down,east;down,north,south,east;north_up south_up
+down,east;down,north,west,east;north_up west_south
+down,east;down,south,west,east;south_up west_north
+down,east;up,north,south,west;up_north up_south
+down,east;up,north,south,east;up_north up_south
+down,east;up,north,west,east;up_north up_south
+down,east;up,south,west,east;up_north up_south
+down,east;north,south,west,east;north_up south_up
+down,east;down,up,north,south,west;up_north up_south
+down,east;down,up,north,south,east;up_north up_south
+down,east;down,up,north,west,east;up_north up_south
+down,east;down,up,south,west,east;up_north up_south
+down,east;down,north,south,west,east;north_up south_up
+down,east;up,north,south,west,east;up_north up_south
+down,east;down,up,north,south,west,east;up_north up_south
+up,north;;
+up,north;down;down_east down_west
+up,north;up;
+up,north;north;
+up,north;south;south_east south_west
+up,north;west;west_down west_south
+up,north;east;east_down east_south
+up,north;down,up;down_east down_west
+up,north;down,north;down_east down_west
+up,north;down,south;down_east down_west
+up,north;down,west;down_east down_west
+up,north;down,east;down_east down_west
+up,north;up,north;
+up,north;up,south;south_east south_west
+up,north;up,west;west_down west_south
+up,north;up,east;east_down east_south
+up,north;north,south;south_east south_west
+up,north;north,west;west_down west_south
+up,north;north,east;east_down east_south
+up,north;south,west;south_east west_down
+up,north;south,east;south_west east_down
+up,north;west,east;east_down west_down
+up,north;down,up,north;down_east down_west
+up,north;down,up,south;down_east down_west
+up,north;down,up,west;down_east down_west
+up,north;down,up,east;down_east down_west
+up,north;down,north,south;down_east down_west
+up,north;down,north,west;down_east down_west
+up,north;down,north,east;down_east down_west
+up,north;down,south,west;down_east down_west
+up,north;down,south,east;down_east down_west
+up,north;down,west,east;down_east down_west
+up,north;up,north,south;south_east south_west
+up,north;up,north,west;west_down west_south
+up,north;up,north,east;east_down east_south
+up,north;up,south,west;south_east west_down
+up,north;up,south,east;south_west east_down
+up,north;up,west,east;east_down west_down
+up,north;north,south,west;south_east west_down
+up,north;north,south,east;south_west east_down
+up,north;north,west,east;east_down west_down
+up,north;south,west,east;east_down west_down
+up,north;down,up,north,south;down_east down_west
+up,north;down,up,north,west;down_east down_west
+up,north;down,up,north,east;down_east down_west
+up,north;down,up,south,west;down_east down_west
+up,north;down,up,south,east;down_east down_west
+up,north;down,up,west,east;down_east down_west
+up,north;down,north,south,west;down_east down_west
+up,north;down,north,south,east;down_east down_west
+up,north;down,north,west,east;down_east down_west
+up,north;down,south,west,east;down_east down_west
+up,north;up,north,south,west;south_east west_down
+up,north;up,north,south,east;south_west east_down
+up,north;up,north,west,east;east_down west_down
+up,north;up,south,west,east;east_down west_down
+up,north;north,south,west,east;east_down west_down
+up,north;down,up,north,south,west;down_east down_west
+up,north;down,up,north,south,east;down_east down_west
+up,north;down,up,north,west,east;down_east down_west
+up,north;down,up,south,west,east;down_east down_west
+up,north;down,north,south,west,east;down_east down_west
+up,north;up,north,south,west,east;east_down west_down
+up,north;down,up,north,south,west,east;down_east down_west
+up,south;;
+up,south;down;down_east down_west
+up,south;up;
+up,south;north;north_east north_west
+up,south;south;
+up,south;west;west_down west_north
+up,south;east;east_down east_north
+up,south;down,up;down_east down_west
+up,south;down,north;down_east down_west
+up,south;down,south;down_east down_west
+up,south;down,west;down_east down_west
+up,south;down,east;down_east down_west
+up,south;up,north;north_east north_west
+up,south;up,south;
+up,south;up,west;west_down west_north
+up,south;up,east;east_down east_north
+up,south;north,south;north_east north_west
+up,south;north,west;north_east west_down
+up,south;north,east;north_west east_down
+up,south;south,west;west_down west_north
+up,south;south,east;east_down east_north
+up,south;west,east;east_down west_down
+up,south;down,up,north;down_east down_west
+up,south;down,up,south;down_east down_west
+up,south;down,up,west;down_east down_west
+up,south;down,up,east;down_east down_west
+up,south;down,north,south;down_east down_west
+up,south;down,north,west;down_east down_west
+up,south;down,north,east;down_east down_west
+up,south;down,south,west;down_east down_west
+up,south;down,south,east;down_east down_west
+up,south;down,west,east;down_east down_west
+up,south;up,north,south;north_east north_west
+up,south;up,north,west;north_east west_down
+up,south;up,north,east;north_west east_down
+up,south;up,south,west;west_down west_north
+up,south;up,south,east;east_down east_north
+up,south;up,west,east;east_down west_down
+up,south;north,south,west;north_east west_down
+up,south;north,south,east;north_west east_down
+up,south;north,west,east;east_down west_down
+up,south;south,west,east;east_down west_down
+up,south;down,up,north,south;down_east down_west
+up,south;down,up,north,west;down_east down_west
+up,south;down,up,north,east;down_east down_west
+up,south;down,up,south,west;down_east down_west
+up,south;down,up,south,east;down_east down_west
+up,south;down,up,west,east;down_east down_west
+up,south;down,north,south,west;down_east down_west
+up,south;down,north,south,east;down_east down_west
+up,south;down,north,west,east;down_east down_west
+up,south;down,south,west,east;down_east down_west
+up,south;up,north,south,west;north_east west_down
+up,south;up,north,south,east;north_west east_down
+up,south;up,north,west,east;east_down west_down
+up,south;up,south,west,east;east_down west_down
+up,south;north,south,west,east;east_down west_down
+up,south;down,up,north,south,west;down_east down_west
+up,south;down,up,north,south,east;down_east down_west
+up,south;down,up,north,west,east;down_east down_west
+up,south;down,up,south,west,east;down_east down_west
+up,south;down,north,south,west,east;down_east down_west
+up,south;up,north,south,west,east;east_down west_down
+up,south;down,up,north,south,west,east;down_east down_west
+up,west;;
+up,west;down;down_north down_south
+up,west;up;
+up,west;north;north_down north_east
+up,west;south;south_down south_east
+up,west;west;
+up,west;east;east_north east_south
+up,west;down,up;down_north down_south
+up,west;down,north;down_north down_south
+up,west;down,south;down_north down_south
+up,west;down,west;down_north down_south
+up,west;down,east;down_north down_south
+up,west;up,north;north_down north_east
+up,west;up,south;south_down south_east
+up,west;up,west;
+up,west;up,east;east_north east_south
+up,west;north,south;north_down south_down
+up,west;north,west;north_down north_east
+up,west;north,east;north_down east_south
+up,west;south,west;south_down south_east
+up,west;south,east;south_down east_north
+up,west;west,east;east_north east_south
+up,west;down,up,north;down_north down_south
+up,west;down,up,south;down_north down_south
+up,west;down,up,west;down_north down_south
+up,west;down,up,east;down_north down_south
+up,west;down,north,south;down_north down_south
+up,west;down,north,west;down_north down_south
+up,west;down,north,east;down_north down_south
+up,west;down,south,west;down_north down_south
+up,west;down,south,east;down_north down_south
+up,west;down,west,east;down_north down_south
+up,west;up,north,south;north_down south_down
+up,west;up,north,west;north_down north_east
+up,west;up,north,east;north_down east_south
+up,west;up,south,west;south_down south_east
+up,west;up,south,east;south_down east_north
+up,west;up,west,east;east_north east_south
+up,west;north,south,west;north_down south_down
+up,west;north,south,east;north_down south_down
+up,west;north,west,east;north_down east_south
+up,west;south,west,east;south_down east_north
+up,west;down,up,north,south;down_north down_south
+up,west;down,up,north,west;down_north down_south
+up,west;down,up,north,east;down_north down_south
+up,west;down,up,south,west;down_north down_south
+up,west;down,up,south,east;down_north down_south
+up,west;down,up,west,east;down_north down_south
+up,west;down,north,south,west;down_north down_south
+up,west;down,north,south,east;down_north down_south
+up,west;down,north,west,east;down_north down_south
+up,west;down,south,west,east;down_north down_south
+up,west;up,north,south,west;north_down south_down
+up,west;up,north,south,east;north_down south_down
+up,west;up,north,west,east;north_down east_south
+up,west;up,south,west,east;south_down east_north
+up,west;north,south,west,east;north_down south_down
+up,west;down,up,north,south,west;down_north down_south
+up,west;down,up,north,south,east;down_north down_south
+up,west;down,up,north,west,east;down_north down_south
+up,west;down,up,south,west,east;down_north down_south
+up,west;down,north,south,west,east;down_north down_south
+up,west;up,north,south,west,east;north_down south_down
+up,west;down,up,north,south,west,east;down_north down_south
+up,east;;
+up,east;down;down_north down_south
+up,east;up;
+up,east;north;north_down north_west
+up,east;south;south_down south_west
+up,east;west;west_north west_south
+up,east;east;
+up,east;down,up;down_north down_south
+up,east;down,north;down_north down_south
+up,east;down,south;down_north down_south
+up,east;down,west;down_north down_south
+up,east;down,east;down_north down_south
+up,east;up,north;north_down north_west
+up,east;up,south;south_down south_west
+up,east;up,west;west_north west_south
+up,east;up,east;
+up,east;north,south;north_down south_down
+up,east;north,west;north_down west_south
+up,east;north,east;north_down north_west
+up,east;south,west;south_down west_north
+up,east;south,east;south_down south_west
+up,east;west,east;west_north west_south
+up,east;down,up,north;down_north down_south
+up,east;down,up,south;down_north down_south
+up,east;down,up,west;down_north down_south
+up,east;down,up,east;down_north down_south
+up,east;down,north,south;down_north down_south
+up,east;down,north,west;down_north down_south
+up,east;down,north,east;down_north down_south
+up,east;down,south,west;down_north down_south
+up,east;down,south,east;down_north down_south
+up,east;down,west,east;down_north down_south
+up,east;up,north,south;north_down south_down
+up,east;up,north,west;north_down west_south
+up,east;up,north,east;north_down north_west
+up,east;up,south,west;south_down west_north
+up,east;up,south,east;south_down south_west
+up,east;up,west,east;west_north west_south
+up,east;north,south,west;north_down south_down
+up,east;north,south,east;north_down south_down
+up,east;north,west,east;north_down west_south
+up,east;south,west,east;south_down west_north
+up,east;down,up,north,south;down_north down_south
+up,east;down,up,north,west;down_north down_south
+up,east;down,up,north,east;down_north down_south
+up,east;down,up,south,west;down_north down_south
+up,east;down,up,south,east;down_north down_south
+up,east;down,up,west,east;down_north down_south
+up,east;down,north,south,west;down_north down_south
+up,east;down,north,south,east;down_north down_south
+up,east;down,north,west,east;down_north down_south
+up,east;down,south,west,east;down_north down_south
+up,east;up,north,south,west;north_down south_down
+up,east;up,north,south,east;north_down south_down
+up,east;up,north,west,east;north_down west_south
+up,east;up,south,west,east;south_down west_north
+up,east;north,south,west,east;north_down south_down
+up,east;down,up,north,south,west;down_north down_south
+up,east;down,up,north,south,east;down_north down_south
+up,east;down,up,north,west,east;down_north down_south
+up,east;down,up,south,west,east;down_north down_south
+up,east;down,north,south,west,east;down_north down_south
+up,east;up,north,south,west,east;north_down south_down
+up,east;down,up,north,south,west,east;down_north down_south
+north,south;;
+north,south;down;down_east down_west
+north,south;up;up_east up_west
+north,south;north;
+north,south;south;
+north,south;west;west_up west_down
+north,south;east;east_up east_down
+north,south;down,up;down_east down_west
+north,south;down,north;down_east down_west
+north,south;down,south;down_east down_west
+north,south;down,west;down_east down_west
+north,south;down,east;down_east down_west
+north,south;up,north;up_east up_west
+north,south;up,south;up_east up_west
+north,south;up,west;up_east up_west
+north,south;up,east;up_east up_west
+north,south;north,south;
+north,south;north,west;west_up west_down
+north,south;north,east;east_up east_down
+north,south;south,west;west_up west_down
+north,south;south,east;east_up east_down
+north,south;west,east;east_up west_up
+north,south;down,up,north;down_east down_west
+north,south;down,up,south;down_east down_west
+north,south;down,up,west;down_east down_west
+north,south;down,up,east;down_east down_west
+north,south;down,north,south;down_east down_west
+north,south;down,north,west;down_east down_west
+north,south;down,north,east;down_east down_west
+north,south;down,south,west;down_east down_west
+north,south;down,south,east;down_east down_west
+north,south;down,west,east;down_east down_west
+north,south;up,north,south;up_east up_west
+north,south;up,north,west;up_east up_west
+north,south;up,north,east;up_east up_west
+north,south;up,south,west;up_east up_west
+north,south;up,south,east;up_east up_west
+north,south;up,west,east;up_east up_west
+north,south;north,south,west;west_up west_down
+north,south;north,south,east;east_up east_down
+north,south;north,west,east;east_up west_up
+north,south;south,west,east;east_up west_up
+north,south;down,up,north,south;down_east down_west
+north,south;down,up,north,west;down_east down_west
+north,south;down,up,north,east;down_east down_west
+north,south;down,up,south,west;down_east down_west
+north,south;down,up,south,east;down_east down_west
+north,south;down,up,west,east;down_east down_west
+north,south;down,north,south,west;down_east down_west
+north,south;down,north,south,east;down_east down_west
+north,south;down,north,west,east;down_east down_west
+north,south;down,south,west,east;down_east down_west
+north,south;up,north,south,west;up_east up_west
+north,south;up,north,south,east;up_east up_west
+north,south;up,north,west,east;up_east up_west
+north,south;up,south,west,east;up_east up_west
+north,south;north,south,west,east;east_up west_up
+north,south;down,up,north,south,west;down_east down_west
+north,south;down,up,north,south,east;down_east down_west
+north,south;down,up,north,west,east;down_east down_west
+north,south;down,up,south,west,east;down_east down_west
+north,south;down,north,south,west,east;down_east down_west
+north,south;up,north,south,west,east;up_east up_west
+north,south;down,up,north,south,west,east;down_east down_west
+north,west;;
+north,west;down;down_south down_east
+north,west;up;up_south up_east
+north,west;north;
+north,west;south;south_up south_down
+north,west;west;
+north,west;east;east_up east_down
+north,west;down,up;down_south down_east
+north,west;down,north;down_south down_east
+north,west;down,south;down_south down_east
+north,west;down,west;down_south down_east
+north,west;down,east;down_south down_east
+north,west;up,north;up_south up_east
+north,west;up,south;up_south up_east
+north,west;up,west;up_south up_east
+north,west;up,east;up_south up_east
+north,west;north,south;south_up south_down
+north,west;north,west;
+north,west;north,east;east_up east_down
+north,west;south,west;south_up south_down
+north,west;south,east;south_up east_up
+north,west;west,east;east_up east_down
+north,west;down,up,north;down_south down_east
+north,west;down,up,south;down_south down_east
+north,west;down,up,west;down_south down_east
+north,west;down,up,east;down_south down_east
+north,west;down,north,south;down_south down_east
+north,west;down,north,west;down_south down_east
+north,west;down,north,east;down_south down_east
+north,west;down,south,west;down_south down_east
+north,west;down,south,east;down_south down_east
+north,west;down,west,east;down_south down_east
+north,west;up,north,south;up_south up_east
+north,west;up,north,west;up_south up_east
+north,west;up,north,east;up_south up_east
+north,west;up,south,west;up_south up_east
+north,west;up,south,east;up_south up_east
+north,west;up,west,east;up_south up_east
+north,west;north,south,west;south_up south_down
+north,west;north,south,east;south_up east_up
+north,west;north,west,east;east_up east_down
+north,west;south,west,east;south_up east_up
+north,west;down,up,north,south;down_south down_east
+north,west;down,up,north,west;down_south down_east
+north,west;down,up,north,east;down_south down_east
+north,west;down,up,south,west;down_south down_east
+north,west;down,up,south,east;down_south down_east
+north,west;down,up,west,east;down_south down_east
+north,west;down,north,south,west;down_south down_east
+north,west;down,north,south,east;down_south down_east
+north,west;down,north,west,east;down_south down_east
+north,west;down,south,west,east;down_south down_east
+north,west;up,north,south,west;up_south up_east
+north,west;up,north,south,east;up_south up_east
+north,west;up,north,west,east;up_south up_east
+north,west;up,south,west,east;up_south up_east
+north,west;north,south,west,east;south_up east_up
+north,west;down,up,north,south,west;down_south down_east
+north,west;down,up,north,south,east;down_south down_east
+north,west;down,up,north,west,east;down_south down_east
+north,west;down,up,south,west,east;down_south down_east
+north,west;down,north,south,west,east;down_south down_east
+north,west;up,north,south,west,east;up_south up_east
+north,west;down,up,north,south,west,east;down_south down_east
+north,east;;
+north,east;down;down_south down_west
+north,east;up;up_south up_west
+north,east;north;
+north,east;south;south_up south_down
+north,east;west;west_up west_down
+north,east;east;
+north,east;down,up;down_south down_west
+north,east;down,north;down_south down_west
+north,east;down,south;down_south down_west
+north,east;down,west;down_south down_west
+north,east;down,east;down_south down_west
+north,east;up,north;up_south up_west
+north,east;up,south;up_south up_west
+north,east;up,west;up_south up_west
+north,east;up,east;up_south up_west
+north,east;north,south;south_up south_down
+north,east;north,west;west_up west_down
+north,east;north,east;
+north,east;south,west;south_up west_up
+north,east;south,east;south_up south_down
+north,east;west,east;west_up west_down
+north,east;down,up,north;down_south down_west
+north,east;down,up,south;down_south down_west
+north,east;down,up,west;down_south down_west
+north,east;down,up,east;down_south down_west
+north,east;down,north,south;down_south down_west
+north,east;down,north,west;down_south down_west
+north,east;down,north,east;down_south down_west
+north,east;down,south,west;down_south down_west
+north,east;down,south,east;down_south down_west
+north,east;down,west,east;down_south down_west
+north,east;up,north,south;up_south up_west
+north,east;up,north,west;up_south up_west
+north,east;up,north,east;up_south up_west
+north,east;up,south,west;up_south up_west
+north,east;up,south,east;up_south up_west
+north,east;up,west,east;up_south up_west
+north,east;north,south,west;south_up west_up
+north,east;north,south,east;south_up south_down
+north,east;north,west,east;west_up west_down
+north,east;south,west,east;south_up west_up
+north,east;down,up,north,south;down_south down_west
+north,east;down,up,north,west;down_south down_west
+north,east;down,up,north,east;down_south down_west
+north,east;down,up,south,west;down_south down_west
+north,east;down,up,south,east;down_south down_west
+north,east;down,up,west,east;down_south down_west
+north,east;down,north,south,west;down_south down_west
+north,east;down,north,south,east;down_south down_west
+north,east;down,north,west,east;down_south down_west
+north,east;down,south,west,east;down_south down_west
+north,east;up,north,south,west;up_south up_west
+north,east;up,north,south,east;up_south up_west
+north,east;up,north,west,east;up_south up_west
+north,east;up,south,west,east;up_south up_west
+north,east;north,south,west,east;south_up west_up
+north,east;down,up,north,south,west;down_south down_west
+north,east;down,up,north,south,east;down_south down_west
+north,east;down,up,north,west,east;down_south down_west
+north,east;down,up,south,west,east;down_south down_west
+north,east;down,north,south,west,east;down_south down_west
+north,east;up,north,south,west,east;up_south up_west
+north,east;down,up,north,south,west,east;down_south down_west
+south,west;;
+south,west;down;down_north down_east
+south,west;up;up_north up_east
+south,west;north;north_up north_down
+south,west;south;
+south,west;west;
+south,west;east;east_up east_down
+south,west;down,up;down_north down_east
+south,west;down,north;down_north down_east
+south,west;down,south;down_north down_east
+south,west;down,west;down_north down_east
+south,west;down,east;down_north down_east
+south,west;up,north;up_north up_east
+south,west;up,south;up_north up_east
+south,west;up,west;up_north up_east
+south,west;up,east;up_north up_east
+south,west;north,south;north_up north_down
+south,west;north,west;north_up north_down
+south,west;north,east;north_up east_up
+south,west;south,west;
+south,west;south,east;east_up east_down
+south,west;west,east;east_up east_down
+south,west;down,up,north;down_north down_east
+south,west;down,up,south;down_north down_east
+south,west;down,up,west;down_north down_east
+south,west;down,up,east;down_north down_east
+south,west;down,north,south;down_north down_east
+south,west;down,north,west;down_north down_east
+south,west;down,north,east;down_north down_east
+south,west;down,south,west;down_north down_east
+south,west;down,south,east;down_north down_east
+south,west;down,west,east;down_north down_east
+south,west;up,north,south;up_north up_east
+south,west;up,north,west;up_north up_east
+south,west;up,north,east;up_north up_east
+south,west;up,south,west;up_north up_east
+south,west;up,south,east;up_north up_east
+south,west;up,west,east;up_north up_east
+south,west;north,south,west;north_up north_down
+south,west;north,south,east;north_up east_up
+south,west;north,west,east;north_up east_up
+south,west;south,west,east;east_up east_down
+south,west;down,up,north,south;down_north down_east
+south,west;down,up,north,west;down_north down_east
+south,west;down,up,north,east;down_north down_east
+south,west;down,up,south,west;down_north down_east
+south,west;down,up,south,east;down_north down_east
+south,west;down,up,west,east;down_north down_east
+south,west;down,north,south,west;down_north down_east
+south,west;down,north,south,east;down_north down_east
+south,west;down,north,west,east;down_north down_east
+south,west;down,south,west,east;down_north down_east
+south,west;up,north,south,west;up_north up_east
+south,west;up,north,south,east;up_north up_east
+south,west;up,north,west,east;up_north up_east
+south,west;up,south,west,east;up_north up_east
+south,west;north,south,west,east;north_up east_up
+south,west;down,up,north,south,west;down_north down_east
+south,west;down,up,north,south,east;down_north down_east
+south,west;down,up,north,west,east;down_north down_east
+south,west;down,up,south,west,east;down_north down_east
+south,west;down,north,south,west,east;down_north down_east
+south,west;up,north,south,west,east;up_north up_east
+south,west;down,up,north,south,west,east;down_north down_east
+south,east;;
+south,east;down;down_north down_west
+south,east;up;up_north up_west
+south,east;north;north_up north_down
+south,east;south;
+south,east;west;west_up west_down
+south,east;east;
+south,east;down,up;down_north down_west
+south,east;down,north;down_north down_west
+south,east;down,south;down_north down_west
+south,east;down,west;down_north down_west
+south,east;down,east;down_north down_west
+south,east;up,north;up_north up_west
+south,east;up,south;up_north up_west
+south,east;up,west;up_north up_west
+south,east;up,east;up_north up_west
+south,east;north,south;north_up north_down
+south,east;north,west;north_up west_up
+south,east;north,east;north_up north_down
+south,east;south,west;west_up west_down
+south,east;south,east;
+south,east;west,east;west_up west_down
+south,east;down,up,north;down_north down_west
+south,east;down,up,south;down_north down_west
+south,east;down,up,west;down_north down_west
+south,east;down,up,east;down_north down_west
+south,east;down,north,south;down_north down_west
+south,east;down,north,west;down_north down_west
+south,east;down,north,east;down_north down_west
+south,east;down,south,west;down_north down_west
+south,east;down,south,east;down_north down_west
+south,east;down,west,east;down_north down_west
+south,east;up,north,south;up_north up_west
+south,east;up,north,west;up_north up_west
+south,east;up,north,east;up_north up_west
+south,east;up,south,west;up_north up_west
+south,east;up,south,east;up_north up_west
+south,east;up,west,east;up_north up_west
+south,east;north,south,west;north_up west_up
+south,east;north,south,east;north_up north_down
+south,east;north,west,east;north_up west_up
+south,east;south,west,east;west_up west_down
+south,east;down,up,north,south;down_north down_west
+south,east;down,up,north,west;down_north down_west
+south,east;down,up,north,east;down_north down_west
+south,east;down,up,south,west;down_north down_west
+south,east;down,up,south,east;down_north down_west
+south,east;down,up,west,east;down_north down_west
+south,east;down,north,south,west;down_north down_west
+south,east;down,north,south,east;down_north down_west
+south,east;down,north,west,east;down_north down_west
+south,east;down,south,west,east;down_north down_west
+south,east;up,north,south,west;up_north up_west
+south,east;up,north,south,east;up_north up_west
+south,east;up,north,west,east;up_north up_west
+south,east;up,south,west,east;up_north up_west
+south,east;north,south,west,east;north_up west_up
+south,east;down,up,north,south,west;down_north down_west
+south,east;down,up,north,south,east;down_north down_west
+south,east;down,up,north,west,east;down_north down_west
+south,east;down,up,south,west,east;down_north down_west
+south,east;down,north,south,west,east;down_north down_west
+south,east;up,north,south,west,east;up_north up_west
+south,east;down,up,north,south,west,east;down_north down_west
+west,east;;
+west,east;down;down_north down_south
+west,east;up;up_north up_south
+west,east;north;north_up north_down
+west,east;south;south_up south_down
+west,east;west;
+west,east;east;
+west,east;down,up;down_north down_south
+west,east;down,north;down_north down_south
+west,east;down,south;down_north down_south
+west,east;down,west;down_north down_south
+west,east;down,east;down_north down_south
+west,east;up,north;up_north up_south
+west,east;up,south;up_north up_south
+west,east;up,west;up_north up_south
+west,east;up,east;up_north up_south
+west,east;north,south;north_up south_up
+west,east;north,west;north_up north_down
+west,east;north,east;north_up north_down
+west,east;south,west;south_up south_down
+west,east;south,east;south_up south_down
+west,east;west,east;
+west,east;down,up,north;down_north down_south
+west,east;down,up,south;down_north down_south
+west,east;down,up,west;down_north down_south
+west,east;down,up,east;down_north down_south
+west,east;down,north,south;down_north down_south
+west,east;down,north,west;down_north down_south
+west,east;down,north,east;down_north down_south
+west,east;down,south,west;down_north down_south
+west,east;down,south,east;down_north down_south
+west,east;down,west,east;down_north down_south
+west,east;up,north,south;up_north up_south
+west,east;up,north,west;up_north up_south
+west,east;up,north,east;up_north up_south
+west,east;up,south,west;up_north up_south
+west,east;up,south,east;up_north up_south
+west,east;up,west,east;up_north up_south
+west,east;north,south,west;north_up south_up
+west,east;north,south,east;north_up south_up
+west,east;north,west,east;north_up north_down
+west,east;south,west,east;south_up south_down
+west,east;down,up,north,south;down_north down_south
+west,east;down,up,north,west;down_north down_south
+west,east;down,up,north,east;down_north down_south
+west,east;down,up,south,west;down_north down_south
+west,east;down,up,south,east;down_north down_south
+west,east;down,up,west,east;down_north down_south
+west,east;down,north,south,west;down_north down_south
+west,east;down,north,south,east;down_north down_south
+west,east;down,north,west,east;down_north down_south
+west,east;down,south,west,east;down_north down_south
+west,east;up,north,south,west;up_north up_south
+west,east;up,north,south,east;up_north up_south
+west,east;up,north,west,east;up_north up_south
+west,east;up,south,west,east;up_north up_south
+west,east;north,south,west,east;north_up south_up
+west,east;down,up,north,south,west;down_north down_south
+west,east;down,up,north,south,east;down_north down_south
+west,east;down,up,north,west,east;down_north down_south
+west,east;down,up,south,west,east;down_north down_south
+west,east;down,north,south,west,east;down_north down_south
+west,east;up,north,south,west,east;up_north up_south
+west,east;down,up,north,south,west,east;down_north down_south
+down,up,north;;
+down,up,north;down;
+down,up,north;up;
+down,up,north;north;
+down,up,north;south;south_east south_west
+down,up,north;west;west_south
+down,up,north;east;east_south
+down,up,north;down,up;
+down,up,north;down,north;
+down,up,north;down,south;south_east south_west
+down,up,north;down,west;west_south
+down,up,north;down,east;east_south
+down,up,north;up,north;
+down,up,north;up,south;south_east south_west
+down,up,north;up,west;west_south
+down,up,north;up,east;east_south
+down,up,north;north,south;south_east south_west
+down,up,north;north,west;west_south
+down,up,north;north,east;east_south
+down,up,north;south,west;south_east west_south
+down,up,north;south,east;south_west east_south
+down,up,north;west,east;east_south west_south
+down,up,north;down,up,north;
+down,up,north;down,up,south;south_east south_west
+down,up,north;down,up,west;west_south
+down,up,north;down,up,east;east_south
+down,up,north;down,north,south;south_east south_west
+down,up,north;down,north,west;west_south
+down,up,north;down,north,east;east_south
+down,up,north;down,south,west;south_east west_south
+down,up,north;down,south,east;south_west east_south
+down,up,north;down,west,east;east_south west_south
+down,up,north;up,north,south;south_east south_west
+down,up,north;up,north,west;west_south
+down,up,north;up,north,east;east_south
+down,up,north;up,south,west;south_east west_south
+down,up,north;up,south,east;south_west east_south
+down,up,north;up,west,east;east_south west_south
+down,up,north;north,south,west;south_east west_south
+down,up,north;north,south,east;south_west east_south
+down,up,north;north,west,east;east_south west_south
+down,up,north;south,west,east;east_south west_south
+down,up,north;down,up,north,south;south_east south_west
+down,up,north;down,up,north,west;west_south
+down,up,north;down,up,north,east;east_south
+down,up,north;down,up,south,west;south_east west_south
+down,up,north;down,up,south,east;south_west east_south
+down,up,north;down,up,west,east;east_south west_south
+down,up,north;down,north,south,west;south_east west_south
+down,up,north;down,north,south,east;south_west east_south
+down,up,north;down,north,west,east;east_south west_south
+down,up,north;down,south,west,east;east_south west_south
+down,up,north;up,north,south,west;south_east west_south
+down,up,north;up,north,south,east;south_west east_south
+down,up,north;up,north,west,east;east_south west_south
+down,up,north;up,south,west,east;east_south west_south
+down,up,north;north,south,west,east;east_south west_south
+down,up,north;down,up,north,south,west;south_east west_south
+down,up,north;down,up,north,south,east;south_west east_south
+down,up,north;down,up,north,west,east;east_south west_south
+down,up,north;down,up,south,west,east;east_south west_south
+down,up,north;down,north,south,west,east;east_south west_south
+down,up,north;up,north,south,west,east;east_south west_south
+down,up,north;down,up,north,south,west,east;east_south west_south
+down,up,south;;
+down,up,south;down;
+down,up,south;up;
+down,up,south;north;north_east north_west
+down,up,south;south;
+down,up,south;west;west_north
+down,up,south;east;east_north
+down,up,south;down,up;
+down,up,south;down,north;north_east north_west
+down,up,south;down,south;
+down,up,south;down,west;west_north
+down,up,south;down,east;east_north
+down,up,south;up,north;north_east north_west
+down,up,south;up,south;
+down,up,south;up,west;west_north
+down,up,south;up,east;east_north
+down,up,south;north,south;north_east north_west
+down,up,south;north,west;north_east west_north
+down,up,south;north,east;north_west east_north
+down,up,south;south,west;west_north
+down,up,south;south,east;east_north
+down,up,south;west,east;east_north west_north
+down,up,south;down,up,north;north_east north_west
+down,up,south;down,up,south;
+down,up,south;down,up,west;west_north
+down,up,south;down,up,east;east_north
+down,up,south;down,north,south;north_east north_west
+down,up,south;down,north,west;north_east west_north
+down,up,south;down,north,east;north_west east_north
+down,up,south;down,south,west;west_north
+down,up,south;down,south,east;east_north
+down,up,south;down,west,east;east_north west_north
+down,up,south;up,north,south;north_east north_west
+down,up,south;up,north,west;north_east west_north
+down,up,south;up,north,east;north_west east_north
+down,up,south;up,south,west;west_north
+down,up,south;up,south,east;east_north
+down,up,south;up,west,east;east_north west_north
+down,up,south;north,south,west;north_east west_north
+down,up,south;north,south,east;north_west east_north
+down,up,south;north,west,east;east_north west_north
+down,up,south;south,west,east;east_north west_north
+down,up,south;down,up,north,south;north_east north_west
+down,up,south;down,up,north,west;north_east west_north
+down,up,south;down,up,north,east;north_west east_north
+down,up,south;down,up,south,west;west_north
+down,up,south;down,up,south,east;east_north
+down,up,south;down,up,west,east;east_north west_north
+down,up,south;down,north,south,west;north_east west_north
+down,up,south;down,north,south,east;north_west east_north
+down,up,south;down,north,west,east;east_north west_north
+down,up,south;down,south,west,east;east_north west_north
+down,up,south;up,north,south,west;north_east west_north
+down,up,south;up,north,south,east;north_west east_north
+down,up,south;up,north,west,east;east_north west_north
+down,up,south;up,south,west,east;east_north west_north
+down,up,south;north,south,west,east;east_north west_north
+down,up,south;down,up,north,south,west;north_east west_north
+down,up,south;down,up,north,south,east;north_west east_north
+down,up,south;down,up,north,west,east;east_north west_north
+down,up,south;down,up,south,west,east;east_north west_north
+down,up,south;down,north,south,west,east;east_north west_north
+down,up,south;up,north,south,west,east;east_north west_north
+down,up,south;down,up,north,south,west,east;east_north west_north
+down,up,west;;
+down,up,west;down;
+down,up,west;up;
+down,up,west;north;north_east
+down,up,west;south;south_east
+down,up,west;west;
+down,up,west;east;east_north east_south
+down,up,west;down,up;
+down,up,west;down,north;north_east
+down,up,west;down,south;south_east
+down,up,west;down,west;
+down,up,west;down,east;east_north east_south
+down,up,west;up,north;north_east
+down,up,west;up,south;south_east
+down,up,west;up,west;
+down,up,west;up,east;east_north east_south
+down,up,west;north,south;north_east south_east
+down,up,west;north,west;north_east
+down,up,west;north,east;north_east east_south
+down,up,west;south,west;south_east
+down,up,west;south,east;south_east east_north
+down,up,west;west,east;east_north east_south
+down,up,west;down,up,north;north_east
+down,up,west;down,up,south;south_east
+down,up,west;down,up,west;
+down,up,west;down,up,east;east_north east_south
+down,up,west;down,north,south;north_east south_east
+down,up,west;down,north,west;north_east
+down,up,west;down,north,east;north_east east_south
+down,up,west;down,south,west;south_east
+down,up,west;down,south,east;south_east east_north
+down,up,west;down,west,east;east_north east_south
+down,up,west;up,north,south;north_east south_east
+down,up,west;up,north,west;north_east
+down,up,west;up,north,east;north_east east_south
+down,up,west;up,south,west;south_east
+down,up,west;up,south,east;south_east east_north
+down,up,west;up,west,east;east_north east_south
+down,up,west;north,south,west;north_east south_east
+down,up,west;north,south,east;north_east south_east
+down,up,west;north,west,east;north_east east_south
+down,up,west;south,west,east;south_east east_north
+down,up,west;down,up,north,south;north_east south_east
+down,up,west;down,up,north,west;north_east
+down,up,west;down,up,north,east;north_east east_south
+down,up,west;down,up,south,west;south_east
+down,up,west;down,up,south,east;south_east east_north
+down,up,west;down,up,west,east;east_north east_south
+down,up,west;down,north,south,west;north_east south_east
+down,up,west;down,north,south,east;north_east south_east
+down,up,west;down,north,west,east;north_east east_south
+down,up,west;down,south,west,east;south_east east_north
+down,up,west;up,north,south,west;north_east south_east
+down,up,west;up,north,south,east;north_east south_east
+down,up,west;up,north,west,east;north_east east_south
+down,up,west;up,south,west,east;south_east east_north
+down,up,west;north,south,west,east;north_east south_east
+down,up,west;down,up,north,south,west;north_east south_east
+down,up,west;down,up,north,south,east;north_east south_east
+down,up,west;down,up,north,west,east;north_east east_south
+down,up,west;down,up,south,west,east;south_east east_north
+down,up,west;down,north,south,west,east;north_east south_east
+down,up,west;up,north,south,west,east;north_east south_east
+down,up,west;down,up,north,south,west,east;north_east south_east
+down,up,east;;
+down,up,east;down;
+down,up,east;up;
+down,up,east;north;north_west
+down,up,east;south;south_west
+down,up,east;west;west_north west_south
+down,up,east;east;
+down,up,east;down,up;
+down,up,east;down,north;north_west
+down,up,east;down,south;south_west
+down,up,east;down,west;west_north west_south
+down,up,east;down,east;
+down,up,east;up,north;north_west
+down,up,east;up,south;south_west
+down,up,east;up,west;west_north west_south
+down,up,east;up,east;
+down,up,east;north,south;north_west south_west
+down,up,east;north,west;north_west west_south
+down,up,east;north,east;north_west
+down,up,east;south,west;south_west west_north
+down,up,east;south,east;south_west
+down,up,east;west,east;west_north west_south
+down,up,east;down,up,north;north_west
+down,up,east;down,up,south;south_west
+down,up,east;down,up,west;west_north west_south
+down,up,east;down,up,east;
+down,up,east;down,north,south;north_west south_west
+down,up,east;down,north,west;north_west west_south
+down,up,east;down,north,east;north_west
+down,up,east;down,south,west;south_west west_north
+down,up,east;down,south,east;south_west
+down,up,east;down,west,east;west_north west_south
+down,up,east;up,north,south;north_west south_west
+down,up,east;up,north,west;north_west west_south
+down,up,east;up,north,east;north_west
+down,up,east;up,south,west;south_west west_north
+down,up,east;up,south,east;south_west
+down,up,east;up,west,east;west_north west_south
+down,up,east;north,south,west;north_west south_west
+down,up,east;north,south,east;north_west south_west
+down,up,east;north,west,east;north_west west_south
+down,up,east;south,west,east;south_west west_north
+down,up,east;down,up,north,south;north_west south_west
+down,up,east;down,up,north,west;north_west west_south
+down,up,east;down,up,north,east;north_west
+down,up,east;down,up,south,west;south_west west_north
+down,up,east;down,up,south,east;south_west
+down,up,east;down,up,west,east;west_north west_south
+down,up,east;down,north,south,west;north_west south_west
+down,up,east;down,north,south,east;north_west south_west
+down,up,east;down,north,west,east;north_west west_south
+down,up,east;down,south,west,east;south_west west_north
+down,up,east;up,north,south,west;north_west south_west
+down,up,east;up,north,south,east;north_west south_west
+down,up,east;up,north,west,east;north_west west_south
+down,up,east;up,south,west,east;south_west west_north
+down,up,east;north,south,west,east;north_west south_west
+down,up,east;down,up,north,south,west;north_west south_west
+down,up,east;down,up,north,south,east;north_west south_west
+down,up,east;down,up,north,west,east;north_west west_south
+down,up,east;down,up,south,west,east;south_west west_north
+down,up,east;down,north,south,west,east;north_west south_west
+down,up,east;up,north,south,west,east;north_west south_west
+down,up,east;down,up,north,south,west,east;north_west south_west
+down,north,south;;
+down,north,south;down;
+down,north,south;up;up_east up_west
+down,north,south;north;
+down,north,south;south;
+down,north,south;west;west_up
+down,north,south;east;east_up
+down,north,south;down,up;up_east up_west
+down,north,south;down,north;
+down,north,south;down,south;
+down,north,south;down,west;west_up
+down,north,south;down,east;east_up
+down,north,south;up,north;up_east up_west
+down,north,south;up,south;up_east up_west
+down,north,south;up,west;up_east up_west
+down,north,south;up,east;up_east up_west
+down,north,south;north,south;
+down,north,south;north,west;west_up
+down,north,south;north,east;east_up
+down,north,south;south,west;west_up
+down,north,south;south,east;east_up
+down,north,south;west,east;east_up west_up
+down,north,south;down,up,north;up_east up_west
+down,north,south;down,up,south;up_east up_west
+down,north,south;down,up,west;up_east up_west
+down,north,south;down,up,east;up_east up_west
+down,north,south;down,north,south;
+down,north,south;down,north,west;west_up
+down,north,south;down,north,east;east_up
+down,north,south;down,south,west;west_up
+down,north,south;down,south,east;east_up
+down,north,south;down,west,east;east_up west_up
+down,north,south;up,north,south;up_east up_west
+down,north,south;up,north,west;up_east up_west
+down,north,south;up,north,east;up_east up_west
+down,north,south;up,south,west;up_east up_west
+down,north,south;up,south,east;up_east up_west
+down,north,south;up,west,east;up_east up_west
+down,north,south;north,south,west;west_up
+down,north,south;north,south,east;east_up
+down,north,south;north,west,east;east_up west_up
+down,north,south;south,west,east;east_up west_up
+down,north,south;down,up,north,south;up_east up_west
+down,north,south;down,up,north,west;up_east up_west
+down,north,south;down,up,north,east;up_east up_west
+down,north,south;down,up,south,west;up_east up_west
+down,north,south;down,up,south,east;up_east up_west
+down,north,south;down,up,west,east;up_east up_west
+down,north,south;down,north,south,west;west_up
+down,north,south;down,north,south,east;east_up
+down,north,south;down,north,west,east;east_up west_up
+down,north,south;down,south,west,east;east_up west_up
+down,north,south;up,north,south,west;up_east up_west
+down,north,south;up,north,south,east;up_east up_west
+down,north,south;up,north,west,east;up_east up_west
+down,north,south;up,south,west,east;up_east up_west
+down,north,south;north,south,west,east;east_up west_up
+down,north,south;down,up,north,south,west;up_east up_west
+down,north,south;down,up,north,south,east;up_east up_west
+down,north,south;down,up,north,west,east;up_east up_west
+down,north,south;down,up,south,west,east;up_east up_west
+down,north,south;down,north,south,west,east;east_up west_up
+down,north,south;up,north,south,west,east;up_east up_west
+down,north,south;down,up,north,south,west,east;up_east up_west
+down,north,west;;
+down,north,west;down;
+down,north,west;up;up_south up_east
+down,north,west;north;
+down,north,west;south;south_up south_east
+down,north,west;west;
+down,north,west;east;east_up east_south
+down,north,west;down,up;up_south up_east
+down,north,west;down,north;
+down,north,west;down,south;south_up south_east
+down,north,west;down,west;
+down,north,west;down,east;east_up east_south
+down,north,west;up,north;up_south up_east
+down,north,west;up,south;up_south up_east
+down,north,west;up,west;up_south up_east
+down,north,west;up,east;up_south up_east
+down,north,west;north,south;south_up south_east
+down,north,west;north,west;
+down,north,west;north,east;east_up east_south
+down,north,west;south,west;south_up south_east
+down,north,west;south,east;south_up east_up
+down,north,west;west,east;east_up east_south
+down,north,west;down,up,north;up_south up_east
+down,north,west;down,up,south;up_south up_east
+down,north,west;down,up,west;up_south up_east
+down,north,west;down,up,east;up_south up_east
+down,north,west;down,north,south;south_up south_east
+down,north,west;down,north,west;
+down,north,west;down,north,east;east_up east_south
+down,north,west;down,south,west;south_up south_east
+down,north,west;down,south,east;south_up east_up
+down,north,west;down,west,east;east_up east_south
+down,north,west;up,north,south;up_south up_east
+down,north,west;up,north,west;up_south up_east
+down,north,west;up,north,east;up_south up_east
+down,north,west;up,south,west;up_south up_east
+down,north,west;up,south,east;up_south up_east
+down,north,west;up,west,east;up_south up_east
+down,north,west;north,south,west;south_up south_east
+down,north,west;north,south,east;south_up east_up
+down,north,west;north,west,east;east_up east_south
+down,north,west;south,west,east;south_up east_up
+down,north,west;down,up,north,south;up_south up_east
+down,north,west;down,up,north,west;up_south up_east
+down,north,west;down,up,north,east;up_south up_east
+down,north,west;down,up,south,west;up_south up_east
+down,north,west;down,up,south,east;up_south up_east
+down,north,west;down,up,west,east;up_south up_east
+down,north,west;down,north,south,west;south_up south_east
+down,north,west;down,north,south,east;south_up east_up
+down,north,west;down,north,west,east;east_up east_south
+down,north,west;down,south,west,east;south_up east_up
+down,north,west;up,north,south,west;up_south up_east
+down,north,west;up,north,south,east;up_south up_east
+down,north,west;up,north,west,east;up_south up_east
+down,north,west;up,south,west,east;up_south up_east
+down,north,west;north,south,west,east;south_up east_up
+down,north,west;down,up,north,south,west;up_south up_east
+down,north,west;down,up,north,south,east;up_south up_east
+down,north,west;down,up,north,west,east;up_south up_east
+down,north,west;down,up,south,west,east;up_south up_east
+down,north,west;down,north,south,west,east;south_up east_up
+down,north,west;up,north,south,west,east;up_south up_east
+down,north,west;down,up,north,south,west,east;up_south up_east
+down,north,east;;
+down,north,east;down;
+down,north,east;up;up_south up_west
+down,north,east;north;
+down,north,east;south;south_up south_west
+down,north,east;west;west_up west_south
+down,north,east;east;
+down,north,east;down,up;up_south up_west
+down,north,east;down,north;
+down,north,east;down,south;south_up south_west
+down,north,east;down,west;west_up west_south
+down,north,east;down,east;
+down,north,east;up,north;up_south up_west
+down,north,east;up,south;up_south up_west
+down,north,east;up,west;up_south up_west
+down,north,east;up,east;up_south up_west
+down,north,east;north,south;south_up south_west
+down,north,east;north,west;west_up west_south
+down,north,east;north,east;
+down,north,east;south,west;south_up west_up
+down,north,east;south,east;south_up south_west
+down,north,east;west,east;west_up west_south
+down,north,east;down,up,north;up_south up_west
+down,north,east;down,up,south;up_south up_west
+down,north,east;down,up,west;up_south up_west
+down,north,east;down,up,east;up_south up_west
+down,north,east;down,north,south;south_up south_west
+down,north,east;down,north,west;west_up west_south
+down,north,east;down,north,east;
+down,north,east;down,south,west;south_up west_up
+down,north,east;down,south,east;south_up south_west
+down,north,east;down,west,east;west_up west_south
+down,north,east;up,north,south;up_south up_west
+down,north,east;up,north,west;up_south up_west
+down,north,east;up,north,east;up_south up_west
+down,north,east;up,south,west;up_south up_west
+down,north,east;up,south,east;up_south up_west
+down,north,east;up,west,east;up_south up_west
+down,north,east;north,south,west;south_up west_up
+down,north,east;north,south,east;south_up south_west
+down,north,east;north,west,east;west_up west_south
+down,north,east;south,west,east;south_up west_up
+down,north,east;down,up,north,south;up_south up_west
+down,north,east;down,up,north,west;up_south up_west
+down,north,east;down,up,north,east;up_south up_west
+down,north,east;down,up,south,west;up_south up_west
+down,north,east;down,up,south,east;up_south up_west
+down,north,east;down,up,west,east;up_south up_west
+down,north,east;down,north,south,west;south_up west_up
+down,north,east;down,north,south,east;south_up south_west
+down,north,east;down,north,west,east;west_up west_south
+down,north,east;down,south,west,east;south_up west_up
+down,north,east;up,north,south,west;up_south up_west
+down,north,east;up,north,south,east;up_south up_west
+down,north,east;up,north,west,east;up_south up_west
+down,north,east;up,south,west,east;up_south up_west
+down,north,east;north,south,west,east;south_up west_up
+down,north,east;down,up,north,south,west;up_south up_west
+down,north,east;down,up,north,south,east;up_south up_west
+down,north,east;down,up,north,west,east;up_south up_west
+down,north,east;down,up,south,west,east;up_south up_west
+down,north,east;down,north,south,west,east;south_up west_up
+down,north,east;up,north,south,west,east;up_south up_west
+down,north,east;down,up,north,south,west,east;up_south up_west
+down,south,west;;
+down,south,west;down;
+down,south,west;up;up_north up_east
+down,south,west;north;north_up north_east
+down,south,west;south;
+down,south,west;west;
+down,south,west;east;east_up east_north
+down,south,west;down,up;up_north up_east
+down,south,west;down,north;north_up north_east
+down,south,west;down,south;
+down,south,west;down,west;
+down,south,west;down,east;east_up east_north
+down,south,west;up,north;up_north up_east
+down,south,west;up,south;up_north up_east
+down,south,west;up,west;up_north up_east
+down,south,west;up,east;up_north up_east
+down,south,west;north,south;north_up north_east
+down,south,west;north,west;north_up north_east
+down,south,west;north,east;north_up east_up
+down,south,west;south,west;
+down,south,west;south,east;east_up east_north
+down,south,west;west,east;east_up east_north
+down,south,west;down,up,north;up_north up_east
+down,south,west;down,up,south;up_north up_east
+down,south,west;down,up,west;up_north up_east
+down,south,west;down,up,east;up_north up_east
+down,south,west;down,north,south;north_up north_east
+down,south,west;down,north,west;north_up north_east
+down,south,west;down,north,east;north_up east_up
+down,south,west;down,south,west;
+down,south,west;down,south,east;east_up east_north
+down,south,west;down,west,east;east_up east_north
+down,south,west;up,north,south;up_north up_east
+down,south,west;up,north,west;up_north up_east
+down,south,west;up,north,east;up_north up_east
+down,south,west;up,south,west;up_north up_east
+down,south,west;up,south,east;up_north up_east
+down,south,west;up,west,east;up_north up_east
+down,south,west;north,south,west;north_up north_east
+down,south,west;north,south,east;north_up east_up
+down,south,west;north,west,east;north_up east_up
+down,south,west;south,west,east;east_up east_north
+down,south,west;down,up,north,south;up_north up_east
+down,south,west;down,up,north,west;up_north up_east
+down,south,west;down,up,north,east;up_north up_east
+down,south,west;down,up,south,west;up_north up_east
+down,south,west;down,up,south,east;up_north up_east
+down,south,west;down,up,west,east;up_north up_east
+down,south,west;down,north,south,west;north_up north_east
+down,south,west;down,north,south,east;north_up east_up
+down,south,west;down,north,west,east;north_up east_up
+down,south,west;down,south,west,east;east_up east_north
+down,south,west;up,north,south,west;up_north up_east
+down,south,west;up,north,south,east;up_north up_east
+down,south,west;up,north,west,east;up_north up_east
+down,south,west;up,south,west,east;up_north up_east
+down,south,west;north,south,west,east;north_up east_up
+down,south,west;down,up,north,south,west;up_north up_east
+down,south,west;down,up,north,south,east;up_north up_east
+down,south,west;down,up,north,west,east;up_north up_east
+down,south,west;down,up,south,west,east;up_north up_east
+down,south,west;down,north,south,west,east;north_up east_up
+down,south,west;up,north,south,west,east;up_north up_east
+down,south,west;down,up,north,south,west,east;up_north up_east
+down,south,east;;
+down,south,east;down;
+down,south,east;up;up_north up_west
+down,south,east;north;north_up north_west
+down,south,east;south;
+down,south,east;west;west_up west_north
+down,south,east;east;
+down,south,east;down,up;up_north up_west
+down,south,east;down,north;north_up north_west
+down,south,east;down,south;
+down,south,east;down,west;west_up west_north
+down,south,east;down,east;
+down,south,east;up,north;up_north up_west
+down,south,east;up,south;up_north up_west
+down,south,east;up,west;up_north up_west
+down,south,east;up,east;up_north up_west
+down,south,east;north,south;north_up north_west
+down,south,east;north,west;north_up west_up
+down,south,east;north,east;north_up north_west
+down,south,east;south,west;west_up west_north
+down,south,east;south,east;
+down,south,east;west,east;west_up west_north
+down,south,east;down,up,north;up_north up_west
+down,south,east;down,up,south;up_north up_west
+down,south,east;down,up,west;up_north up_west
+down,south,east;down,up,east;up_north up_west
+down,south,east;down,north,south;north_up north_west
+down,south,east;down,north,west;north_up west_up
+down,south,east;down,north,east;north_up north_west
+down,south,east;down,south,west;west_up west_north
+down,south,east;down,south,east;
+down,south,east;down,west,east;west_up west_north
+down,south,east;up,north,south;up_north up_west
+down,south,east;up,north,west;up_north up_west
+down,south,east;up,north,east;up_north up_west
+down,south,east;up,south,west;up_north up_west
+down,south,east;up,south,east;up_north up_west
+down,south,east;up,west,east;up_north up_west
+down,south,east;north,south,west;north_up west_up
+down,south,east;north,south,east;north_up north_west
+down,south,east;north,west,east;north_up west_up
+down,south,east;south,west,east;west_up west_north
+down,south,east;down,up,north,south;up_north up_west
+down,south,east;down,up,north,west;up_north up_west
+down,south,east;down,up,north,east;up_north up_west
+down,south,east;down,up,south,west;up_north up_west
+down,south,east;down,up,south,east;up_north up_west
+down,south,east;down,up,west,east;up_north up_west
+down,south,east;down,north,south,west;north_up west_up
+down,south,east;down,north,south,east;north_up north_west
+down,south,east;down,north,west,east;north_up west_up
+down,south,east;down,south,west,east;west_up west_north
+down,south,east;up,north,south,west;up_north up_west
+down,south,east;up,north,south,east;up_north up_west
+down,south,east;up,north,west,east;up_north up_west
+down,south,east;up,south,west,east;up_north up_west
+down,south,east;north,south,west,east;north_up west_up
+down,south,east;down,up,north,south,west;up_north up_west
+down,south,east;down,up,north,south,east;up_north up_west
+down,south,east;down,up,north,west,east;up_north up_west
+down,south,east;down,up,south,west,east;up_north up_west
+down,south,east;down,north,south,west,east;north_up west_up
+down,south,east;up,north,south,west,east;up_north up_west
+down,south,east;down,up,north,south,west,east;up_north up_west
+down,west,east;;
+down,west,east;down;
+down,west,east;up;up_north up_south
+down,west,east;north;north_up
+down,west,east;south;south_up
+down,west,east;west;
+down,west,east;east;
+down,west,east;down,up;up_north up_south
+down,west,east;down,north;north_up
+down,west,east;down,south;south_up
+down,west,east;down,west;
+down,west,east;down,east;
+down,west,east;up,north;up_north up_south
+down,west,east;up,south;up_north up_south
+down,west,east;up,west;up_north up_south
+down,west,east;up,east;up_north up_south
+down,west,east;north,south;north_up south_up
+down,west,east;north,west;north_up
+down,west,east;north,east;north_up
+down,west,east;south,west;south_up
+down,west,east;south,east;south_up
+down,west,east;west,east;
+down,west,east;down,up,north;up_north up_south
+down,west,east;down,up,south;up_north up_south
+down,west,east;down,up,west;up_north up_south
+down,west,east;down,up,east;up_north up_south
+down,west,east;down,north,south;north_up south_up
+down,west,east;down,north,west;north_up
+down,west,east;down,north,east;north_up
+down,west,east;down,south,west;south_up
+down,west,east;down,south,east;south_up
+down,west,east;down,west,east;
+down,west,east;up,north,south;up_north up_south
+down,west,east;up,north,west;up_north up_south
+down,west,east;up,north,east;up_north up_south
+down,west,east;up,south,west;up_north up_south
+down,west,east;up,south,east;up_north up_south
+down,west,east;up,west,east;up_north up_south
+down,west,east;north,south,west;north_up south_up
+down,west,east;north,south,east;north_up south_up
+down,west,east;north,west,east;north_up
+down,west,east;south,west,east;south_up
+down,west,east;down,up,north,south;up_north up_south
+down,west,east;down,up,north,west;up_north up_south
+down,west,east;down,up,north,east;up_north up_south
+down,west,east;down,up,south,west;up_north up_south
+down,west,east;down,up,south,east;up_north up_south
+down,west,east;down,up,west,east;up_north up_south
+down,west,east;down,north,south,west;north_up south_up
+down,west,east;down,north,south,east;north_up south_up
+down,west,east;down,north,west,east;north_up
+down,west,east;down,south,west,east;south_up
+down,west,east;up,north,south,west;up_north up_south
+down,west,east;up,north,south,east;up_north up_south
+down,west,east;up,north,west,east;up_north up_south
+down,west,east;up,south,west,east;up_north up_south
+down,west,east;north,south,west,east;north_up south_up
+down,west,east;down,up,north,south,west;up_north up_south
+down,west,east;down,up,north,south,east;up_north up_south
+down,west,east;down,up,north,west,east;up_north up_south
+down,west,east;down,up,south,west,east;up_north up_south
+down,west,east;down,north,south,west,east;north_up south_up
+down,west,east;up,north,south,west,east;up_north up_south
+down,west,east;down,up,north,south,west,east;up_north up_south
+up,north,south;;
+up,north,south;down;down_east down_west
+up,north,south;up;
+up,north,south;north;
+up,north,south;south;
+up,north,south;west;west_down
+up,north,south;east;east_down
+up,north,south;down,up;down_east down_west
+up,north,south;down,north;down_east down_west
+up,north,south;down,south;down_east down_west
+up,north,south;down,west;down_east down_west
+up,north,south;down,east;down_east down_west
+up,north,south;up,north;
+up,north,south;up,south;
+up,north,south;up,west;west_down
+up,north,south;up,east;east_down
+up,north,south;north,south;
+up,north,south;north,west;west_down
+up,north,south;north,east;east_down
+up,north,south;south,west;west_down
+up,north,south;south,east;east_down
+up,north,south;west,east;east_down west_down
+up,north,south;down,up,north;down_east down_west
+up,north,south;down,up,south;down_east down_west
+up,north,south;down,up,west;down_east down_west
+up,north,south;down,up,east;down_east down_west
+up,north,south;down,north,south;down_east down_west
+up,north,south;down,north,west;down_east down_west
+up,north,south;down,north,east;down_east down_west
+up,north,south;down,south,west;down_east down_west
+up,north,south;down,south,east;down_east down_west
+up,north,south;down,west,east;down_east down_west
+up,north,south;up,north,south;
+up,north,south;up,north,west;west_down
+up,north,south;up,north,east;east_down
+up,north,south;up,south,west;west_down
+up,north,south;up,south,east;east_down
+up,north,south;up,west,east;east_down west_down
+up,north,south;north,south,west;west_down
+up,north,south;north,south,east;east_down
+up,north,south;north,west,east;east_down west_down
+up,north,south;south,west,east;east_down west_down
+up,north,south;down,up,north,south;down_east down_west
+up,north,south;down,up,north,west;down_east down_west
+up,north,south;down,up,north,east;down_east down_west
+up,north,south;down,up,south,west;down_east down_west
+up,north,south;down,up,south,east;down_east down_west
+up,north,south;down,up,west,east;down_east down_west
+up,north,south;down,north,south,west;down_east down_west
+up,north,south;down,north,south,east;down_east down_west
+up,north,south;down,north,west,east;down_east down_west
+up,north,south;down,south,west,east;down_east down_west
+up,north,south;up,north,south,west;west_down
+up,north,south;up,north,south,east;east_down
+up,north,south;up,north,west,east;east_down west_down
+up,north,south;up,south,west,east;east_down west_down
+up,north,south;north,south,west,east;east_down west_down
+up,north,south;down,up,north,south,west;down_east down_west
+up,north,south;down,up,north,south,east;down_east down_west
+up,north,south;down,up,north,west,east;down_east down_west
+up,north,south;down,up,south,west,east;down_east down_west
+up,north,south;down,north,south,west,east;down_east down_west
+up,north,south;up,north,south,west,east;east_down west_down
+up,north,south;down,up,north,south,west,east;down_east down_west
+up,north,west;;
+up,north,west;down;down_south down_east
+up,north,west;up;
+up,north,west;north;
+up,north,west;south;south_down south_east
+up,north,west;west;
+up,north,west;east;east_down east_south
+up,north,west;down,up;down_south down_east
+up,north,west;down,north;down_south down_east
+up,north,west;down,south;down_south down_east
+up,north,west;down,west;down_south down_east
+up,north,west;down,east;down_south down_east
+up,north,west;up,north;
+up,north,west;up,south;south_down south_east
+up,north,west;up,west;
+up,north,west;up,east;east_down east_south
+up,north,west;north,south;south_down south_east
+up,north,west;north,west;
+up,north,west;north,east;east_down east_south
+up,north,west;south,west;south_down south_east
+up,north,west;south,east;south_down east_down
+up,north,west;west,east;east_down east_south
+up,north,west;down,up,north;down_south down_east
+up,north,west;down,up,south;down_south down_east
+up,north,west;down,up,west;down_south down_east
+up,north,west;down,up,east;down_south down_east
+up,north,west;down,north,south;down_south down_east
+up,north,west;down,north,west;down_south down_east
+up,north,west;down,north,east;down_south down_east
+up,north,west;down,south,west;down_south down_east
+up,north,west;down,south,east;down_south down_east
+up,north,west;down,west,east;down_south down_east
+up,north,west;up,north,south;south_down south_east
+up,north,west;up,north,west;
+up,north,west;up,north,east;east_down east_south
+up,north,west;up,south,west;south_down south_east
+up,north,west;up,south,east;south_down east_down
+up,north,west;up,west,east;east_down east_south
+up,north,west;north,south,west;south_down south_east
+up,north,west;north,south,east;south_down east_down
+up,north,west;north,west,east;east_down east_south
+up,north,west;south,west,east;south_down east_down
+up,north,west;down,up,north,south;down_south down_east
+up,north,west;down,up,north,west;down_south down_east
+up,north,west;down,up,north,east;down_south down_east
+up,north,west;down,up,south,west;down_south down_east
+up,north,west;down,up,south,east;down_south down_east
+up,north,west;down,up,west,east;down_south down_east
+up,north,west;down,north,south,west;down_south down_east
+up,north,west;down,north,south,east;down_south down_east
+up,north,west;down,north,west,east;down_south down_east
+up,north,west;down,south,west,east;down_south down_east
+up,north,west;up,north,south,west;south_down south_east
+up,north,west;up,north,south,east;south_down east_down
+up,north,west;up,north,west,east;east_down east_south
+up,north,west;up,south,west,east;south_down east_down
+up,north,west;north,south,west,east;south_down east_down
+up,north,west;down,up,north,south,west;down_south down_east
+up,north,west;down,up,north,south,east;down_south down_east
+up,north,west;down,up,north,west,east;down_south down_east
+up,north,west;down,up,south,west,east;down_south down_east
+up,north,west;down,north,south,west,east;down_south down_east
+up,north,west;up,north,south,west,east;south_down east_down
+up,north,west;down,up,north,south,west,east;down_south down_east
+up,north,east;;
+up,north,east;down;down_south down_west
+up,north,east;up;
+up,north,east;north;
+up,north,east;south;south_down south_west
+up,north,east;west;west_down west_south
+up,north,east;east;
+up,north,east;down,up;down_south down_west
+up,north,east;down,north;down_south down_west
+up,north,east;down,south;down_south down_west
+up,north,east;down,west;down_south down_west
+up,north,east;down,east;down_south down_west
+up,north,east;up,north;
+up,north,east;up,south;south_down south_west
+up,north,east;up,west;west_down west_south
+up,north,east;up,east;
+up,north,east;north,south;south_down south_west
+up,north,east;north,west;west_down west_south
+up,north,east;north,east;
+up,north,east;south,west;south_down west_down
+up,north,east;south,east;south_down south_west
+up,north,east;west,east;west_down west_south
+up,north,east;down,up,north;down_south down_west
+up,north,east;down,up,south;down_south down_west
+up,north,east;down,up,west;down_south down_west
+up,north,east;down,up,east;down_south down_west
+up,north,east;down,north,south;down_south down_west
+up,north,east;down,north,west;down_south down_west
+up,north,east;down,north,east;down_south down_west
+up,north,east;down,south,west;down_south down_west
+up,north,east;down,south,east;down_south down_west
+up,north,east;down,west,east;down_south down_west
+up,north,east;up,north,south;south_down south_west
+up,north,east;up,north,west;west_down west_south
+up,north,east;up,north,east;
+up,north,east;up,south,west;south_down west_down
+up,north,east;up,south,east;south_down south_west
+up,north,east;up,west,east;west_down west_south
+up,north,east;north,south,west;south_down west_down
+up,north,east;north,south,east;south_down south_west
+up,north,east;north,west,east;west_down west_south
+up,north,east;south,west,east;south_down west_down
+up,north,east;down,up,north,south;down_south down_west
+up,north,east;down,up,north,west;down_south down_west
+up,north,east;down,up,north,east;down_south down_west
+up,north,east;down,up,south,west;down_south down_west
+up,north,east;down,up,south,east;down_south down_west
+up,north,east;down,up,west,east;down_south down_west
+up,north,east;down,north,south,west;down_south down_west
+up,north,east;down,north,south,east;down_south down_west
+up,north,east;down,north,west,east;down_south down_west
+up,north,east;down,south,west,east;down_south down_west
+up,north,east;up,north,south,west;south_down west_down
+up,north,east;up,north,south,east;south_down south_west
+up,north,east;up,north,west,east;west_down west_south
+up,north,east;up,south,west,east;south_down west_down
+up,north,east;north,south,west,east;south_down west_down
+up,north,east;down,up,north,south,west;down_south down_west
+up,north,east;down,up,north,south,east;down_south down_west
+up,north,east;down,up,north,west,east;down_south down_west
+up,north,east;down,up,south,west,east;down_south down_west
+up,north,east;down,north,south,west,east;down_south down_west
+up,north,east;up,north,south,west,east;south_down west_down
+up,north,east;down,up,north,south,west,east;down_south down_west
+up,south,west;;
+up,south,west;down;down_north down_east
+up,south,west;up;
+up,south,west;north;north_down north_east
+up,south,west;south;
+up,south,west;west;
+up,south,west;east;east_down east_north
+up,south,west;down,up;down_north down_east
+up,south,west;down,north;down_north down_east
+up,south,west;down,south;down_north down_east
+up,south,west;down,west;down_north down_east
+up,south,west;down,east;down_north down_east
+up,south,west;up,north;north_down north_east
+up,south,west;up,south;
+up,south,west;up,west;
+up,south,west;up,east;east_down east_north
+up,south,west;north,south;north_down north_east
+up,south,west;north,west;north_down north_east
+up,south,west;north,east;north_down east_down
+up,south,west;south,west;
+up,south,west;south,east;east_down east_north
+up,south,west;west,east;east_down east_north
+up,south,west;down,up,north;down_north down_east
+up,south,west;down,up,south;down_north down_east
+up,south,west;down,up,west;down_north down_east
+up,south,west;down,up,east;down_north down_east
+up,south,west;down,north,south;down_north down_east
+up,south,west;down,north,west;down_north down_east
+up,south,west;down,north,east;down_north down_east
+up,south,west;down,south,west;down_north down_east
+up,south,west;down,south,east;down_north down_east
+up,south,west;down,west,east;down_north down_east
+up,south,west;up,north,south;north_down north_east
+up,south,west;up,north,west;north_down north_east
+up,south,west;up,north,east;north_down east_down
+up,south,west;up,south,west;
+up,south,west;up,south,east;east_down east_north
+up,south,west;up,west,east;east_down east_north
+up,south,west;north,south,west;north_down north_east
+up,south,west;north,south,east;north_down east_down
+up,south,west;north,west,east;north_down east_down
+up,south,west;south,west,east;east_down east_north
+up,south,west;down,up,north,south;down_north down_east
+up,south,west;down,up,north,west;down_north down_east
+up,south,west;down,up,north,east;down_north down_east
+up,south,west;down,up,south,west;down_north down_east
+up,south,west;down,up,south,east;down_north down_east
+up,south,west;down,up,west,east;down_north down_east
+up,south,west;down,north,south,west;down_north down_east
+up,south,west;down,north,south,east;down_north down_east
+up,south,west;down,north,west,east;down_north down_east
+up,south,west;down,south,west,east;down_north down_east
+up,south,west;up,north,south,west;north_down north_east
+up,south,west;up,north,south,east;north_down east_down
+up,south,west;up,north,west,east;north_down east_down
+up,south,west;up,south,west,east;east_down east_north
+up,south,west;north,south,west,east;north_down east_down
+up,south,west;down,up,north,south,west;down_north down_east
+up,south,west;down,up,north,south,east;down_north down_east
+up,south,west;down,up,north,west,east;down_north down_east
+up,south,west;down,up,south,west,east;down_north down_east
+up,south,west;down,north,south,west,east;down_north down_east
+up,south,west;up,north,south,west,east;north_down east_down
+up,south,west;down,up,north,south,west,east;down_north down_east
+up,south,east;;
+up,south,east;down;down_north down_west
+up,south,east;up;
+up,south,east;north;north_down north_west
+up,south,east;south;
+up,south,east;west;west_down west_north
+up,south,east;east;
+up,south,east;down,up;down_north down_west
+up,south,east;down,north;down_north down_west
+up,south,east;down,south;down_north down_west
+up,south,east;down,west;down_north down_west
+up,south,east;down,east;down_north down_west
+up,south,east;up,north;north_down north_west
+up,south,east;up,south;
+up,south,east;up,west;west_down west_north
+up,south,east;up,east;
+up,south,east;north,south;north_down north_west
+up,south,east;north,west;north_down west_down
+up,south,east;north,east;north_down north_west
+up,south,east;south,west;west_down west_north
+up,south,east;south,east;
+up,south,east;west,east;west_down west_north
+up,south,east;down,up,north;down_north down_west
+up,south,east;down,up,south;down_north down_west
+up,south,east;down,up,west;down_north down_west
+up,south,east;down,up,east;down_north down_west
+up,south,east;down,north,south;down_north down_west
+up,south,east;down,north,west;down_north down_west
+up,south,east;down,north,east;down_north down_west
+up,south,east;down,south,west;down_north down_west
+up,south,east;down,south,east;down_north down_west
+up,south,east;down,west,east;down_north down_west
+up,south,east;up,north,south;north_down north_west
+up,south,east;up,north,west;north_down west_down
+up,south,east;up,north,east;north_down north_west
+up,south,east;up,south,west;west_down west_north
+up,south,east;up,south,east;
+up,south,east;up,west,east;west_down west_north
+up,south,east;north,south,west;north_down west_down
+up,south,east;north,south,east;north_down north_west
+up,south,east;north,west,east;north_down west_down
+up,south,east;south,west,east;west_down west_north
+up,south,east;down,up,north,south;down_north down_west
+up,south,east;down,up,north,west;down_north down_west
+up,south,east;down,up,north,east;down_north down_west
+up,south,east;down,up,south,west;down_north down_west
+up,south,east;down,up,south,east;down_north down_west
+up,south,east;down,up,west,east;down_north down_west
+up,south,east;down,north,south,west;down_north down_west
+up,south,east;down,north,south,east;down_north down_west
+up,south,east;down,north,west,east;down_north down_west
+up,south,east;down,south,west,east;down_north down_west
+up,south,east;up,north,south,west;north_down west_down
+up,south,east;up,north,south,east;north_down north_west
+up,south,east;up,north,west,east;north_down west_down
+up,south,east;up,south,west,east;west_down west_north
+up,south,east;north,south,west,east;north_down west_down
+up,south,east;down,up,north,south,west;down_north down_west
+up,south,east;down,up,north,south,east;down_north down_west
+up,south,east;down,up,north,west,east;down_north down_west
+up,south,east;down,up,south,west,east;down_north down_west
+up,south,east;down,north,south,west,east;down_north down_west
+up,south,east;up,north,south,west,east;north_down west_down
+up,south,east;down,up,north,south,west,east;down_north down_west
+up,west,east;;
+up,west,east;down;down_north down_south
+up,west,east;up;
+up,west,east;north;north_down
+up,west,east;south;south_down
+up,west,east;west;
+up,west,east;east;
+up,west,east;down,up;down_north down_south
+up,west,east;down,north;down_north down_south
+up,west,east;down,south;down_north down_south
+up,west,east;down,west;down_north down_south
+up,west,east;down,east;down_north down_south
+up,west,east;up,north;north_down
+up,west,east;up,south;south_down
+up,west,east;up,west;
+up,west,east;up,east;
+up,west,east;north,south;north_down south_down
+up,west,east;north,west;north_down
+up,west,east;north,east;north_down
+up,west,east;south,west;south_down
+up,west,east;south,east;south_down
+up,west,east;west,east;
+up,west,east;down,up,north;down_north down_south
+up,west,east;down,up,south;down_north down_south
+up,west,east;down,up,west;down_north down_south
+up,west,east;down,up,east;down_north down_south
+up,west,east;down,north,south;down_north down_south
+up,west,east;down,north,west;down_north down_south
+up,west,east;down,north,east;down_north down_south
+up,west,east;down,south,west;down_north down_south
+up,west,east;down,south,east;down_north down_south
+up,west,east;down,west,east;down_north down_south
+up,west,east;up,north,south;north_down south_down
+up,west,east;up,north,west;north_down
+up,west,east;up,north,east;north_down
+up,west,east;up,south,west;south_down
+up,west,east;up,south,east;south_down
+up,west,east;up,west,east;
+up,west,east;north,south,west;north_down south_down
+up,west,east;north,south,east;north_down south_down
+up,west,east;north,west,east;north_down
+up,west,east;south,west,east;south_down
+up,west,east;down,up,north,south;down_north down_south
+up,west,east;down,up,north,west;down_north down_south
+up,west,east;down,up,north,east;down_north down_south
+up,west,east;down,up,south,west;down_north down_south
+up,west,east;down,up,south,east;down_north down_south
+up,west,east;down,up,west,east;down_north down_south
+up,west,east;down,north,south,west;down_north down_south
+up,west,east;down,north,south,east;down_north down_south
+up,west,east;down,north,west,east;down_north down_south
+up,west,east;down,south,west,east;down_north down_south
+up,west,east;up,north,south,west;north_down south_down
+up,west,east;up,north,south,east;north_down south_down
+up,west,east;up,north,west,east;north_down
+up,west,east;up,south,west,east;south_down
+up,west,east;north,south,west,east;north_down south_down
+up,west,east;down,up,north,south,west;down_north down_south
+up,west,east;down,up,north,south,east;down_north down_south
+up,west,east;down,up,north,west,east;down_north down_south
+up,west,east;down,up,south,west,east;down_north down_south
+up,west,east;down,north,south,west,east;down_north down_south
+up,west,east;up,north,south,west,east;north_down south_down
+up,west,east;down,up,north,south,west,east;down_north down_south
+north,south,west;;
+north,south,west;down;down_east
+north,south,west;up;up_east
+north,south,west;north;
+north,south,west;south;
+north,south,west;west;
+north,south,west;east;east_up east_down
+north,south,west;down,up;down_east
+north,south,west;down,north;down_east
+north,south,west;down,south;down_east
+north,south,west;down,west;down_east
+north,south,west;down,east;down_east
+north,south,west;up,north;up_east
+north,south,west;up,south;up_east
+north,south,west;up,west;up_east
+north,south,west;up,east;up_east
+north,south,west;north,south;
+north,south,west;north,west;
+north,south,west;north,east;east_up east_down
+north,south,west;south,west;
+north,south,west;south,east;east_up east_down
+north,south,west;west,east;east_up east_down
+north,south,west;down,up,north;down_east
+north,south,west;down,up,south;down_east
+north,south,west;down,up,west;down_east
+north,south,west;down,up,east;down_east
+north,south,west;down,north,south;down_east
+north,south,west;down,north,west;down_east
+north,south,west;down,north,east;down_east
+north,south,west;down,south,west;down_east
+north,south,west;down,south,east;down_east
+north,south,west;down,west,east;down_east
+north,south,west;up,north,south;up_east
+north,south,west;up,north,west;up_east
+north,south,west;up,north,east;up_east
+north,south,west;up,south,west;up_east
+north,south,west;up,south,east;up_east
+north,south,west;up,west,east;up_east
+north,south,west;north,south,west;
+north,south,west;north,south,east;east_up east_down
+north,south,west;north,west,east;east_up east_down
+north,south,west;south,west,east;east_up east_down
+north,south,west;down,up,north,south;down_east
+north,south,west;down,up,north,west;down_east
+north,south,west;down,up,north,east;down_east
+north,south,west;down,up,south,west;down_east
+north,south,west;down,up,south,east;down_east
+north,south,west;down,up,west,east;down_east
+north,south,west;down,north,south,west;down_east
+north,south,west;down,north,south,east;down_east
+north,south,west;down,north,west,east;down_east
+north,south,west;down,south,west,east;down_east
+north,south,west;up,north,south,west;up_east
+north,south,west;up,north,south,east;up_east
+north,south,west;up,north,west,east;up_east
+north,south,west;up,south,west,east;up_east
+north,south,west;north,south,west,east;east_up east_down
+north,south,west;down,up,north,south,west;down_east
+north,south,west;down,up,north,south,east;down_east
+north,south,west;down,up,north,west,east;down_east
+north,south,west;down,up,south,west,east;down_east
+north,south,west;down,north,south,west,east;down_east
+north,south,west;up,north,south,west,east;up_east
+north,south,west;down,up,north,south,west,east;down_east
+north,south,east;;
+north,south,east;down;down_west
+north,south,east;up;up_west
+north,south,east;north;
+north,south,east;south;
+north,south,east;west;west_up west_down
+north,south,east;east;
+north,south,east;down,up;down_west
+north,south,east;down,north;down_west
+north,south,east;down,south;down_west
+north,south,east;down,west;down_west
+north,south,east;down,east;down_west
+north,south,east;up,north;up_west
+north,south,east;up,south;up_west
+north,south,east;up,west;up_west
+north,south,east;up,east;up_west
+north,south,east;north,south;
+north,south,east;north,west;west_up west_down
+north,south,east;north,east;
+north,south,east;south,west;west_up west_down
+north,south,east;south,east;
+north,south,east;west,east;west_up west_down
+north,south,east;down,up,north;down_west
+north,south,east;down,up,south;down_west
+north,south,east;down,up,west;down_west
+north,south,east;down,up,east;down_west
+north,south,east;down,north,south;down_west
+north,south,east;down,north,west;down_west
+north,south,east;down,north,east;down_west
+north,south,east;down,south,west;down_west
+north,south,east;down,south,east;down_west
+north,south,east;down,west,east;down_west
+north,south,east;up,north,south;up_west
+north,south,east;up,north,west;up_west
+north,south,east;up,north,east;up_west
+north,south,east;up,south,west;up_west
+north,south,east;up,south,east;up_west
+north,south,east;up,west,east;up_west
+north,south,east;north,south,west;west_up west_down
+north,south,east;north,south,east;
+north,south,east;north,west,east;west_up west_down
+north,south,east;south,west,east;west_up west_down
+north,south,east;down,up,north,south;down_west
+north,south,east;down,up,north,west;down_west
+north,south,east;down,up,north,east;down_west
+north,south,east;down,up,south,west;down_west
+north,south,east;down,up,south,east;down_west
+north,south,east;down,up,west,east;down_west
+north,south,east;down,north,south,west;down_west
+north,south,east;down,north,south,east;down_west
+north,south,east;down,north,west,east;down_west
+north,south,east;down,south,west,east;down_west
+north,south,east;up,north,south,west;up_west
+north,south,east;up,north,south,east;up_west
+north,south,east;up,north,west,east;up_west
+north,south,east;up,south,west,east;up_west
+north,south,east;north,south,west,east;west_up west_down
+north,south,east;down,up,north,south,west;down_west
+north,south,east;down,up,north,south,east;down_west
+north,south,east;down,up,north,west,east;down_west
+north,south,east;down,up,south,west,east;down_west
+north,south,east;down,north,south,west,east;down_west
+north,south,east;up,north,south,west,east;up_west
+north,south,east;down,up,north,south,west,east;down_west
+north,west,east;;
+north,west,east;down;down_south
+north,west,east;up;up_south
+north,west,east;north;
+north,west,east;south;south_up south_down
+north,west,east;west;
+north,west,east;east;
+north,west,east;down,up;down_south
+north,west,east;down,north;down_south
+north,west,east;down,south;down_south
+north,west,east;down,west;down_south
+north,west,east;down,east;down_south
+north,west,east;up,north;up_south
+north,west,east;up,south;up_south
+north,west,east;up,west;up_south
+north,west,east;up,east;up_south
+north,west,east;north,south;south_up south_down
+north,west,east;north,west;
+north,west,east;north,east;
+north,west,east;south,west;south_up south_down
+north,west,east;south,east;south_up south_down
+north,west,east;west,east;
+north,west,east;down,up,north;down_south
+north,west,east;down,up,south;down_south
+north,west,east;down,up,west;down_south
+north,west,east;down,up,east;down_south
+north,west,east;down,north,south;down_south
+north,west,east;down,north,west;down_south
+north,west,east;down,north,east;down_south
+north,west,east;down,south,west;down_south
+north,west,east;down,south,east;down_south
+north,west,east;down,west,east;down_south
+north,west,east;up,north,south;up_south
+north,west,east;up,north,west;up_south
+north,west,east;up,north,east;up_south
+north,west,east;up,south,west;up_south
+north,west,east;up,south,east;up_south
+north,west,east;up,west,east;up_south
+north,west,east;north,south,west;south_up south_down
+north,west,east;north,south,east;south_up south_down
+north,west,east;north,west,east;
+north,west,east;south,west,east;south_up south_down
+north,west,east;down,up,north,south;down_south
+north,west,east;down,up,north,west;down_south
+north,west,east;down,up,north,east;down_south
+north,west,east;down,up,south,west;down_south
+north,west,east;down,up,south,east;down_south
+north,west,east;down,up,west,east;down_south
+north,west,east;down,north,south,west;down_south
+north,west,east;down,north,south,east;down_south
+north,west,east;down,north,west,east;down_south
+north,west,east;down,south,west,east;down_south
+north,west,east;up,north,south,west;up_south
+north,west,east;up,north,south,east;up_south
+north,west,east;up,north,west,east;up_south
+north,west,east;up,south,west,east;up_south
+north,west,east;north,south,west,east;south_up south_down
+north,west,east;down,up,north,south,west;down_south
+north,west,east;down,up,north,south,east;down_south
+north,west,east;down,up,north,west,east;down_south
+north,west,east;down,up,south,west,east;down_south
+north,west,east;down,north,south,west,east;down_south
+north,west,east;up,north,south,west,east;up_south
+north,west,east;down,up,north,south,west,east;down_south
+south,west,east;;
+south,west,east;down;down_north
+south,west,east;up;up_north
+south,west,east;north;north_up north_down
+south,west,east;south;
+south,west,east;west;
+south,west,east;east;
+south,west,east;down,up;down_north
+south,west,east;down,north;down_north
+south,west,east;down,south;down_north
+south,west,east;down,west;down_north
+south,west,east;down,east;down_north
+south,west,east;up,north;up_north
+south,west,east;up,south;up_north
+south,west,east;up,west;up_north
+south,west,east;up,east;up_north
+south,west,east;north,south;north_up north_down
+south,west,east;north,west;north_up north_down
+south,west,east;north,east;north_up north_down
+south,west,east;south,west;
+south,west,east;south,east;
+south,west,east;west,east;
+south,west,east;down,up,north;down_north
+south,west,east;down,up,south;down_north
+south,west,east;down,up,west;down_north
+south,west,east;down,up,east;down_north
+south,west,east;down,north,south;down_north
+south,west,east;down,north,west;down_north
+south,west,east;down,north,east;down_north
+south,west,east;down,south,west;down_north
+south,west,east;down,south,east;down_north
+south,west,east;down,west,east;down_north
+south,west,east;up,north,south;up_north
+south,west,east;up,north,west;up_north
+south,west,east;up,north,east;up_north
+south,west,east;up,south,west;up_north
+south,west,east;up,south,east;up_north
+south,west,east;up,west,east;up_north
+south,west,east;north,south,west;north_up north_down
+south,west,east;north,south,east;north_up north_down
+south,west,east;north,west,east;north_up north_down
+south,west,east;south,west,east;
+south,west,east;down,up,north,south;down_north
+south,west,east;down,up,north,west;down_north
+south,west,east;down,up,north,east;down_north
+south,west,east;down,up,south,west;down_north
+south,west,east;down,up,south,east;down_north
+south,west,east;down,up,west,east;down_north
+south,west,east;down,north,south,west;down_north
+south,west,east;down,north,south,east;down_north
+south,west,east;down,north,west,east;down_north
+south,west,east;down,south,west,east;down_north
+south,west,east;up,north,south,west;up_north
+south,west,east;up,north,south,east;up_north
+south,west,east;up,north,west,east;up_north
+south,west,east;up,south,west,east;up_north
+south,west,east;north,south,west,east;north_up north_down
+south,west,east;down,up,north,south,west;down_north
+south,west,east;down,up,north,south,east;down_north
+south,west,east;down,up,north,west,east;down_north
+south,west,east;down,up,south,west,east;down_north
+south,west,east;down,north,south,west,east;down_north
+south,west,east;up,north,south,west,east;up_north
+south,west,east;down,up,north,south,west,east;down_north
+down,up,north,south;;
+down,up,north,south;down;
+down,up,north,south;up;
+down,up,north,south;north;
+down,up,north,south;south;
+down,up,north,south;west;
+down,up,north,south;east;
+down,up,north,south;down,up;
+down,up,north,south;down,north;
+down,up,north,south;down,south;
+down,up,north,south;down,west;
+down,up,north,south;down,east;
+down,up,north,south;up,north;
+down,up,north,south;up,south;
+down,up,north,south;up,west;
+down,up,north,south;up,east;
+down,up,north,south;north,south;
+down,up,north,south;north,west;
+down,up,north,south;north,east;
+down,up,north,south;south,west;
+down,up,north,south;south,east;
+down,up,north,south;west,east;
+down,up,north,south;down,up,north;
+down,up,north,south;down,up,south;
+down,up,north,south;down,up,west;
+down,up,north,south;down,up,east;
+down,up,north,south;down,north,south;
+down,up,north,south;down,north,west;
+down,up,north,south;down,north,east;
+down,up,north,south;down,south,west;
+down,up,north,south;down,south,east;
+down,up,north,south;down,west,east;
+down,up,north,south;up,north,south;
+down,up,north,south;up,north,west;
+down,up,north,south;up,north,east;
+down,up,north,south;up,south,west;
+down,up,north,south;up,south,east;
+down,up,north,south;up,west,east;
+down,up,north,south;north,south,west;
+down,up,north,south;north,south,east;
+down,up,north,south;north,west,east;
+down,up,north,south;south,west,east;
+down,up,north,south;down,up,north,south;
+down,up,north,south;down,up,north,west;
+down,up,north,south;down,up,north,east;
+down,up,north,south;down,up,south,west;
+down,up,north,south;down,up,south,east;
+down,up,north,south;down,up,west,east;
+down,up,north,south;down,north,south,west;
+down,up,north,south;down,north,south,east;
+down,up,north,south;down,north,west,east;
+down,up,north,south;down,south,west,east;
+down,up,north,south;up,north,south,west;
+down,up,north,south;up,north,south,east;
+down,up,north,south;up,north,west,east;
+down,up,north,south;up,south,west,east;
+down,up,north,south;north,south,west,east;
+down,up,north,south;down,up,north,south,west;
+down,up,north,south;down,up,north,south,east;
+down,up,north,south;down,up,north,west,east;
+down,up,north,south;down,up,south,west,east;
+down,up,north,south;down,north,south,west,east;
+down,up,north,south;up,north,south,west,east;
+down,up,north,south;down,up,north,south,west,east;
+down,up,north,west;;
+down,up,north,west;down;
+down,up,north,west;up;
+down,up,north,west;north;
+down,up,north,west;south;south_east
+down,up,north,west;west;
+down,up,north,west;east;east_south
+down,up,north,west;down,up;
+down,up,north,west;down,north;
+down,up,north,west;down,south;south_east
+down,up,north,west;down,west;
+down,up,north,west;down,east;east_south
+down,up,north,west;up,north;
+down,up,north,west;up,south;south_east
+down,up,north,west;up,west;
+down,up,north,west;up,east;east_south
+down,up,north,west;north,south;south_east
+down,up,north,west;north,west;
+down,up,north,west;north,east;east_south
+down,up,north,west;south,west;south_east
+down,up,north,west;south,east;south_east east_south
+down,up,north,west;west,east;east_south
+down,up,north,west;down,up,north;
+down,up,north,west;down,up,south;south_east
+down,up,north,west;down,up,west;
+down,up,north,west;down,up,east;east_south
+down,up,north,west;down,north,south;south_east
+down,up,north,west;down,north,west;
+down,up,north,west;down,north,east;east_south
+down,up,north,west;down,south,west;south_east
+down,up,north,west;down,south,east;south_east east_south
+down,up,north,west;down,west,east;east_south
+down,up,north,west;up,north,south;south_east
+down,up,north,west;up,north,west;
+down,up,north,west;up,north,east;east_south
+down,up,north,west;up,south,west;south_east
+down,up,north,west;up,south,east;south_east east_south
+down,up,north,west;up,west,east;east_south
+down,up,north,west;north,south,west;south_east
+down,up,north,west;north,south,east;south_east east_south
+down,up,north,west;north,west,east;east_south
+down,up,north,west;south,west,east;south_east east_south
+down,up,north,west;down,up,north,south;south_east
+down,up,north,west;down,up,north,west;
+down,up,north,west;down,up,north,east;east_south
+down,up,north,west;down,up,south,west;south_east
+down,up,north,west;down,up,south,east;south_east east_south
+down,up,north,west;down,up,west,east;east_south
+down,up,north,west;down,north,south,west;south_east
+down,up,north,west;down,north,south,east;south_east east_south
+down,up,north,west;down,north,west,east;east_south
+down,up,north,west;down,south,west,east;south_east east_south
+down,up,north,west;up,north,south,west;south_east
+down,up,north,west;up,north,south,east;south_east east_south
+down,up,north,west;up,north,west,east;east_south
+down,up,north,west;up,south,west,east;south_east east_south
+down,up,north,west;north,south,west,east;south_east east_south
+down,up,north,west;down,up,north,south,west;south_east
+down,up,north,west;down,up,north,south,east;south_east east_south
+down,up,north,west;down,up,north,west,east;east_south
+down,up,north,west;down,up,south,west,east;south_east east_south
+down,up,north,west;down,north,south,west,east;south_east east_south
+down,up,north,west;up,north,south,west,east;south_east east_south
+down,up,north,west;down,up,north,south,west,east;south_east east_south
+down,up,north,east;;
+down,up,north,east;down;
+down,up,north,east;up;
+down,up,north,east;north;
+down,up,north,east;south;south_west
+down,up,north,east;west;west_south
+down,up,north,east;east;
+down,up,north,east;down,up;
+down,up,north,east;down,north;
+down,up,north,east;down,south;south_west
+down,up,north,east;down,west;west_south
+down,up,north,east;down,east;
+down,up,north,east;up,north;
+down,up,north,east;up,south;south_west
+down,up,north,east;up,west;west_south
+down,up,north,east;up,east;
+down,up,north,east;north,south;south_west
+down,up,north,east;north,west;west_south
+down,up,north,east;north,east;
+down,up,north,east;south,west;south_west west_south
+down,up,north,east;south,east;south_west
+down,up,north,east;west,east;west_south
+down,up,north,east;down,up,north;
+down,up,north,east;down,up,south;south_west
+down,up,north,east;down,up,west;west_south
+down,up,north,east;down,up,east;
+down,up,north,east;down,north,south;south_west
+down,up,north,east;down,north,west;west_south
+down,up,north,east;down,north,east;
+down,up,north,east;down,south,west;south_west west_south
+down,up,north,east;down,south,east;south_west
+down,up,north,east;down,west,east;west_south
+down,up,north,east;up,north,south;south_west
+down,up,north,east;up,north,west;west_south
+down,up,north,east;up,north,east;
+down,up,north,east;up,south,west;south_west west_south
+down,up,north,east;up,south,east;south_west
+down,up,north,east;up,west,east;west_south
+down,up,north,east;north,south,west;south_west west_south
+down,up,north,east;north,south,east;south_west
+down,up,north,east;north,west,east;west_south
+down,up,north,east;south,west,east;south_west west_south
+down,up,north,east;down,up,north,south;south_west
+down,up,north,east;down,up,north,west;west_south
+down,up,north,east;down,up,north,east;
+down,up,north,east;down,up,south,west;south_west west_south
+down,up,north,east;down,up,south,east;south_west
+down,up,north,east;down,up,west,east;west_south
+down,up,north,east;down,north,south,west;south_west west_south
+down,up,north,east;down,north,south,east;south_west
+down,up,north,east;down,north,west,east;west_south
+down,up,north,east;down,south,west,east;south_west west_south
+down,up,north,east;up,north,south,west;south_west west_south
+down,up,north,east;up,north,south,east;south_west
+down,up,north,east;up,north,west,east;west_south
+down,up,north,east;up,south,west,east;south_west west_south
+down,up,north,east;north,south,west,east;south_west west_south
+down,up,north,east;down,up,north,south,west;south_west west_south
+down,up,north,east;down,up,north,south,east;south_west
+down,up,north,east;down,up,north,west,east;west_south
+down,up,north,east;down,up,south,west,east;south_west west_south
+down,up,north,east;down,north,south,west,east;south_west west_south
+down,up,north,east;up,north,south,west,east;south_west west_south
+down,up,north,east;down,up,north,south,west,east;south_west west_south
+down,up,south,west;;
+down,up,south,west;down;
+down,up,south,west;up;
+down,up,south,west;north;north_east
+down,up,south,west;south;
+down,up,south,west;west;
+down,up,south,west;east;east_north
+down,up,south,west;down,up;
+down,up,south,west;down,north;north_east
+down,up,south,west;down,south;
+down,up,south,west;down,west;
+down,up,south,west;down,east;east_north
+down,up,south,west;up,north;north_east
+down,up,south,west;up,south;
+down,up,south,west;up,west;
+down,up,south,west;up,east;east_north
+down,up,south,west;north,south;north_east
+down,up,south,west;north,west;north_east
+down,up,south,west;north,east;north_east east_north
+down,up,south,west;south,west;
+down,up,south,west;south,east;east_north
+down,up,south,west;west,east;east_north
+down,up,south,west;down,up,north;north_east
+down,up,south,west;down,up,south;
+down,up,south,west;down,up,west;
+down,up,south,west;down,up,east;east_north
+down,up,south,west;down,north,south;north_east
+down,up,south,west;down,north,west;north_east
+down,up,south,west;down,north,east;north_east east_north
+down,up,south,west;down,south,west;
+down,up,south,west;down,south,east;east_north
+down,up,south,west;down,west,east;east_north
+down,up,south,west;up,north,south;north_east
+down,up,south,west;up,north,west;north_east
+down,up,south,west;up,north,east;north_east east_north
+down,up,south,west;up,south,west;
+down,up,south,west;up,south,east;east_north
+down,up,south,west;up,west,east;east_north
+down,up,south,west;north,south,west;north_east
+down,up,south,west;north,south,east;north_east east_north
+down,up,south,west;north,west,east;north_east east_north
+down,up,south,west;south,west,east;east_north
+down,up,south,west;down,up,north,south;north_east
+down,up,south,west;down,up,north,west;north_east
+down,up,south,west;down,up,north,east;north_east east_north
+down,up,south,west;down,up,south,west;
+down,up,south,west;down,up,south,east;east_north
+down,up,south,west;down,up,west,east;east_north
+down,up,south,west;down,north,south,west;north_east
+down,up,south,west;down,north,south,east;north_east east_north
+down,up,south,west;down,north,west,east;north_east east_north
+down,up,south,west;down,south,west,east;east_north
+down,up,south,west;up,north,south,west;north_east
+down,up,south,west;up,north,south,east;north_east east_north
+down,up,south,west;up,north,west,east;north_east east_north
+down,up,south,west;up,south,west,east;east_north
+down,up,south,west;north,south,west,east;north_east east_north
+down,up,south,west;down,up,north,south,west;north_east
+down,up,south,west;down,up,north,south,east;north_east east_north
+down,up,south,west;down,up,north,west,east;north_east east_north
+down,up,south,west;down,up,south,west,east;east_north
+down,up,south,west;down,north,south,west,east;north_east east_north
+down,up,south,west;up,north,south,west,east;north_east east_north
+down,up,south,west;down,up,north,south,west,east;north_east east_north
+down,up,south,east;;
+down,up,south,east;down;
+down,up,south,east;up;
+down,up,south,east;north;north_west
+down,up,south,east;south;
+down,up,south,east;west;west_north
+down,up,south,east;east;
+down,up,south,east;down,up;
+down,up,south,east;down,north;north_west
+down,up,south,east;down,south;
+down,up,south,east;down,west;west_north
+down,up,south,east;down,east;
+down,up,south,east;up,north;north_west
+down,up,south,east;up,south;
+down,up,south,east;up,west;west_north
+down,up,south,east;up,east;
+down,up,south,east;north,south;north_west
+down,up,south,east;north,west;north_west west_north
+down,up,south,east;north,east;north_west
+down,up,south,east;south,west;west_north
+down,up,south,east;south,east;
+down,up,south,east;west,east;west_north
+down,up,south,east;down,up,north;north_west
+down,up,south,east;down,up,south;
+down,up,south,east;down,up,west;west_north
+down,up,south,east;down,up,east;
+down,up,south,east;down,north,south;north_west
+down,up,south,east;down,north,west;north_west west_north
+down,up,south,east;down,north,east;north_west
+down,up,south,east;down,south,west;west_north
+down,up,south,east;down,south,east;
+down,up,south,east;down,west,east;west_north
+down,up,south,east;up,north,south;north_west
+down,up,south,east;up,north,west;north_west west_north
+down,up,south,east;up,north,east;north_west
+down,up,south,east;up,south,west;west_north
+down,up,south,east;up,south,east;
+down,up,south,east;up,west,east;west_north
+down,up,south,east;north,south,west;north_west west_north
+down,up,south,east;north,south,east;north_west
+down,up,south,east;north,west,east;north_west west_north
+down,up,south,east;south,west,east;west_north
+down,up,south,east;down,up,north,south;north_west
+down,up,south,east;down,up,north,west;north_west west_north
+down,up,south,east;down,up,north,east;north_west
+down,up,south,east;down,up,south,west;west_north
+down,up,south,east;down,up,south,east;
+down,up,south,east;down,up,west,east;west_north
+down,up,south,east;down,north,south,west;north_west west_north
+down,up,south,east;down,north,south,east;north_west
+down,up,south,east;down,north,west,east;north_west west_north
+down,up,south,east;down,south,west,east;west_north
+down,up,south,east;up,north,south,west;north_west west_north
+down,up,south,east;up,north,south,east;north_west
+down,up,south,east;up,north,west,east;north_west west_north
+down,up,south,east;up,south,west,east;west_north
+down,up,south,east;north,south,west,east;north_west west_north
+down,up,south,east;down,up,north,south,west;north_west west_north
+down,up,south,east;down,up,north,south,east;north_west
+down,up,south,east;down,up,north,west,east;north_west west_north
+down,up,south,east;down,up,south,west,east;west_north
+down,up,south,east;down,north,south,west,east;north_west west_north
+down,up,south,east;up,north,south,west,east;north_west west_north
+down,up,south,east;down,up,north,south,west,east;north_west west_north
+down,up,west,east;;
+down,up,west,east;down;
+down,up,west,east;up;
+down,up,west,east;north;
+down,up,west,east;south;
+down,up,west,east;west;
+down,up,west,east;east;
+down,up,west,east;down,up;
+down,up,west,east;down,north;
+down,up,west,east;down,south;
+down,up,west,east;down,west;
+down,up,west,east;down,east;
+down,up,west,east;up,north;
+down,up,west,east;up,south;
+down,up,west,east;up,west;
+down,up,west,east;up,east;
+down,up,west,east;north,south;
+down,up,west,east;north,west;
+down,up,west,east;north,east;
+down,up,west,east;south,west;
+down,up,west,east;south,east;
+down,up,west,east;west,east;
+down,up,west,east;down,up,north;
+down,up,west,east;down,up,south;
+down,up,west,east;down,up,west;
+down,up,west,east;down,up,east;
+down,up,west,east;down,north,south;
+down,up,west,east;down,north,west;
+down,up,west,east;down,north,east;
+down,up,west,east;down,south,west;
+down,up,west,east;down,south,east;
+down,up,west,east;down,west,east;
+down,up,west,east;up,north,south;
+down,up,west,east;up,north,west;
+down,up,west,east;up,north,east;
+down,up,west,east;up,south,west;
+down,up,west,east;up,south,east;
+down,up,west,east;up,west,east;
+down,up,west,east;north,south,west;
+down,up,west,east;north,south,east;
+down,up,west,east;north,west,east;
+down,up,west,east;south,west,east;
+down,up,west,east;down,up,north,south;
+down,up,west,east;down,up,north,west;
+down,up,west,east;down,up,north,east;
+down,up,west,east;down,up,south,west;
+down,up,west,east;down,up,south,east;
+down,up,west,east;down,up,west,east;
+down,up,west,east;down,north,south,west;
+down,up,west,east;down,north,south,east;
+down,up,west,east;down,north,west,east;
+down,up,west,east;down,south,west,east;
+down,up,west,east;up,north,south,west;
+down,up,west,east;up,north,south,east;
+down,up,west,east;up,north,west,east;
+down,up,west,east;up,south,west,east;
+down,up,west,east;north,south,west,east;
+down,up,west,east;down,up,north,south,west;
+down,up,west,east;down,up,north,south,east;
+down,up,west,east;down,up,north,west,east;
+down,up,west,east;down,up,south,west,east;
+down,up,west,east;down,north,south,west,east;
+down,up,west,east;up,north,south,west,east;
+down,up,west,east;down,up,north,south,west,east;
+down,north,south,west;;
+down,north,south,west;down;
+down,north,south,west;up;up_east
+down,north,south,west;north;
+down,north,south,west;south;
+down,north,south,west;west;
+down,north,south,west;east;east_up
+down,north,south,west;down,up;up_east
+down,north,south,west;down,north;
+down,north,south,west;down,south;
+down,north,south,west;down,west;
+down,north,south,west;down,east;east_up
+down,north,south,west;up,north;up_east
+down,north,south,west;up,south;up_east
+down,north,south,west;up,west;up_east
+down,north,south,west;up,east;up_east
+down,north,south,west;north,south;
+down,north,south,west;north,west;
+down,north,south,west;north,east;east_up
+down,north,south,west;south,west;
+down,north,south,west;south,east;east_up
+down,north,south,west;west,east;east_up
+down,north,south,west;down,up,north;up_east
+down,north,south,west;down,up,south;up_east
+down,north,south,west;down,up,west;up_east
+down,north,south,west;down,up,east;up_east
+down,north,south,west;down,north,south;
+down,north,south,west;down,north,west;
+down,north,south,west;down,north,east;east_up
+down,north,south,west;down,south,west;
+down,north,south,west;down,south,east;east_up
+down,north,south,west;down,west,east;east_up
+down,north,south,west;up,north,south;up_east
+down,north,south,west;up,north,west;up_east
+down,north,south,west;up,north,east;up_east
+down,north,south,west;up,south,west;up_east
+down,north,south,west;up,south,east;up_east
+down,north,south,west;up,west,east;up_east
+down,north,south,west;north,south,west;
+down,north,south,west;north,south,east;east_up
+down,north,south,west;north,west,east;east_up
+down,north,south,west;south,west,east;east_up
+down,north,south,west;down,up,north,south;up_east
+down,north,south,west;down,up,north,west;up_east
+down,north,south,west;down,up,north,east;up_east
+down,north,south,west;down,up,south,west;up_east
+down,north,south,west;down,up,south,east;up_east
+down,north,south,west;down,up,west,east;up_east
+down,north,south,west;down,north,south,west;
+down,north,south,west;down,north,south,east;east_up
+down,north,south,west;down,north,west,east;east_up
+down,north,south,west;down,south,west,east;east_up
+down,north,south,west;up,north,south,west;up_east
+down,north,south,west;up,north,south,east;up_east
+down,north,south,west;up,north,west,east;up_east
+down,north,south,west;up,south,west,east;up_east
+down,north,south,west;north,south,west,east;east_up
+down,north,south,west;down,up,north,south,west;up_east
+down,north,south,west;down,up,north,south,east;up_east
+down,north,south,west;down,up,north,west,east;up_east
+down,north,south,west;down,up,south,west,east;up_east
+down,north,south,west;down,north,south,west,east;east_up
+down,north,south,west;up,north,south,west,east;up_east
+down,north,south,west;down,up,north,south,west,east;up_east
+down,north,south,east;;
+down,north,south,east;down;
+down,north,south,east;up;up_west
+down,north,south,east;north;
+down,north,south,east;south;
+down,north,south,east;west;west_up
+down,north,south,east;east;
+down,north,south,east;down,up;up_west
+down,north,south,east;down,north;
+down,north,south,east;down,south;
+down,north,south,east;down,west;west_up
+down,north,south,east;down,east;
+down,north,south,east;up,north;up_west
+down,north,south,east;up,south;up_west
+down,north,south,east;up,west;up_west
+down,north,south,east;up,east;up_west
+down,north,south,east;north,south;
+down,north,south,east;north,west;west_up
+down,north,south,east;north,east;
+down,north,south,east;south,west;west_up
+down,north,south,east;south,east;
+down,north,south,east;west,east;west_up
+down,north,south,east;down,up,north;up_west
+down,north,south,east;down,up,south;up_west
+down,north,south,east;down,up,west;up_west
+down,north,south,east;down,up,east;up_west
+down,north,south,east;down,north,south;
+down,north,south,east;down,north,west;west_up
+down,north,south,east;down,north,east;
+down,north,south,east;down,south,west;west_up
+down,north,south,east;down,south,east;
+down,north,south,east;down,west,east;west_up
+down,north,south,east;up,north,south;up_west
+down,north,south,east;up,north,west;up_west
+down,north,south,east;up,north,east;up_west
+down,north,south,east;up,south,west;up_west
+down,north,south,east;up,south,east;up_west
+down,north,south,east;up,west,east;up_west
+down,north,south,east;north,south,west;west_up
+down,north,south,east;north,south,east;
+down,north,south,east;north,west,east;west_up
+down,north,south,east;south,west,east;west_up
+down,north,south,east;down,up,north,south;up_west
+down,north,south,east;down,up,north,west;up_west
+down,north,south,east;down,up,north,east;up_west
+down,north,south,east;down,up,south,west;up_west
+down,north,south,east;down,up,south,east;up_west
+down,north,south,east;down,up,west,east;up_west
+down,north,south,east;down,north,south,west;west_up
+down,north,south,east;down,north,south,east;
+down,north,south,east;down,north,west,east;west_up
+down,north,south,east;down,south,west,east;west_up
+down,north,south,east;up,north,south,west;up_west
+down,north,south,east;up,north,south,east;up_west
+down,north,south,east;up,north,west,east;up_west
+down,north,south,east;up,south,west,east;up_west
+down,north,south,east;north,south,west,east;west_up
+down,north,south,east;down,up,north,south,west;up_west
+down,north,south,east;down,up,north,south,east;up_west
+down,north,south,east;down,up,north,west,east;up_west
+down,north,south,east;down,up,south,west,east;up_west
+down,north,south,east;down,north,south,west,east;west_up
+down,north,south,east;up,north,south,west,east;up_west
+down,north,south,east;down,up,north,south,west,east;up_west
+down,north,west,east;;
+down,north,west,east;down;
+down,north,west,east;up;up_south
+down,north,west,east;north;
+down,north,west,east;south;south_up
+down,north,west,east;west;
+down,north,west,east;east;
+down,north,west,east;down,up;up_south
+down,north,west,east;down,north;
+down,north,west,east;down,south;south_up
+down,north,west,east;down,west;
+down,north,west,east;down,east;
+down,north,west,east;up,north;up_south
+down,north,west,east;up,south;up_south
+down,north,west,east;up,west;up_south
+down,north,west,east;up,east;up_south
+down,north,west,east;north,south;south_up
+down,north,west,east;north,west;
+down,north,west,east;north,east;
+down,north,west,east;south,west;south_up
+down,north,west,east;south,east;south_up
+down,north,west,east;west,east;
+down,north,west,east;down,up,north;up_south
+down,north,west,east;down,up,south;up_south
+down,north,west,east;down,up,west;up_south
+down,north,west,east;down,up,east;up_south
+down,north,west,east;down,north,south;south_up
+down,north,west,east;down,north,west;
+down,north,west,east;down,north,east;
+down,north,west,east;down,south,west;south_up
+down,north,west,east;down,south,east;south_up
+down,north,west,east;down,west,east;
+down,north,west,east;up,north,south;up_south
+down,north,west,east;up,north,west;up_south
+down,north,west,east;up,north,east;up_south
+down,north,west,east;up,south,west;up_south
+down,north,west,east;up,south,east;up_south
+down,north,west,east;up,west,east;up_south
+down,north,west,east;north,south,west;south_up
+down,north,west,east;north,south,east;south_up
+down,north,west,east;north,west,east;
+down,north,west,east;south,west,east;south_up
+down,north,west,east;down,up,north,south;up_south
+down,north,west,east;down,up,north,west;up_south
+down,north,west,east;down,up,north,east;up_south
+down,north,west,east;down,up,south,west;up_south
+down,north,west,east;down,up,south,east;up_south
+down,north,west,east;down,up,west,east;up_south
+down,north,west,east;down,north,south,west;south_up
+down,north,west,east;down,north,south,east;south_up
+down,north,west,east;down,north,west,east;
+down,north,west,east;down,south,west,east;south_up
+down,north,west,east;up,north,south,west;up_south
+down,north,west,east;up,north,south,east;up_south
+down,north,west,east;up,north,west,east;up_south
+down,north,west,east;up,south,west,east;up_south
+down,north,west,east;north,south,west,east;south_up
+down,north,west,east;down,up,north,south,west;up_south
+down,north,west,east;down,up,north,south,east;up_south
+down,north,west,east;down,up,north,west,east;up_south
+down,north,west,east;down,up,south,west,east;up_south
+down,north,west,east;down,north,south,west,east;south_up
+down,north,west,east;up,north,south,west,east;up_south
+down,north,west,east;down,up,north,south,west,east;up_south
+down,south,west,east;;
+down,south,west,east;down;
+down,south,west,east;up;up_north
+down,south,west,east;north;north_up
+down,south,west,east;south;
+down,south,west,east;west;
+down,south,west,east;east;
+down,south,west,east;down,up;up_north
+down,south,west,east;down,north;north_up
+down,south,west,east;down,south;
+down,south,west,east;down,west;
+down,south,west,east;down,east;
+down,south,west,east;up,north;up_north
+down,south,west,east;up,south;up_north
+down,south,west,east;up,west;up_north
+down,south,west,east;up,east;up_north
+down,south,west,east;north,south;north_up
+down,south,west,east;north,west;north_up
+down,south,west,east;north,east;north_up
+down,south,west,east;south,west;
+down,south,west,east;south,east;
+down,south,west,east;west,east;
+down,south,west,east;down,up,north;up_north
+down,south,west,east;down,up,south;up_north
+down,south,west,east;down,up,west;up_north
+down,south,west,east;down,up,east;up_north
+down,south,west,east;down,north,south;north_up
+down,south,west,east;down,north,west;north_up
+down,south,west,east;down,north,east;north_up
+down,south,west,east;down,south,west;
+down,south,west,east;down,south,east;
+down,south,west,east;down,west,east;
+down,south,west,east;up,north,south;up_north
+down,south,west,east;up,north,west;up_north
+down,south,west,east;up,north,east;up_north
+down,south,west,east;up,south,west;up_north
+down,south,west,east;up,south,east;up_north
+down,south,west,east;up,west,east;up_north
+down,south,west,east;north,south,west;north_up
+down,south,west,east;north,south,east;north_up
+down,south,west,east;north,west,east;north_up
+down,south,west,east;south,west,east;
+down,south,west,east;down,up,north,south;up_north
+down,south,west,east;down,up,north,west;up_north
+down,south,west,east;down,up,north,east;up_north
+down,south,west,east;down,up,south,west;up_north
+down,south,west,east;down,up,south,east;up_north
+down,south,west,east;down,up,west,east;up_north
+down,south,west,east;down,north,south,west;north_up
+down,south,west,east;down,north,south,east;north_up
+down,south,west,east;down,north,west,east;north_up
+down,south,west,east;down,south,west,east;
+down,south,west,east;up,north,south,west;up_north
+down,south,west,east;up,north,south,east;up_north
+down,south,west,east;up,north,west,east;up_north
+down,south,west,east;up,south,west,east;up_north
+down,south,west,east;north,south,west,east;north_up
+down,south,west,east;down,up,north,south,west;up_north
+down,south,west,east;down,up,north,south,east;up_north
+down,south,west,east;down,up,north,west,east;up_north
+down,south,west,east;down,up,south,west,east;up_north
+down,south,west,east;down,north,south,west,east;north_up
+down,south,west,east;up,north,south,west,east;up_north
+down,south,west,east;down,up,north,south,west,east;up_north
+up,north,south,west;;
+up,north,south,west;down;down_east
+up,north,south,west;up;
+up,north,south,west;north;
+up,north,south,west;south;
+up,north,south,west;west;
+up,north,south,west;east;east_down
+up,north,south,west;down,up;down_east
+up,north,south,west;down,north;down_east
+up,north,south,west;down,south;down_east
+up,north,south,west;down,west;down_east
+up,north,south,west;down,east;down_east
+up,north,south,west;up,north;
+up,north,south,west;up,south;
+up,north,south,west;up,west;
+up,north,south,west;up,east;east_down
+up,north,south,west;north,south;
+up,north,south,west;north,west;
+up,north,south,west;north,east;east_down
+up,north,south,west;south,west;
+up,north,south,west;south,east;east_down
+up,north,south,west;west,east;east_down
+up,north,south,west;down,up,north;down_east
+up,north,south,west;down,up,south;down_east
+up,north,south,west;down,up,west;down_east
+up,north,south,west;down,up,east;down_east
+up,north,south,west;down,north,south;down_east
+up,north,south,west;down,north,west;down_east
+up,north,south,west;down,north,east;down_east
+up,north,south,west;down,south,west;down_east
+up,north,south,west;down,south,east;down_east
+up,north,south,west;down,west,east;down_east
+up,north,south,west;up,north,south;
+up,north,south,west;up,north,west;
+up,north,south,west;up,north,east;east_down
+up,north,south,west;up,south,west;
+up,north,south,west;up,south,east;east_down
+up,north,south,west;up,west,east;east_down
+up,north,south,west;north,south,west;
+up,north,south,west;north,south,east;east_down
+up,north,south,west;north,west,east;east_down
+up,north,south,west;south,west,east;east_down
+up,north,south,west;down,up,north,south;down_east
+up,north,south,west;down,up,north,west;down_east
+up,north,south,west;down,up,north,east;down_east
+up,north,south,west;down,up,south,west;down_east
+up,north,south,west;down,up,south,east;down_east
+up,north,south,west;down,up,west,east;down_east
+up,north,south,west;down,north,south,west;down_east
+up,north,south,west;down,north,south,east;down_east
+up,north,south,west;down,north,west,east;down_east
+up,north,south,west;down,south,west,east;down_east
+up,north,south,west;up,north,south,west;
+up,north,south,west;up,north,south,east;east_down
+up,north,south,west;up,north,west,east;east_down
+up,north,south,west;up,south,west,east;east_down
+up,north,south,west;north,south,west,east;east_down
+up,north,south,west;down,up,north,south,west;down_east
+up,north,south,west;down,up,north,south,east;down_east
+up,north,south,west;down,up,north,west,east;down_east
+up,north,south,west;down,up,south,west,east;down_east
+up,north,south,west;down,north,south,west,east;down_east
+up,north,south,west;up,north,south,west,east;east_down
+up,north,south,west;down,up,north,south,west,east;down_east
+up,north,south,east;;
+up,north,south,east;down;down_west
+up,north,south,east;up;
+up,north,south,east;north;
+up,north,south,east;south;
+up,north,south,east;west;west_down
+up,north,south,east;east;
+up,north,south,east;down,up;down_west
+up,north,south,east;down,north;down_west
+up,north,south,east;down,south;down_west
+up,north,south,east;down,west;down_west
+up,north,south,east;down,east;down_west
+up,north,south,east;up,north;
+up,north,south,east;up,south;
+up,north,south,east;up,west;west_down
+up,north,south,east;up,east;
+up,north,south,east;north,south;
+up,north,south,east;north,west;west_down
+up,north,south,east;north,east;
+up,north,south,east;south,west;west_down
+up,north,south,east;south,east;
+up,north,south,east;west,east;west_down
+up,north,south,east;down,up,north;down_west
+up,north,south,east;down,up,south;down_west
+up,north,south,east;down,up,west;down_west
+up,north,south,east;down,up,east;down_west
+up,north,south,east;down,north,south;down_west
+up,north,south,east;down,north,west;down_west
+up,north,south,east;down,north,east;down_west
+up,north,south,east;down,south,west;down_west
+up,north,south,east;down,south,east;down_west
+up,north,south,east;down,west,east;down_west
+up,north,south,east;up,north,south;
+up,north,south,east;up,north,west;west_down
+up,north,south,east;up,north,east;
+up,north,south,east;up,south,west;west_down
+up,north,south,east;up,south,east;
+up,north,south,east;up,west,east;west_down
+up,north,south,east;north,south,west;west_down
+up,north,south,east;north,south,east;
+up,north,south,east;north,west,east;west_down
+up,north,south,east;south,west,east;west_down
+up,north,south,east;down,up,north,south;down_west
+up,north,south,east;down,up,north,west;down_west
+up,north,south,east;down,up,north,east;down_west
+up,north,south,east;down,up,south,west;down_west
+up,north,south,east;down,up,south,east;down_west
+up,north,south,east;down,up,west,east;down_west
+up,north,south,east;down,north,south,west;down_west
+up,north,south,east;down,north,south,east;down_west
+up,north,south,east;down,north,west,east;down_west
+up,north,south,east;down,south,west,east;down_west
+up,north,south,east;up,north,south,west;west_down
+up,north,south,east;up,north,south,east;
+up,north,south,east;up,north,west,east;west_down
+up,north,south,east;up,south,west,east;west_down
+up,north,south,east;north,south,west,east;west_down
+up,north,south,east;down,up,north,south,west;down_west
+up,north,south,east;down,up,north,south,east;down_west
+up,north,south,east;down,up,north,west,east;down_west
+up,north,south,east;down,up,south,west,east;down_west
+up,north,south,east;down,north,south,west,east;down_west
+up,north,south,east;up,north,south,west,east;west_down
+up,north,south,east;down,up,north,south,west,east;down_west
+up,north,west,east;;
+up,north,west,east;down;down_south
+up,north,west,east;up;
+up,north,west,east;north;
+up,north,west,east;south;south_down
+up,north,west,east;west;
+up,north,west,east;east;
+up,north,west,east;down,up;down_south
+up,north,west,east;down,north;down_south
+up,north,west,east;down,south;down_south
+up,north,west,east;down,west;down_south
+up,north,west,east;down,east;down_south
+up,north,west,east;up,north;
+up,north,west,east;up,south;south_down
+up,north,west,east;up,west;
+up,north,west,east;up,east;
+up,north,west,east;north,south;south_down
+up,north,west,east;north,west;
+up,north,west,east;north,east;
+up,north,west,east;south,west;south_down
+up,north,west,east;south,east;south_down
+up,north,west,east;west,east;
+up,north,west,east;down,up,north;down_south
+up,north,west,east;down,up,south;down_south
+up,north,west,east;down,up,west;down_south
+up,north,west,east;down,up,east;down_south
+up,north,west,east;down,north,south;down_south
+up,north,west,east;down,north,west;down_south
+up,north,west,east;down,north,east;down_south
+up,north,west,east;down,south,west;down_south
+up,north,west,east;down,south,east;down_south
+up,north,west,east;down,west,east;down_south
+up,north,west,east;up,north,south;south_down
+up,north,west,east;up,north,west;
+up,north,west,east;up,north,east;
+up,north,west,east;up,south,west;south_down
+up,north,west,east;up,south,east;south_down
+up,north,west,east;up,west,east;
+up,north,west,east;north,south,west;south_down
+up,north,west,east;north,south,east;south_down
+up,north,west,east;north,west,east;
+up,north,west,east;south,west,east;south_down
+up,north,west,east;down,up,north,south;down_south
+up,north,west,east;down,up,north,west;down_south
+up,north,west,east;down,up,north,east;down_south
+up,north,west,east;down,up,south,west;down_south
+up,north,west,east;down,up,south,east;down_south
+up,north,west,east;down,up,west,east;down_south
+up,north,west,east;down,north,south,west;down_south
+up,north,west,east;down,north,south,east;down_south
+up,north,west,east;down,north,west,east;down_south
+up,north,west,east;down,south,west,east;down_south
+up,north,west,east;up,north,south,west;south_down
+up,north,west,east;up,north,south,east;south_down
+up,north,west,east;up,north,west,east;
+up,north,west,east;up,south,west,east;south_down
+up,north,west,east;north,south,west,east;south_down
+up,north,west,east;down,up,north,south,west;down_south
+up,north,west,east;down,up,north,south,east;down_south
+up,north,west,east;down,up,north,west,east;down_south
+up,north,west,east;down,up,south,west,east;down_south
+up,north,west,east;down,north,south,west,east;down_south
+up,north,west,east;up,north,south,west,east;south_down
+up,north,west,east;down,up,north,south,west,east;down_south
+up,south,west,east;;
+up,south,west,east;down;down_north
+up,south,west,east;up;
+up,south,west,east;north;north_down
+up,south,west,east;south;
+up,south,west,east;west;
+up,south,west,east;east;
+up,south,west,east;down,up;down_north
+up,south,west,east;down,north;down_north
+up,south,west,east;down,south;down_north
+up,south,west,east;down,west;down_north
+up,south,west,east;down,east;down_north
+up,south,west,east;up,north;north_down
+up,south,west,east;up,south;
+up,south,west,east;up,west;
+up,south,west,east;up,east;
+up,south,west,east;north,south;north_down
+up,south,west,east;north,west;north_down
+up,south,west,east;north,east;north_down
+up,south,west,east;south,west;
+up,south,west,east;south,east;
+up,south,west,east;west,east;
+up,south,west,east;down,up,north;down_north
+up,south,west,east;down,up,south;down_north
+up,south,west,east;down,up,west;down_north
+up,south,west,east;down,up,east;down_north
+up,south,west,east;down,north,south;down_north
+up,south,west,east;down,north,west;down_north
+up,south,west,east;down,north,east;down_north
+up,south,west,east;down,south,west;down_north
+up,south,west,east;down,south,east;down_north
+up,south,west,east;down,west,east;down_north
+up,south,west,east;up,north,south;north_down
+up,south,west,east;up,north,west;north_down
+up,south,west,east;up,north,east;north_down
+up,south,west,east;up,south,west;
+up,south,west,east;up,south,east;
+up,south,west,east;up,west,east;
+up,south,west,east;north,south,west;north_down
+up,south,west,east;north,south,east;north_down
+up,south,west,east;north,west,east;north_down
+up,south,west,east;south,west,east;
+up,south,west,east;down,up,north,south;down_north
+up,south,west,east;down,up,north,west;down_north
+up,south,west,east;down,up,north,east;down_north
+up,south,west,east;down,up,south,west;down_north
+up,south,west,east;down,up,south,east;down_north
+up,south,west,east;down,up,west,east;down_north
+up,south,west,east;down,north,south,west;down_north
+up,south,west,east;down,north,south,east;down_north
+up,south,west,east;down,north,west,east;down_north
+up,south,west,east;down,south,west,east;down_north
+up,south,west,east;up,north,south,west;north_down
+up,south,west,east;up,north,south,east;north_down
+up,south,west,east;up,north,west,east;north_down
+up,south,west,east;up,south,west,east;
+up,south,west,east;north,south,west,east;north_down
+up,south,west,east;down,up,north,south,west;down_north
+up,south,west,east;down,up,north,south,east;down_north
+up,south,west,east;down,up,north,west,east;down_north
+up,south,west,east;down,up,south,west,east;down_north
+up,south,west,east;down,north,south,west,east;down_north
+up,south,west,east;up,north,south,west,east;north_down
+up,south,west,east;down,up,north,south,west,east;down_north
+north,south,west,east;;
+north,south,west,east;down;
+north,south,west,east;up;
+north,south,west,east;north;
+north,south,west,east;south;
+north,south,west,east;west;
+north,south,west,east;east;
+north,south,west,east;down,up;
+north,south,west,east;down,north;
+north,south,west,east;down,south;
+north,south,west,east;down,west;
+north,south,west,east;down,east;
+north,south,west,east;up,north;
+north,south,west,east;up,south;
+north,south,west,east;up,west;
+north,south,west,east;up,east;
+north,south,west,east;north,south;
+north,south,west,east;north,west;
+north,south,west,east;north,east;
+north,south,west,east;south,west;
+north,south,west,east;south,east;
+north,south,west,east;west,east;
+north,south,west,east;down,up,north;
+north,south,west,east;down,up,south;
+north,south,west,east;down,up,west;
+north,south,west,east;down,up,east;
+north,south,west,east;down,north,south;
+north,south,west,east;down,north,west;
+north,south,west,east;down,north,east;
+north,south,west,east;down,south,west;
+north,south,west,east;down,south,east;
+north,south,west,east;down,west,east;
+north,south,west,east;up,north,south;
+north,south,west,east;up,north,west;
+north,south,west,east;up,north,east;
+north,south,west,east;up,south,west;
+north,south,west,east;up,south,east;
+north,south,west,east;up,west,east;
+north,south,west,east;north,south,west;
+north,south,west,east;north,south,east;
+north,south,west,east;north,west,east;
+north,south,west,east;south,west,east;
+north,south,west,east;down,up,north,south;
+north,south,west,east;down,up,north,west;
+north,south,west,east;down,up,north,east;
+north,south,west,east;down,up,south,west;
+north,south,west,east;down,up,south,east;
+north,south,west,east;down,up,west,east;
+north,south,west,east;down,north,south,west;
+north,south,west,east;down,north,south,east;
+north,south,west,east;down,north,west,east;
+north,south,west,east;down,south,west,east;
+north,south,west,east;up,north,south,west;
+north,south,west,east;up,north,south,east;
+north,south,west,east;up,north,west,east;
+north,south,west,east;up,south,west,east;
+north,south,west,east;north,south,west,east;
+north,south,west,east;down,up,north,south,west;
+north,south,west,east;down,up,north,south,east;
+north,south,west,east;down,up,north,west,east;
+north,south,west,east;down,up,south,west,east;
+north,south,west,east;down,north,south,west,east;
+north,south,west,east;up,north,south,west,east;
+north,south,west,east;down,up,north,south,west,east;
+down,up,north,south,west;;
+down,up,north,south,west;down;
+down,up,north,south,west;up;
+down,up,north,south,west;north;
+down,up,north,south,west;south;
+down,up,north,south,west;west;
+down,up,north,south,west;east;
+down,up,north,south,west;down,up;
+down,up,north,south,west;down,north;
+down,up,north,south,west;down,south;
+down,up,north,south,west;down,west;
+down,up,north,south,west;down,east;
+down,up,north,south,west;up,north;
+down,up,north,south,west;up,south;
+down,up,north,south,west;up,west;
+down,up,north,south,west;up,east;
+down,up,north,south,west;north,south;
+down,up,north,south,west;north,west;
+down,up,north,south,west;north,east;
+down,up,north,south,west;south,west;
+down,up,north,south,west;south,east;
+down,up,north,south,west;west,east;
+down,up,north,south,west;down,up,north;
+down,up,north,south,west;down,up,south;
+down,up,north,south,west;down,up,west;
+down,up,north,south,west;down,up,east;
+down,up,north,south,west;down,north,south;
+down,up,north,south,west;down,north,west;
+down,up,north,south,west;down,north,east;
+down,up,north,south,west;down,south,west;
+down,up,north,south,west;down,south,east;
+down,up,north,south,west;down,west,east;
+down,up,north,south,west;up,north,south;
+down,up,north,south,west;up,north,west;
+down,up,north,south,west;up,north,east;
+down,up,north,south,west;up,south,west;
+down,up,north,south,west;up,south,east;
+down,up,north,south,west;up,west,east;
+down,up,north,south,west;north,south,west;
+down,up,north,south,west;north,south,east;
+down,up,north,south,west;north,west,east;
+down,up,north,south,west;south,west,east;
+down,up,north,south,west;down,up,north,south;
+down,up,north,south,west;down,up,north,west;
+down,up,north,south,west;down,up,north,east;
+down,up,north,south,west;down,up,south,west;
+down,up,north,south,west;down,up,south,east;
+down,up,north,south,west;down,up,west,east;
+down,up,north,south,west;down,north,south,west;
+down,up,north,south,west;down,north,south,east;
+down,up,north,south,west;down,north,west,east;
+down,up,north,south,west;down,south,west,east;
+down,up,north,south,west;up,north,south,west;
+down,up,north,south,west;up,north,south,east;
+down,up,north,south,west;up,north,west,east;
+down,up,north,south,west;up,south,west,east;
+down,up,north,south,west;north,south,west,east;
+down,up,north,south,west;down,up,north,south,west;
+down,up,north,south,west;down,up,north,south,east;
+down,up,north,south,west;down,up,north,west,east;
+down,up,north,south,west;down,up,south,west,east;
+down,up,north,south,west;down,north,south,west,east;
+down,up,north,south,west;up,north,south,west,east;
+down,up,north,south,west;down,up,north,south,west,east;
+down,up,north,south,east;;
+down,up,north,south,east;down;
+down,up,north,south,east;up;
+down,up,north,south,east;north;
+down,up,north,south,east;south;
+down,up,north,south,east;west;
+down,up,north,south,east;east;
+down,up,north,south,east;down,up;
+down,up,north,south,east;down,north;
+down,up,north,south,east;down,south;
+down,up,north,south,east;down,west;
+down,up,north,south,east;down,east;
+down,up,north,south,east;up,north;
+down,up,north,south,east;up,south;
+down,up,north,south,east;up,west;
+down,up,north,south,east;up,east;
+down,up,north,south,east;north,south;
+down,up,north,south,east;north,west;
+down,up,north,south,east;north,east;
+down,up,north,south,east;south,west;
+down,up,north,south,east;south,east;
+down,up,north,south,east;west,east;
+down,up,north,south,east;down,up,north;
+down,up,north,south,east;down,up,south;
+down,up,north,south,east;down,up,west;
+down,up,north,south,east;down,up,east;
+down,up,north,south,east;down,north,south;
+down,up,north,south,east;down,north,west;
+down,up,north,south,east;down,north,east;
+down,up,north,south,east;down,south,west;
+down,up,north,south,east;down,south,east;
+down,up,north,south,east;down,west,east;
+down,up,north,south,east;up,north,south;
+down,up,north,south,east;up,north,west;
+down,up,north,south,east;up,north,east;
+down,up,north,south,east;up,south,west;
+down,up,north,south,east;up,south,east;
+down,up,north,south,east;up,west,east;
+down,up,north,south,east;north,south,west;
+down,up,north,south,east;north,south,east;
+down,up,north,south,east;north,west,east;
+down,up,north,south,east;south,west,east;
+down,up,north,south,east;down,up,north,south;
+down,up,north,south,east;down,up,north,west;
+down,up,north,south,east;down,up,north,east;
+down,up,north,south,east;down,up,south,west;
+down,up,north,south,east;down,up,south,east;
+down,up,north,south,east;down,up,west,east;
+down,up,north,south,east;down,north,south,west;
+down,up,north,south,east;down,north,south,east;
+down,up,north,south,east;down,north,west,east;
+down,up,north,south,east;down,south,west,east;
+down,up,north,south,east;up,north,south,west;
+down,up,north,south,east;up,north,south,east;
+down,up,north,south,east;up,north,west,east;
+down,up,north,south,east;up,south,west,east;
+down,up,north,south,east;north,south,west,east;
+down,up,north,south,east;down,up,north,south,west;
+down,up,north,south,east;down,up,north,south,east;
+down,up,north,south,east;down,up,north,west,east;
+down,up,north,south,east;down,up,south,west,east;
+down,up,north,south,east;down,north,south,west,east;
+down,up,north,south,east;up,north,south,west,east;
+down,up,north,south,east;down,up,north,south,west,east;
+down,up,north,west,east;;
+down,up,north,west,east;down;
+down,up,north,west,east;up;
+down,up,north,west,east;north;
+down,up,north,west,east;south;
+down,up,north,west,east;west;
+down,up,north,west,east;east;
+down,up,north,west,east;down,up;
+down,up,north,west,east;down,north;
+down,up,north,west,east;down,south;
+down,up,north,west,east;down,west;
+down,up,north,west,east;down,east;
+down,up,north,west,east;up,north;
+down,up,north,west,east;up,south;
+down,up,north,west,east;up,west;
+down,up,north,west,east;up,east;
+down,up,north,west,east;north,south;
+down,up,north,west,east;north,west;
+down,up,north,west,east;north,east;
+down,up,north,west,east;south,west;
+down,up,north,west,east;south,east;
+down,up,north,west,east;west,east;
+down,up,north,west,east;down,up,north;
+down,up,north,west,east;down,up,south;
+down,up,north,west,east;down,up,west;
+down,up,north,west,east;down,up,east;
+down,up,north,west,east;down,north,south;
+down,up,north,west,east;down,north,west;
+down,up,north,west,east;down,north,east;
+down,up,north,west,east;down,south,west;
+down,up,north,west,east;down,south,east;
+down,up,north,west,east;down,west,east;
+down,up,north,west,east;up,north,south;
+down,up,north,west,east;up,north,west;
+down,up,north,west,east;up,north,east;
+down,up,north,west,east;up,south,west;
+down,up,north,west,east;up,south,east;
+down,up,north,west,east;up,west,east;
+down,up,north,west,east;north,south,west;
+down,up,north,west,east;north,south,east;
+down,up,north,west,east;north,west,east;
+down,up,north,west,east;south,west,east;
+down,up,north,west,east;down,up,north,south;
+down,up,north,west,east;down,up,north,west;
+down,up,north,west,east;down,up,north,east;
+down,up,north,west,east;down,up,south,west;
+down,up,north,west,east;down,up,south,east;
+down,up,north,west,east;down,up,west,east;
+down,up,north,west,east;down,north,south,west;
+down,up,north,west,east;down,north,south,east;
+down,up,north,west,east;down,north,west,east;
+down,up,north,west,east;down,south,west,east;
+down,up,north,west,east;up,north,south,west;
+down,up,north,west,east;up,north,south,east;
+down,up,north,west,east;up,north,west,east;
+down,up,north,west,east;up,south,west,east;
+down,up,north,west,east;north,south,west,east;
+down,up,north,west,east;down,up,north,south,west;
+down,up,north,west,east;down,up,north,south,east;
+down,up,north,west,east;down,up,north,west,east;
+down,up,north,west,east;down,up,south,west,east;
+down,up,north,west,east;down,north,south,west,east;
+down,up,north,west,east;up,north,south,west,east;
+down,up,north,west,east;down,up,north,south,west,east;
+down,up,south,west,east;;
+down,up,south,west,east;down;
+down,up,south,west,east;up;
+down,up,south,west,east;north;
+down,up,south,west,east;south;
+down,up,south,west,east;west;
+down,up,south,west,east;east;
+down,up,south,west,east;down,up;
+down,up,south,west,east;down,north;
+down,up,south,west,east;down,south;
+down,up,south,west,east;down,west;
+down,up,south,west,east;down,east;
+down,up,south,west,east;up,north;
+down,up,south,west,east;up,south;
+down,up,south,west,east;up,west;
+down,up,south,west,east;up,east;
+down,up,south,west,east;north,south;
+down,up,south,west,east;north,west;
+down,up,south,west,east;north,east;
+down,up,south,west,east;south,west;
+down,up,south,west,east;south,east;
+down,up,south,west,east;west,east;
+down,up,south,west,east;down,up,north;
+down,up,south,west,east;down,up,south;
+down,up,south,west,east;down,up,west;
+down,up,south,west,east;down,up,east;
+down,up,south,west,east;down,north,south;
+down,up,south,west,east;down,north,west;
+down,up,south,west,east;down,north,east;
+down,up,south,west,east;down,south,west;
+down,up,south,west,east;down,south,east;
+down,up,south,west,east;down,west,east;
+down,up,south,west,east;up,north,south;
+down,up,south,west,east;up,north,west;
+down,up,south,west,east;up,north,east;
+down,up,south,west,east;up,south,west;
+down,up,south,west,east;up,south,east;
+down,up,south,west,east;up,west,east;
+down,up,south,west,east;north,south,west;
+down,up,south,west,east;north,south,east;
+down,up,south,west,east;north,west,east;
+down,up,south,west,east;south,west,east;
+down,up,south,west,east;down,up,north,south;
+down,up,south,west,east;down,up,north,west;
+down,up,south,west,east;down,up,north,east;
+down,up,south,west,east;down,up,south,west;
+down,up,south,west,east;down,up,south,east;
+down,up,south,west,east;down,up,west,east;
+down,up,south,west,east;down,north,south,west;
+down,up,south,west,east;down,north,south,east;
+down,up,south,west,east;down,north,west,east;
+down,up,south,west,east;down,south,west,east;
+down,up,south,west,east;up,north,south,west;
+down,up,south,west,east;up,north,south,east;
+down,up,south,west,east;up,north,west,east;
+down,up,south,west,east;up,south,west,east;
+down,up,south,west,east;north,south,west,east;
+down,up,south,west,east;down,up,north,south,west;
+down,up,south,west,east;down,up,north,south,east;
+down,up,south,west,east;down,up,north,west,east;
+down,up,south,west,east;down,up,south,west,east;
+down,up,south,west,east;down,north,south,west,east;
+down,up,south,west,east;up,north,south,west,east;
+down,up,south,west,east;down,up,north,south,west,east;
+down,north,south,west,east;;
+down,north,south,west,east;down;
+down,north,south,west,east;up;
+down,north,south,west,east;north;
+down,north,south,west,east;south;
+down,north,south,west,east;west;
+down,north,south,west,east;east;
+down,north,south,west,east;down,up;
+down,north,south,west,east;down,north;
+down,north,south,west,east;down,south;
+down,north,south,west,east;down,west;
+down,north,south,west,east;down,east;
+down,north,south,west,east;up,north;
+down,north,south,west,east;up,south;
+down,north,south,west,east;up,west;
+down,north,south,west,east;up,east;
+down,north,south,west,east;north,south;
+down,north,south,west,east;north,west;
+down,north,south,west,east;north,east;
+down,north,south,west,east;south,west;
+down,north,south,west,east;south,east;
+down,north,south,west,east;west,east;
+down,north,south,west,east;down,up,north;
+down,north,south,west,east;down,up,south;
+down,north,south,west,east;down,up,west;
+down,north,south,west,east;down,up,east;
+down,north,south,west,east;down,north,south;
+down,north,south,west,east;down,north,west;
+down,north,south,west,east;down,north,east;
+down,north,south,west,east;down,south,west;
+down,north,south,west,east;down,south,east;
+down,north,south,west,east;down,west,east;
+down,north,south,west,east;up,north,south;
+down,north,south,west,east;up,north,west;
+down,north,south,west,east;up,north,east;
+down,north,south,west,east;up,south,west;
+down,north,south,west,east;up,south,east;
+down,north,south,west,east;up,west,east;
+down,north,south,west,east;north,south,west;
+down,north,south,west,east;north,south,east;
+down,north,south,west,east;north,west,east;
+down,north,south,west,east;south,west,east;
+down,north,south,west,east;down,up,north,south;
+down,north,south,west,east;down,up,north,west;
+down,north,south,west,east;down,up,north,east;
+down,north,south,west,east;down,up,south,west;
+down,north,south,west,east;down,up,south,east;
+down,north,south,west,east;down,up,west,east;
+down,north,south,west,east;down,north,south,west;
+down,north,south,west,east;down,north,south,east;
+down,north,south,west,east;down,north,west,east;
+down,north,south,west,east;down,south,west,east;
+down,north,south,west,east;up,north,south,west;
+down,north,south,west,east;up,north,south,east;
+down,north,south,west,east;up,north,west,east;
+down,north,south,west,east;up,south,west,east;
+down,north,south,west,east;north,south,west,east;
+down,north,south,west,east;down,up,north,south,west;
+down,north,south,west,east;down,up,north,south,east;
+down,north,south,west,east;down,up,north,west,east;
+down,north,south,west,east;down,up,south,west,east;
+down,north,south,west,east;down,north,south,west,east;
+down,north,south,west,east;up,north,south,west,east;
+down,north,south,west,east;down,up,north,south,west,east;
+up,north,south,west,east;;
+up,north,south,west,east;down;
+up,north,south,west,east;up;
+up,north,south,west,east;north;
+up,north,south,west,east;south;
+up,north,south,west,east;west;
+up,north,south,west,east;east;
+up,north,south,west,east;down,up;
+up,north,south,west,east;down,north;
+up,north,south,west,east;down,south;
+up,north,south,west,east;down,west;
+up,north,south,west,east;down,east;
+up,north,south,west,east;up,north;
+up,north,south,west,east;up,south;
+up,north,south,west,east;up,west;
+up,north,south,west,east;up,east;
+up,north,south,west,east;north,south;
+up,north,south,west,east;north,west;
+up,north,south,west,east;north,east;
+up,north,south,west,east;south,west;
+up,north,south,west,east;south,east;
+up,north,south,west,east;west,east;
+up,north,south,west,east;down,up,north;
+up,north,south,west,east;down,up,south;
+up,north,south,west,east;down,up,west;
+up,north,south,west,east;down,up,east;
+up,north,south,west,east;down,north,south;
+up,north,south,west,east;down,north,west;
+up,north,south,west,east;down,north,east;
+up,north,south,west,east;down,south,west;
+up,north,south,west,east;down,south,east;
+up,north,south,west,east;down,west,east;
+up,north,south,west,east;up,north,south;
+up,north,south,west,east;up,north,west;
+up,north,south,west,east;up,north,east;
+up,north,south,west,east;up,south,west;
+up,north,south,west,east;up,south,east;
+up,north,south,west,east;up,west,east;
+up,north,south,west,east;north,south,west;
+up,north,south,west,east;north,south,east;
+up,north,south,west,east;north,west,east;
+up,north,south,west,east;south,west,east;
+up,north,south,west,east;down,up,north,south;
+up,north,south,west,east;down,up,north,west;
+up,north,south,west,east;down,up,north,east;
+up,north,south,west,east;down,up,south,west;
+up,north,south,west,east;down,up,south,east;
+up,north,south,west,east;down,up,west,east;
+up,north,south,west,east;down,north,south,west;
+up,north,south,west,east;down,north,south,east;
+up,north,south,west,east;down,north,west,east;
+up,north,south,west,east;down,south,west,east;
+up,north,south,west,east;up,north,south,west;
+up,north,south,west,east;up,north,south,east;
+up,north,south,west,east;up,north,west,east;
+up,north,south,west,east;up,south,west,east;
+up,north,south,west,east;north,south,west,east;
+up,north,south,west,east;down,up,north,south,west;
+up,north,south,west,east;down,up,north,south,east;
+up,north,south,west,east;down,up,north,west,east;
+up,north,south,west,east;down,up,south,west,east;
+up,north,south,west,east;down,north,south,west,east;
+up,north,south,west,east;up,north,south,west,east;
+up,north,south,west,east;down,up,north,south,west,east;
+down,up,north,south,west,east;;
+down,up,north,south,west,east;down;
+down,up,north,south,west,east;up;
+down,up,north,south,west,east;north;
+down,up,north,south,west,east;south;
+down,up,north,south,west,east;west;
+down,up,north,south,west,east;east;
+down,up,north,south,west,east;down,up;
+down,up,north,south,west,east;down,north;
+down,up,north,south,west,east;down,south;
+down,up,north,south,west,east;down,west;
+down,up,north,south,west,east;down,east;
+down,up,north,south,west,east;up,north;
+down,up,north,south,west,east;up,south;
+down,up,north,south,west,east;up,west;
+down,up,north,south,west,east;up,east;
+down,up,north,south,west,east;north,south;
+down,up,north,south,west,east;north,west;
+down,up,north,south,west,east;north,east;
+down,up,north,south,west,east;south,west;
+down,up,north,south,west,east;south,east;
+down,up,north,south,west,east;west,east;
+down,up,north,south,west,east;down,up,north;
+down,up,north,south,west,east;down,up,south;
+down,up,north,south,west,east;down,up,west;
+down,up,north,south,west,east;down,up,east;
+down,up,north,south,west,east;down,north,south;
+down,up,north,south,west,east;down,north,west;
+down,up,north,south,west,east;down,north,east;
+down,up,north,south,west,east;down,south,west;
+down,up,north,south,west,east;down,south,east;
+down,up,north,south,west,east;down,west,east;
+down,up,north,south,west,east;up,north,south;
+down,up,north,south,west,east;up,north,west;
+down,up,north,south,west,east;up,north,east;
+down,up,north,south,west,east;up,south,west;
+down,up,north,south,west,east;up,south,east;
+down,up,north,south,west,east;up,west,east;
+down,up,north,south,west,east;north,south,west;
+down,up,north,south,west,east;north,south,east;
+down,up,north,south,west,east;north,west,east;
+down,up,north,south,west,east;south,west,east;
+down,up,north,south,west,east;down,up,north,south;
+down,up,north,south,west,east;down,up,north,west;
+down,up,north,south,west,east;down,up,north,east;
+down,up,north,south,west,east;down,up,south,west;
+down,up,north,south,west,east;down,up,south,east;
+down,up,north,south,west,east;down,up,west,east;
+down,up,north,south,west,east;down,north,south,west;
+down,up,north,south,west,east;down,north,south,east;
+down,up,north,south,west,east;down,north,west,east;
+down,up,north,south,west,east;down,south,west,east;
+down,up,north,south,west,east;up,north,south,west;
+down,up,north,south,west,east;up,north,south,east;
+down,up,north,south,west,east;up,north,west,east;
+down,up,north,south,west,east;up,south,west,east;
+down,up,north,south,west,east;north,south,west,east;
+down,up,north,south,west,east;down,up,north,south,west;
+down,up,north,south,west,east;down,up,north,south,east;
+down,up,north,south,west,east;down,up,north,west,east;
+down,up,north,south,west,east;down,up,south,west,east;
+down,up,north,south,west,east;down,north,south,west,east;
+down,up,north,south,west,east;up,north,south,west,east;
+down,up,north,south,west,east;down,up,north,south,west,east;
