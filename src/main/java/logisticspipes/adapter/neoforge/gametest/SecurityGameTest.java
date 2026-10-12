@@ -454,6 +454,26 @@ public class SecurityGameTest {
         });
     }
 
+    // FINDING: mining tools of other mods break extra blocks for a real player through the break event, which only stops fake players
+    @GameTest(template = EMPTY)
+    public static void aRealPlayerWithoutPermissionCannotBreakALockedPipeThroughTheBreakEvent(GameTestHelper helper) {
+        GameTestPower.supply(helper);
+        TestPlayer owner = TestPlayer.in(helper);
+        TestPlayer stranger = TestPlayer.in(helper);
+        SecurityStationBlockEntity station = station(helper, STATION, owner);
+        lock(pipe(helper, PipeKind.BASIC, 0), station);
+        BlockPos locked = helper.absolutePos(new BlockPos(0, 1, 1));
+
+        helper.runAfterDelay(SETTLE, () -> {
+            helper.assertTrue(breakingStopped(helper, stranger, 0), "hitting the locked pipe is stopped");
+            // what a hammer or vein miner does for the blocks around the one that was hit
+            boolean stopped = NeoForge.EVENT_BUS.post(new BlockEvent.BreakEvent(helper.getLevel(), locked,
+                    helper.getLevel().getBlockState(locked), stranger)).isCanceled();
+            helper.assertTrue(stopped, "breaking the locked pipe for a player without permission is stopped too");
+            helper.succeed();
+        });
+    }
+
     private static boolean survivesExplosion(GameTestHelper helper, BlockPos pos) {
         Explosion explosion = new Explosion(helper.getLevel(), null, pos.getX(), pos.getY(), pos.getZ(), 2, false,
                 Explosion.BlockInteraction.DESTROY, List.of(pos));

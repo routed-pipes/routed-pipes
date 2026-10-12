@@ -30,15 +30,19 @@ import logisticspipes.domain.logistics.ModuleKind;
 import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.domain.power.ProviderStore;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
@@ -281,6 +285,27 @@ public class HudGameTest {
 
         ItemStack copy = ItemStack.parse(helper.getLevel().registryAccess(), glasses.save(helper.getLevel().registryAccess())).orElseThrow();
         helper.assertTrue(HudGlassesItem.settingsOf(copy).equals(HudGlassesItem.settingsOf(glasses)), "the settings are kept on the glasses");
+        helper.succeed();
+    }
+
+    // FINDING: the armour slots of the glasses settings take off a helmet with curse of binding, the inventory screen does not
+    @GameTest(template = EMPTY)
+    public static void theSettingsOfTheGlassesDoNotTakeOffCursedArmour(GameTestHelper helper) {
+        TestPlayer player = TestPlayer.in(helper);
+        player.getInventory().setItem(0, new ItemStack(LogisticsPipes.HUD_GLASSES.get()));
+        player.getInventory().selected = 0;
+        ItemStack helmet = new ItemStack(Items.IRON_HELMET);
+        helmet.enchant(helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.BINDING_CURSE), 1);
+        player.setItemSlot(EquipmentSlot.HEAD, helmet);
+        helper.assertTrue(!player.inventoryMenu.getSlot(InventoryMenu.ARMOR_SLOT_START).mayPickup(player),
+                "the inventory screen keeps the cursed helmet on");
+
+        player.getItemInHand(InteractionHand.MAIN_HAND).use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+        HudSettingsMenu menu = (HudSettingsMenu) player.containerMenu;
+        // the helmet slot comes right after the hotbar
+        menu.clicked(9, 0, ClickType.PICKUP, player);
+        helper.assertTrue(player.getItemBySlot(EquipmentSlot.HEAD).is(Items.IRON_HELMET),
+                "the cursed helmet stays on, the cursor holds " + menu.getCarried());
         helper.succeed();
     }
 

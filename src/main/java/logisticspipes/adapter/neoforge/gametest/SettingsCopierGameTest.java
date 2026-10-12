@@ -5,7 +5,9 @@ import java.util.List;
 import logisticspipes.adapter.minecraft.ModuleItem;
 import logisticspipes.adapter.minecraft.PipeBlockEntity;
 import logisticspipes.adapter.minecraft.SettingsCopierItem;
+import logisticspipes.adapter.minecraft.menu.MenuRequests;
 import logisticspipes.adapter.minecraft.menu.PipeConfigMenu;
+import logisticspipes.adapter.minecraft.menu.SatelliteNames;
 import logisticspipes.adapter.neoforge.LogisticsPipes;
 import logisticspipes.domain.logistics.ItemSink;
 import logisticspipes.domain.logistics.ModuleKind;
@@ -246,5 +248,27 @@ public class SettingsCopierGameTest {
         helper.getBlockState(pos).useWithoutItem(helper.getLevel(), player, hit);
         helper.assertTrue(player.containerMenu instanceof PipeConfigMenu, "settings open as before");
         helper.succeed();
+    }
+
+    // FINDING: the copier gives a satellite the name another satellite in reach already has, typing it in is refused
+    @GameTest(template = EMPTY)
+    public static void pastingDoesNotGiveTwoSatellitesInReachTheSameName(GameTestHelper helper) {
+        PipeBlockEntity first = pipe(helper, PipeKind.SATELLITE, 0);
+        PipeBlockEntity second = pipe(helper, PipeKind.SATELLITE, 1);
+        first.setSatelliteName("Ore");
+        TestPlayer player = playerWithCopier(helper);
+
+        helper.runAfterDelay(15, () -> {
+            TestPlayer typing = TestPlayer.in(helper);
+            typing.openMenu(second.menuProvider());
+            MenuRequests.applyText(typing, typing.containerMenu.containerId, SatelliteNames.FIELD_OWN, "Ore");
+            helper.assertTrue(second.satelliteName().isEmpty(), "typing the name in is refused, it is taken");
+
+            use(helper, player, 0, true);
+            use(helper, player, 1, false);
+            helper.assertTrue(!second.satelliteName().equals(first.satelliteName()),
+                    "two satellites in reach are both called " + second.satelliteName());
+            helper.succeed();
+        });
     }
 }
