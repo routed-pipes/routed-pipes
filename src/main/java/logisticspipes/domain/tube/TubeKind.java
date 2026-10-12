@@ -10,17 +10,25 @@ public enum TubeKind {
     // one block, straight through
     LINE(1, List.of(), new TubeEnd(Offset.ZERO, Side.SOUTH), new TubeEnd(Offset.ZERO, Side.NORTH)),
     // the ramp between pipes and tubes, the main block is the end for pipes
-    SPEEDUP(4, List.of(new Offset(0, 0, -1), new Offset(0, 0, -2), new Offset(0, 0, -3)),
-            new TubeEnd(Offset.ZERO, Side.SOUTH), new TubeEnd(new Offset(0, 0, -3), Side.NORTH));
+    SPEEDUP(4, List.of(TubePart.alone(0, 0, -1), TubePart.alone(0, 0, -2), TubePart.alone(0, 0, -3)),
+            new TubeEnd(Offset.ZERO, Side.SOUTH), new TubeEnd(new Offset(0, 0, -3), Side.NORTH)),
+    // a quarter circle from the north side of the main block round to the west
+    CURVE(Math.PI / 2 * TubeKind.CURVE_RADIUS, List.of(
+            new TubePart(new Offset(-1, 0, 0), PartType.CURVE_INNER_A), new TubePart(new Offset(0, 0, 1), PartType.CURVE_OUT_A),
+            TubePart.alone(-1, 0, 1), new TubePart(new Offset(-2, 0, 1), PartType.CURVE_INNER_B),
+            new TubePart(new Offset(-1, 0, 2), PartType.CURVE_OUT_B), TubePart.alone(-2, 0, 2)),
+            new TubeEnd(Offset.ZERO, Side.NORTH), new TubeEnd(new Offset(-2, 0, 2), Side.WEST));
 
     // a pipe counts this much towards the length of a route, a tube an eighth of that per block
     public static final int PIPE_WEIGHT = 8;
+    // of the middle of a curve tube, around the north west corner of the block two west of the main block
+    private static final double CURVE_RADIUS = 2.5;
 
     private final int length;
-    private final List<Offset> parts;
+    private final List<TubePart> parts;
     private final List<TubeEnd> ends;
 
-    TubeKind(double blocks, List<Offset> parts, TubeEnd first, TubeEnd second) {
+    TubeKind(double blocks, List<TubePart> parts, TubeEnd first, TubeEnd second) {
         this.length = (int) Math.round(blocks * PipeTransport.PIPE_LENGTH);
         this.parts = parts;
         this.ends = List.of(first, second);
@@ -40,8 +48,13 @@ public enum TubeKind {
         return this == SPEEDUP && end == 0;
     }
 
+    // true when the far end points sideways
+    boolean bends() {
+        return this == CURVE;
+    }
+
     // the blocks it fills besides the main block
-    List<Offset> parts() {
+    List<TubePart> parts() {
         return parts;
     }
 
@@ -51,7 +64,7 @@ public enum TubeKind {
 
     // how many straight pieces stand in for the path when working out the room it takes
     int pieces() {
-        return 1;
+        return this == CURVE ? 48 : 1;
     }
 
     // where an item is after the given part of the way from the first end to the second
@@ -59,6 +72,8 @@ public enum TubeKind {
         return switch (this) {
             case LINE -> new Point(0.5, 0.5, 1 - fraction);
             case SPEEDUP -> new Point(0.5, 0.5, 1 - 4 * fraction);
+            case CURVE -> new Point(-2 + CURVE_RADIUS * Math.cos(fraction * Math.PI / 2), 0.5,
+                    CURVE_RADIUS * Math.sin(fraction * Math.PI / 2));
         };
     }
 }

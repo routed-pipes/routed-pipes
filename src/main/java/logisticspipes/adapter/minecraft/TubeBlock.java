@@ -1,10 +1,11 @@
 package logisticspipes.adapter.minecraft;
 
-import java.util.List;
 import java.util.function.Predicate;
 
 import logisticspipes.domain.tube.Offset;
+import logisticspipes.domain.tube.PartType;
 import logisticspipes.domain.tube.TubeKind;
+import logisticspipes.domain.tube.TubePart;
 import logisticspipes.domain.tube.TubeShape;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;
@@ -52,15 +53,24 @@ public class TubeBlock extends Block implements EntityBlock {
         builder.add(FACING);
     }
 
-    private static List<BlockPos> blocks(BlockPos main, TubeShape shape) {
-        return shape.parts().stream().map(offset -> Tubes.at(main, offset)).toList();
+    // true when nothing is in the way of any block the tube would fill
+    // a block of another tube is not in the way when the two leave each other room there
+    public boolean fits(Level level, BlockPos main, TubeShape shape, Predicate<BlockPos> allowed) {
+        Predicate<BlockPos> inReach = pos -> level.isInWorldBounds(pos) && level.isLoaded(pos) && allowed.test(pos);
+        if (!inReach.test(main) || !level.getBlockState(main).canBeReplaced()) {
+            return false;
+        }
+        for (TubePart part : shape.parts()) {
+            BlockPos pos = Tubes.at(main, part.offset());
+            if (!inReach.test(pos) || !level.getBlockState(pos).canBeReplaced() && !shares(level, pos, part.type())) {
+                return false;
+            }
+        }
+        return true;
     }
 
-    // true when nothing is in the way of any block the tube would fill
-    public boolean fits(Level level, BlockPos main, TubeShape shape, Predicate<BlockPos> allowed) {
-        Predicate<BlockPos> free = pos -> level.isInWorldBounds(pos) && level.isLoaded(pos)
-                && level.getBlockState(pos).canBeReplaced() && allowed.test(pos);
-        return free.test(main) && blocks(main, shape).stream().allMatch(free);
+    private static boolean shares(Level level, BlockPos pos, PartType type) {
+        return level.getBlockState(pos).getBlock() instanceof TubePartBlock && PartType.canShare(Tubes.typesAt(level, pos), type);
     }
 
     // puts the whole tube down, or nothing at all when it does not fit
@@ -69,10 +79,13 @@ public class TubeBlock extends Block implements EntityBlock {
             return false;
         }
         level.setBlock(main, defaultBlockState().setValue(FACING, Directions.toMinecraft(shape.facing())), Block.UPDATE_ALL);
-        for (BlockPos pos : blocks(main, shape)) {
-            level.setBlock(pos, services.part().get().defaultBlockState(), Block.UPDATE_ALL);
-            if (level.getBlockEntity(pos) instanceof TubePartBlockEntity part) {
-                part.addMain(main);
+        for (TubePart part : shape.parts()) {
+            BlockPos pos = Tubes.at(main, part.offset());
+            if (!(level.getBlockState(pos).getBlock() instanceof TubePartBlock)) {
+                level.setBlock(pos, services.part().get().defaultBlockState(), Block.UPDATE_ALL);
+            }
+            if (level.getBlockEntity(pos) instanceof TubePartBlockEntity entity) {
+                entity.addMain(main);
             }
         }
         PipeTopology.markRoutersDirty(level, main, shape);
@@ -90,8 +103,8 @@ public class TubeBlock extends Block implements EntityBlock {
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
         TubeShape shape = shape(state);
-        for (BlockPos part : blocks(pos, shape)) {
-            if (level.getBlockEntity(part) instanceof TubePartBlockEntity entity) {
+        for (TubePart part : shape.parts()) {
+            if (level.getBlockEntity(Tubes.at(pos, part.offset())) instanceof TubePartBlockEntity entity) {
                 entity.removeMain(pos);
             }
         }

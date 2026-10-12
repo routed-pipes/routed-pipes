@@ -12,8 +12,10 @@ MODULES = ["module_item_sink", "module_extractor", "module_provider", "module_te
            "module_polymorphic_item_sink", "module_quick_sort", "module_advanced_extractor", "module_mod_item_sink",
            "module_tag_item_sink", "module_creative_tab_item_sink", "module_enchantment_sink", "module_enchantment_sink_mk2",
            "module_crafter", "module_active_supplier"]
-# high speed tubes: the model of the original and the texture it is drawn with
-TUBES = {"line_tube": ("tube_line", "line_tube"), "speedup_tube": ("tube_speedup", "speedup_tube")}
+# high speed tubes: the model of the original, the texture it is drawn with
+# and the quarter turns that make the model face north the way the game counts the blocks of the tube
+TUBES = {"line_tube": ("tube_line", "line_tube", 0), "speedup_tube": ("tube_speedup", "speedup_tube", 0),
+         "curve_tube": ("tube_turn", "tube", 2)}
 FACINGS = ["north", "east", "south", "west"]
 OPPOSITE = {"north": "south", "south": "north", "east": "west", "west": "east"}
 ASSETS = "src/main/resources/assets/logisticspipes/"
@@ -201,8 +203,9 @@ def pipe_end(shared, facing):
 def write_tubes(shared):
     """A tube is drawn as a whole by its main block, the models of the original face north."""
     folder = ASSETS + "models/block/pipe/"
-    for name, (model, texture) in TUBES.items():
+    for name, (model, texture, base) in TUBES.items():
         vertices, coords, meshes = read_model(f"scripts/source/{model}.obj")
+        vertices = turned(vertices, base)
         textures = {"frame": f"logisticspipes:block/{texture}", "particle": f"logisticspipes:block/{texture}"}
         parts = []
         for turns, facing in enumerate(FACINGS):

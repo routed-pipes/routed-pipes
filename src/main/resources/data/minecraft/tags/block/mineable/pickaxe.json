@@ -18,6 +18,7 @@
     "logisticspipes:request_table",
     "logisticspipes:line_tube",
     "logisticspipes:speedup_tube",
+    "logisticspipes:curve_tube",
     "logisticspipes:tube_part"
   ]
 }

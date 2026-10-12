@@ -63,8 +63,8 @@ public record TubeShape(TubeKind kind, Side facing) {
     }
 
     // the blocks it fills besides the main block
-    public List<Offset> parts() {
-        return kind.parts().stream().map(this::placed).toList();
+    public List<TubePart> parts() {
+        return kind.parts().stream().map(part -> new TubePart(placed(part.offset()), part.type())).toList();
     }
 
     public TubeEnd end(int index) {

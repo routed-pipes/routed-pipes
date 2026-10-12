@@ -7,6 +7,7 @@ import logisticspipes.adapter.minecraft.PipeBlockEntity;
 import logisticspipes.adapter.minecraft.PowerJunctionBlockEntity;
 import logisticspipes.adapter.minecraft.TubeBlock;
 import logisticspipes.adapter.minecraft.TubeBlockEntity;
+import logisticspipes.adapter.minecraft.TubePartBlockEntity;
 import logisticspipes.adapter.neoforge.LogisticsPipes;
 import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.domain.routing.Side;
@@ -256,5 +257,107 @@ public class TubeGameTest {
         });
 
         helper.succeedWhen(() -> assertCount(helper, chest, Items.DIAMOND, 3));
+    }
+
+    // router, speedup tube east, curve to the south, speedup tube south, router
+    private static void aroundTheCorner(GameTestHelper helper) {
+        GameTestPower.junction(helper, at(0, 1), PowerJunctionBlockEntity.CAPACITY);
+        router(helper, at(0, 0));
+        tube(helper, TubeKind.SPEEDUP, at(1, 0), Side.EAST);
+        tube(helper, TubeKind.CURVE, at(5, 0), Side.WEST);
+        tube(helper, TubeKind.SPEEDUP, at(7, 6), Side.NORTH);
+        router(helper, at(7, 7));
+    }
+
+    @GameTest(template = LONG, timeoutTicks = 200)
+    public static void deliversAroundACurve(GameTestHelper helper) {
+        aroundTheCorner(helper);
+        BlockPos chest = chestAbove(helper, at(7, 7));
+
+        insert(helper, at(0, 0), Direction.DOWN, new ItemStack(Items.DIAMOND, 3));
+
+        helper.succeedWhen(() -> assertCount(helper, chest, Items.DIAMOND, 3));
+    }
+
+    @GameTest(template = LONG, timeoutTicks = 200)
+    public static void deliversAroundACurveTheOtherWay(GameTestHelper helper) {
+        aroundTheCorner(helper);
+        BlockPos chest = chestAbove(helper, at(0, 0));
+
+        insert(helper, at(7, 7), Direction.DOWN, new ItemStack(Items.DIAMOND, 3));
+
+        helper.succeedWhen(() -> assertCount(helper, chest, Items.DIAMOND, 3));
+    }
+
+    @GameTest(template = LONG)
+    public static void aCurveFillsSevenBlocksAndGoesAsOne(GameTestHelper helper) {
+        tube(helper, TubeKind.CURVE, at(5, 0), Side.WEST);
+        List<BlockPos> parts = List.of(at(5, 1), at(6, 0), at(6, 1), at(6, 2), at(7, 1), at(7, 2));
+        for (BlockPos part : parts) {
+            helper.assertBlockPresent(LogisticsPipes.TUBE_PART.get(), part);
+        }
+
+        helper.getLevel().destroyBlock(helper.absolutePos(at(7, 2)), true);
+
+        helper.assertBlockPresent(Blocks.AIR, at(5, 0));
+        assertTubeGone(helper, parts);
+        helper.assertItemEntityCountIs(LogisticsPipes.TUBES.get(TubeKind.CURVE).get().asItem(), at(5, 0), 3, 1);
+        helper.succeed();
+    }
+
+    // one curve inside the other, the blocks between them belong to both
+    @GameTest(template = LONG)
+    public static void curvesShareBlocksAndAreBrokenOneByOne(GameTestHelper helper) {
+        TubeBlock curve = LogisticsPipes.TUBES.get(TubeKind.CURVE).get();
+        TubeShape north = new TubeShape(TubeKind.CURVE, Side.NORTH);
+        tube(helper, TubeKind.CURVE, at(4, 1), Side.NORTH);
+        tube(helper, TubeKind.CURVE, at(5, 2), Side.NORTH);
+        TubePartBlockEntity shared = helper.getBlockEntity(at(4, 2));
+        helper.assertTrue(shared.mains().size() == 2, "the outer block of the inner curve holds both");
+        TubePartBlockEntity alsoShared = helper.getBlockEntity(at(3, 3));
+        helper.assertTrue(alsoShared.mains().size() == 2, "and so does the other one");
+        // a curve that would run through the main block of another does not fit, and leaves nothing behind
+        helper.assertTrue(!curve.build(helper.getLevel(), helper.absolutePos(at(6, 1)), north, pos -> true), "no crossing");
+        helper.assertBlockPresent(Blocks.AIR, at(6, 1));
+        helper.assertBlockPresent(Blocks.AIR, at(6, 2));
+
+        helper.getLevel().destroyBlock(helper.absolutePos(at(5, 2)), true);
+
+        helper.assertBlockPresent(curve, at(4, 1));
+        helper.assertBlockPresent(LogisticsPipes.TUBE_PART.get(), at(4, 2));
+        helper.assertTrue(shared.mains().equals(List.of(helper.absolutePos(at(4, 1)))), "the shared block stays with the curve that is left");
+        helper.assertBlockPresent(Blocks.AIR, at(5, 3));
+        helper.assertItemEntityCountIs(curve.asItem(), at(5, 2), 3, 1);
+
+        // breaking a shared block takes both curves
+        tube(helper, TubeKind.CURVE, at(5, 2), Side.NORTH);
+        helper.getLevel().destroyBlock(helper.absolutePos(at(4, 2)), true);
+        helper.assertBlockPresent(Blocks.AIR, at(4, 1));
+        helper.assertBlockPresent(Blocks.AIR, at(5, 2));
+        helper.assertBlockPresent(Blocks.AIR, at(3, 3));
+        helper.succeed();
+    }
+
+    @GameTest(template = LONG)
+    public static void aPlayerBendsACurveToTheSideTheyLookAt(GameTestHelper helper) {
+        helper.setBlock(new BlockPos(2, 0, 4), Blocks.STONE);
+        TestPlayer player = TestPlayer.in(helper);
+        Vec3 feet = helper.absoluteVec(new Vec3(0.5, 1, 4.5));
+        player.setPos(feet.x, feet.y, feet.z);
+        // east and a bit north
+        player.setYRot(-100);
+        ItemStack stack = new ItemStack(LogisticsPipes.TUBES.get(TubeKind.CURVE).get().asItem());
+        BlockHitResult hit = new BlockHitResult(helper.absoluteVec(new Vec3(2.5, 1, 4.5)), Direction.UP,
+                helper.absolutePos(new BlockPos(2, 0, 4)), false);
+
+        InteractionResult placed = stack.getItem().useOn(new BlockPlaceContext(player, InteractionHand.MAIN_HAND, stack, hit));
+
+        helper.assertTrue(placed.consumesAction(), "fits, got " + placed);
+        // the main block is the far end
+        helper.assertBlockPresent(LogisticsPipes.TUBES.get(TubeKind.CURVE).get(), at(4, 2));
+        helper.assertBlockProperty(at(4, 2), TubeBlock.FACING, Direction.NORTH);
+        helper.assertBlockPresent(LogisticsPipes.TUBE_PART.get(), at(2, 4));
+        helper.assertTrue(stack.isEmpty(), "the tube was used up");
+        helper.succeed();
     }
 }

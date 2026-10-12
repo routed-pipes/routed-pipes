@@ -26,9 +26,13 @@ class TubeShapeTest {
     }
 
     private static List<Offset> blocks(TubeShape shape) {
-        List<Offset> blocks = new ArrayList<>(shape.parts());
+        List<Offset> blocks = new ArrayList<>(offsets(shape));
         blocks.add(Offset.ZERO);
         return blocks;
+    }
+
+    private static List<Offset> offsets(TubeShape shape) {
+        return shape.parts().stream().map(TubePart::offset).toList();
     }
 
     // the middle of the face an end opens through
@@ -56,13 +60,13 @@ class TubeShapeTest {
 
     @Test
     void aSpeedupTubeRunsFourBlocksTheWayItFaces() {
-        assertThat(new TubeShape(TubeKind.SPEEDUP, Side.NORTH).parts())
+        assertThat(offsets(new TubeShape(TubeKind.SPEEDUP, Side.NORTH)))
                 .containsExactly(new Offset(0, 0, -1), new Offset(0, 0, -2), new Offset(0, 0, -3));
-        assertThat(new TubeShape(TubeKind.SPEEDUP, Side.EAST).parts())
+        assertThat(offsets(new TubeShape(TubeKind.SPEEDUP, Side.EAST)))
                 .containsExactly(new Offset(1, 0, 0), new Offset(2, 0, 0), new Offset(3, 0, 0));
-        assertThat(new TubeShape(TubeKind.SPEEDUP, Side.SOUTH).parts())
+        assertThat(offsets(new TubeShape(TubeKind.SPEEDUP, Side.SOUTH)))
                 .containsExactly(new Offset(0, 0, 1), new Offset(0, 0, 2), new Offset(0, 0, 3));
-        assertThat(new TubeShape(TubeKind.SPEEDUP, Side.WEST).parts())
+        assertThat(offsets(new TubeShape(TubeKind.SPEEDUP, Side.WEST)))
                 .containsExactly(new Offset(-1, 0, 0), new Offset(-2, 0, 0), new Offset(-3, 0, 0));
         assertThat(TubeKind.SPEEDUP.length()).isEqualTo(240);
     }
@@ -77,6 +81,58 @@ class TubeShapeTest {
         assertThat(TubeKind.SPEEDUP.pipeEnd(1)).isFalse();
         assertThat(TubeKind.LINE.pipeEnd(0)).isFalse();
         assertThat(TubeKind.LINE.pipeEnd(1)).isFalse();
+    }
+
+    @Test
+    void aCurveTubeTurnsFromItsMainBlockToTheLeftOverSevenBlocks() {
+        TubeShape curve = new TubeShape(TubeKind.CURVE, Side.NORTH);
+
+        assertThat(curve.parts()).containsExactly(
+                new TubePart(new Offset(-1, 0, 0), PartType.CURVE_INNER_A), new TubePart(new Offset(0, 0, 1), PartType.CURVE_OUT_A),
+                new TubePart(new Offset(-1, 0, 1), PartType.NON_SHARE), new TubePart(new Offset(-2, 0, 1), PartType.CURVE_INNER_B),
+                new TubePart(new Offset(-1, 0, 2), PartType.CURVE_OUT_B), new TubePart(new Offset(-2, 0, 2), PartType.NON_SHARE));
+        assertThat(curve.end(0)).isEqualTo(new TubeEnd(Offset.ZERO, Side.NORTH));
+        assertThat(curve.end(1)).isEqualTo(new TubeEnd(new Offset(-2, 0, 2), Side.WEST));
+        // a quarter of a circle with radius 2.5
+        assertThat(TubeKind.CURVE.length()).isEqualTo(236);
+        assertThat(TubeKind.CURVE.weight()).isEqualTo(4);
+    }
+
+    @Test
+    void aCurveTubeTurnsWithTheSideItFaces() {
+        // the far block and the side it opens to, as the original has them for its four ways to lie
+        assertThat(new TubeShape(TubeKind.CURVE, Side.EAST).end(1)).isEqualTo(new TubeEnd(new Offset(-2, 0, -2), Side.NORTH));
+        assertThat(new TubeShape(TubeKind.CURVE, Side.SOUTH).end(1)).isEqualTo(new TubeEnd(new Offset(2, 0, -2), Side.EAST));
+        assertThat(new TubeShape(TubeKind.CURVE, Side.WEST).end(1)).isEqualTo(new TubeEnd(new Offset(2, 0, 2), Side.SOUTH));
+        assertThat(offsets(new TubeShape(TubeKind.CURVE, Side.EAST))).containsExactly(new Offset(0, 0, -1), new Offset(-1, 0, 0),
+                new Offset(-1, 0, -1), new Offset(-1, 0, -2), new Offset(-2, 0, -1), new Offset(-2, 0, -2));
+    }
+
+    @Test
+    void anItemInACurveKeepsItsDistanceFromTheMiddleOfTheCircle() {
+        TubeShape curve = new TubeShape(TubeKind.CURVE, Side.NORTH);
+
+        for (int step = 0; step <= 10; step++) {
+            Point point = curve.pointAt(step / 10.0);
+            assertThat(Math.hypot(point.x() + 2, point.z())).isCloseTo(2.5, within(1e-9));
+            assertThat(point.y()).isEqualTo(0.5);
+        }
+        // half way round
+        assertThat(curve.pointAt(0.5).x()).isCloseTo(-2 + 2.5 * Math.sqrt(0.5), within(1e-9));
+    }
+
+    @Test
+    void curvesShareBlocksWhereOneRunsInsideTheOther() {
+        assertThat(PartType.canShare(List.of(), PartType.NON_SHARE)).isTrue();
+        assertThat(PartType.canShare(List.of(PartType.CURVE_OUT_A), PartType.CURVE_INNER_A)).isTrue();
+        assertThat(PartType.canShare(List.of(PartType.CURVE_INNER_A), PartType.CURVE_OUT_A)).isTrue();
+        assertThat(PartType.canShare(List.of(PartType.CURVE_INNER_B), PartType.CURVE_OUT_B)).isTrue();
+        assertThat(PartType.canShare(List.of(PartType.CURVE_OUT_A), PartType.CURVE_OUT_A)).isFalse();
+        assertThat(PartType.canShare(List.of(PartType.CURVE_OUT_A), PartType.CURVE_INNER_B)).isFalse();
+        assertThat(PartType.canShare(List.of(PartType.NON_SHARE), PartType.CURVE_INNER_A)).isFalse();
+        assertThat(PartType.canShare(List.of(PartType.CURVE_OUT_A), PartType.NON_SHARE)).isFalse();
+        // never more than two
+        assertThat(PartType.canShare(List.of(PartType.CURVE_OUT_A, PartType.CURVE_INNER_A), PartType.CURVE_INNER_A)).isFalse();
     }
 
     @Test

@@ -16,6 +16,7 @@
   "block.logisticspipes.line_tube": "High Speed Line Tube",
   "block.logisticspipes.speedup_tube": "High Speed Speedup Tube",
   "block.logisticspipes.tube_part": "High Speed Tube",
+  "block.logisticspipes.curve_tube": "High Speed Curve Tube",
   "block.logisticspipes.logistics_crafting_table": "Logistics Crafting Table",
   "logisticspipes.gui.import": "Import",
   "logisticspipes.gui.default_route.on": "Default: yes",

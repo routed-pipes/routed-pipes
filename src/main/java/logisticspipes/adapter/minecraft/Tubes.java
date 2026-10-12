@@ -1,5 +1,6 @@
 package logisticspipes.adapter.minecraft;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -8,6 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import logisticspipes.domain.tube.Box;
 import logisticspipes.domain.tube.Offset;
+import logisticspipes.domain.tube.PartType;
 import logisticspipes.domain.tube.TubeShape;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -78,6 +80,20 @@ final class Tubes {
             }
         }
         return Optional.empty();
+    }
+
+    // what kind of part each tube has in this block
+    static List<PartType> typesAt(Level level, BlockPos pos) {
+        List<PartType> types = new ArrayList<>();
+        for (BlockPos main : mainsAt(level, pos)) {
+            BlockState state = level.getBlockState(main);
+            if (state.getBlock() instanceof TubeBlock tube) {
+                Offset block = between(main, pos);
+                tube.shape(state).parts().stream().filter(part -> part.offset().equals(block))
+                        .forEach(part -> types.add(part.type()));
+            }
+        }
+        return types;
     }
 
     // what the tubes take up of this block
