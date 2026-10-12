@@ -13,6 +13,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import logisticspipes.adapter.minecraft.menu.ChassisMenu;
+import logisticspipes.adapter.minecraft.menu.FirewallMenu;
 import logisticspipes.adapter.minecraft.menu.PipeConfigMenu;
 import logisticspipes.adapter.minecraft.menu.UpgradeMenu;
 import logisticspipes.adapter.minecraft.menu.RequestMenu;
@@ -28,6 +29,7 @@ import logisticspipes.domain.crafting.Recipe;
 import logisticspipes.domain.item.ItemBatch;
 import logisticspipes.domain.item.ItemType;
 import logisticspipes.domain.logistics.Extraction;
+import logisticspipes.domain.logistics.FirewallRule;
 import logisticspipes.domain.logistics.InventoryRef;
 import logisticspipes.domain.logistics.ItemSink;
 import logisticspipes.domain.logistics.ModuleKind;
@@ -143,6 +145,8 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     // how eagerly a crafting pipe is used, higher first
     private int priority;
     private Boolean upkeepCache;
+    // only a firewall pipe has these
+    private FirewallSettings firewall;
     private boolean announced;
     private LogisticsNetwork network;
     private Map<ItemType, Integer> contentsCache;
@@ -160,6 +164,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         super(type, pos, state);
         if (kind() == PipeKind.SUPPLIER) {
             mode = SupplyMode.BULK50.ordinal();
+        }
+        if (kind() == PipeKind.FIREWALL) {
+            firewall = new FirewallSettings(this::setChanged);
         }
         // a crafter that cleans up keeps what is on its list unless told otherwise
         exclude = kind() == PipeKind.CRAFTING;
@@ -479,6 +486,10 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         if (kind() == PipeKind.REQUEST) {
             return requestScreen(false);
         }
+        if (kind() == PipeKind.FIREWALL) {
+            return new SimpleMenuProvider((id, inventory, player) -> new FirewallMenu(services.firewallMenu().get(), id, inventory,
+                    firewall.list(), firewall.data(), user -> Container.stillValidBlockEntity(this, user)), title);
+        }
         if (kind() == PipeKind.CHASSIS) {
             ContainerData chassis = new ContainerData() {
                 @Override
@@ -514,6 +525,15 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             item.settingsProvider(module, user -> Container.stillValidBlockEntity(this, user) && modules.getItem(slot) == module,
                     this::settingsChanged, this::importRecipe, upgrade -> moduleUpgradeCount(slot, upgrade)).ifPresent(player::openMenu);
         }
+    }
+
+    public FirewallSettings firewallSettings() {
+        return firewall;
+    }
+
+    @Override
+    public Optional<FirewallRule> firewall() {
+        return firewall == null ? Optional.empty() : Optional.of(firewall.rule());
     }
 
     public void setPriority(int value) {
@@ -962,6 +982,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         tag.putBoolean("DefaultRoute", defaultRoute);
         tag.putInt("Mode", mode);
         tag.putInt("Priority", priority);
+        if (firewall != null) {
+            tag.put("Firewall", firewall.save(registries));
+        }
         tag.putBoolean("Exclude", exclude);
         if (pointed != null) {
             tag.putInt("Pointed", pointed.get3DDataValue());
@@ -1000,6 +1023,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         }
         if (tag.contains("Mode")) {
             mode = tag.getInt("Mode");
+        }
+        if (firewall != null && tag.contains("Firewall")) {
+            firewall.load(tag.getCompound("Firewall"), registries);
         }
         if (tag.contains("Priority")) {
             priority = tag.getInt("Priority");

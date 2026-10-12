@@ -16,6 +16,7 @@ import logisticspipes.domain.crafting.Recipe;
 import logisticspipes.domain.item.ItemBatch;
 import logisticspipes.domain.item.ItemType;
 import logisticspipes.domain.logistics.Extraction;
+import logisticspipes.domain.logistics.FirewallRule;
 import logisticspipes.domain.logistics.ExtractionMode;
 import logisticspipes.domain.logistics.InventoryRef;
 import logisticspipes.domain.logistics.ItemSink;
@@ -48,6 +49,7 @@ public final class FakeNode implements RouterNode {
     public List<CraftingSetup> crafts;
     public List<Supply> supplies;
     public Cleanup cleanup;
+    public FirewallRule firewall;
     // basic pipes take everything by default, like a fresh one in the game
     public SinkRule sink = new ItemSink(Set.of(), true);
     public int satelliteId;
@@ -171,6 +173,11 @@ public final class FakeNode implements RouterNode {
     @Override
     public List<CraftingSetup> crafts() {
         return crafts == null ? RouterNode.super.crafts() : crafts;
+    }
+
+    @Override
+    public Optional<FirewallRule> firewall() {
+        return Optional.ofNullable(firewall);
     }
 
     @Override

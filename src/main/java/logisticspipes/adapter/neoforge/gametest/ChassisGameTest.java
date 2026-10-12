@@ -578,4 +578,48 @@ public class ChassisGameTest {
                 "planks offer their tag");
         helper.succeed();
     }
+
+    // coal is on the list of the firewall, so only the iron gets to the chest behind it
+    @GameTest(template = EMPTY, timeoutTicks = 300)
+    public static void firewallStopsListedItems(GameTestHelper helper) {
+        GameTestPower.supply(helper);
+        PipeBlockEntity source = pipe(helper, PipeKind.BASIC, 0);
+        source.setDefaultRoute(false);
+        PipeBlockEntity firewall = pipe(helper, PipeKind.FIREWALL, 1);
+        firewall.firewallSettings().list().setItem(0, new ItemStack(Items.COAL));
+        firewall.firewallSettings().data().set(logisticspipes.adapter.minecraft.FirewallSettings.POWER, 0);
+        pipe(helper, PipeKind.BASIC, 2);
+        BlockPos target = chest(helper, 2);
+
+        helper.runAfterDelay(15, () -> {
+            source.accept(new ItemStack(Items.COAL, 4), net.minecraft.core.Direction.DOWN);
+            source.accept(new ItemStack(Items.IRON_INGOT, 4), net.minecraft.core.Direction.DOWN);
+        });
+        helper.runAfterDelay(120, () -> {
+            assertCount(helper, target, Items.IRON_INGOT, 4);
+            assertCount(helper, target, Items.COAL, 0);
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = EMPTY)
+    public static void firewallSettingsAreSwitchedInItsScreenAndSurviveSaveAndLoad(GameTestHelper helper) {
+        PipeBlockEntity firewall = pipe(helper, PipeKind.FIREWALL, 0);
+        TestPlayer player = TestPlayer.in(helper);
+        player.openMenu(firewall.menuProvider());
+
+        helper.assertTrue(firewall.firewall().orElseThrow().blockPower() && !firewall.firewall().orElseThrow().blockSorting(),
+                "a new firewall stops power and nothing else");
+        player.containerMenu.clickMenuButton(player, logisticspipes.adapter.minecraft.FirewallSettings.SORTING);
+        player.containerMenu.setCarried(new ItemStack(Items.DIAMOND, 3));
+        player.containerMenu.clicked(5, 0, net.minecraft.world.inventory.ClickType.PICKUP, player);
+        helper.assertTrue(player.containerMenu.getCarried().getCount() == 3, "listing an item does not take it");
+
+        PipeBlockEntity loaded = pipe(helper, PipeKind.FIREWALL, 2);
+        loaded.loadWithComponents(firewall.saveWithoutMetadata(helper.getLevel().registryAccess()), helper.getLevel().registryAccess());
+        helper.assertTrue(loaded.firewall().orElseThrow().blockSorting(), "sorting stays stopped");
+        helper.assertTrue(loaded.firewall().orElseThrow().rejects(logisticspipes.adapter.minecraft.McItemType.batchOf(new ItemStack(Items.DIAMOND)).type()),
+                "diamonds stay on the list");
+        helper.succeed();
+    }
 }

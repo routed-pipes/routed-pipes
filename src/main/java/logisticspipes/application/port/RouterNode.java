@@ -12,6 +12,7 @@ import logisticspipes.domain.crafting.Recipe;
 import logisticspipes.domain.item.ItemBatch;
 import logisticspipes.domain.item.ItemType;
 import logisticspipes.domain.logistics.Extraction;
+import logisticspipes.domain.logistics.FirewallRule;
 import logisticspipes.domain.logistics.InventoryRef;
 import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.domain.logistics.SinkRule;
@@ -73,6 +74,11 @@ public interface RouterNode {
             return List.of();
         }
         return List.of(new CraftingSetup(recipe().get(), satelliteInputs(), satelliteId(), 0));
+    }
+
+    // only firewall pipes have one
+    default Optional<FirewallRule> firewall() {
+        return Optional.empty();
     }
 
     // what the pipe clears out of its machine while it has nothing to craft

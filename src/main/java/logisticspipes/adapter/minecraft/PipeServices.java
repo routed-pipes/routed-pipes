@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 import logisticspipes.adapter.minecraft.menu.ChassisMenu;
+import logisticspipes.adapter.minecraft.menu.FirewallMenu;
 import logisticspipes.adapter.minecraft.menu.PipeConfigMenu;
 import logisticspipes.adapter.minecraft.menu.RequestMenu;
 import logisticspipes.adapter.minecraft.menu.UpgradeMenu;
@@ -19,6 +20,7 @@ public record PipeServices(
         Supplier<MenuType<RequestMenu>> requestMenu,
         Supplier<MenuType<ChassisMenu>> chassisMenu,
         Supplier<MenuType<UpgradeMenu>> upgradeMenu,
+        Supplier<MenuType<FirewallMenu>> firewallMenu,
         Map<PipeKind, Supplier<MenuType<PipeConfigMenu>>> configMenus) {
 
     public boolean hasSettings(PipeKind kind) {

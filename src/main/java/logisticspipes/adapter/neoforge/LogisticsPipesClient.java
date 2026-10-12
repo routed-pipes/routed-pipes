@@ -5,6 +5,7 @@ import java.util.List;
 import logisticspipes.adapter.minecraft.client.ChassisScreen;
 import logisticspipes.adapter.minecraft.client.ClientMenuLink;
 import logisticspipes.adapter.minecraft.client.CraftingTableScreen;
+import logisticspipes.adapter.minecraft.client.FirewallScreen;
 import logisticspipes.adapter.minecraft.client.NamesScreen;
 import logisticspipes.adapter.minecraft.client.PipeConfigScreen;
 import logisticspipes.adapter.minecraft.client.PipeItemRenderer;
@@ -64,6 +65,7 @@ public class LogisticsPipesClient {
         event.register(LogisticsPipes.CRAFTING_TABLE_MENU.get(), CraftingTableScreen::new);
         event.register(LogisticsPipes.CHASSIS_MENU.get(), ChassisScreen::new);
         event.register(LogisticsPipes.NAMES_MENU.get(), NamesScreen::new);
+        event.register(LogisticsPipes.FIREWALL_MENU.get(), FirewallScreen::new);
         event.register(LogisticsPipes.UPGRADE_MENU.get(), UpgradeScreen::new);
     }
 

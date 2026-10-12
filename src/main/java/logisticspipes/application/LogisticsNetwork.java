@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import logisticspipes.application.port.RouterNode;
 import logisticspipes.domain.crafting.Cleanup;
@@ -21,6 +22,7 @@ import logisticspipes.domain.item.ItemType;
 import logisticspipes.domain.logistics.DestinationSelector;
 import logisticspipes.domain.logistics.Extraction;
 import logisticspipes.domain.logistics.ExtractionMode;
+import logisticspipes.domain.logistics.FirewallRule;
 import logisticspipes.domain.logistics.InventoryRef;
 import logisticspipes.domain.logistics.ItemSink;
 import logisticspipes.domain.logistics.PipeKind;
@@ -70,6 +72,10 @@ public final class LogisticsNetwork {
     }
 
     private final RoutingNetwork routing = new RoutingNetwork();
+    // for firewalls: the links as they were reported, the firewalls, and the routes that lead out of none of them
+    private final Map<RouterId, List<Link>> links = new HashMap<>();
+    private final Set<RouterId> firewalls = new HashSet<>();
+    private RoutingNetwork open;
     private final Map<RouterId, RouterNode> nodes = new HashMap<>();
     private final PendingDeliveries pending = new PendingDeliveries();
     private final Map<RouterId, Long> changedAt = new HashMap<>();
@@ -86,6 +92,10 @@ public final class LogisticsNetwork {
     public void addRouter(RouterId id, RouterNode node, long now) {
         nodes.put(id, node);
         routing.add(id);
+        if (node.kind() == PipeKind.FIREWALL) {
+            firewalls.add(id);
+        }
+        open = null;
         sinksChanged(id);
         changed(id, now);
     }
@@ -102,6 +112,9 @@ public final class LogisticsNetwork {
         }
         nodes.remove(id);
         routing.remove(id);
+        links.remove(id);
+        firewalls.remove(id);
+        open = null;
         pending.forget(id);
         changedAt.remove(id);
         forgetSinks(id);
@@ -110,6 +123,8 @@ public final class LogisticsNetwork {
     }
 
     public void updateLinks(RouterId id, List<Link> links, long now) {
+        this.links.put(id, List.copyOf(links));
+        open = null;
         if (routing.setLinks(id, links)) {
             changed(id, now);
         }
@@ -281,8 +296,48 @@ public final class LogisticsNetwork {
             return Optional.empty();
         }
         Optional<Route> route = routing.route(at, destination);
+        ItemType type = item.batch().type();
+        boolean ordered = item.mode() == TransportMode.REQUESTED;
+        if (route.isPresent() && stoppedOnTheWay(at, destination, rule -> ordered ? rule.stopsOrdered(type) : rule.stopsSorted(type))) {
+            // a firewall is in the way, so the item takes a way around it if there is one
+            route = open().route(at, destination);
+        }
         route.ifPresent(found -> item.passTo(found.nextHop()));
         return route.map(Route::exit);
+    }
+
+    // the same network with nothing leading out of a firewall, so its routes are the ones no firewall has a say in
+    private RoutingNetwork open() {
+        if (open == null) {
+            open = new RoutingNetwork();
+            nodes.keySet().forEach(open::add);
+            links.forEach((id, own) -> open.setLinks(id, firewalls.contains(id) ? List.of() : own));
+        }
+        return open;
+    }
+
+    // whether a firewall on the shortest way stops what the test describes
+    private boolean stoppedOnTheWay(RouterId from, RouterId to, Predicate<FirewallRule> stops) {
+        if (firewalls.isEmpty()) {
+            return false;
+        }
+        RouterId at = from;
+        for (int hops = 0; hops < nodes.size() && !at.equals(to); hops++) {
+            if (firewalls.contains(at) && nodes.get(at).firewall().filter(stops).isPresent()) {
+                return true;
+            }
+            Optional<Route> route = routing.route(at, to);
+            if (route.isEmpty()) {
+                return false;
+            }
+            at = route.get().nextHop();
+        }
+        return false;
+    }
+
+    // a firewall only counts when there is no way around it
+    private boolean passes(RouterId from, RouterId to, Predicate<FirewallRule> stops) {
+        return !stoppedOnTheWay(from, to, stops) || open().route(from, to).isPresent();
     }
 
     // best sink for a batch that is at the given router and came in through origin
@@ -296,7 +351,8 @@ public final class LogisticsNetwork {
         candidates.addAll(sinksByItem.getOrDefault(batch.type(), Set.of()));
         for (RouterId candidate : candidates) {
             Optional<SinkBid> bid = sinkBid(candidate, batch.type(), now);
-            if (bid.isEmpty() || bid.get().priority() < minPriority) {
+            if (bid.isEmpty() || bid.get().priority() < minPriority
+                    || !passes(at, candidate, rule -> rule.stopsSorted(batch.type()))) {
                 continue;
             }
             boolean here = candidate.equals(at);
@@ -422,7 +478,7 @@ public final class LogisticsNetwork {
         if (nodes.containsKey(at)) {
             sources.add(nodes.get(at));
         }
-        reachableFrom(at).forEach(id -> sources.add(nodes.get(id)));
+        reachableFrom(at).stream().filter(id -> passes(at, id, FirewallRule::blockPower)).forEach(id -> sources.add(nodes.get(id)));
         int available = 0;
         for (RouterNode source : sources) {
             available += source.drawPower(amount - available, true);
@@ -590,8 +646,12 @@ public final class LogisticsNetwork {
         for (RouterId id : reachableFrom(requester)) {
             RouterNode node = nodes.get(id);
             if (node.provides()) {
-                if (!sharesInventory(node, counted)) {
-                    stock.add(new Stock(id, node.provided()));
+                if (!sharesInventory(node, counted) && passes(requester, id, FirewallRule::blockProviding)) {
+                    Map<ItemType, Integer> provided = new LinkedHashMap<>(node.provided());
+                    if (!firewalls.isEmpty()) {
+                        provided.keySet().removeIf(type -> !passes(requester, id, rule -> rule.rejects(type)));
+                    }
+                    stock.add(new Stock(id, provided));
                     counted.addAll(node.inventories().values());
                 }
             } else {
@@ -621,6 +681,10 @@ public final class LogisticsNetwork {
         for (RouterId id : reachable) {
             RouterNode node = nodes.get(id);
             for (CraftingSetup craft : node.crafts()) {
+                ItemType made = craft.recipe().output().type();
+                if (!passes(requester, id, rule -> rule.blockCrafting() || rule.rejects(made))) {
+                    continue;
+                }
                 int backlog = node.outputOrders().owedInTotal();
                 if (craft.satellite() == 0) {
                     candidates.add(new Candidate(Crafter.of(id, craft.recipe(), null, Map.of(), backlog).withPriority(craft.priority()),

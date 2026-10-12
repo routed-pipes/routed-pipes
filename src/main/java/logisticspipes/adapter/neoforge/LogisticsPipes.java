@@ -23,6 +23,7 @@ import logisticspipes.adapter.minecraft.RemoteOrdererItem;
 import logisticspipes.adapter.minecraft.SettingsCopierItem;
 import logisticspipes.adapter.minecraft.UpgradeItem;
 import logisticspipes.adapter.minecraft.menu.ChassisMenu;
+import logisticspipes.adapter.minecraft.menu.FirewallMenu;
 import logisticspipes.adapter.minecraft.menu.CraftingTableMenu;
 import logisticspipes.adapter.minecraft.menu.MenuRequests;
 import logisticspipes.adapter.minecraft.menu.NamesMenu;
@@ -99,12 +100,17 @@ public class LogisticsPipes {
             () -> new MenuType<>((id, inventory) -> new UpgradeMenu(LogisticsPipes.UPGRADE_MENU.get(), id, inventory),
                     FeatureFlags.DEFAULT_FLAGS));
 
+    public static final Supplier<MenuType<FirewallMenu>> FIREWALL_MENU = MENUS.register("firewall",
+            () -> new MenuType<>((id, inventory) -> new FirewallMenu(LogisticsPipes.FIREWALL_MENU.get(), id, inventory),
+                    FeatureFlags.DEFAULT_FLAGS));
+
     public static final Supplier<MenuType<ChassisMenu>> CHASSIS_MENU = MENUS.register("chassis",
             () -> new MenuType<>((id, inventory) -> new ChassisMenu(LogisticsPipes.CHASSIS_MENU.get(), id, inventory),
                     FeatureFlags.DEFAULT_FLAGS));
 
     private static final PipeServices SERVICES = new PipeServices(() -> LogisticsPipes.PIPE_BLOCK_ENTITY.get(),
-            new CapabilityItemStorage(), new LevelNetworks(), REQUEST_MENU, CHASSIS_MENU, UPGRADE_MENU, CONFIG_MENUS);
+            new CapabilityItemStorage(), new LevelNetworks(), REQUEST_MENU, CHASSIS_MENU, UPGRADE_MENU, FIREWALL_MENU,
+            CONFIG_MENUS);
 
     public static final DeferredBlock<LogisticsPipeBlock> TRANSPORT_PIPE = pipe("transport_pipe", null, 0);
     public static final Map<PipeKind, DeferredBlock<LogisticsPipeBlock>> LOGISTICS_PIPES = new EnumMap<>(PipeKind.class);
@@ -116,6 +122,7 @@ public class LogisticsPipes {
         LOGISTICS_PIPES.put(PipeKind.SUPPLIER, pipe("supplier_pipe", PipeKind.SUPPLIER, 0));
         LOGISTICS_PIPES.put(PipeKind.CRAFTING, pipe("crafting_pipe", PipeKind.CRAFTING, 0));
         LOGISTICS_PIPES.put(PipeKind.SATELLITE, pipe("satellite_pipe", PipeKind.SATELLITE, 0));
+        LOGISTICS_PIPES.put(PipeKind.FIREWALL, pipe("firewall_pipe", PipeKind.FIREWALL, 0));
     }
 
     // chassis mk1 to mk5 by number of module slots
