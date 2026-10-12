@@ -255,7 +255,8 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     // copies the recipe of a crafting table next to the pipe into the pipe settings
     public void importRecipe() {
         for (Direction side : Direction.values()) {
-            if (level.getBlockEntity(worldPosition.relative(side)) instanceof CraftingTableBlockEntity table) {
+            BlockPos target = worldPosition.relative(side);
+            if (level.isLoaded(target) && level.getBlockEntity(target) instanceof CraftingTableBlockEntity table) {
                 for (int slot = 0; slot < OUTPUT_SLOT; slot++) {
                     config.setItem(slot, table.pattern().getItem(slot).copy());
                 }
@@ -361,7 +362,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         List<Direction> sides = new ArrayList<>();
         for (Direction side : Direction.values()) {
             BlockPos target = worldPosition.relative(side);
+            // never look into a chunk that is not loaded, that would load it
             if (getBlockState().getValue(LogisticsPipeBlock.CONNECTED.get(side))
+                    && level.isLoaded(target)
                     && !(level.getBlockState(target).getBlock() instanceof LogisticsPipeBlock)
                     && storage().exists(level, target, accessFace(side))) {
                 sides.add(side);
@@ -434,7 +437,8 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     public int drawPower(int amount, boolean simulate) {
         int drawn = 0;
         for (Direction side : Direction.values()) {
-            if (drawn < amount && level.getBlockEntity(worldPosition.relative(side)) instanceof PowerJunctionBlockEntity junction) {
+            BlockPos target = worldPosition.relative(side);
+            if (drawn < amount && level.isLoaded(target) && level.getBlockEntity(target) instanceof PowerJunctionBlockEntity junction) {
                 drawn += junction.draw(amount - drawn, simulate);
             }
         }

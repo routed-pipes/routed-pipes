@@ -68,4 +68,14 @@ class DestinationSelectorTest {
 
         assertThat(selected).contains(router(2));
     }
+
+    @Test
+    void ranksAllReachableOffersFromBestToWorst() {
+        var offers = List.of(new SinkOffer(router(2), 0), new SinkOffer(router(3), 5), new SinkOffer(router(4), 0),
+                new SinkOffer(router(9), 9));
+
+        var ranked = DestinationSelector.rank(SOURCE, offers, Map.ofEntries(routeTo(2, 9), routeTo(3, 20), routeTo(4, 4)));
+
+        assertThat(ranked).containsExactly(router(3), router(4), router(2));
+    }
 }

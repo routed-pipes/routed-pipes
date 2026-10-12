@@ -111,17 +111,21 @@ public final class LogisticsNetwork {
     private Optional<RouterId> findDestination(RouterId at, ItemBatch batch, Side origin, boolean mayStay, int minPriority) {
         List<SinkOffer> offers = new ArrayList<>();
         for (Map.Entry<RouterId, RouterNode> entry : nodes.entrySet()) {
-            boolean here = entry.getKey().equals(at);
             OptionalInt priority = entry.getValue().sinkPriority(batch.type());
-            if (priority.isEmpty() || priority.getAsInt() < minPriority || here && !mayStay) {
-                continue;
-            }
-            Set<Side> sides = here ? deliverySides(at, batch, origin) : entry.getValue().inventoriesAccepting(batch);
-            if (!sides.isEmpty()) {
+            if (priority.isPresent() && priority.getAsInt() >= minPriority && (mayStay || !entry.getKey().equals(at))) {
                 offers.add(new SinkOffer(entry.getKey(), priority.getAsInt()));
             }
         }
-        return DestinationSelector.select(at, offers, routing.routesFrom(at));
+        // looking into inventories is the expensive part, so only the best candidates are asked, in order
+        for (RouterId candidate : DestinationSelector.rank(at, offers, routing.routesFrom(at))) {
+            Set<Side> sides = candidate.equals(at)
+                    ? deliverySides(at, batch, origin)
+                    : nodes.get(candidate).inventoriesAccepting(batch);
+            if (!sides.isEmpty()) {
+                return Optional.of(candidate);
+            }
+        }
+        return Optional.empty();
     }
 
     // never hand an item back to the inventory it just came out of

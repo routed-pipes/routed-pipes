@@ -36,6 +36,8 @@ public final class FakeNode implements RouterNode {
     // basic pipes take everything by default, like a fresh one in the game
     public SinkRule sink = new ItemSink(Set.of(), true);
     public int satelliteId;
+    // how often the network looked into the inventories of this pipe
+    public int probes;
     // energy in junctions next to this pipe, plenty unless a test says otherwise
     public int power = 1_000_000;
     public boolean provides;
@@ -64,6 +66,7 @@ public final class FakeNode implements RouterNode {
 
     @Override
     public Set<Side> inventoriesAccepting(ItemBatch batch) {
+        probes++;
         return EnumSet.copyOf(inventories);
     }
 

@@ -229,4 +229,27 @@ class LogisticsNetworkTest {
 
         assertThat(network.chooseExit(A, itemFrom(Side.UP), 96)).contains(Side.EAST);
     }
+
+    @Test
+    void looksOnlyIntoTheInventoryOfTheBestCandidate() {
+        line();
+        a.inventories.add(Side.DOWN);
+        c.inventories.add(Side.UP);
+
+        network.chooseExit(B, itemFrom(Side.UP), NOW);
+
+        assertThat(a.probes).isEqualTo(1);
+        assertThat(c.probes).isZero();
+    }
+
+    @Test
+    void movesOnToTheNextCandidateWhenTheBestIsFull() {
+        line();
+        c.inventories.add(Side.UP);
+        TravellingItem item = itemFrom(Side.UP);
+
+        assertThat(network.chooseExit(B, item, NOW)).contains(Side.EAST);
+        assertThat(a.probes).isEqualTo(1);
+        assertThat(c.probes).isEqualTo(1);
+    }
 }
