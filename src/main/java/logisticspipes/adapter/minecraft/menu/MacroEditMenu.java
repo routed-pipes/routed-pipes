@@ -22,7 +22,7 @@ public class MacroEditMenu extends RequestMenu {
     public static final int BUTTON_REMOVE = 100;
     public static final int TEXT_NAME = 1;
     // hidden, carries the macro as it is so far to the client
-    public static final int DRAFT_SLOT = DISK_SLOT + 1;
+    public static final int DRAFT_SLOT = OWN_SLOTS;
 
     private final Container draft = new SimpleContainer(1);
     private final DiskDrive drive;
@@ -52,6 +52,11 @@ public class MacroEditMenu extends RequestMenu {
         ItemStack stack = new ItemStack(drive.slot().getItem(0).getItem());
         DiskItem.writeDraft(stack, macro);
         draft.setItem(0, stack);
+    }
+
+    @Override
+    public boolean previews() {
+        return false;
     }
 
     // the picked item and amount are added to the macro

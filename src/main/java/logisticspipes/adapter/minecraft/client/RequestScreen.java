@@ -1,6 +1,11 @@
 package logisticspipes.adapter.minecraft.client;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
 import logisticspipes.adapter.minecraft.menu.RequestMenu;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -17,10 +22,16 @@ public class RequestScreen<M extends RequestMenu> extends AbstractContainerScree
     private static final int SELECTION = 0xFF55CC55;
     private static final int[] STEP_X = {8, 31, 54, 100, 119, 142};
     private static final int[] STEP_WIDTH = {22, 22, 18, 18, 22, 26};
+    private static final int PREVIEW_WIDTH = 46;
+    // behind the items of a preview: taken from stock, crafted, missing
+    private static final int[] SOURCE_COLOURS = {0xFF55AA55, 0xFF5577CC, 0xFFCC5555};
+    private static final int[] LEGEND_X = {8, 56, 114};
+    private static final int LEGEND_Y = 110;
 
     private EditBox search;
     private Button request;
     private Button disk;
+    private Button preview;
 
     public RequestScreen(M menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
@@ -51,7 +62,10 @@ public class RequestScreen<M extends RequestMenu> extends AbstractContainerScree
                 button -> press(RequestMenu.BUTTON_REQUEST)).bounds(leftPos + 8, topPos + 162, 160, 16).build());
         disk = addRenderableWidget(Button.builder(Component.translatable("logisticspipes.gui.disk"),
                 button -> press(RequestMenu.BUTTON_DISK)).bounds(leftPos + 112, topPos + 162, 36, 16).build());
+        preview = addRenderableWidget(Button.builder(Component.translatable("logisticspipes.gui.preview"),
+                button -> press(RequestMenu.BUTTON_PREVIEW)).bounds(leftPos + 122, topPos + 162, PREVIEW_WIDTH, 16).build());
         makeRoomForDisk();
+        makeRoomForPreview();
     }
 
     protected Component requestLabel() {
@@ -65,10 +79,22 @@ public class RequestScreen<M extends RequestMenu> extends AbstractContainerScree
         disk.active = menu.holdsDisk();
     }
 
+    // the preview button takes the right end of the request button, while the preview is on show it leads back to the list
+    private void makeRoomForPreview() {
+        preview.visible = menu.previews();
+        if (!preview.visible) {
+            return;
+        }
+        request.setWidth(request.getWidth() - PREVIEW_WIDTH - 2);
+        preview.setX(request.getX() + request.getWidth() + 2);
+        preview.setMessage(Component.translatable(menu.previewing() ? "logisticspipes.gui.preview.back" : "logisticspipes.gui.preview"));
+    }
+
     @Override
     protected void containerTick() {
         super.containerTick();
         makeRoomForDisk();
+        makeRoomForPreview();
     }
 
     // typing in a text field must not trigger hotkeys like closing the screen with the inventory key
@@ -89,7 +115,8 @@ public class RequestScreen<M extends RequestMenu> extends AbstractContainerScree
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         super.render(graphics, mouseX, mouseY, partialTick);
         for (Slot slot : menu.slots) {
-            if (slot.index < RequestMenu.PAGE_SIZE && slot.hasItem()) {
+            if (slot.index != RequestMenu.DISK_SLOT && slot.index < RequestMenu.FIRST_PREVIEW_SLOT + RequestMenu.PREVIEW_SIZE
+                    && slot.isActive() && slot.hasItem()) {
                 drawCount(graphics, leftPos + slot.x, topPos + slot.y, RequestMenu.listedCount(slot.getItem()));
             }
         }
@@ -122,6 +149,14 @@ public class RequestScreen<M extends RequestMenu> extends AbstractContainerScree
     @Override
     protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
         Panel.draw(graphics, leftPos, topPos, imageWidth, imageHeight, menu);
+        if (menu.previewing()) {
+            for (int index = 0; index < RequestMenu.PREVIEW_SIZE; index++) {
+                Slot slot = menu.slots.get(RequestMenu.FIRST_PREVIEW_SLOT + index);
+                RequestMenu.sourceOf(slot.getItem()).ifPresent(source -> graphics.fill(leftPos + slot.x, topPos + slot.y,
+                        leftPos + slot.x + 16, topPos + slot.y + 16, SOURCE_COLOURS[source.ordinal()]));
+            }
+            return;
+        }
         int selected = menu.selectedSlot();
         if (selected >= 0 && selected < menu.slots.size()) {
             Slot slot = menu.slots.get(selected);
@@ -139,5 +174,30 @@ public class RequestScreen<M extends RequestMenu> extends AbstractContainerScree
         graphics.drawString(font, font.plainSubstrByWidth(name.getString(), 160), 8, 130, TEXT, false);
         String amount = Integer.toString(menu.amount());
         graphics.drawString(font, amount, 86 - font.width(amount) / 2, 146, TEXT, false);
+        if (menu.previewing()) {
+            previewLabels(graphics);
+        }
+    }
+
+    // below the previewed items: which colour stands for what, and the energy for moving it all
+    private void previewLabels(GuiGraphics graphics) {
+        RequestMenu.Source[] sources = RequestMenu.Source.values();
+        for (int index = 0; index < sources.length; index++) {
+            int x = LEGEND_X[index];
+            graphics.fill(x, LEGEND_Y, x + 7, LEGEND_Y + 7, SOURCE_COLOURS[index]);
+            graphics.drawString(font, Component.translatable("logisticspipes.gui.preview.legend."
+                    + sources[index].name().toLowerCase(Locale.ROOT)), x + 9, LEGEND_Y, TEXT, false);
+        }
+        String energy = String.format(Locale.ROOT, "%,d", menu.previewEnergy()).replace(',', ' ');
+        graphics.drawString(font, Component.translatable("logisticspipes.gui.preview.energy", energy), 8, LEGEND_Y + 10, TEXT, false);
+    }
+
+    // a previewed item says in words where it comes from
+    @Override
+    protected List<Component> getTooltipFromContainerItem(ItemStack stack) {
+        List<Component> tooltip = new ArrayList<>(super.getTooltipFromContainerItem(stack));
+        RequestMenu.sourceOf(stack).ifPresent(source -> tooltip.add(Component.translatable("logisticspipes.gui.preview."
+                + source.name().toLowerCase(Locale.ROOT), RequestMenu.listedCount(stack)).withStyle(ChatFormatting.GRAY)));
+        return tooltip;
     }
 }

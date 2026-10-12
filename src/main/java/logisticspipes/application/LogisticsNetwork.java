@@ -36,6 +36,7 @@ import logisticspipes.domain.request.Crafter;
 import logisticspipes.domain.request.Provision;
 import logisticspipes.domain.request.RequestPlan;
 import logisticspipes.domain.request.RequestPlanner;
+import logisticspipes.domain.request.RequestSummary;
 import logisticspipes.domain.request.Stock;
 import logisticspipes.domain.routing.ConnectorLinks;
 import logisticspipes.domain.routing.Link;
@@ -428,6 +429,13 @@ public final class LogisticsNetwork {
         if (!nodes.containsKey(destination)) {
             return Optional.empty();
         }
+        Optional<Route> route = wayTowards(at, destination, item);
+        route.ifPresent(found -> item.passTo(found.nextHop()));
+        return route.map(Route::exit);
+    }
+
+    // the next step of the item from one router towards another, the item itself is left alone
+    private Optional<Route> wayTowards(RouterId at, RouterId destination, TravellingItem item) {
         Optional<Route> route = routing.route(at, destination);
         ItemType type = item.batch().type();
         boolean ordered = item.mode() == TransportMode.REQUESTED;
@@ -435,8 +443,28 @@ public final class LogisticsNetwork {
             // a firewall is in the way, so the item takes a way around it if there is one
             route = open().route(at, destination);
         }
-        route.ifPresent(found -> item.passTo(found.nextHop()));
-        return route.map(Route::exit);
+        return route;
+    }
+
+    // the routers the item passes from the given one to its destination, both ends included, the way chooseExit sends it
+    // empty for an item without a destination or with none it can get to from there right now
+    public List<RouterId> routeOf(RouterId from, TravellingItem item) {
+        Optional<RouterId> destination = item.destination();
+        if (destination.isEmpty() || !nodes.containsKey(from) || !nodes.containsKey(destination.get())) {
+            return List.of();
+        }
+        List<RouterId> passed = new ArrayList<>();
+        passed.add(from);
+        RouterId at = from;
+        while (!at.equals(destination.get())) {
+            Optional<Route> route = wayTowards(at, destination.get(), item);
+            if (route.isEmpty() || passed.size() > nodes.size()) {
+                return List.of();
+            }
+            at = route.get().nextHop();
+            passed.add(at);
+        }
+        return List.copyOf(passed);
     }
 
     // the same network with nothing leading out of a firewall, so its routes are the ones no firewall has a say in
@@ -596,6 +624,12 @@ public final class LogisticsNetwork {
     // orders several items in one go, all of them or nothing
     public RequestOutcome requestList(RouterId requester, List<ItemBatch> wanted, long now) {
         return request(requester, wanted, now, 0, false, false);
+    }
+
+    // what a request would take from stock, craft and cost if it were made now, nothing is ordered and no power is used
+    public RequestSummary preview(RouterId requester, ItemBatch wanted, long now) {
+        RequestPlan plan = request(requester, List.of(wanted), now, 0, false, true).plan();
+        return RequestSummary.of(plan, ENERGY_PER_PROVIDED_ITEM, ENERGY_PER_CRAFTED_ITEM);
     }
 
     private RequestOutcome request(RouterId requester, ItemBatch wanted, long now, int extraEnergy, boolean partial) {

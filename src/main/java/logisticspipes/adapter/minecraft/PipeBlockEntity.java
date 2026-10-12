@@ -20,6 +20,7 @@ import logisticspipes.adapter.minecraft.menu.RequestTableMenu;
 import logisticspipes.adapter.minecraft.menu.UpgradeMenu;
 import logisticspipes.adapter.minecraft.menu.RequestMenu;
 import logisticspipes.application.LogisticsNetwork;
+import logisticspipes.application.NetworkOverview;
 import logisticspipes.application.RequestOutcome;
 import logisticspipes.application.RouterStatus;
 import logisticspipes.application.port.FluidNode;
@@ -44,6 +45,7 @@ import logisticspipes.domain.logistics.SinkRule;
 import logisticspipes.domain.logistics.Supply;
 import logisticspipes.domain.logistics.SupplyMode;
 import logisticspipes.domain.routing.Link;
+import logisticspipes.domain.request.RequestSummary;
 import logisticspipes.domain.routing.RouterId;
 import logisticspipes.domain.routing.Side;
 import logisticspipes.domain.security.Permission;
@@ -620,6 +622,11 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         return Optional.of(network().status(routerId));
     }
 
+    // every routed pipe of the network of this one with what it is up to, nearest first
+    public NetworkOverview networkOverview() {
+        return NetworkOverview.of(network(), routerId);
+    }
+
     public Map<ItemType, Integer> available() {
         return network().available(routerId);
     }
@@ -636,6 +643,11 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
 
     public RequestOutcome request(ItemBatch wanted) {
         return network().request(routerId, wanted, level.getGameTime());
+    }
+
+    // what the request would come to, without making it
+    public RequestSummary previewRequest(ItemBatch wanted) {
+        return network().preview(routerId, wanted, level.getGameTime());
     }
 
     // orders what is needed beyond what is already there, all of it or nothing, with simulate it only plans

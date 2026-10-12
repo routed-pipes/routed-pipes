@@ -7,6 +7,7 @@ import logisticspipes.adapter.minecraft.McItemType;
 import logisticspipes.adapter.minecraft.PipeBlockEntity;
 import logisticspipes.adapter.minecraft.SecurityCardItem;
 import logisticspipes.adapter.minecraft.UpgradeItem;
+import logisticspipes.application.NetworkOverview;
 import logisticspipes.application.RouterStatus;
 import logisticspipes.domain.crafting.OutputOrder;
 import logisticspipes.domain.item.ItemBatch;
@@ -29,16 +30,20 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 
 // what the pipe controller shows of a routed pipe, one tab at a time: its statistics, its upgrade slots,
-// the slot for its security card and its open orders
+// the slot for its security card, its open orders and the other routed pipes of its network
 public class UpgradeMenu extends AbstractContainerMenu {
 
     // the button with the number of a tab switches to it
     public enum Tab {
-        STATISTICS, UPGRADES, SECURITY, TASKS
+        STATISTICS, UPGRADES, SECURITY, TASKS, NETWORK
     }
 
     // an open order as the tasks tab lists it, numbered from 1, without a target it goes to whoever takes it
     public record Task(int number, int count, Optional<BlockPos> target) {
+    }
+
+    // a routed pipe as the network tab lists it: where it is, what it moved since it was loaded and how many orders it has open
+    public record PipeRow(BlockPos pos, int sent, int received, int relayed, int orders) {
     }
 
     public static final int BUTTON_PREVIOUS_PAGE = 16;
@@ -50,6 +55,11 @@ public class UpgradeMenu extends AbstractContainerMenu {
     private static final int INVENTORY_SLOTS = 36;
     public static final int FIRST_TASK_SLOT = PipeBlockEntity.UPGRADE_SLOTS + INVENTORY_SLOTS;
     public static final int SECURITY_SLOT = FIRST_TASK_SLOT + TASK_ROWS;
+    public static final int PIPE_ROWS = 4;
+    public static final int PIPE_ROW_HEIGHT = 20;
+    public static final int FIRST_PIPE_SLOT = SECURITY_SLOT + 1;
+    // listed pipes carry their place and counts in here, the stack is the pipe as an item
+    private static final String PIPE_TAG = "LogisticsPipesPipe";
     // listed orders carry their number, amount and target in here, the stack count is always 1
     private static final String TASK_TAG = "LogisticsPipesTask";
     private static final int REFRESH_INTERVAL = 20;
@@ -62,10 +72,16 @@ public class UpgradeMenu extends AbstractContainerMenu {
     private static final int DATA_AUTHORIZED = 5;
     private static final int KINDS = PipeStatistics.Kind.values().length;
     private static final int NUMBER_TABLE_SIZE = KINDS * 2;
+    private static final int NUMBER_ENERGY = NUMBER_TABLE_SIZE + 1;
+    private static final int NETWORK_PAGE = 0;
+    private static final int NETWORK_PAGES = 1;
 
     private final ContainerData data = new SimpleContainerData(6);
     private final LongData statistics;
     private final Container tasks = new SimpleContainer(TASK_ROWS);
+    private final Container pipes = new SimpleContainer(PIPE_ROWS);
+    private final ContainerData network = new SimpleContainerData(2);
+    private int networkEnergy;
     private final PipeBlockEntity pipe;
     private final Predicate<Player> usable;
     private int tableSize;
@@ -144,10 +160,14 @@ public class UpgradeMenu extends AbstractContainerMenu {
                 return tab() == Tab.SECURITY;
             }
         });
+        for (int row = 0; row < PIPE_ROWS; row++) {
+            addSlot(new MarkerSlot(pipes, row, 8, TASKS_TOP + row * PIPE_ROW_HEIGHT, () -> tab() == Tab.NETWORK));
+        }
         data.set(DATA_PAGES, 1);
+        network.set(NETWORK_PAGES, 1);
         data.set(DATA_MAY_UPGRADE, mayUpgrade ? 1 : 0);
         if (pipe == null) {
-            statistics = new LongData(NUMBER_TABLE_SIZE + 1);
+            statistics = new LongData(NUMBER_ENERGY + 1);
         } else {
             // the client needs the kind of pipe to know which upgrades fit
             data.set(DATA_KIND, pipe.kind().ordinal());
@@ -159,11 +179,13 @@ public class UpgradeMenu extends AbstractContainerMenu {
                     () -> counts.lifetime(PipeStatistics.Kind.SENT),
                     () -> counts.lifetime(PipeStatistics.Kind.RECEIVED),
                     () -> counts.lifetime(PipeStatistics.Kind.RELAYED),
-                    () -> tableSize);
+                    () -> tableSize,
+                    () -> networkEnergy);
             refresh();
         }
         addDataSlots(data);
         addDataSlots(statistics);
+        addDataSlots(network);
     }
 
     private PipeKind kind() {
@@ -174,8 +196,9 @@ public class UpgradeMenu extends AbstractContainerMenu {
         return Tab.values()[Math.floorMod(data.get(DATA_TAB), Tab.values().length)];
     }
 
+    // of the list on the tab that is open
     public int page() {
-        return data.get(DATA_PAGE);
+        return tab() == Tab.NETWORK ? network.get(NETWORK_PAGE) : data.get(DATA_PAGE);
     }
 
     public boolean mayUpgrade() {
@@ -188,7 +211,23 @@ public class UpgradeMenu extends AbstractContainerMenu {
     }
 
     public int pages() {
-        return data.get(DATA_PAGES);
+        return tab() == Tab.NETWORK ? network.get(NETWORK_PAGES) : data.get(DATA_PAGES);
+    }
+
+    // what the junctions of the network hold, as of the last look at the network tab
+    public long networkEnergy() {
+        return statistics.value(NUMBER_ENERGY);
+    }
+
+    // empty for a stack that is not a listed pipe
+    public static Optional<PipeRow> pipeRowOf(ItemStack stack) {
+        CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        if (!tag.contains(PIPE_TAG)) {
+            return Optional.empty();
+        }
+        CompoundTag row = tag.getCompound(PIPE_TAG);
+        return Optional.of(new PipeRow(BlockPos.of(row.getLong("Pos")), row.getInt("Sent"), row.getInt("Received"),
+                row.getInt("Relayed"), row.getInt("Orders")));
     }
 
     public long session(PipeStatistics.Kind kind) {
@@ -225,6 +264,37 @@ public class UpgradeMenu extends AbstractContainerMenu {
             tasks.setItem(row, row < page.entries().size()
                     ? taskStack(page.entries().get(row), page.number() * TASK_ROWS + row + 1) : ItemStack.EMPTY);
         }
+        if (tab() == Tab.NETWORK) {
+            refreshNetwork();
+        }
+    }
+
+    // only looked up while its tab is open, a large network has a lot of pipes
+    private void refreshNetwork() {
+        NetworkOverview overview = pipe.networkOverview();
+        networkEnergy = overview.energy();
+        Page<NetworkOverview.Entry> page = Page.of(overview.pipes(), network.get(NETWORK_PAGE), PIPE_ROWS);
+        network.set(NETWORK_PAGE, page.number());
+        network.set(NETWORK_PAGES, page.pages());
+        for (int row = 0; row < PIPE_ROWS; row++) {
+            pipes.setItem(row, row < page.entries().size() ? pipeStack(page.entries().get(row)) : ItemStack.EMPTY);
+        }
+    }
+
+    private ItemStack pipeStack(NetworkOverview.Entry entry) {
+        Optional<BlockPos> pos = pipe.positionOf(entry.router());
+        if (pos.isEmpty()) {
+            return ItemStack.EMPTY;
+        }
+        ItemStack stack = new ItemStack(pipe.getLevel().getBlockState(pos.get()).getBlock());
+        CompoundTag row = new CompoundTag();
+        row.putLong("Pos", pos.get().asLong());
+        row.putInt("Sent", entry.sent());
+        row.putInt("Received", entry.received());
+        row.putInt("Relayed", entry.relayed());
+        row.putInt("Orders", entry.openOrders());
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.put(PIPE_TAG, row));
+        return stack;
     }
 
     private ItemStack taskStack(OutputOrder order, int number) {
@@ -252,6 +322,11 @@ public class UpgradeMenu extends AbstractContainerMenu {
     public boolean clickMenuButton(Player player, int id) {
         if (id >= 0 && id < Tab.values().length) {
             data.set(DATA_TAB, id);
+        } else if (tab() == Tab.NETWORK && (id == BUTTON_PREVIOUS_PAGE || id == BUTTON_NEXT_PAGE)) {
+            // only the server knows how many pages there are, a page the client made up would stick
+            if (pipe != null) {
+                network.set(NETWORK_PAGE, network.get(NETWORK_PAGE) + (id == BUTTON_NEXT_PAGE ? 1 : -1));
+            }
         } else if (id == BUTTON_PREVIOUS_PAGE || id == BUTTON_NEXT_PAGE) {
             data.set(DATA_PAGE, data.get(DATA_PAGE) + (id == BUTTON_NEXT_PAGE ? 1 : -1));
         } else {

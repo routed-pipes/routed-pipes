@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import logisticspipes.adapter.minecraft.DiskDrive;
@@ -12,10 +13,13 @@ import logisticspipes.adapter.minecraft.McItemType;
 import logisticspipes.adapter.minecraft.PipeBlockEntity;
 import logisticspipes.domain.item.ItemBatch;
 import logisticspipes.domain.item.ItemType;
+import logisticspipes.domain.listing.Page;
+import logisticspipes.domain.request.RequestSummary;
 import logisticspipes.application.RequestOutcome;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.util.Mth;
@@ -42,12 +46,22 @@ public class RequestMenu extends AbstractContainerMenu implements TextMenu {
     public static final int BUTTON_PREVIOUS_PAGE = 7;
     public static final int BUTTON_NEXT_PAGE = 8;
     public static final int BUTTON_DISK = 9;
+    // shows what the picked request would take without making it, and goes back to the list
+    public static final int BUTTON_PREVIEW = 10;
     // shows the disk of a pipe that takes one, a click on it throws the disk out
     public static final int DISK_SLOT = PAGE_SIZE;
+    // the preview takes the place of the list while it is on show
+    public static final int PREVIEW_ROWS = 5;
+    public static final int PREVIEW_SIZE = COLUMNS * PREVIEW_ROWS;
+    public static final int FIRST_PREVIEW_SLOT = DISK_SLOT + 1;
+    // the first slot a menu built on this one adds
+    protected static final int OWN_SLOTS = FIRST_PREVIEW_SLOT + PREVIEW_SIZE;
     public static final int MAX_AMOUNT = 9999;
     public static final int TEXT_SEARCH = 0;
     // listed stacks carry their network wide amount in here, the stack count is always 1
     private static final String COUNT_TAG = "LogisticsPipesCount";
+    // previewed stacks say where their items come from in here
+    private static final String SOURCE_TAG = "LogisticsPipesSource";
     private static final int REFRESH_INTERVAL = 20;
 
     private static final int DATA_SELECTED = 0;
@@ -55,9 +69,22 @@ public class RequestMenu extends AbstractContainerMenu implements TextMenu {
     private static final int DATA_PAGE = 2;
     private static final int DATA_PAGES = 3;
     private static final int DATA_TAKES_DISK = 4;
+    private static final int PREVIEW_SHOWING = 0;
+    private static final int PREVIEW_PAGE = 1;
+    private static final int PREVIEW_PAGES = 2;
+
+    // where the items of a previewed request come from
+    public enum Source {
+        STOCK, CRAFTED, MISSING
+    }
 
     private final Container listing = new SimpleContainer(PAGE_SIZE);
     private final ContainerData data = new SimpleContainerData(5);
+    private final Container previewed = new SimpleContainer(PREVIEW_SIZE);
+    private final ContainerData preview = new SimpleContainerData(3);
+    private final LongData previewEnergy;
+    private List<ItemStack> previewEntries = List.of();
+    private long energy;
     private final PipeBlockEntity pipe;
     // null unless the pipe takes a disk
     private final DiskDrive drive;
@@ -82,14 +109,21 @@ public class RequestMenu extends AbstractContainerMenu implements TextMenu {
         this.usable = usable;
         this.drive = drive;
         for (int slot = 0; slot < PAGE_SIZE; slot++) {
-            addSlot(new MarkerSlot(listing, slot, 8 + slot % COLUMNS * 18, 18 + slot / COLUMNS * 18));
+            addSlot(new MarkerSlot(listing, slot, 8 + slot % COLUMNS * 18, 18 + slot / COLUMNS * 18, () -> !previewing()));
         }
         addSlot(new MarkerSlot(drive == null ? new SimpleContainer(1) : drive.slot(), 0, 152, 162, this::takesDisk));
+        for (int slot = 0; slot < PREVIEW_SIZE; slot++) {
+            addSlot(new MarkerSlot(previewed, slot, 8 + slot % COLUMNS * 18, 18 + slot / COLUMNS * 18, this::previewing));
+        }
         data.set(DATA_SELECTED, -1);
         data.set(DATA_AMOUNT, 1);
         data.set(DATA_PAGES, 1);
         data.set(DATA_TAKES_DISK, drive == null ? 0 : 1);
         addDataSlots(data);
+        preview.set(PREVIEW_PAGES, 1);
+        addDataSlots(preview);
+        previewEnergy = pipe == null ? new LongData(1) : new LongData(() -> energy);
+        addDataSlots(previewEnergy);
         if (pipe != null) {
             refresh();
         }
@@ -103,12 +137,34 @@ public class RequestMenu extends AbstractContainerMenu implements TextMenu {
         return data.get(DATA_AMOUNT);
     }
 
+    // of the preview while that is on show
     public int page() {
-        return data.get(DATA_PAGE);
+        return previewing() ? preview.get(PREVIEW_PAGE) : data.get(DATA_PAGE);
     }
 
     public int pages() {
-        return data.get(DATA_PAGES);
+        return previewing() ? preview.get(PREVIEW_PAGES) : data.get(DATA_PAGES);
+    }
+
+    // false for menus that pick items for something else than ordering them
+    public boolean previews() {
+        return true;
+    }
+
+    public boolean previewing() {
+        return preview.get(PREVIEW_SHOWING) != 0;
+    }
+
+    // what moving the items of the previewed request costs
+    public long previewEnergy() {
+        return previewEnergy.value(0);
+    }
+
+    // empty for a stack that is not part of a preview
+    public static Optional<Source> sourceOf(ItemStack stack) {
+        CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        return tag.contains(SOURCE_TAG)
+                ? Optional.of(Source.values()[Math.floorMod(tag.getInt(SOURCE_TAG), Source.values().length)]) : Optional.empty();
     }
 
     public boolean takesDisk() {
@@ -157,6 +213,46 @@ public class RequestMenu extends AbstractContainerMenu implements TextMenu {
         }
         listed = shown;
         data.set(DATA_SELECTED, selected == null ? -1 : listed.indexOf(selected));
+    }
+
+    // plans the picked item and amount and lists what that takes, nothing is ordered
+    private void showPreview() {
+        if (selected == null) {
+            return;
+        }
+        RequestSummary summary = pipe.previewRequest(new ItemBatch(selected, data.get(DATA_AMOUNT)));
+        List<ItemStack> entries = new ArrayList<>();
+        addPreviewed(entries, Source.STOCK, summary.fromStock());
+        addPreviewed(entries, Source.CRAFTED, summary.crafted());
+        addPreviewed(entries, Source.MISSING, summary.missing());
+        previewEntries = entries;
+        energy = summary.energy();
+        preview.set(PREVIEW_SHOWING, 1);
+        showPreviewPage();
+    }
+
+    private static void addPreviewed(List<ItemStack> entries, Source source, Map<ItemType, Integer> items) {
+        items.entrySet().stream()
+                .sorted(Comparator.comparing(entry -> BuiltInRegistries.ITEM.getKey(((McItemType) entry.getKey()).item())))
+                .forEach(entry -> {
+                    ItemStack stack = listed(entry.getKey(), entry.getValue());
+                    CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.putInt(SOURCE_TAG, source.ordinal()));
+                    entries.add(stack);
+                });
+    }
+
+    private void showPreviewPage() {
+        Page<ItemStack> page = Page.of(previewEntries, preview.get(PREVIEW_PAGE), PREVIEW_SIZE);
+        preview.set(PREVIEW_PAGE, page.number());
+        preview.set(PREVIEW_PAGES, page.pages());
+        for (int slot = 0; slot < PREVIEW_SIZE; slot++) {
+            previewed.setItem(slot, slot < page.entries().size() ? page.entries().get(slot) : ItemStack.EMPTY);
+        }
+    }
+
+    private void closePreview() {
+        preview.set(PREVIEW_SHOWING, 0);
+        preview.set(PREVIEW_PAGE, 0);
     }
 
     // by display name or item id, the way most people look for things
@@ -213,8 +309,21 @@ public class RequestMenu extends AbstractContainerMenu implements TextMenu {
         }
         if (id >= 0 && id < AMOUNT_STEPS.length) {
             data.set(DATA_AMOUNT, Mth.clamp(data.get(DATA_AMOUNT) + AMOUNT_STEPS[id], 1, MAX_AMOUNT));
+            if (previewing()) {
+                showPreview();
+            }
         } else if (id == BUTTON_REQUEST) {
             request(player);
+            closePreview();
+        } else if (id == BUTTON_PREVIEW && previews()) {
+            if (previewing()) {
+                closePreview();
+            } else {
+                showPreview();
+            }
+        } else if (previewing() && (id == BUTTON_PREVIOUS_PAGE || id == BUTTON_NEXT_PAGE)) {
+            preview.set(PREVIEW_PAGE, preview.get(PREVIEW_PAGE) + (id == BUTTON_NEXT_PAGE ? 1 : -1));
+            showPreviewPage();
         } else if (id == BUTTON_PREVIOUS_PAGE || id == BUTTON_NEXT_PAGE) {
             data.set(DATA_PAGE, data.get(DATA_PAGE) + (id == BUTTON_NEXT_PAGE ? 1 : -1));
             refresh();

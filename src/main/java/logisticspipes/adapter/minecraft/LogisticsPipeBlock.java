@@ -93,10 +93,15 @@ public class LogisticsPipeBlock extends Block implements EntityBlock {
             // the copier pastes instead of opening the pipe
             return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
         }
-        if (kind != null && stack.getItem() instanceof PipeControllerItem) {
-            if (!level.isClientSide && level.getBlockEntity(pos) instanceof PipeBlockEntity pipe
-                    && pipe.security().allows(player, Permission.CHECK_NETWORK)) {
-                player.openMenu(pipe.upgradeMenuProvider());
+        if (stack.getItem() instanceof PipeControllerItem && level.getBlockEntity(pos) instanceof PipeBlockEntity pipe
+                && (kind != null || !pipe.travellingItems().isEmpty())) {
+            if (!level.isClientSide && pipe.security().allows(player, Permission.CHECK_NETWORK)) {
+                // with items in the pipe the controller tells where the one that was clicked is headed
+                ItemTracer.of(pipe, hit.getLocation()).ifPresent(trace -> ItemTracer.show(player, trace));
+                if (kind != null) {
+                    // a busy routed pipe still opens, or a waiting item would keep its controller shut
+                    player.openMenu(pipe.upgradeMenuProvider());
+                }
             }
             return ItemInteractionResult.sidedSuccess(level.isClientSide);
         }
