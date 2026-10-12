@@ -12,7 +12,7 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
 
-final class CapabilityItemStorage implements ItemStorage {
+public final class CapabilityItemStorage implements ItemStorage {
 
     @Override
     public boolean exists(Level level, BlockPos pos, Direction side) {
@@ -27,15 +27,17 @@ final class CapabilityItemStorage implements ItemStorage {
 
     @Override
     public List<ItemStack> contents(Level level, BlockPos pos, Direction side) {
-        List<ItemStack> contents = new ArrayList<>();
         IItemHandler handler = level.getCapability(Capabilities.ItemHandler.BLOCK, pos, side);
-        if (handler == null) {
-            return contents;
-        }
+        return handler == null ? new ArrayList<>() : contentsOf(handler);
+    }
+
+    // slots of bins, drawers and the like hold far more than a stack but hand out one stack per call,
+    // so the amount comes from the slot and a simulated extraction only tells whether it can be taken at all
+    public static List<ItemStack> contentsOf(IItemHandler handler) {
+        List<ItemStack> contents = new ArrayList<>();
         for (int slot = 0; slot < handler.getSlots(); slot++) {
-            // simulated so slots that cannot be emptied from this side do not count
-            ItemStack stack = handler.extractItem(slot, handler.getStackInSlot(slot).getCount(), true);
-            if (!stack.isEmpty()) {
+            ItemStack stack = handler.getStackInSlot(slot);
+            if (!stack.isEmpty() && !handler.extractItem(slot, 1, true).isEmpty()) {
                 contents.add(stack.copy());
             }
         }
