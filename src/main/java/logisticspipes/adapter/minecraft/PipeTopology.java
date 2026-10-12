@@ -31,7 +31,12 @@ final class PipeTopology {
 
     static List<Link> discoverLinks(Level level, BlockPos routerPos) {
         List<Link> links = new ArrayList<>();
+        BlockState state = level.getBlockState(routerPos);
         for (Direction direction : Direction.values()) {
+            // a side can be cut off from the pipe next to it
+            if (state.getBlock() instanceof LogisticsPipeBlock && !state.getValue(LogisticsPipeBlock.CONNECTED.get(direction))) {
+                continue;
+            }
             explore(level, routerPos, direction).forEach((router, distance) ->
                     links.add(new Link(router.routerId(), Directions.toDomain(direction), distance)));
         }

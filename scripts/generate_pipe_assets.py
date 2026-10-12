@@ -194,7 +194,7 @@ def main():
             "textures": {"particle": "logisticspipes:block/pipe_frame"}})
         write(ASSETS + f"blockstates/{name}.json", blockstate(name, shared))
     upgrades = ["sneaky", "speed", "module_upgrade", "action_speed", "item_extraction", "item_stack_extraction",
-                "crafting_byproduct", "crafting_cleanup"]
+                "crafting_byproduct", "crafting_cleanup", "disconnection"]
     for module in MODULES + ["remote_orderer", "pipe_controller", "settings_copier"] + ["upgrade_" + upgrade for upgrade in upgrades]:
         write(ASSETS + f"models/item/{module}.json",
               {"parent": "minecraft:item/generated", "textures": {"layer0": f"logisticspipes:item/{module}"}})

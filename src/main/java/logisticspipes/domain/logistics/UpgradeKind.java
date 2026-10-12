@@ -17,7 +17,9 @@ public enum UpgradeKind {
     // a crafter also sends off a second thing its machine puts out
     CRAFTING_BYPRODUCT(1),
     // an idle crafter clears its machine, three more items to list per upgrade
-    CRAFTING_CLEANUP(4);
+    CRAFTING_CLEANUP(4),
+    // cuts the pipe off from what is next to it, side by side
+    DISCONNECTION(1);
 
     private final int most;
 
@@ -32,7 +34,7 @@ public enum UpgradeKind {
 
     public boolean fitsPipe(PipeKind pipe) {
         return switch (this) {
-            case SNEAKY, SPEED -> true;
+            case SNEAKY, SPEED, DISCONNECTION -> true;
             case MODULE_UPGRADE -> pipe == PipeKind.CHASSIS;
             case CRAFTING_BYPRODUCT, CRAFTING_CLEANUP -> pipe == PipeKind.CRAFTING;
             default -> false;

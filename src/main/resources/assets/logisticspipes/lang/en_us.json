@@ -106,6 +106,8 @@
   "item.logisticspipes.upgrade_crafting_cleanup": "Crafting Cleanup Upgrade",
   "item.logisticspipes.upgrade_crafting_cleanup.description": "A crafter with nothing to do clears its machine. Three items to list per upgrade, up to four.",
   "logisticspipes.gui.byproduct": "Extra",
+  "item.logisticspipes.upgrade_disconnection": "Disconnection Upgrade",
+  "item.logisticspipes.upgrade_disconnection.description": "Use it on a side of a routed pipe to cut that side off from what is next to it, and again to reconnect it.",
   "block.logisticspipes.request_table": "Request Table",
   "block.logisticspipes.request_table.description": "A request pipe as a block: orders the ingredients of the recipe in its grid into its own buffer and crafts from there.",
   "logisticspipes.gui.request_table.clear": "Clear the grid",

@@ -147,6 +147,8 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     // how eagerly a crafting pipe is used, higher first
     private int priority;
     private Boolean upkeepCache;
+    // sides cut off with a disconnection upgrade, one bit per direction
+    private int disconnected;
     // only a firewall pipe has these
     private FirewallSettings firewall;
     // only a request table has these
@@ -180,6 +182,11 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         config.addListener(container -> settingsChanged());
         modules.addListener(container -> settingsChanged());
         upgrades.addListener(container -> {
+            if (disconnected != 0 && upgradeCount(UpgradeKind.DISCONNECTION) == 0) {
+                // without the upgrade everything is connected again
+                disconnected = 0;
+                reconnect();
+            }
             transport.setBoost(boost());
             neighbourChanged();
             setChanged();
@@ -242,6 +249,44 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
 
     public Container modules() {
         return modules;
+    }
+
+    boolean isDisconnected(Direction side) {
+        return (disconnected & 1 << side.get3DDataValue()) != 0;
+    }
+
+    // works out the connections of this pipe and the ones around it again
+    private void reconnect() {
+        if (level == null || level.isClientSide) {
+            return;
+        }
+        pipe().refreshConnections(getBlockState(), level, worldPosition);
+        for (Direction side : Direction.values()) {
+            BlockPos neighbour = worldPosition.relative(side);
+            if (level.getBlockState(neighbour).getBlock() instanceof LogisticsPipeBlock other) {
+                other.refreshConnections(level.getBlockState(neighbour), level, neighbour);
+            }
+        }
+        neighbourChanged();
+        // the routers on both sides of the cut have to look again
+        markLinksDirty();
+        for (Direction side : Direction.values()) {
+            BlockPos neighbour = worldPosition.relative(side);
+            if (level.getBlockEntity(neighbour) instanceof PipeBlockEntity other) {
+                other.markLinksDirty();
+            }
+            PipeTopology.markRoutersDirty(level, neighbour);
+        }
+    }
+
+    // cuts a side off or connects it again, the upgrade in the hand goes in if the pipe has none yet
+    public void toggleDisconnected(ItemStack held, Direction side) {
+        if (upgradeCount(UpgradeKind.DISCONNECTION) == 0 && !installUpgrade(held)) {
+            return;
+        }
+        disconnected ^= 1 << side.get3DDataValue();
+        setChanged();
+        reconnect();
     }
 
     public Container moduleUpgrades() {
@@ -1060,6 +1105,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         tag.putBoolean("DefaultRoute", defaultRoute);
         tag.putInt("Mode", mode);
         tag.putInt("Priority", priority);
+        tag.putInt("Disconnected", disconnected);
         if (firewall != null) {
             tag.put("Firewall", firewall.save(registries));
         }
@@ -1110,6 +1156,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         }
         if (firewall != null && tag.contains("Firewall")) {
             firewall.load(tag.getCompound("Firewall"), registries);
+        }
+        if (tag.contains("Disconnected")) {
+            disconnected = tag.getInt("Disconnected");
         }
         if (tag.contains("Priority")) {
             priority = tag.getInt("Priority");

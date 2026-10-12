@@ -8,6 +8,7 @@ import logisticspipes.adapter.neoforge.LogisticsPipes;
 import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.adapter.minecraft.menu.UpgradeMenu;
 import logisticspipes.domain.logistics.ModuleKind;
+import logisticspipes.adapter.minecraft.LogisticsPipeBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
@@ -335,5 +336,33 @@ public class UpgradeGameTest {
         helper.assertTrue(crafting.cleanup().orElseThrow().removes(McItemType.batchOf(new ItemStack(Items.RAW_IRON)).type()),
                 "after the import the listed items are what goes");
         helper.succeed();
+    }
+
+    // two routed pipes side by side stop seeing each other when the side between them is cut off
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void disconnectionUpgradeCutsASideOffAndReconnectsIt(GameTestHelper helper) {
+        GameTestPower.supply(helper);
+        PipeBlockEntity left = pipe(helper, PipeKind.BASIC, 0);
+        pipe(helper, PipeKind.BASIC, 1);
+        BlockPos leftPos = new BlockPos(0, 1, 1);
+        BlockPos rightPos = new BlockPos(1, 1, 1);
+        ItemStack held = upgrade(UpgradeKind.DISCONNECTION, 1);
+        Direction towardsRight = Direction.EAST;
+
+        helper.runAfterDelay(15, () -> {
+            helper.assertTrue(helper.getBlockState(leftPos).getValue(LogisticsPipeBlock.CONNECTED.get(towardsRight)), "connected at first");
+            left.toggleDisconnected(held, towardsRight);
+            helper.assertTrue(held.isEmpty(), "the upgrade goes into the pipe");
+            helper.assertTrue(!helper.getBlockState(leftPos).getValue(LogisticsPipeBlock.CONNECTED.get(towardsRight))
+                    && !helper.getBlockState(rightPos).getValue(LogisticsPipeBlock.CONNECTED.get(towardsRight.getOpposite())),
+                    "both pipes let go of each other");
+        });
+        helper.runAfterDelay(40, () -> {
+            helper.assertTrue(left.networkStatus().orElseThrow().routers() == 0, "the pipe sees no other router any more");
+            left.removeUpgrades();
+            helper.assertTrue(helper.getBlockState(leftPos).getValue(LogisticsPipeBlock.CONNECTED.get(towardsRight)),
+                    "taking the upgrade out reconnects");
+            helper.succeed();
+        });
     }
 }
