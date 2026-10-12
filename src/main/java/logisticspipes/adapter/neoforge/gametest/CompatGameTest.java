@@ -624,20 +624,24 @@ public class CompatGameTest {
         helper.setBlock(source, inventory);
 
         helper.runAfterDelay(15, () -> {
-            ItemStack rest = ItemHandlerHelper.insertItemStacked(handler(helper, source), new ItemStack(Items.COBBLESTONE, 64), false);
-            rest = ItemHandlerHelper.insertItemStacked(handler(helper, source), new ItemStack(Items.COBBLESTONE, 36 + rest.getCount()), false);
-            int stocked = 100 - rest.getCount();
+            // more than a stack, bins and drawers hand out one stack per call and all of it has to come
+            int stocked = 0;
+            for (int round = 0; round < 4; round++) {
+                stocked += 50 - ItemHandlerHelper.insertItemStacked(handler(helper, source), new ItemStack(Items.COBBLESTONE, 50), false).getCount();
+            }
+            int wanted = Math.min(stocked, 130);
             helper.assertTrue(stocked >= 20, "could only put " + stocked + " cobblestone in");
+            int putIn = stocked;
 
             Integer listed = provider.contents().get(McItemType.batchOf(new ItemStack(Items.COBBLESTONE)).type());
             helper.assertTrue(listed != null && listed == stocked, "holds " + stocked + " but the provider lists " + listed);
-            helper.assertTrue(request.request(McItemType.batchOf(new ItemStack(Items.COBBLESTONE, 20))).started(), "request refused");
+            helper.assertTrue(request.request(McItemType.batchOf(new ItemStack(Items.COBBLESTONE, wanted))).started(), "request refused");
 
             helper.succeedWhen(() -> {
                 int delivered = count(helper, target, Items.COBBLESTONE);
                 int left = count(helper, source, Items.COBBLESTONE);
-                helper.assertTrue(delivered == 20, "expected 20 delivered but found " + delivered);
-                helper.assertTrue(left == stocked - 20, "expected " + (stocked - 20) + " left but found " + left);
+                helper.assertTrue(delivered == wanted, "expected " + wanted + " delivered but found " + delivered);
+                helper.assertTrue(left == putIn - wanted, "expected " + (putIn - wanted) + " left but found " + left);
             });
         });
     }

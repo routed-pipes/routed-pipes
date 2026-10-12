@@ -91,6 +91,8 @@ public final class LogisticsNetwork {
     private final Set<RouterId> firewalls = new HashSet<>();
     // per set of firewalls that say no: the network without the ways out of those, built when first needed
     private final Map<Set<RouterId>, RoutingNetwork> detours = new HashMap<>();
+    // providers that handed out less than planned, left out while the rest is ordered elsewhere
+    private final Set<RouterId> cameShort = new HashSet<>();
     // for inventory system connectors: who is on which channel, and the network as it is without their links
     private final ConnectorLinks connectors = new ConnectorLinks();
     private RoutingNetwork wired;
@@ -859,6 +861,8 @@ public final class LogisticsNetwork {
     }
 
     private void execute(RequestPlan plan, FluidIngredients fluidIngredients, long now) {
+        // what a provider could not hand out after all, its inventory changed since the plan was made
+        List<Provision> shortfalls = new ArrayList<>();
         for (Provision provision : plan.provisions()) {
             RouterNode provider = nodes.get(provision.provider());
             if (provider == null) {
@@ -876,6 +880,21 @@ public final class LogisticsNetwork {
                     ? provider.provide(type, provision.batch().count(), provision.destination())
                     : provider.send(type, provision.batch().count(), provision.destination());
             pending.expect(provision.destination(), type, sent, now + PROVISION_TIMEOUT);
+            if (sent < provision.batch().count()) {
+                shortfalls.add(new Provision(provision.provider(), provision.destination(),
+                        new ItemBatch(type, provision.batch().count() - sent)));
+            }
+        }
+        // the rest is ordered again once, from wherever else it can still be had
+        if (!shortfalls.isEmpty() && cameShort.isEmpty()) {
+            shortfalls.forEach(shortfall -> cameShort.add(shortfall.provider()));
+            try {
+                for (Provision shortfall : shortfalls) {
+                    requestUpTo(shortfall.destination(), shortfall.batch().type(), shortfall.batch().count(), now);
+                }
+            } finally {
+                cameShort.clear();
+            }
         }
         for (CraftJob craft : plan.crafts()) {
             RouterNode crafter = nodes.get(craft.crafter());
@@ -1041,7 +1060,7 @@ public final class LogisticsNetwork {
         for (RouterId id : routers) {
             RouterNode node = nodes.get(id);
             if (node.provides()) {
-                if (!sharesInventory(node, counted) && passes(requester, id, FirewallRule::blockProviding)) {
+                if (!cameShort.contains(id) && !sharesInventory(node, counted) && passes(requester, id, FirewallRule::blockProviding)) {
                     Map<ItemType, Integer> provided = new LinkedHashMap<>(node.provided());
                     if (!firewalls.isEmpty()) {
                         provided.keySet().removeIf(type -> !passes(requester, id, rule -> rule.rejects(type)));

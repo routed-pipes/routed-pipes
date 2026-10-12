@@ -878,4 +878,23 @@ class LogisticsNetworkRequestTest {
         assertThat(network.satelliteNames(REQUEST, PipeKind.FLUID_SATELLITE)).containsExactly("Tank");
         assertThat(network.satelliteNames(SATELLITE, PipeKind.SATELLITE)).containsExactly("Near");
     }
+
+    @Test
+    void whatAProviderCannotHandOutAfterAllIsOrderedFromAnotherOne() {
+        connect();
+        provider.stock("coal", 20);
+        // the plan sees 20 but only 8 can really be taken out
+        provider.provided = Map.of(item("coal"), 20);
+        provider.contents.put(item("coal"), 8);
+        FakeNode second = new FakeNode(PipeKind.PROVIDER);
+        second.stock("coal", 64);
+        network.addRouter(ISLAND, second, BUILT);
+        network.updateLinks(ISLAND, List.of(new Link(REQUEST, Side.WEST, 9)), BUILT);
+        network.updateLinks(REQUEST, List.of(new Link(PROVIDER, Side.EAST, 1), new Link(ISLAND, Side.WEST, 9)), BUILT);
+
+        assertThat(network.request(REQUEST, batch("coal", 20), 0).started()).isTrue();
+
+        assertThat(provider.shipments).containsExactly(new Shipment(batch("coal", 8), REQUEST));
+        assertThat(second.shipments).containsExactly(new Shipment(batch("coal", 12), REQUEST));
+    }
 }

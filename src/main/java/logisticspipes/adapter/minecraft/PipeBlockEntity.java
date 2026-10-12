@@ -653,9 +653,15 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
                 if (takeable[slot] == 0 || !slots.get(slot).type().equals(type)) {
                     continue;
                 }
-                ItemStack taken = storage().extractSlot(level, target, accessFace(side), slot, Math.min(takeable[slot], remaining));
-                if (!taken.isEmpty()) {
+                // bins and drawers hand out one stack per call, so a slot is asked until it has given its share
+                int allowed = takeable[slot];
+                while (allowed > 0 && remaining > 0) {
+                    ItemStack taken = storage().extractSlot(level, target, accessFace(side), slot, Math.min(allowed, remaining));
+                    if (taken.isEmpty()) {
+                        break;
+                    }
                     transport.insert(new TravellingItem(McItemType.batchOf(taken), Directions.toDomain(side), destination));
+                    allowed -= taken.getCount();
                     remaining -= taken.getCount();
                 }
             }
