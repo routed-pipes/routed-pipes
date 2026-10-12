@@ -13,7 +13,11 @@ public enum UpgradeKind {
     // an extractor moves more items at a time
     ITEM_EXTRACTION(8),
     // an extractor moves whole stacks, and more kinds of items at a time
-    ITEM_STACK_EXTRACTION(8);
+    ITEM_STACK_EXTRACTION(8),
+    // a crafter also sends off a second thing its machine puts out
+    CRAFTING_BYPRODUCT(1),
+    // an idle crafter clears its machine, three more items to list per upgrade
+    CRAFTING_CLEANUP(4);
 
     private final int most;
 
@@ -30,6 +34,7 @@ public enum UpgradeKind {
         return switch (this) {
             case SNEAKY, SPEED -> true;
             case MODULE_UPGRADE -> pipe == PipeKind.CHASSIS;
+            case CRAFTING_BYPRODUCT, CRAFTING_CLEANUP -> pipe == PipeKind.CRAFTING;
             default -> false;
         };
     }
@@ -38,6 +43,7 @@ public enum UpgradeKind {
         return switch (this) {
             case ACTION_SPEED, ITEM_EXTRACTION, ITEM_STACK_EXTRACTION ->
                     module == ModuleKind.EXTRACTOR || module == ModuleKind.ADVANCED_EXTRACTOR;
+            case CRAFTING_BYPRODUCT, CRAFTING_CLEANUP -> module == ModuleKind.CRAFTER;
             default -> false;
         };
     }

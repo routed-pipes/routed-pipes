@@ -22,6 +22,10 @@ import logisticspipes.testing.Fixtures.TestItem;
 import logisticspipes.domain.logistics.SupplyMode;
 import logisticspipes.domain.crafting.CraftingSetup;
 import logisticspipes.domain.logistics.Supply;
+import logisticspipes.domain.crafting.Cleanup;
+import java.util.Optional;
+import java.util.Set;
+import logisticspipes.domain.transport.TransportMode;
 import org.junit.jupiter.api.Test;
 
 class LogisticsNetworkRequestTest {
@@ -762,5 +766,58 @@ class LogisticsNetworkRequestTest {
         network.tick(SUPPLIER, 0);
 
         assertThat(crafting.outputOrders.owed(item("planks"))).isEqualTo(8);
+    }
+
+    @Test
+    void whatElseComesOutOfTheMachineIsSentOffWithoutADestination() {
+        connect();
+        provider.stock("ore", 64);
+        Recipe smelting = new Recipe(List.of(batch("ore", 1)), batch("ingot", 2));
+        crafting.crafts = List.of(new CraftingSetup(smelting, List.of(), 0, 0).withByproduct(Optional.of(batch("slag", 1))));
+        crafting.inventories.add(Side.UP);
+
+        network.request(REQUEST, batch("ingot", 6), 0);
+        assertThat(crafting.outputOrders.owed(item("slag"))).isEqualTo(3);
+
+        crafting.contents.put(item("slag"), 3);
+        network.tick(CRAFTING, 5);
+
+        assertThat(crafting.shipments).containsExactly(new Shipment(batch("slag", 3), null));
+        assertThat(crafting.lastMode).isEqualTo(TransportMode.UNCLAIMED);
+    }
+
+    @Test
+    void anIdleCrafterClearsItsMachine() {
+        connect();
+        crafting.recipe = new Recipe(List.of(batch("log", 1)), batch("planks", 4));
+        crafting.cleanup = new Cleanup(Set.of(item("planks")), true);
+        crafting.stock("planks", 4);
+        crafting.stock("dirt", 100);
+
+        network.tick(CRAFTING, 5);
+
+        assertThat(crafting.shipments).containsExactly(new Shipment(batch("dirt", 64), null));
+    }
+
+    @Test
+    void aBusyCrafterLeavesItsMachineAlone() {
+        connect();
+        provider.stock("log", 64);
+        crafting.recipe = new Recipe(List.of(batch("log", 1)), batch("planks", 4));
+        crafting.cleanup = new Cleanup(Set.of(), true);
+        crafting.stock("dirt", 100);
+        network.request(REQUEST, batch("planks", 4), 0);
+
+        network.tick(CRAFTING, 5);
+
+        assertThat(crafting.shipments).isEmpty();
+    }
+
+    @Test
+    void cleanupListSaysWhatStaysOrWhatGoes() {
+        assertThat(new Cleanup(Set.of(item("planks")), true).removes(item("planks"))).isFalse();
+        assertThat(new Cleanup(Set.of(item("planks")), true).removes(item("dirt"))).isTrue();
+        assertThat(new Cleanup(Set.of(item("planks")), false).removes(item("planks"))).isTrue();
+        assertThat(new Cleanup(Set.of(item("planks")), false).removes(item("dirt"))).isFalse();
     }
 }

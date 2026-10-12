@@ -34,7 +34,12 @@ public class PipeConfigMenu extends AbstractContainerMenu implements MarkerMenu 
     public static final int DATA_MODE = 2;
     public static final int DATA_EXCLUDE = 3;
     public static final int DATA_PRIORITY = 4;
-    public static final int DATA_COUNT = 5;
+    // whether there is a slot for what else the machine puts out, and how many cleanup upgrades there are
+    public static final int DATA_BYPRODUCT = 5;
+    public static final int DATA_CLEANUP = 6;
+    public static final int DATA_COUNT = 7;
+    public static final int BUTTON_IMPORT_CLEANUP = 8;
+    public static final int CLEANUP_PER_UPGRADE = 3;
     public static final int BUTTON_PRIORITY_DOWN = 6;
     public static final int BUTTON_PRIORITY_UP = 7;
     public static final int MAX_PRIORITY = 99;
@@ -68,6 +73,12 @@ public class PipeConfigMenu extends AbstractContainerMenu implements MarkerMenu 
         }
         if (kind == PipeKind.CRAFTING) {
             addSlot(new MarkerSlot(config, PipeBlockEntity.OUTPUT_SLOT, 124, 26));
+            addSlot(new MarkerSlot(config, PipeBlockEntity.BYPRODUCT_SLOT, 148, 26, () -> data.get(DATA_BYPRODUCT) != 0));
+            for (int index = 0; index < PipeBlockEntity.CLEANUP_SLOTS; index++) {
+                int number = index;
+                addSlot(new MarkerSlot(config, PipeBlockEntity.CLEANUP_FIRST + index, 8 + index % 6 * 18, 96 + index / 6 * 18,
+                        () -> number < cleanupSlots()));
+            }
         }
         markerSlots = slots.size();
         int top = inventoryTop(kind);
@@ -106,7 +117,34 @@ public class PipeConfigMenu extends AbstractContainerMenu implements MarkerMenu 
 
     // crafting settings have a row more than the others
     public static int inventoryTop(PipeKind kind) {
-        return kind == PipeKind.CRAFTING ? 104 : 84;
+        return kind == PipeKind.CRAFTING ? 144 : 84;
+    }
+
+    public boolean hasByproduct() {
+        return data.get(DATA_BYPRODUCT) != 0;
+    }
+
+    public int cleanupSlots() {
+        return Math.min(PipeBlockEntity.CLEANUP_SLOTS, data.get(DATA_CLEANUP) * CLEANUP_PER_UPGRADE);
+    }
+
+    // the recipe becomes the list of what is taken out of the machine again
+    private void importCleanup() {
+        int next = PipeBlockEntity.CLEANUP_FIRST;
+        for (int slot = 0; slot <= PipeBlockEntity.OUTPUT_SLOT; slot++) {
+            ItemStack marker = slots.get(slot).getItem();
+            boolean listed = false;
+            for (int other = PipeBlockEntity.CLEANUP_FIRST; other < next; other++) {
+                listed |= ItemStack.isSameItem(slots.get(other).getItem(), marker);
+            }
+            if (!marker.isEmpty() && !listed && next < PipeBlockEntity.CLEANUP_FIRST + PipeBlockEntity.CLEANUP_SLOTS) {
+                slots.get(next++).set(marker.copyWithCount(1));
+            }
+        }
+        while (next < PipeBlockEntity.CLEANUP_FIRST + PipeBlockEntity.CLEANUP_SLOTS) {
+            slots.get(next++).set(ItemStack.EMPTY);
+        }
+        data.set(DATA_EXCLUDE, 0);
     }
 
     public int priority() {
@@ -128,6 +166,9 @@ public class PipeConfigMenu extends AbstractContainerMenu implements MarkerMenu 
     // left click copies the held stack or clears, right click changes the count by one
     @Override
     public void clicked(int slotId, int button, ClickType clickType, Player player) {
+        if (slotId >= 0 && slotId < markerSlots && !slots.get(slotId).isActive()) {
+            return;
+        }
         if (slotId < 0 || slotId >= markerSlots) {
             super.clicked(slotId, button, clickType, player);
             return;
@@ -163,7 +204,11 @@ public class PipeConfigMenu extends AbstractContainerMenu implements MarkerMenu 
             data.set(DATA_MODE, (mode() + 1) % modeCount());
             return true;
         }
-        if (id == BUTTON_EXCLUDE && kind == PipeKind.PROVIDER) {
+        if (id == BUTTON_IMPORT_CLEANUP && kind == PipeKind.CRAFTING && cleanupSlots() > 0) {
+            importCleanup();
+            return true;
+        }
+        if (id == BUTTON_EXCLUDE && (kind == PipeKind.PROVIDER || kind == PipeKind.CRAFTING)) {
             data.set(DATA_EXCLUDE, exclude() ? 0 : 1);
             return true;
         }

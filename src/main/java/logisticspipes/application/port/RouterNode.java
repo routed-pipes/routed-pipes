@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import logisticspipes.domain.crafting.Cleanup;
 import logisticspipes.domain.crafting.CraftingSetup;
 import logisticspipes.domain.crafting.OutputOrders;
 import logisticspipes.domain.crafting.Recipe;
@@ -72,6 +73,11 @@ public interface RouterNode {
             return List.of();
         }
         return List.of(new CraftingSetup(recipe().get(), satelliteInputs(), satelliteId(), 0));
+    }
+
+    // what the pipe clears out of its machine while it has nothing to craft
+    default Optional<Cleanup> cleanup() {
+        return Optional.empty();
     }
 
     // every stock this pipe keeps up

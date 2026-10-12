@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -19,6 +20,7 @@ import logisticspipes.application.LogisticsNetwork;
 import logisticspipes.application.RequestOutcome;
 import logisticspipes.application.RouterStatus;
 import logisticspipes.application.port.RouterNode;
+import logisticspipes.domain.crafting.Cleanup;
 import logisticspipes.domain.crafting.CraftingSetup;
 import logisticspipes.domain.crafting.OutputOrder;
 import logisticspipes.domain.crafting.OutputOrders;
@@ -72,7 +74,10 @@ import net.minecraft.world.level.block.state.properties.ChestType;
 public class PipeBlockEntity extends BlockEntity implements RouterNode {
 
     // settings slots: 0-8 are recipe inputs or supplier targets, 9 is the recipe output
-    public static final int CONFIG_SLOTS = 10;
+    public static final int CONFIG_SLOTS = 23;
+    public static final int BYPRODUCT_SLOT = 10;
+    public static final int CLEANUP_FIRST = 11;
+    public static final int CLEANUP_SLOTS = 12;
     public static final int OUTPUT_SLOT = 9;
     // first slot of the recipe row that is delivered to the satellite
     public static final int SATELLITE_ROW = 6;
@@ -101,6 +106,8 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
                 case PipeConfigMenu.DATA_MODE -> mode;
                 case PipeConfigMenu.DATA_EXCLUDE -> exclude ? 1 : 0;
                 case PipeConfigMenu.DATA_PRIORITY -> priority;
+                case PipeConfigMenu.DATA_BYPRODUCT -> upgradeCount(UpgradeKind.CRAFTING_BYPRODUCT);
+                case PipeConfigMenu.DATA_CLEANUP -> upgradeCount(UpgradeKind.CRAFTING_CLEANUP);
                 default -> satelliteId;
             };
         }
@@ -112,6 +119,8 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
                 case PipeConfigMenu.DATA_MODE -> mode = value;
                 case PipeConfigMenu.DATA_EXCLUDE -> exclude = value != 0;
                 case PipeConfigMenu.DATA_PRIORITY -> priority = value;
+                case PipeConfigMenu.DATA_BYPRODUCT, PipeConfigMenu.DATA_CLEANUP -> {
+                }
                 default -> satelliteId = value;
             }
             settingsChanged();
@@ -152,6 +161,8 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         if (kind() == PipeKind.SUPPLIER) {
             mode = SupplyMode.BULK50.ordinal();
         }
+        // a crafter that cleans up keeps what is on its list unless told otherwise
+        exclude = kind() == PipeKind.CRAFTING;
         config.addListener(container -> settingsChanged());
         modules.addListener(container -> settingsChanged());
         upgrades.addListener(container -> {
@@ -501,7 +512,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         ItemStack module = modules.getItem(slot);
         if (slot < pipe().moduleSlots() && module.getItem() instanceof ModuleItem item) {
             item.settingsProvider(module, user -> Container.stillValidBlockEntity(this, user) && modules.getItem(slot) == module,
-                    this::settingsChanged, this::importRecipe).ifPresent(player::openMenu);
+                    this::settingsChanged, this::importRecipe, upgrade -> moduleUpgradeCount(slot, upgrade)).ifPresent(player::openMenu);
         }
     }
 
@@ -539,10 +550,44 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     @Override
     public List<CraftingSetup> crafts() {
         if (kind() == PipeKind.CRAFTING) {
-            return recipe().map(recipe -> List.of(new CraftingSetup(recipe, satelliteInputs(), satelliteId, priority)))
+            ItemStack extra = config.getItem(BYPRODUCT_SLOT);
+            Optional<ItemBatch> byproduct = extra.isEmpty() || upgradeCount(UpgradeKind.CRAFTING_BYPRODUCT) == 0
+                    ? Optional.empty() : Optional.of(McItemType.batchOf(extra));
+            return recipe().map(recipe -> List.of(new CraftingSetup(recipe, satelliteInputs(), satelliteId, priority, byproduct)))
                     .orElse(List.of());
         }
-        return pluggedModules().stream().flatMap(stack -> ModuleItem.craftingOf(stack).stream()).toList();
+        List<CraftingSetup> crafts = new ArrayList<>();
+        for (int slot = 0; slot < pipe().moduleSlots(); slot++) {
+            ModuleItem.craftingOf(modules.getItem(slot), moduleUpgradeCount(slot, UpgradeKind.CRAFTING_BYPRODUCT) > 0)
+                    .ifPresent(crafts::add);
+        }
+        return crafts;
+    }
+
+    private static Set<ItemType> plainTypes(Container container, int from, int to) {
+        Set<ItemType> types = new HashSet<>();
+        for (int slot = from; slot < to; slot++) {
+            if (!container.getItem(slot).isEmpty()) {
+                types.add(McItemType.batchOf(container.getItem(slot)).type().plain());
+            }
+        }
+        return types;
+    }
+
+    @Override
+    public Optional<Cleanup> cleanup() {
+        if (kind() == PipeKind.CRAFTING) {
+            int listed = upgradeCount(UpgradeKind.CRAFTING_CLEANUP) * PipeConfigMenu.CLEANUP_PER_UPGRADE;
+            return listed == 0 ? Optional.empty()
+                    : Optional.of(new Cleanup(plainTypes(config, CLEANUP_FIRST, CLEANUP_FIRST + listed), exclude));
+        }
+        for (int slot = 0; slot < pipe().moduleSlots(); slot++) {
+            Optional<Cleanup> cleanup = ModuleItem.cleanupOf(modules.getItem(slot), moduleUpgradeCount(slot, UpgradeKind.CRAFTING_CLEANUP));
+            if (cleanup.isPresent()) {
+                return cleanup;
+            }
+        }
+        return Optional.empty();
     }
 
     @Override
@@ -769,7 +814,8 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
                 if (taken.isEmpty()) {
                     break;
                 }
-                transport.insert(new TravellingItem(McItemType.batchOf(taken), Directions.toDomain(side), destination, mode));
+                transport.insert(new TravellingItem(McItemType.batchOf(taken), Directions.toDomain(side), destination,
+                        destination == null ? TransportMode.UNCLAIMED : mode));
                 remaining -= taken.getCount();
             }
         }
@@ -927,7 +973,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         ListTag orders = new ListTag();
         for (OutputOrder order : outputOrders.all()) {
             CompoundTag entry = new CompoundTag();
-            entry.putUUID("Destination", order.destination().value());
+            if (!order.isExtra()) {
+                entry.putUUID("Destination", order.destination().value());
+            }
             entry.put("Stack", McItemType.stackOf(new ItemBatch(order.batch().type(), 1)).save(registries));
             entry.putInt("Count", order.batch().count());
             entry.putLong("Since", order.since());
@@ -978,7 +1026,8 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         for (int index = 0; index < orders.size(); index++) {
             CompoundTag entry = orders.getCompound(index);
             ItemStack.parse(registries, entry.getCompound("Stack")).filter(stack -> !stack.isEmpty())
-                    .ifPresent(stack -> outputOrders.add(new OutputOrder(new RouterId(entry.getUUID("Destination")),
+                    .ifPresent(stack -> outputOrders.add(new OutputOrder(
+                            entry.hasUUID("Destination") ? new RouterId(entry.getUUID("Destination")) : null,
                             new ItemBatch(McItemType.batchOf(stack).type(), entry.getInt("Count")), entry.getLong("Since"))));
         }
     }

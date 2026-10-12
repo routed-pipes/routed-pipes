@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import logisticspipes.application.port.RouterNode;
+import logisticspipes.domain.crafting.Cleanup;
 import logisticspipes.domain.crafting.CraftingSetup;
 import logisticspipes.domain.crafting.OutputOrders;
 import logisticspipes.domain.crafting.Recipe;
@@ -46,6 +47,7 @@ public final class FakeNode implements RouterNode {
     // set by tests about pipes with several recipes or stocks, like a chassis with modules
     public List<CraftingSetup> crafts;
     public List<Supply> supplies;
+    public Cleanup cleanup;
     // basic pipes take everything by default, like a fresh one in the game
     public SinkRule sink = new ItemSink(Set.of(), true);
     public int satelliteId;
@@ -169,6 +171,11 @@ public final class FakeNode implements RouterNode {
     @Override
     public List<CraftingSetup> crafts() {
         return crafts == null ? RouterNode.super.crafts() : crafts;
+    }
+
+    @Override
+    public Optional<Cleanup> cleanup() {
+        return Optional.ofNullable(cleanup);
     }
 
     @Override

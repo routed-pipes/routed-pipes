@@ -18,6 +18,7 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> im
     private Button defaultRoute;
     private Button mode;
     private Button exclude;
+    private Button importCleanup;
 
     public PipeConfigScreen(PipeConfigMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
@@ -56,6 +57,10 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> im
                     .bounds(leftPos + 120, topPos + 34, 48, 16).build());
         }
         if (menu.kind() == PipeKind.CRAFTING) {
+            exclude = addRenderableWidget(Button.builder(excludeLabel(), button -> press(PipeConfigMenu.BUTTON_EXCLUDE))
+                    .bounds(leftPos + 120, topPos + 95, 48, 16).build());
+            importCleanup = addRenderableWidget(Button.builder(Component.translatable("logisticspipes.gui.import"),
+                    button -> press(PipeConfigMenu.BUTTON_IMPORT_CLEANUP)).bounds(leftPos + 120, topPos + 114, 48, 16).build());
             addRenderableWidget(Button.builder(Component.literal("<"), button -> press(PipeConfigMenu.BUTTON_PRIORITY_DOWN))
                     .bounds(leftPos + 96, topPos + 74, 14, 14).build());
             addRenderableWidget(Button.builder(Component.literal(">"), button -> press(PipeConfigMenu.BUTTON_PRIORITY_UP))
@@ -83,7 +88,11 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> im
         return Component.translatable("logisticspipes.gui." + group + "." + Math.max(0, menu.mode()));
     }
 
+    // for a crafter the list is what stays in the machine or what goes
     private Component excludeLabel() {
+        if (menu.kind() == PipeKind.CRAFTING) {
+            return Component.translatable(menu.exclude() ? "logisticspipes.gui.cleanup.keep" : "logisticspipes.gui.cleanup.remove");
+        }
         return Component.translatable(menu.exclude() ? "logisticspipes.gui.exclude" : "logisticspipes.gui.include");
     }
 
@@ -96,6 +105,10 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> im
             // modules that share this layout have no mode to choose
             mode.visible = menu.mode() >= 0;
             mode.setMessage(modeLabel());
+        }
+        if (importCleanup != null) {
+            importCleanup.visible = menu.cleanupSlots() > 0;
+            exclude.visible = menu.cleanupSlots() > 0;
         }
         if (exclude != null) {
             exclude.setMessage(excludeLabel());
@@ -148,6 +161,9 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> im
     @Override
     protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
         super.renderLabels(graphics, mouseX, mouseY);
+        if (menu.kind() == PipeKind.CRAFTING && menu.hasByproduct()) {
+            graphics.drawString(font, Component.translatable("logisticspipes.gui.byproduct"), 144, 16, TEXT, false);
+        }
         if (menu.kind() == PipeKind.CRAFTING) {
             graphics.drawString(font, Component.translatable("logisticspipes.gui.priority"), 30, 77, TEXT, false);
             String priority = Integer.toString(menu.priority());

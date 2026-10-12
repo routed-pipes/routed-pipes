@@ -8,11 +8,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.function.ToIntFunction;
 import java.util.Set;
 import java.util.function.Supplier;
 
 import logisticspipes.adapter.minecraft.menu.NamesMenu;
 import logisticspipes.adapter.minecraft.menu.PipeConfigMenu;
+import logisticspipes.domain.crafting.Cleanup;
 import logisticspipes.domain.crafting.CraftingSetup;
 import logisticspipes.domain.crafting.Recipe;
 import logisticspipes.domain.item.ItemBatch;
@@ -32,6 +34,7 @@ import logisticspipes.domain.logistics.Supply;
 import logisticspipes.domain.logistics.SupplyMode;
 import logisticspipes.domain.logistics.Terminus;
 import logisticspipes.domain.logistics.TraitSink;
+import logisticspipes.domain.logistics.UpgradeKind;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
@@ -209,6 +212,32 @@ public class ModuleItem extends Item {
 
     // what a crafter module makes, empty until it has ingredients and a result
     public static Optional<CraftingSetup> craftingOf(ItemStack module) {
+        return craftingOf(module, false);
+    }
+
+    // what an idle crafter module clears out of its machine, with that many cleanup upgrades
+    public static Optional<Cleanup> cleanupOf(ItemStack module, int upgrades) {
+        if (upgrades == 0 || !(module.getItem() instanceof ModuleItem item) || item.kind != ModuleKind.CRAFTER) {
+            return Optional.empty();
+        }
+        NonNullList<ItemStack> slots = filterOf(module);
+        Set<ItemType> listed = new HashSet<>();
+        int last = PipeBlockEntity.CLEANUP_FIRST + Math.min(PipeBlockEntity.CLEANUP_SLOTS, upgrades * PipeConfigMenu.CLEANUP_PER_UPGRADE);
+        for (int slot = PipeBlockEntity.CLEANUP_FIRST; slot < last; slot++) {
+            if (!slots.get(slot).isEmpty()) {
+                listed.add(McItemType.batchOf(slots.get(slot)).type().plain());
+            }
+        }
+        return Optional.of(new Cleanup(listed, excludes(module)));
+    }
+
+    // a crafter keeps what is on its cleanup list unless told otherwise, everything else lists what to take
+    private static boolean excludes(ItemStack module) {
+        boolean set = module.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).contains(EXCLUDE_TAG);
+        return set ? intOf(module, EXCLUDE_TAG) != 0 : ((ModuleItem) module.getItem()).kind == ModuleKind.CRAFTER;
+    }
+
+    public static Optional<CraftingSetup> craftingOf(ItemStack module, boolean withByproduct) {
         if (!(module.getItem() instanceof ModuleItem item) || item.kind != ModuleKind.CRAFTER) {
             return Optional.empty();
         }
@@ -228,8 +257,9 @@ public class ModuleItem extends Item {
         if (inputs.isEmpty() || output.isEmpty()) {
             return Optional.empty();
         }
+        ItemStack extra = slots.get(PipeBlockEntity.BYPRODUCT_SLOT);
         return Optional.of(new CraftingSetup(new Recipe(inputs, McItemType.batchOf(output)), forSatellite, satellite,
-                intOf(module, PRIORITY_TAG)));
+                intOf(module, PRIORITY_TAG), withByproduct && !extra.isEmpty() ? Optional.of(McItemType.batchOf(extra)) : Optional.empty()));
     }
 
     public static void configureCrafter(ItemStack module, List<ItemStack> inputs, ItemStack output, int satellite, int priority) {
@@ -311,14 +341,15 @@ public class ModuleItem extends Item {
         if (!level.isClientSide) {
             // nothing to import a recipe from while the module is in the hand
             settingsProvider(module, holder -> !module.isEmpty() && holder.getInventory().contains(module), () -> { },
-                    target -> { }).ifPresent(player::openMenu);
+                    target -> { }, upgrade -> 0).ifPresent(player::openMenu);
         }
         return InteractionResultHolder.sidedSuccess(module, level.isClientSide);
     }
 
     // the settings screen of a module wherever it is, changed runs after every change
+    // upgrades says how many of an upgrade the module has where it sits
     public Optional<MenuProvider> settingsProvider(ItemStack module, Predicate<Player> usable, Runnable changed,
-            Consumer<Container> importRecipe) {
+            Consumer<Container> importRecipe, ToIntFunction<UpgradeKind> upgrades) {
         if (namesMenu != null) {
             return Optional.of(new SimpleMenuProvider((id, inventory, user) -> new NamesMenu(namesMenu.get(), id, inventory,
                     module, usable, changed), module.getHoverName()));
@@ -327,12 +358,12 @@ public class ModuleItem extends Item {
             return Optional.empty();
         }
         return Optional.of(new SimpleMenuProvider((id, inventory, user) -> settings(id, user, module, usable, changed,
-                importRecipe), module.getHoverName()));
+                importRecipe, upgrades), module.getHoverName()));
     }
 
     // the same screen as a pipe with that layout, every change is written straight back to the module
     private PipeConfigMenu settings(int id, Player player, ItemStack module, Predicate<Player> usable, Runnable changed,
-            Consumer<Container> importRecipe) {
+            Consumer<Container> importRecipe, ToIntFunction<UpgradeKind> upgrades) {
         SimpleContainer filter = new SimpleContainer(PipeBlockEntity.CONFIG_SLOTS);
         NonNullList<ItemStack> stored = filterOf(module);
         for (int slot = 0; slot < FILTER_SLOTS; slot++) {
@@ -344,7 +375,9 @@ public class ModuleItem extends Item {
                 return switch (index) {
                     case PipeConfigMenu.DATA_DEFAULT_ROUTE -> defaultRouteOf(module) ? 1 : 0;
                     case PipeConfigMenu.DATA_MODE -> modeOf(module);
-                    case PipeConfigMenu.DATA_EXCLUDE -> intOf(module, EXCLUDE_TAG);
+                    case PipeConfigMenu.DATA_EXCLUDE -> excludes(module) ? 1 : 0;
+                    case PipeConfigMenu.DATA_BYPRODUCT -> upgrades.applyAsInt(UpgradeKind.CRAFTING_BYPRODUCT);
+                    case PipeConfigMenu.DATA_CLEANUP -> upgrades.applyAsInt(UpgradeKind.CRAFTING_CLEANUP);
                     case PipeConfigMenu.DATA_SATELLITE -> intOf(module, SATELLITE_TAG);
                     case PipeConfigMenu.DATA_PRIORITY -> intOf(module, PRIORITY_TAG);
                     default -> 0;
@@ -355,7 +388,7 @@ public class ModuleItem extends Item {
             public void set(int index, int value) {
                 if (index == PipeConfigMenu.DATA_DEFAULT_ROUTE) {
                     configureSink(module, filterOf(module), value != 0);
-                } else {
+                } else if (index != PipeConfigMenu.DATA_BYPRODUCT && index != PipeConfigMenu.DATA_CLEANUP) {
                     String tag = switch (index) {
                         case PipeConfigMenu.DATA_MODE -> MODE_TAG;
                         case PipeConfigMenu.DATA_EXCLUDE -> EXCLUDE_TAG;

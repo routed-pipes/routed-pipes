@@ -13,6 +13,7 @@ import java.util.OptionalInt;
 import java.util.Set;
 
 import logisticspipes.application.port.RouterNode;
+import logisticspipes.domain.crafting.Cleanup;
 import logisticspipes.domain.crafting.CraftingSetup;
 import logisticspipes.domain.crafting.OutputOrder;
 import logisticspipes.domain.item.ItemBatch;
@@ -62,6 +63,7 @@ public final class LogisticsNetwork {
     static final int MAX_NEW_TABLES_PER_TICK = 40;
     // a supplier filling all the room it has orders no more than this at a time
     static final int SUPPLY_ROOM_CHECK = 64;
+    static final int CLEANUP_AMOUNT = 64;
 
     // a sink that takes a batch and what it charges for that
     private record Claim(RouterId router, int energy, int maxItems) {
@@ -457,6 +459,16 @@ public final class LogisticsNetwork {
                 continue;
             }
             crafter.outputOrders().add(new OutputOrder(craft.destination(), craft.output(), now));
+            // what else comes out with every run is expected too, and sent off as it appears
+            for (CraftingSetup setup : crafter.crafts()) {
+                if (setup.recipe().output().type().equals(craft.output().type()) && setup.byproduct().isPresent()) {
+                    int perRun = setup.recipe().output().count();
+                    int runs = (craft.output().count() + perRun - 1) / perRun;
+                    ItemBatch extra = setup.byproduct().get();
+                    crafter.outputOrders().add(OutputOrder.extra(new ItemBatch(extra.type(), extra.count() * runs), now));
+                    break;
+                }
+            }
             pending.expect(craft.destination(), craft.output().type(), craft.output().count(), now + CRAFT_TIMEOUT);
         }
     }
@@ -475,8 +487,11 @@ public final class LogisticsNetwork {
                 if (ready == 0 || !usePower(id, ready * ENERGY_PER_CRAFTED_ITEM)) {
                     return 0;
                 }
-                return node.send(order.batch().type(), ready, order.destination());
+                return node.send(order.batch().type(), ready, order.destination(),
+                        order.isExtra() ? TransportMode.UNCLAIMED : TransportMode.REQUESTED);
             });
+        } else if (now % CRAFT_INTERVAL == 0) {
+            node.cleanup().ifPresent(cleanup -> cleanUp(id, node, cleanup));
         }
         if (now % SUPPLY_INTERVAL == 0) {
             for (Supply supply : node.supplies()) {
@@ -488,6 +503,19 @@ public final class LogisticsNetwork {
                 if (now % extraction.interval() == 0) {
                     extract(id, node, extraction, now);
                 }
+            }
+        }
+    }
+
+    // a stack of the first thing in the machine that should not be there goes off to whoever takes it
+    private void cleanUp(RouterId id, RouterNode node, Cleanup cleanup) {
+        for (Map.Entry<ItemType, Integer> stock : node.contents().entrySet()) {
+            if (cleanup.removes(stock.getKey())) {
+                int count = Math.min(CLEANUP_AMOUNT, stock.getValue());
+                if (usePower(id, count * ENERGY_PER_CRAFTED_ITEM)) {
+                    node.send(stock.getKey(), count, null, TransportMode.UNCLAIMED);
+                }
+                return;
             }
         }
     }

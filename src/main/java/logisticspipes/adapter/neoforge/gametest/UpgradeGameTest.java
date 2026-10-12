@@ -278,4 +278,62 @@ public class UpgradeGameTest {
             helper.succeed();
         });
     }
+
+    // an idle crafting pipe with a cleanup upgrade sends everything in its machine off, here to a basic pipe with a chest
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void cleanupUpgradeClearsTheMachineOfAnIdleCrafter(GameTestHelper helper) {
+        GameTestPower.supply(helper);
+        PipeBlockEntity crafting = pipe(helper, PipeKind.CRAFTING, 0);
+        crafting.config().setItem(0, new ItemStack(Items.OAK_LOG));
+        crafting.config().setItem(PipeBlockEntity.OUTPUT_SLOT, new ItemStack(Items.OAK_PLANKS, 4));
+        crafting.config().setItem(PipeBlockEntity.CLEANUP_FIRST, new ItemStack(Items.OAK_LOG));
+        helper.assertTrue(crafting.installUpgrade(upgrade(UpgradeKind.CRAFTING_CLEANUP, 1)), "a crafting pipe takes the cleanup upgrade");
+        BlockPos machine = new BlockPos(0, 2, 1);
+        helper.setBlock(machine, Blocks.CHEST);
+        Container contents = helper.getBlockEntity(machine);
+        contents.setItem(0, new ItemStack(Items.OAK_LOG, 3));
+        contents.setItem(1, new ItemStack(Items.DIRT, 5));
+        pipe(helper, PipeKind.BASIC, 1);
+        BlockPos target = new BlockPos(1, 2, 1);
+        helper.setBlock(target, Blocks.CHEST);
+
+        helper.runAfterDelay(80, () -> {
+            assertCount(helper, target, Items.DIRT, 5);
+            assertCount(helper, machine, Items.OAK_LOG, 3);
+            helper.succeed();
+        });
+    }
+
+    // the slots for the byproduct and the cleanup list only work with their upgrades
+    @GameTest(template = EMPTY)
+    public static void craftingScreenShowsUpgradeSlotsOnlyWithTheirUpgrades(GameTestHelper helper) {
+        GameTestPower.supply(helper);
+        PipeBlockEntity crafting = pipe(helper, PipeKind.CRAFTING, 0);
+        TestPlayer player = TestPlayer.in(helper);
+
+        player.openMenu(crafting.menuProvider());
+        int byproduct = PipeBlockEntity.BYPRODUCT_SLOT;
+        int cleanup = PipeBlockEntity.CLEANUP_FIRST;
+        helper.assertTrue(!player.containerMenu.getSlot(byproduct).isActive() && !player.containerMenu.getSlot(cleanup).isActive(),
+                "no extra slots without upgrades");
+        crafting.installUpgrade(upgrade(UpgradeKind.CRAFTING_BYPRODUCT, 1));
+        ItemStack cleanups = upgrade(UpgradeKind.CRAFTING_CLEANUP, 2);
+        crafting.installUpgrade(cleanups);
+        crafting.installUpgrade(cleanups);
+        player.openMenu(crafting.menuProvider());
+        helper.assertTrue(player.containerMenu.getSlot(byproduct).isActive(), "byproduct slot");
+        helper.assertTrue(player.containerMenu.getSlot(cleanup + 5).isActive() && !player.containerMenu.getSlot(cleanup + 6).isActive(),
+                "six cleanup slots for two upgrades");
+
+        crafting.config().setItem(0, new ItemStack(Items.RAW_IRON));
+        crafting.config().setItem(PipeBlockEntity.OUTPUT_SLOT, new ItemStack(Items.IRON_INGOT));
+        crafting.config().setItem(byproduct, new ItemStack(Items.IRON_NUGGET));
+        helper.assertTrue(crafting.crafts().get(0).byproduct().isPresent(), "the byproduct is part of the recipe");
+        player.containerMenu.clickMenuButton(player, logisticspipes.adapter.minecraft.menu.PipeConfigMenu.BUTTON_IMPORT_CLEANUP);
+        helper.assertTrue(crafting.config().getItem(cleanup).is(Items.RAW_IRON) && crafting.config().getItem(cleanup + 1).is(Items.IRON_INGOT),
+                "import lists the recipe");
+        helper.assertTrue(crafting.cleanup().orElseThrow().removes(McItemType.batchOf(new ItemStack(Items.RAW_IRON)).type()),
+                "after the import the listed items are what goes");
+        helper.succeed();
+    }
 }
