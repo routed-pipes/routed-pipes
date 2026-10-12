@@ -21,7 +21,7 @@ import logisticspipes.adapter.minecraft.RemoteOrdererItem;
 import logisticspipes.adapter.minecraft.UpgradeItem;
 import logisticspipes.adapter.minecraft.menu.ChassisMenu;
 import logisticspipes.adapter.minecraft.menu.CraftingTableMenu;
-import logisticspipes.adapter.minecraft.menu.MarkerRequests;
+import logisticspipes.adapter.minecraft.menu.MenuRequests;
 import logisticspipes.adapter.minecraft.menu.PipeConfigMenu;
 import logisticspipes.adapter.minecraft.menu.RequestMenu;
 import logisticspipes.domain.logistics.ModuleKind;
@@ -44,6 +44,7 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
+import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -197,8 +198,11 @@ public class LogisticsPipes {
     }
 
     private static void registerPayloads(RegisterPayloadHandlersEvent event) {
-        event.registrar("1").playToServer(SetMarkerPayload.TYPE, SetMarkerPayload.CODEC, (payload, context) ->
-                MarkerRequests.apply(context.player(), payload.containerId(), payload.slot(), payload.stack()));
+        PayloadRegistrar registrar = event.registrar("1");
+        registrar.playToServer(SetMarkerPayload.TYPE, SetMarkerPayload.CODEC, (payload, context) ->
+                MenuRequests.apply(context.player(), payload.containerId(), payload.slot(), payload.stack()));
+        registrar.playToServer(SetMenuTextPayload.TYPE, SetMenuTextPayload.CODEC, (payload, context) ->
+                MenuRequests.applyText(context.player(), payload.containerId(), payload.field(), payload.text()));
     }
 
     private static void registerCapabilities(RegisterCapabilitiesEvent event) {

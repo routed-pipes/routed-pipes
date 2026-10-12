@@ -47,6 +47,7 @@ import net.minecraft.world.Containers;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.SimpleMenuProvider;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.SimpleContainerData;
@@ -328,7 +329,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         TravellingItem item = departure.item();
         ItemStack stack = McItemType.stackOf(item.batch());
         if (departure.exit().isEmpty()) {
-            Block.popResource(level, worldPosition, stack);
+            popOut(stack);
             return;
         }
         Side exit = departure.exit().get();
@@ -356,8 +357,17 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             // did not fit after all, send it somewhere else
             transport.insert(new TravellingItem(McItemType.batchOf(rest), exit, null));
         } else {
-            Block.popResource(level, worldPosition, rest);
+            popOut(rest);
         }
+    }
+
+    // an item with nowhere to go ends up lying on top of the pipe
+    // dropped inside the pipe it would be squeezed out sideways and fly off
+    private void popOut(ItemStack stack) {
+        ItemEntity item = new ItemEntity(level, worldPosition.getX() + 0.5, worldPosition.getY() + 0.8,
+                worldPosition.getZ() + 0.5, stack, 0, 0, 0);
+        item.setDefaultPickUpDelay();
+        level.addFreshEntity(item);
     }
 
     // sides that touch an inventory

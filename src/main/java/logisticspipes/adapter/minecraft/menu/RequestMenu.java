@@ -3,6 +3,7 @@ package logisticspipes.adapter.minecraft.menu;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.function.Predicate;
 
@@ -30,7 +31,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 
 // lists what the network can deliver and orders it, everything runs over plain menu slots and buttons
-public class RequestMenu extends AbstractContainerMenu {
+public class RequestMenu extends AbstractContainerMenu implements TextMenu {
 
     public static final int COLUMNS = 9;
     public static final int ROWS = 6;
@@ -40,6 +41,7 @@ public class RequestMenu extends AbstractContainerMenu {
     public static final int BUTTON_PREVIOUS_PAGE = 7;
     public static final int BUTTON_NEXT_PAGE = 8;
     public static final int MAX_AMOUNT = 9999;
+    public static final int TEXT_SEARCH = 0;
     // listed stacks carry their network wide amount in here, the stack count is always 1
     private static final String COUNT_TAG = "LogisticsPipesCount";
     private static final int REFRESH_INTERVAL = 20;
@@ -55,6 +57,7 @@ public class RequestMenu extends AbstractContainerMenu {
     private final Predicate<Player> usable;
     private List<ItemType> listed = List.of();
     private ItemType selected;
+    private String search = "";
     private int ticks;
 
     // client side
@@ -100,6 +103,7 @@ public class RequestMenu extends AbstractContainerMenu {
 
     private void refresh() {
         List<Map.Entry<ItemType, Integer>> entries = new ArrayList<>(pipe.available().entrySet());
+        entries.removeIf(entry -> !matchesSearch(entry.getKey()));
         entries.sort(Comparator.comparing(entry -> BuiltInRegistries.ITEM.getKey(((McItemType) entry.getKey()).item())));
         int pages = Math.max(1, (entries.size() + PAGE_SIZE - 1) / PAGE_SIZE);
         int page = Mth.clamp(data.get(DATA_PAGE), 0, pages - 1);
@@ -121,6 +125,26 @@ public class RequestMenu extends AbstractContainerMenu {
         }
         listed = shown;
         data.set(DATA_SELECTED, selected == null ? -1 : listed.indexOf(selected));
+    }
+
+    // by display name or item id, the way most people look for things
+    private boolean matchesSearch(ItemType type) {
+        if (search.isEmpty()) {
+            return true;
+        }
+        McItemType item = (McItemType) type;
+        return name(type).getString().toLowerCase(Locale.ROOT).contains(search)
+                || BuiltInRegistries.ITEM.getKey(item.item()).toString().contains(search);
+    }
+
+    @Override
+    public void setText(int field, String text) {
+        if (pipe == null || field != TEXT_SEARCH) {
+            return;
+        }
+        search = text.strip().toLowerCase(Locale.ROOT);
+        data.set(DATA_PAGE, 0);
+        refresh();
     }
 
     @Override

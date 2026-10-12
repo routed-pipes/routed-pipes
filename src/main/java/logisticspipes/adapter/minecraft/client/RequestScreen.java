@@ -3,11 +3,13 @@ package logisticspipes.adapter.minecraft.client;
 import logisticspipes.adapter.minecraft.menu.RequestMenu;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import org.lwjgl.glfw.GLFW;
 
 public class RequestScreen extends AbstractContainerScreen<RequestMenu> {
 
@@ -15,6 +17,8 @@ public class RequestScreen extends AbstractContainerScreen<RequestMenu> {
     private static final int SELECTION = 0xFF55CC55;
     private static final int[] STEP_X = {8, 31, 54, 100, 119, 142};
     private static final int[] STEP_WIDTH = {22, 22, 18, 18, 22, 26};
+
+    private EditBox search;
 
     public RequestScreen(RequestMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
@@ -24,6 +28,13 @@ public class RequestScreen extends AbstractContainerScreen<RequestMenu> {
     @Override
     protected void init() {
         super.init();
+        String typed = search == null ? "" : search.getValue();
+        search = new EditBox(font, leftPos + 8, topPos + 4, 100, 12, Component.translatable("logisticspipes.gui.search"));
+        search.setHint(Component.translatable("logisticspipes.gui.search"));
+        search.setMaxLength(32);
+        search.setValue(typed);
+        search.setResponder(text -> ClientMenuLink.setText(menu.containerId, RequestMenu.TEXT_SEARCH, text));
+        addRenderableWidget(search);
         addRenderableWidget(Button.builder(Component.literal("<"), button -> press(RequestMenu.BUTTON_PREVIOUS_PAGE))
                 .bounds(leftPos + 126, topPos + 4, 12, 12).build());
         addRenderableWidget(Button.builder(Component.literal(">"), button -> press(RequestMenu.BUTTON_NEXT_PAGE))
@@ -36,6 +47,16 @@ public class RequestScreen extends AbstractContainerScreen<RequestMenu> {
         }
         addRenderableWidget(Button.builder(Component.translatable("logisticspipes.gui.request"),
                 button -> press(RequestMenu.BUTTON_REQUEST)).bounds(leftPos + 8, topPos + 162, 160, 16).build());
+    }
+
+    // typing in the search must not trigger hotkeys like closing the screen with the inventory key
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (search.isFocused() && keyCode != GLFW.GLFW_KEY_ESCAPE) {
+            search.keyPressed(keyCode, scanCode, modifiers);
+            return true;
+        }
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
     private void press(int button) {
@@ -88,7 +109,6 @@ public class RequestScreen extends AbstractContainerScreen<RequestMenu> {
 
     @Override
     protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
-        graphics.drawString(font, title, titleLabelX, titleLabelY, TEXT, false);
         String page = (menu.page() + 1) + "/" + menu.pages();
         graphics.drawString(font, page, 147 - font.width(page) / 2, 6, TEXT, false);
         int selected = menu.selectedSlot();

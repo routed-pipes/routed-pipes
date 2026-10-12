@@ -40,7 +40,8 @@ class HexagonalArchitectureTest {
     static final ArchRule clientCodeStaysInClientClasses = noClasses()
             .that().resideOutsideOfPackages("logisticspipes.adapter.minecraft.client..",
                     "logisticspipes.adapter.neoforge.visualtest..", "logisticspipes.adapter.jei..")
-            .and().doNotHaveSimpleName("LogisticsPipesClient")
+            // the client entry class and the classes nested in it
+            .and().haveNameNotMatching(".*\\.LogisticsPipesClient(\\$.*)?")
             .should().dependOnClassesThat()
             .resideInAnyPackage("net.minecraft.client..", "net.neoforged.neoforge.client..", "com.mojang.blaze3d..",
                     "logisticspipes.adapter.minecraft.client..", "logisticspipes.adapter.neoforge.visualtest..");

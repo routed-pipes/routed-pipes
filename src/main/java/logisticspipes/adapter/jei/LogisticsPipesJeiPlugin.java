@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import logisticspipes.adapter.minecraft.PipeBlockEntity;
-import logisticspipes.adapter.minecraft.client.ClientMarkers;
+import logisticspipes.adapter.minecraft.client.ClientMenuLink;
 import logisticspipes.adapter.minecraft.client.CraftingTableScreen;
 import logisticspipes.adapter.minecraft.client.MarkerScreen;
 import logisticspipes.adapter.minecraft.client.PipeConfigScreen;
@@ -80,7 +80,7 @@ public class LogisticsPipesJeiPlugin implements IModPlugin {
 
                     @Override
                     public void accept(I ignored) {
-                        ClientMarkers.set(screen.containerId(), markerSlot, dragged.get().copyWithCount(1));
+                        ClientMenuLink.setMarker(screen.containerId(), markerSlot, dragged.get().copyWithCount(1));
                     }
                 });
             }
@@ -117,7 +117,7 @@ public class LogisticsPipesJeiPlugin implements IModPlugin {
                 List<IRecipeSlotView> inputs = recipeSlots.getSlotViews(RecipeIngredientRole.INPUT);
                 for (int slot = 0; slot < menu.markerSlots(); slot++) {
                     ItemStack stack = slot < inputs.size() ? inputs.get(slot).getDisplayedItemStack().orElse(ItemStack.EMPTY) : ItemStack.EMPTY;
-                    ClientMarkers.set(menu.containerId, slot, stack.copyWithCount(stack.isEmpty() ? 0 : 1));
+                    ClientMenuLink.setMarker(menu.containerId, slot, stack.copyWithCount(stack.isEmpty() ? 0 : 1));
                 }
             }
             return null;
@@ -156,9 +156,9 @@ public class LogisticsPipesJeiPlugin implements IModPlugin {
             }
             if (doTransfer) {
                 for (int slot = 0; slot < PipeBlockEntity.OUTPUT_SLOT; slot++) {
-                    ClientMarkers.set(menu.containerId, slot, slot < inputs.size() ? inputs.get(slot) : ItemStack.EMPTY);
+                    ClientMenuLink.setMarker(menu.containerId, slot, slot < inputs.size() ? inputs.get(slot) : ItemStack.EMPTY);
                 }
-                ClientMarkers.set(menu.containerId, PipeBlockEntity.OUTPUT_SLOT, outputs.get(0));
+                ClientMenuLink.setMarker(menu.containerId, PipeBlockEntity.OUTPUT_SLOT, outputs.get(0));
             }
             return null;
         }

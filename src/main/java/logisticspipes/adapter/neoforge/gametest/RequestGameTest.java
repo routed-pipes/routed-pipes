@@ -4,7 +4,7 @@ import logisticspipes.adapter.minecraft.McItemType;
 import logisticspipes.adapter.minecraft.PipeBlockEntity;
 import logisticspipes.adapter.minecraft.PowerJunctionBlockEntity;
 import logisticspipes.adapter.minecraft.RemoteOrdererItem;
-import logisticspipes.adapter.minecraft.menu.MarkerRequests;
+import logisticspipes.adapter.minecraft.menu.MenuRequests;
 import logisticspipes.adapter.minecraft.menu.PipeConfigMenu;
 import logisticspipes.adapter.minecraft.menu.RequestMenu;
 import logisticspipes.adapter.neoforge.LogisticsPipes;
@@ -403,24 +403,57 @@ public class RequestGameTest {
         helper.assertTrue(player.containerMenu instanceof PipeConfigMenu, "settings should be open");
         int id = player.containerMenu.containerId;
 
-        MarkerRequests.apply(player, id, 0, new ItemStack(Items.RAW_IRON, 2));
-        MarkerRequests.apply(player, id, PipeBlockEntity.OUTPUT_SLOT, new ItemStack(Items.IRON_INGOT, 2));
+        MenuRequests.apply(player, id, 0, new ItemStack(Items.RAW_IRON, 2));
+        MenuRequests.apply(player, id, PipeBlockEntity.OUTPUT_SLOT, new ItemStack(Items.IRON_INGOT, 2));
         helper.assertTrue(crafting.recipe().isPresent(), "markers from the client set the recipe");
 
-        MarkerRequests.apply(player, id + 1, 1, new ItemStack(Items.DIAMOND));
-        MarkerRequests.apply(player, id, PipeBlockEntity.OUTPUT_SLOT + 1, new ItemStack(Items.DIAMOND));
-        MarkerRequests.apply(player, id, -1, new ItemStack(Items.DIAMOND));
+        MenuRequests.apply(player, id + 1, 1, new ItemStack(Items.DIAMOND));
+        MenuRequests.apply(player, id, PipeBlockEntity.OUTPUT_SLOT + 1, new ItemStack(Items.DIAMOND));
+        MenuRequests.apply(player, id, -1, new ItemStack(Items.DIAMOND));
         helper.assertTrue(crafting.config().getItem(1).isEmpty(), "a wrong menu id is ignored");
         helper.assertTrue(player.getInventory().isEmpty(), "slots that are not markers are never written");
 
-        MarkerRequests.apply(player, id, 2, new ItemStack(Items.COAL, 99));
+        MenuRequests.apply(player, id, 2, new ItemStack(Items.COAL, 99));
         helper.assertTrue(crafting.config().getItem(2).getCount() == 64, "counts are capped");
-        MarkerRequests.apply(player, id, 2, ItemStack.EMPTY);
+        MenuRequests.apply(player, id, 2, ItemStack.EMPTY);
         helper.assertTrue(crafting.config().getItem(2).isEmpty(), "an empty stack clears the marker");
 
         player.containerMenu = player.inventoryMenu;
-        MarkerRequests.apply(player, id, 3, new ItemStack(Items.DIAMOND));
+        MenuRequests.apply(player, id, 3, new ItemStack(Items.DIAMOND));
         helper.assertTrue(crafting.config().getItem(3).isEmpty(), "nothing happens once the menu is closed");
         helper.succeed();
+    }
+
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void searchNarrowsTheListByNameOrId(GameTestHelper helper) {
+        GameTestPower.supply(helper);
+        PipeBlockEntity request = pipe(helper, PipeKind.REQUEST, 0, 1);
+        pipe(helper, PipeKind.PROVIDER, 1, 1);
+        chest(helper, 1, 2, new ItemStack(Items.COBBLESTONE, 64), new ItemStack(Items.DIAMOND, 3),
+                new ItemStack(Items.DIAMOND_PICKAXE), new ItemStack(Items.OAK_LOG, 5));
+        TestPlayer player = TestPlayer.in(helper);
+
+        helper.runAfterDelay(SETTLE, () -> {
+            request.openRequestScreen(player, false);
+            RequestMenu menu = (RequestMenu) player.containerMenu;
+            helper.assertTrue(menu.getSlot(3).hasItem() && !menu.getSlot(4).hasItem(), "four kinds listed at first");
+
+            MenuRequests.applyText(player, menu.containerId, RequestMenu.TEXT_SEARCH, "  DIAmond ");
+            helper.assertTrue(menu.getSlot(0).getItem().is(Items.DIAMOND) && menu.getSlot(1).getItem().is(Items.DIAMOND_PICKAXE)
+                    && !menu.getSlot(2).hasItem(), "search by name, case and spaces do not matter");
+
+            MenuRequests.applyText(player, menu.containerId, RequestMenu.TEXT_SEARCH, "minecraft:oak");
+            helper.assertTrue(menu.getSlot(0).getItem().is(Items.OAK_LOG) && !menu.getSlot(1).hasItem(), "search by item id");
+
+            menu.clicked(0, 0, ClickType.PICKUP, player);
+            MenuRequests.applyText(player, menu.containerId, RequestMenu.TEXT_SEARCH, "cobble");
+            helper.assertTrue(menu.selectedSlot() == -1, "a selection that is filtered out is not shown as selected");
+            MenuRequests.applyText(player, menu.containerId, RequestMenu.TEXT_SEARCH, "");
+            helper.assertTrue(menu.getSlot(3).hasItem() && menu.selectedSlot() >= 0, "clearing the search brings everything back");
+
+            MenuRequests.applyText(player, menu.containerId + 1, RequestMenu.TEXT_SEARCH, "diamond");
+            helper.assertTrue(menu.getSlot(3).hasItem(), "text for another menu is ignored");
+            helper.succeed();
+        });
     }
 }
