@@ -184,13 +184,13 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             linksDirty = true;
             pipe().refreshConnections(getBlockState(), level, worldPosition);
             if (pipe().routed()) {
-                network().addRouter(routerId, this);
+                network().addRouter(routerId, this, level.getGameTime());
             }
             PipeTopology.markRoutersDirty(level, worldPosition);
         }
         if (linksDirty && pipe().routed()) {
             linksDirty = false;
-            network().updateLinks(routerId, PipeTopology.discoverLinks(level, worldPosition));
+            network().updateLinks(routerId, PipeTopology.discoverLinks(level, worldPosition), level.getGameTime());
         }
         if ((kind() == PipeKind.CRAFTING || kind() == PipeKind.SUPPLIER)
                 && Math.floorMod(level.getGameTime() + worldPosition.asLong(), UPKEEP_INTERVAL) == 0) {
@@ -210,7 +210,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
 
     private Optional<Side> chooseExit(TravellingItem item) {
         if (pipe().routed()) {
-            return network().chooseExit(routerId, item);
+            return network().chooseExit(routerId, item, level.getGameTime());
         }
         Set<Side> connections = EnumSet.noneOf(Side.class);
         for (Direction side : Direction.values()) {
@@ -380,7 +380,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     @Override
     public void setRemoved() {
         if (announced && level != null && !level.isClientSide && pipe().routed()) {
-            network().removeRouter(routerId);
+            network().removeRouter(routerId, level.getGameTime());
         }
         super.setRemoved();
     }

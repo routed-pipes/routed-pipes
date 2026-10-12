@@ -30,6 +30,9 @@ class LogisticsNetworkRequestTest {
     private static final RouterId SUPPLIER = router(5);
     private static final RouterId ISLAND = router(9);
 
+    // long after the network was put together
+    private static final long NOW = 100;
+
     private final LogisticsNetwork network = new LogisticsNetwork();
     private final FakeNode request = new FakeNode(PipeKind.REQUEST);
     private final FakeNode provider = new FakeNode(PipeKind.PROVIDER);
@@ -46,7 +49,7 @@ class LogisticsNetworkRequestTest {
         List<RouterId> ids = List.of(REQUEST, PROVIDER, CRAFTING, SATELLITE, SUPPLIER);
         List<FakeNode> nodes = List.of(request, provider, crafting, satellite, supplier);
         for (int i = 0; i < ids.size(); i++) {
-            network.addRouter(ids.get(i), nodes.get(i));
+            network.addRouter(ids.get(i), nodes.get(i), 0);
         }
         for (int i = 0; i < ids.size(); i++) {
             List<Link> links = new java.util.ArrayList<>();
@@ -56,7 +59,7 @@ class LogisticsNetworkRequestTest {
             if (i < ids.size() - 1) {
                 links.add(new Link(ids.get(i + 1), Side.EAST, 1));
             }
-            network.updateLinks(ids.get(i), links);
+            network.updateLinks(ids.get(i), links, 0);
         }
     }
 
@@ -80,7 +83,7 @@ class LogisticsNetworkRequestTest {
     @Test
     void doesNotListStockOfUnreachableProviders() {
         connect();
-        network.addRouter(ISLAND, new FakeNode(PipeKind.PROVIDER).stock("gold", 5));
+        network.addRouter(ISLAND, new FakeNode(PipeKind.PROVIDER).stock("gold", 5), 0);
 
         assertThat(network.available(REQUEST)).isEmpty();
     }
@@ -171,7 +174,7 @@ class LogisticsNetworkRequestTest {
         connect();
         TravellingItem item = new TravellingItem(batch("log", 8), Side.EAST, REQUEST);
 
-        assertThat(network.chooseExit(REQUEST, item)).isEmpty();
+        assertThat(network.chooseExit(REQUEST, item, NOW)).isEmpty();
         assertThat(item.destination()).contains(REQUEST);
     }
 
@@ -181,7 +184,7 @@ class LogisticsNetworkRequestTest {
         request.inventories.add(Side.UP);
         TravellingItem item = new TravellingItem(batch("log", 8), Side.EAST, REQUEST);
 
-        assertThat(network.chooseExit(REQUEST, item)).contains(Side.UP);
+        assertThat(network.chooseExit(REQUEST, item, NOW)).contains(Side.UP);
     }
 
     @Test
@@ -192,7 +195,7 @@ class LogisticsNetworkRequestTest {
         crafting.inventories.add(Side.UP);
         TravellingItem item = new TravellingItem(batch("log", 8), Side.DOWN, null);
 
-        assertThat(network.chooseExit(REQUEST, item)).isEmpty();
+        assertThat(network.chooseExit(REQUEST, item, NOW)).isEmpty();
     }
 
     @Test
@@ -225,7 +228,7 @@ class LogisticsNetworkRequestTest {
         provider.stock("coal", 64);
         supplier.supplyTargets.put(item("coal"), 16);
         network.tick(SUPPLIER, 0);
-        network.chooseExit(SUPPLIER, new TravellingItem(batch("coal", 16), Side.WEST, SUPPLIER));
+        network.chooseExit(SUPPLIER, new TravellingItem(batch("coal", 16), Side.WEST, SUPPLIER), NOW);
         supplier.stock("coal", 12);
 
         network.tick(SUPPLIER, 20);

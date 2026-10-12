@@ -61,4 +61,14 @@ class RoutingNetworkTest {
     void rejectsLinksForUnknownRouter() {
         assertThatThrownBy(() -> network.setLinks(router(1), List.of())).isInstanceOf(IllegalArgumentException.class);
     }
+
+    @Test
+    void reportsWhetherLinksChanged() {
+        network.add(router(1));
+        network.add(router(2));
+
+        assertThat(network.setLinks(router(1), List.of(new Link(router(2), Side.EAST, 3)))).isTrue();
+        assertThat(network.setLinks(router(1), List.of(new Link(router(2), Side.EAST, 3)))).isFalse();
+        assertThat(network.setLinks(router(1), List.of())).isTrue();
+    }
 }

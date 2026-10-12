@@ -25,12 +25,17 @@ public final class RoutingNetwork {
         return links.containsKey(router);
     }
 
-    public void setLinks(RouterId router, List<Link> routerLinks) {
+    // returns whether anything changed
+    public boolean setLinks(RouterId router, List<Link> routerLinks) {
         if (!links.containsKey(router)) {
             throw new IllegalArgumentException("unknown router: " + router);
         }
+        if (links.get(router).equals(routerLinks)) {
+            return false;
+        }
         links.put(router, List.copyOf(routerLinks));
         routes.clear();
+        return true;
     }
 
     public Map<RouterId, Route> routesFrom(RouterId source) {

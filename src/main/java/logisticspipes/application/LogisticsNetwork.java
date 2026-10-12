@@ -37,28 +37,36 @@ public final class LogisticsNetwork {
     // in ticks, after that an item is assumed lost and may be ordered again
     static final long PROVISION_TIMEOUT = 1200;
     static final long CRAFT_TIMEOUT = 24000;
+    // how long after a change to the network no new destinations are handed out
+    static final long SETTLE_TICKS = 10;
 
     private final RoutingNetwork routing = new RoutingNetwork();
     private final Map<RouterId, RouterNode> nodes = new HashMap<>();
     private final PendingDeliveries pending = new PendingDeliveries();
+    private long lastChange = Long.MIN_VALUE / 2;
 
-    public void addRouter(RouterId id, RouterNode node) {
+    public void addRouter(RouterId id, RouterNode node, long now) {
         nodes.put(id, node);
         routing.add(id);
+        lastChange = now;
     }
 
-    public void removeRouter(RouterId id) {
+    public void removeRouter(RouterId id, long now) {
         nodes.remove(id);
         routing.remove(id);
         pending.forget(id);
+        lastChange = now;
     }
 
-    public void updateLinks(RouterId id, List<Link> links) {
-        routing.setLinks(id, links);
+    public void updateLinks(RouterId id, List<Link> links, long now) {
+        if (routing.setLinks(id, links)) {
+            lastChange = now;
+        }
     }
 
     // side an item has to leave the router through, picks a new destination if the current one does not work out
-    public Optional<Side> chooseExit(RouterId at, TravellingItem item) {
+    // empty means there is nowhere to go right now, the pipe asks again for a while before it gives up
+    public Optional<Side> chooseExit(RouterId at, TravellingItem item, long now) {
         if (item.destination().filter(at::equals).isPresent()) {
             if (item.markArrived()) {
                 pending.arrived(at, item.batch().type(), item.batch().count());
@@ -72,6 +80,10 @@ public final class LogisticsNetwork {
         Optional<Side> exit = item.destination().flatMap(destination -> exitTowards(at, destination, item));
         if (exit.isPresent()) {
             return exit;
+        }
+        if (now - lastChange < SETTLE_TICKS) {
+            // routers are still finding each other, a choice made now could be the wrong one
+            return Optional.empty();
         }
         Optional<RouterId> destination = findDestination(at, item);
         destination.ifPresentOrElse(item::routeTo, item::clearDestination);
