@@ -6,6 +6,7 @@ import logisticspipes.adapter.minecraft.client.CraftingTableScreen;
 import logisticspipes.adapter.minecraft.client.PipeConfigScreen;
 import logisticspipes.adapter.minecraft.client.PipeItemRenderer;
 import logisticspipes.adapter.minecraft.client.RequestScreen;
+import logisticspipes.adapter.neoforge.visualtest.ClientBenchmark;
 import logisticspipes.adapter.neoforge.visualtest.VisualTest;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
@@ -34,6 +35,7 @@ public class LogisticsPipesClient {
             }
         });
         VisualTest.registerIfRequested();
+        ClientBenchmark.registerIfRequested();
     }
 
     private static void registerScreens(RegisterMenuScreensEvent event) {

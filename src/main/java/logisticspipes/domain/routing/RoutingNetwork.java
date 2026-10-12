@@ -263,6 +263,11 @@ public final class RoutingNetwork {
         return snapshot;
     }
 
+    // whether routesFrom would have to work the table out first
+    public boolean hasRoutesFrom(RouterId source) {
+        return tables.containsKey(source);
+    }
+
     public RouteTable routesFrom(RouterId source) {
         RouteTable table = tables.get(source);
         if (table == null) {

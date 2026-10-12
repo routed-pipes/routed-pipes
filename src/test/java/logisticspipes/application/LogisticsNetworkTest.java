@@ -323,4 +323,42 @@ class LogisticsNetworkTest {
         assertThat(ordered.waited()).isZero();
         assertThat(network.chooseExit(B, ordered, NOW + 1)).contains(Side.EAST);
     }
+
+    @Test
+    void onlySoManyRoutersWorkOutTheirRoutesInOneTick() {
+        // a hub with many routers around it, each of which has an item to pass on
+        int spokes = LogisticsNetwork.MAX_NEW_TABLES_PER_TICK + 5;
+        FakeNode hub = new FakeNode(PipeKind.BASIC);
+        hub.inventories.add(Side.UP);
+        network.addRouter(router(1000), hub, 0);
+        List<Link> hubLinks = new java.util.ArrayList<>();
+        for (int i = 0; i < spokes; i++) {
+            FakeNode spoke = new FakeNode(PipeKind.REQUEST);
+            network.addRouter(router(2000 + i), spoke, 0);
+            network.updateLinks(router(2000 + i), List.of(new Link(router(1000), Side.EAST, 1)), 0);
+            hubLinks.add(new Link(router(2000 + i), Side.WEST, 1));
+        }
+        network.updateLinks(router(1000), hubLinks, 0);
+
+        int routedFirstTick = 0;
+        int routedSecondTick = 0;
+        List<TravellingItem> waiting = new java.util.ArrayList<>();
+        for (int i = 0; i < spokes; i++) {
+            TravellingItem item = itemFrom(Side.UP);
+            if (network.chooseExit(router(2000 + i), item, NOW).isPresent()) {
+                routedFirstTick++;
+            } else {
+                waiting.add(item);
+            }
+        }
+        for (int i = 0; i < spokes; i++) {
+            if (network.chooseExit(router(2000 + i), itemFrom(Side.UP), NOW + 1).isPresent()) {
+                routedSecondTick++;
+            }
+        }
+
+        assertThat(routedFirstTick).isEqualTo(LogisticsNetwork.MAX_NEW_TABLES_PER_TICK);
+        assertThat(waiting).allMatch(item -> item.waited() == 0);
+        assertThat(routedSecondTick).isEqualTo(spokes);
+    }
 }

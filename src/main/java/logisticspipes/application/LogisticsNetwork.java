@@ -55,6 +55,7 @@ public final class LogisticsNetwork {
     // ticks between rounds of shipping crafted items and of suppliers checking their stock
     static final int CRAFT_INTERVAL = 5;
     static final int SUPPLY_INTERVAL = 20;
+    static final int MAX_NEW_TABLES_PER_TICK = 40;
 
     // a sink that takes a batch and what it charges for that
     private record Claim(RouterId router, int energy) {
@@ -67,6 +68,8 @@ public final class LogisticsNetwork {
     // newest change per group of connected routers, worked out when asked and dropped on any change
     private final Map<Integer, Long> lastChangeOfComponent = new HashMap<>();
     private long lastChangeAnywhere = Long.MIN_VALUE;
+    private long tablesTick = Long.MIN_VALUE;
+    private int tablesThisTick;
     // which routers take which items, so that sorting an item does not have to ask every router of a large base
     private final Map<RouterId, List<SinkRule>> sinkRules = new HashMap<>();
     private final Map<ItemType, Set<RouterId>> sinksByItem = new HashMap<>();
@@ -126,6 +129,24 @@ public final class LogisticsNetwork {
         return component.isPresent() && now - lastChangeOfComponent.getOrDefault(component.getAsInt(), Long.MIN_VALUE / 2) < SETTLE_TICKS;
     }
 
+    // after a change every router that passes an item on needs a new route table
+    // in a large base that is thousands of tables, so only so many are worked out per tick and the other items wait
+    private boolean mayRouteFrom(RouterId at, long now) {
+        if (routing.hasRoutesFrom(at)) {
+            return true;
+        }
+        if (tablesTick != now) {
+            tablesTick = now;
+            tablesThisTick = 0;
+        }
+        if (tablesThisTick >= MAX_NEW_TABLES_PER_TICK) {
+            return false;
+        }
+        tablesThisTick++;
+        routing.routesFrom(at);
+        return true;
+    }
+
     // has to be called whenever what a router takes in changes: its filters, modules or default route
     public void sinksChanged(RouterId id) {
         forgetSinks(id);
@@ -180,7 +201,7 @@ public final class LogisticsNetwork {
     // empty means there is nowhere to go right now, the pipe asks again for a while before it gives up
     public Optional<Side> chooseExit(RouterId at, TravellingItem item, long now) {
         RouterNode node = nodes.get(at);
-        if (now == lastChangeAnywhere) {
+        if (now == lastChangeAnywhere || !mayRouteFrom(at, now)) {
             // routes are worked out again next tick, see settling
             item.stayPatient();
             return Optional.empty();

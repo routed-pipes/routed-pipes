@@ -111,9 +111,19 @@ neoForge {
             gameDirectory = project.file('run-benchmark')
             systemProperty 'logisticspipes.benchmark', project.file('build/benchmark/result.txt').absolutePath
             systemProperty 'logisticspipes.benchmark.size', (project.findProperty('benchmarkSize') ?: '20x20x4')
+            systemProperty 'logisticspipes.benchmark.scenario', (project.findProperty('benchmarkScenario') ?: 'sorting')
             if (project.hasProperty('benchmarkProfile')) {
                 jvmArguments.add "-XX:StartFlightRecording=filename=${project.file('build/benchmark/profile.jfr')},settings=profile"
             }
+        }
+
+        // the client looking at the base of the benchmark and counting frames, started by scripts/benchmark-client.sh
+        clientBenchmark {
+            client()
+            gameDirectory = project.file('run-visual')
+            systemProperty 'logisticspipes.clientBenchmark', project.file('build/benchmark/client-result.txt').absolutePath
+            systemProperty 'logisticspipes.benchmark.size', (project.findProperty('benchmarkSize') ?: '20x20x4')
+            programArguments.addAll '--width', '1280', '--height', '720'
         }
 
         // a client to play in, with the mods of the compatibility run. Drop more mods into run-pack/mods
@@ -286,7 +296,7 @@ def quietOptions = tasks.register('quietClientOptions') {
         }
     }
 }
-tasks.matching { it.name in ['runClient', 'runClientPack', 'runVisualTest', 'runVisualTestResume', 'runVisualTestCompat'] }.configureEach {
+tasks.matching { it.name in ['runClient', 'runClientPack', 'runClientBenchmark', 'runVisualTest', 'runVisualTestResume', 'runVisualTestCompat'] }.configureEach {
     dependsOn quietOptions
 }
 
