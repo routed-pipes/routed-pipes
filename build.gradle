@@ -36,6 +36,14 @@ repositories {
             includeGroup 'mezz.jei'
         }
     }
+    exclusiveContent {
+        forRepository {
+            maven { url = 'https://maven.squiddev.cc' }
+        }
+        filter {
+            includeGroup 'cc.tweaked'
+        }
+    }
     // other mods for the compatibility test run, never compiled against
     exclusiveContent {
         forRepository {
@@ -202,6 +210,9 @@ dependencies {
     // optional at runtime, the plugin class is only ever loaded by JEI itself
     compileOnly "mezz.jei:jei-1.21.1-common-api:${jei_version}"
     compileOnly 'maven.modrinth:jade:eYz2YBGT'
+    // optional as well, only the classes in adapter.computercraft and the one that registers them need it
+    compileOnly "cc.tweaked:cc-tweaked-1.21.1-core-api:${cc_version}"
+    compileOnly "cc.tweaked:cc-tweaked-1.21.1-forge-api:${cc_version}"
 
     // pinned by modrinth version id
     compatMods "mezz.jei:jei-1.21.1-neoforge:${jei_version}"
@@ -214,6 +225,8 @@ dependencies {
     compatMods 'maven.modrinth:create:UjX6dr61'
     compatMods 'maven.modrinth:storagedrawers:px0CCB06'
     compatMods 'maven.modrinth:createaddition:hsjVajlP'
+    // 1.120.2, the same as cc_version
+    compatMods 'maven.modrinth:cc-tweaked:1ewzHZYg'
 
     testImplementation platform('org.junit:junit-bom:5.11.4')
     testImplementation 'org.junit.jupiter:junit-jupiter'

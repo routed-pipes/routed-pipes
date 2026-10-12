@@ -6,6 +6,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -578,6 +579,38 @@ public final class LogisticsNetwork {
             available.putIfAbsent(crafter.output().type(), 0);
         }
         return available;
+    }
+
+    // what the crafters the requester reaches make
+    public Set<ItemType> craftable(RouterId requester) {
+        Set<ItemType> craftable = new LinkedHashSet<>();
+        craftersFor(requester).forEach(crafter -> craftable.add(crafter.output().type()));
+        return craftable;
+    }
+
+    // like request, but the item itself is crafted even when providers hold it, its ingredients come from wherever
+    public RequestOutcome requestCrafted(RouterId requester, ItemBatch wanted, long now) {
+        List<Stock> stock = new ArrayList<>();
+        for (Stock entry : stockFor(requester)) {
+            Map<ItemType, Integer> items = new LinkedHashMap<>(entry.items());
+            items.remove(wanted.type());
+            stock.add(new Stock(entry.provider(), items));
+        }
+        RequestPlan plan = new RequestPlanner(stock, craftersFor(requester)).plan(requester, wanted);
+        if (!plan.complete()) {
+            return new RequestOutcome(plan, true);
+        }
+        int items = plan.provisions().stream().mapToInt(provision -> provision.batch().count()).sum();
+        if (!usePower(requester, items * ENERGY_PER_PROVIDED_ITEM)) {
+            return new RequestOutcome(plan, false);
+        }
+        execute(plan, now);
+        return new RequestOutcome(plan, true);
+    }
+
+    // the routers the given one has a way to, nearest first
+    public List<RouterId> reachable(RouterId from) {
+        return reachableFrom(from);
     }
 
     // how many of each item the network of the router holds for the taking, its own inventory included

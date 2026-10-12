@@ -81,6 +81,8 @@ public final class SecurityStations extends SavedData {
             settings.owner().ifPresent(owner -> entry.putUUID("Owner", owner));
             entry.putBoolean("Authorized", settings.authorized());
             entry.putBoolean("AutomatedRemoval", settings.automatedRemoval());
+            entry.putBoolean("ComputersAllowed", settings.computersAllowed());
+            entry.putIntArray("ComputerExceptions", settings.computerExceptions());
             ListTag players = new ListTag();
             for (UUID player : settings.players()) {
                 CompoundTag saved = new CompoundTag();
@@ -110,6 +112,10 @@ public final class SecurityStations extends SavedData {
             }
             settings.setAuthorized(entry.getBoolean("Authorized"));
             settings.setAutomatedRemoval(entry.getBoolean("AutomatedRemoval"));
+            settings.setComputersAllowed(entry.getBoolean("ComputersAllowed"));
+            for (int computer : entry.getIntArray("ComputerExceptions")) {
+                settings.addComputerException(computer);
+            }
             ListTag players = entry.getList("Players", Tag.TAG_COMPOUND);
             for (int player = 0; player < players.size(); player++) {
                 CompoundTag saved = players.getCompound(player);

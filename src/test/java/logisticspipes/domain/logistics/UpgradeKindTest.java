@@ -20,4 +20,15 @@ class UpgradeKindTest {
     void oneOpaqueUpgradeIsEnough() {
         assertThat(UpgradeKind.OPAQUE.most()).isEqualTo(1);
     }
+
+    @Test
+    void remoteControlGoesIntoEveryPipeAndIntoNoModule() {
+        for (PipeKind pipe : PipeKind.values()) {
+            assertThat(UpgradeKind.CC_REMOTE_CONTROL.fitsPipe(pipe)).as(pipe.name()).isTrue();
+        }
+        for (ModuleKind module : ModuleKind.values()) {
+            assertThat(UpgradeKind.CC_REMOTE_CONTROL.fitsModule(module)).as(module.name()).isFalse();
+        }
+        assertThat(UpgradeKind.CC_REMOTE_CONTROL.most()).isEqualTo(1);
+    }
 }

@@ -29,11 +29,18 @@ public class SecurityStationScreen extends AbstractContainerScreen<SecurityStati
     private static final int SUGGESTION_HEIGHT = 11;
     private static final int MAX_SUGGESTIONS = 3;
 
-    private final List<Tabs.Tab> tabs = List.of(
+    private static final int COMPUTERS_TOP = 88;
+    private static final int COMPUTER_COLUMNS = 3;
+
+    private static final List<Tabs.Tab> TABS = List.of(
             Tabs.Tab.texture("lock", Component.translatable("logisticspipes.gui.tab.station")),
-            Tabs.Tab.item(Items.PLAYER_HEAD, Component.translatable("logisticspipes.gui.tab.players")));
+            Tabs.Tab.item(Items.PLAYER_HEAD, Component.translatable("logisticspipes.gui.tab.players")),
+            Tabs.Tab.item(Items.COMPARATOR, Component.translatable("logisticspipes.gui.tab.computers")));
     private final List<Button> stationButtons = new ArrayList<>();
     private final List<Button> playerButtons = new ArrayList<>();
+    private final List<Button> computerButtons = new ArrayList<>();
+    private Button computersAllowed;
+    private EditBox computer;
     private final List<Button> permissions = new ArrayList<>();
     private Button authorized;
     private Button automatedRemoval;
@@ -50,6 +57,7 @@ public class SecurityStationScreen extends AbstractContainerScreen<SecurityStati
         super.init();
         stationButtons.clear();
         playerButtons.clear();
+        computerButtons.clear();
         permissions.clear();
         automatedRemoval = station(Button.builder(Component.empty(), button -> press(SecurityStationMenu.BUTTON_AUTOMATED_REMOVAL))
                 .bounds(leftPos + 8, topPos + 54, 160, 16).build());
@@ -80,7 +88,35 @@ public class SecurityStationScreen extends AbstractContainerScreen<SecurityStati
             ClientMenuLink.setText(menu.containerId, SecurityStationMenu.TEXT_ADD_PLAYER, name.getValue());
             name.setValue("");
         }).bounds(leftPos + 122, topPos + 166, 46, 16).build());
+        computersAllowed = computers(Button.builder(Component.empty(), button -> press(SecurityStationMenu.BUTTON_COMPUTERS_ALLOWED))
+                .bounds(leftPos + 8, topPos + 44, 160, 16).build());
+        computers(Button.builder(Component.literal("<"), button -> press(SecurityStationMenu.BUTTON_PREVIOUS_COMPUTERS))
+                .bounds(leftPos + 110, topPos + 27, 12, 12).build());
+        computers(Button.builder(Component.literal(">"), button -> press(SecurityStationMenu.BUTTON_NEXT_COMPUTERS))
+                .bounds(leftPos + 156, topPos + 27, 12, 12).build());
+        String number = computer == null ? "" : computer.getValue();
+        computer = new EditBox(font, leftPos + 8, topPos + 141, 62, 14, Component.translatable("logisticspipes.security.computer_id"));
+        computer.setMaxLength(10);
+        computer.setFilter(text -> text.matches("-?\\d*"));
+        computer.setValue(number);
+        addRenderableWidget(computer);
+        computers(Button.builder(Component.translatable("logisticspipes.security.add"),
+                button -> ClientMenuLink.setText(menu.containerId, SecurityStationMenu.TEXT_ADD_COMPUTER, computer.getValue()))
+                .bounds(leftPos + 74, topPos + 140, 40, 16).build());
+        computers(Button.builder(Component.translatable("logisticspipes.security.remove"),
+                button -> ClientMenuLink.setText(menu.containerId, SecurityStationMenu.TEXT_REMOVE_COMPUTER, computer.getValue()))
+                .bounds(leftPos + 118, topPos + 140, 50, 16).build());
         update();
+    }
+
+    // the tab for computers is only there in a game that has them
+    private List<Tabs.Tab> tabs() {
+        return menu.hasComputers() ? TABS : TABS.subList(0, 2);
+    }
+
+    private Button computers(Button button) {
+        computerButtons.add(button);
+        return addRenderableWidget(button);
     }
 
     private Button station(Button button) {
@@ -99,13 +135,19 @@ public class SecurityStationScreen extends AbstractContainerScreen<SecurityStati
 
     // shows the widgets of the open tab with what the server last said
     private void update() {
-        boolean station = menu.tab() == SecurityStationMenu.Tab.STATION;
-        stationButtons.forEach(button -> button.visible = station);
-        playerButtons.forEach(button -> button.visible = !station);
-        name.visible = !station;
-        if (station) {
+        SecurityStationMenu.Tab tab = menu.tab();
+        stationButtons.forEach(button -> button.visible = tab == SecurityStationMenu.Tab.STATION);
+        playerButtons.forEach(button -> button.visible = tab == SecurityStationMenu.Tab.PLAYERS);
+        computerButtons.forEach(button -> button.visible = tab == SecurityStationMenu.Tab.COMPUTERS);
+        name.visible = tab == SecurityStationMenu.Tab.PLAYERS;
+        if (!name.visible) {
             name.setFocused(false);
         }
+        computer.visible = tab == SecurityStationMenu.Tab.COMPUTERS;
+        if (!computer.visible) {
+            computer.setFocused(false);
+        }
+        computersAllowed.setMessage(onOff("logisticspipes.security.computers_allowed", menu.computersAllowed()));
         automatedRemoval.setMessage(onOff("logisticspipes.security.automated_removal", menu.automatedRemoval()));
         authorized.setMessage(onOff("logisticspipes.security.cards_valid", menu.authorized()));
         for (Permission permission : Permission.values()) {
@@ -148,10 +190,10 @@ public class SecurityStationScreen extends AbstractContainerScreen<SecurityStati
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        int tab = Tabs.at(leftPos, topPos, tabs.size(), mouseX, mouseY);
+        int tab = Tabs.at(leftPos, topPos, tabs().size(), mouseX, mouseY);
         if (tab >= 0) {
             minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
-            press(tab);
+            press(tab == SecurityStationMenu.Tab.COMPUTERS.ordinal() ? SecurityStationMenu.BUTTON_COMPUTERS : tab);
             update();
             return true;
         }
@@ -174,6 +216,10 @@ public class SecurityStationScreen extends AbstractContainerScreen<SecurityStati
             name.keyPressed(keyCode, scanCode, modifiers);
             return true;
         }
+        if (computer.isFocused() && keyCode != GLFW.GLFW_KEY_ESCAPE) {
+            computer.keyPressed(keyCode, scanCode, modifiers);
+            return true;
+        }
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
@@ -181,16 +227,16 @@ public class SecurityStationScreen extends AbstractContainerScreen<SecurityStati
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         super.render(graphics, mouseX, mouseY, partialTick);
         renderTooltip(graphics, mouseX, mouseY);
-        int hovered = Tabs.at(leftPos, topPos, tabs.size(), mouseX, mouseY);
+        int hovered = Tabs.at(leftPos, topPos, tabs().size(), mouseX, mouseY);
         if (hovered >= 0) {
-            graphics.renderTooltip(font, tabs.get(hovered).name(), mouseX, mouseY);
+            graphics.renderTooltip(font, tabs().get(hovered).name(), mouseX, mouseY);
         }
     }
 
     @Override
     protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
         Panel.draw(graphics, leftPos, topPos, imageWidth, imageHeight, menu);
-        Tabs.draw(graphics, leftPos, topPos, tabs, menu.tab().ordinal());
+        Tabs.draw(graphics, leftPos, topPos, tabs(), menu.tab().ordinal());
         int selected = menu.selectedSlot();
         if (menu.tab() == SecurityStationMenu.Tab.PLAYERS && selected >= 0) {
             Slot slot = menu.getSlot(SecurityStationMenu.FIRST_PLAYER_SLOT + selected);
@@ -200,11 +246,26 @@ public class SecurityStationScreen extends AbstractContainerScreen<SecurityStati
 
     @Override
     protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
-        if (menu.tab() == SecurityStationMenu.Tab.STATION) {
-            station(graphics);
-        } else {
-            players(graphics);
+        switch (menu.tab()) {
+            case STATION -> station(graphics);
+            case PLAYERS -> players(graphics);
+            case COMPUTERS -> computers(graphics);
         }
+    }
+
+    // the switch, and under it the ids it does not go for
+    private void computers(GuiGraphics graphics) {
+        graphics.drawString(font, Component.translatable("logisticspipes.gui.tab.computers"), 8, 30, TEXT, false);
+        String page = (menu.computerPage() + 1) + "/" + menu.computerPages();
+        graphics.drawString(font, page, 139 - font.width(page) / 2, 29, TEXT, false);
+        graphics.drawString(font, Component.translatable(menu.computersAllowed()
+                ? "logisticspipes.security.computers_except" : "logisticspipes.security.computers_only"), 8, 70, TEXT, false);
+        List<Integer> computers = menu.computers();
+        for (int index = 0; index < computers.size(); index++) {
+            graphics.drawString(font, String.valueOf(computers.get(index)), 8 + index % COMPUTER_COLUMNS * 54,
+                    COMPUTERS_TOP + index / COMPUTER_COLUMNS * 12, ID, false);
+        }
+        graphics.drawString(font, Component.translatable("logisticspipes.security.computer_id"), 8, 130, TEXT, false);
     }
 
     private void station(GuiGraphics graphics) {

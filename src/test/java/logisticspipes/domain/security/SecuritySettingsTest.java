@@ -138,4 +138,59 @@ class SecuritySettingsTest {
 
         assertThat(settings.authorized()).isFalse();
     }
+
+    @Test
+    void computersAreKeptOutUnlessListed() {
+        settings.addComputerException(4);
+
+        assertThat(settings.checkComputer(4, source)).isEqualTo(Access.ALLOWED);
+        assertThat(settings.checkComputer(5, source)).isEqualTo(Access.DENIED);
+        assertThat(settings.checkComputer(-1, source)).isEqualTo(Access.DENIED);
+    }
+
+    @Test
+    void withComputersAllowedTheListedOnesAreKeptOut() {
+        settings.setComputersAllowed(true);
+        settings.addComputerException(4);
+
+        assertThat(settings.checkComputer(4, source)).isEqualTo(Access.DENIED);
+        assertThat(settings.checkComputer(5, source)).isEqualTo(Access.ALLOWED);
+        assertThat(settings.checkComputer(-1, source)).isEqualTo(Access.ALLOWED);
+    }
+
+    @Test
+    void aComputerTakenOffTheListIsLikeAnyOther() {
+        settings.addComputerException(4);
+        settings.removeComputerException(4);
+
+        assertThat(settings.checkComputer(4, source)).isEqualTo(Access.DENIED);
+        assertThat(settings.computerExceptions()).isEmpty();
+    }
+
+    @Test
+    void theListOfComputersIsSortedAndHasEveryIdOnce() {
+        settings.addComputerException(9);
+        settings.addComputerException(-1);
+        settings.addComputerException(3);
+        settings.addComputerException(9);
+
+        assertThat(settings.computerExceptions()).containsExactly(-1, 3, 9);
+    }
+
+    @Test
+    void everyLookAtAComputerCostsEnergy() {
+        settings.setComputersAllowed(true);
+
+        settings.checkComputer(4, source);
+
+        assertThat(energy).isEqualTo(1000 - SecuritySettings.CHECK_ENERGY);
+    }
+
+    @Test
+    void withoutEnergyNoComputerGetsIn() {
+        settings.setComputersAllowed(true);
+        energy = SecuritySettings.CHECK_ENERGY - 1;
+
+        assertThat(settings.checkComputer(4, source)).isEqualTo(Access.NO_ENERGY);
+    }
 }

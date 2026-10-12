@@ -27,7 +27,9 @@ public enum UpgradeKind {
     // energy from power providers may go through the pipe
     POWER_TRANSPORTATION(1),
     // nobody sees what travels through the pipe
-    OPAQUE(1);
+    OPAQUE(1),
+    // a computer at the pipe gets at the other pipes of the network
+    CC_REMOTE_CONTROL(1);
 
     private final int most;
 
@@ -42,7 +44,7 @@ public enum UpgradeKind {
 
     public boolean fitsPipe(PipeKind pipe) {
         return switch (this) {
-            case SNEAKY, SPEED, DISCONNECTION, POWER_SUPPLIER_RF, POWER_TRANSPORTATION, OPAQUE -> true;
+            case SNEAKY, SPEED, DISCONNECTION, POWER_SUPPLIER_RF, POWER_TRANSPORTATION, OPAQUE, CC_REMOTE_CONTROL -> true;
             case MODULE_UPGRADE -> pipe == PipeKind.CHASSIS;
             case CRAFTING_BYPRODUCT, CRAFTING_CLEANUP, ADVANCED_SATELLITE -> pipe == PipeKind.CRAFTING;
             default -> false;

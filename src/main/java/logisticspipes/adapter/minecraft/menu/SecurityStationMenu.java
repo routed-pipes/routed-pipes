@@ -1,7 +1,9 @@
 package logisticspipes.adapter.minecraft.menu;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.LongSupplier;
 
 import logisticspipes.adapter.minecraft.SecurityStationBlockEntity;
 import logisticspipes.adapter.minecraft.SecurityStations;
@@ -24,12 +26,13 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
-// the security station: one tab for the station and its cards, one for the players and what they may do
+// the security station: one tab for the station and its cards, one for the players and what they may do,
+// and one for computers when the game has any
 public class SecurityStationMenu extends AbstractContainerMenu implements TextMenu {
 
-    // the button with the number of a tab switches to it
+    // the button with the number of a tab switches to it, the computers have BUTTON_COMPUTERS
     public enum Tab {
-        STATION, PLAYERS
+        STATION, PLAYERS, COMPUTERS
     }
 
     public static final int BUTTON_AUTHORIZED = 2;
@@ -42,7 +45,15 @@ public class SecurityStationMenu extends AbstractContainerMenu implements TextMe
     public static final int BUTTON_PERMISSION = 8;
     // opens the channels of the world
     public static final int BUTTON_CHANNELS = 100;
+    public static final int BUTTON_COMPUTERS = 101;
+    public static final int BUTTON_COMPUTERS_ALLOWED = 102;
+    public static final int BUTTON_PREVIOUS_COMPUTERS = 103;
+    public static final int BUTTON_NEXT_COMPUTERS = 104;
     public static final int TEXT_ADD_PLAYER = 0;
+    // the id of a computer, as a number
+    public static final int TEXT_ADD_COMPUTER = 1;
+    public static final int TEXT_REMOVE_COMPUTER = 2;
+    public static final int COMPUTERS_PER_PAGE = 9;
     public static final int PLAYERS_PER_PAGE = 9;
     public static final int CARD_SLOT = 0;
     public static final int FIRST_PLAYER_SLOT = 37;
@@ -55,8 +66,16 @@ public class SecurityStationMenu extends AbstractContainerMenu implements TextMe
     private static final int DATA_PAGES = 4;
     private static final int DATA_SELECTED = 5;
     private static final int DATA_PERMISSIONS = 6;
+    private static final int DATA_HAS_COMPUTERS = 7;
+    private static final int DATA_COMPUTERS_ALLOWED = 8;
+    private static final int DATA_COMPUTER_PAGE = 9;
+    private static final int DATA_COMPUTER_PAGES = 10;
+    private static final int DATA_COMPUTERS_LISTED = 11;
 
-    private final ContainerData data = new SimpleContainerData(7);
+    private final ContainerData data = new SimpleContainerData(12);
+    // the ids of the computers on the page that is shown, they do not fit into the 16 bits of a data slot
+    private final LongData computerIds;
+    private List<Integer> listedComputers = List.of();
     // the two halves of the id of the station
     private final LongData id;
     private final Container players = new SimpleContainer(PLAYERS_PER_PAGE);
@@ -102,15 +121,25 @@ public class SecurityStationMenu extends AbstractContainerMenu implements TextMe
         }
         data.set(DATA_PAGES, 1);
         data.set(DATA_SELECTED, -1);
+        data.set(DATA_COMPUTER_PAGES, 1);
         if (station == null) {
             id = new LongData(2);
+            computerIds = new LongData(COMPUTERS_PER_PAGE);
         } else {
             UUID stationId = station.id();
             id = new LongData(stationId::getMostSignificantBits, stationId::getLeastSignificantBits);
+            LongSupplier[] shown = new LongSupplier[COMPUTERS_PER_PAGE];
+            for (int line = 0; line < COMPUTERS_PER_PAGE; line++) {
+                int index = line;
+                shown[line] = () -> index < listedComputers.size() ? listedComputers.get(index) : 0;
+            }
+            computerIds = new LongData(shown);
+            data.set(DATA_HAS_COMPUTERS, station.hasComputers() ? 1 : 0);
             refresh();
         }
         addDataSlots(data);
         addDataSlots(id);
+        addDataSlots(computerIds);
     }
 
     // the players tab needs the room of the inventory for itself
@@ -157,6 +186,32 @@ public class SecurityStationMenu extends AbstractContainerMenu implements TextMe
         return (data.get(DATA_PERMISSIONS) & 1 << permission.ordinal()) != 0;
     }
 
+    // false in a game without computers, the tab for them is left out then
+    public boolean hasComputers() {
+        return data.get(DATA_HAS_COMPUTERS) != 0;
+    }
+
+    public boolean computersAllowed() {
+        return data.get(DATA_COMPUTERS_ALLOWED) != 0;
+    }
+
+    public int computerPage() {
+        return data.get(DATA_COMPUTER_PAGE);
+    }
+
+    public int computerPages() {
+        return data.get(DATA_COMPUTER_PAGES);
+    }
+
+    // the ids on the page that is shown, the ones the switch does not go for
+    public List<Integer> computers() {
+        List<Integer> computers = new ArrayList<>();
+        for (int line = 0; line < Math.min(data.get(DATA_COMPUTERS_LISTED), COMPUTERS_PER_PAGE); line++) {
+            computers.add((int) computerIds.value(line));
+        }
+        return computers;
+    }
+
     private SecurityStations.Station record() {
         return station.station();
     }
@@ -181,6 +236,12 @@ public class SecurityStationMenu extends AbstractContainerMenu implements TextMe
             }
         }
         data.set(DATA_PERMISSIONS, permissions);
+        data.set(DATA_COMPUTERS_ALLOWED, settings.computersAllowed() ? 1 : 0);
+        Page<Integer> computers = Page.of(settings.computerExceptions(), data.get(DATA_COMPUTER_PAGE), COMPUTERS_PER_PAGE);
+        data.set(DATA_COMPUTER_PAGE, computers.number());
+        data.set(DATA_COMPUTER_PAGES, computers.pages());
+        listedComputers = computers.entries();
+        data.set(DATA_COMPUTERS_LISTED, listedComputers.size());
     }
 
     // a listed player is shown as a head with their name
@@ -204,9 +265,30 @@ public class SecurityStationMenu extends AbstractContainerMenu implements TextMe
         changed();
     }
 
+    // puts the id typed into the computers tab on the list or takes it off, anything but a number is ignored
+    private void listComputer(String text, boolean add) {
+        int computer;
+        try {
+            computer = Integer.parseInt(text.strip());
+        } catch (NumberFormatException e) {
+            return;
+        }
+        SecuritySettings settings = record().settings();
+        if (add) {
+            settings.addComputerException(computer);
+            data.set(DATA_COMPUTER_PAGE, settings.computerExceptions().indexOf(computer) / COMPUTERS_PER_PAGE);
+        } else {
+            settings.removeComputerException(computer);
+        }
+        changed();
+    }
+
     // the name typed into the players tab, only someone who is online can be looked up
     @Override
     public void setText(int field, String text) {
+        if (station != null && (field == TEXT_ADD_COMPUTER || field == TEXT_REMOVE_COMPUTER)) {
+            listComputer(text, field == TEXT_ADD_COMPUTER);
+        }
         if (station == null || field != TEXT_ADD_PLAYER) {
             return;
         }
@@ -231,8 +313,24 @@ public class SecurityStationMenu extends AbstractContainerMenu implements TextMe
     // runs on the client too, so that the slots of a tab are there before the server has answered
     @Override
     public boolean clickMenuButton(Player player, int button) {
-        if (button >= 0 && button < Tab.values().length) {
+        if (button == Tab.STATION.ordinal() || button == Tab.PLAYERS.ordinal()) {
             data.set(DATA_TAB, button);
+            return true;
+        }
+        if (button == BUTTON_COMPUTERS) {
+            data.set(DATA_TAB, Tab.COMPUTERS.ordinal());
+            return true;
+        }
+        if (button >= BUTTON_COMPUTERS_ALLOWED && button <= BUTTON_NEXT_COMPUTERS) {
+            if (station != null) {
+                SecuritySettings settings = record().settings();
+                if (button == BUTTON_COMPUTERS_ALLOWED) {
+                    settings.setComputersAllowed(!settings.computersAllowed());
+                } else {
+                    data.set(DATA_COMPUTER_PAGE, data.get(DATA_COMPUTER_PAGE) + (button == BUTTON_NEXT_COMPUTERS ? 1 : -1));
+                }
+                changed();
+            }
             return true;
         }
         if (button == BUTTON_CHANNELS) {

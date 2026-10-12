@@ -364,7 +364,7 @@ public class LogisticsPipes {
     public static final DeferredBlock<SecurityStationBlock> SECURITY_STATION = BLOCKS.register("security_station",
             () -> new SecurityStationBlock(BlockBehaviour.Properties.of().strength(2.5f).sound(SoundType.METAL),
                     new SecurityStationServices(() -> LogisticsPipes.SECURITY_STATION_BLOCK_ENTITY.get(), SECURITY_STATION_MENU,
-                            SECURITY_CARD, CHANNEL_MENU)));
+                            SECURITY_CARD, CHANNEL_MENU, ComputerCraftSupport::installed)));
     public static final Supplier<BlockEntityType<SecurityStationBlockEntity>> SECURITY_STATION_BLOCK_ENTITY =
             BLOCK_ENTITIES.register("security_station", () -> BlockEntityType.Builder
                     .of((pos, state) -> new SecurityStationBlockEntity(LogisticsPipes.SECURITY_STATION_BLOCK_ENTITY.get(), pos, state),
@@ -443,6 +443,7 @@ public class LogisticsPipes {
         modEventBus.addListener(LogisticsPipes::registerPayloads);
         NeoForge.EVENT_BUS.addListener(LogisticsPipes::buildCreativeTabs);
         SecurityEvents.register();
+        ComputerCraftSupport.registerIfInstalled(modEventBus);
         Benchmark.registerIfRequested();
     }
 

@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.UUID;
 
 // what one security station lets players do with the pipes that are locked to it
@@ -21,6 +23,10 @@ public final class SecuritySettings {
     // whether explosions and machines may remove locked pipes
     private boolean automatedRemoval;
     private final Map<UUID, Set<Permission>> players = new LinkedHashMap<>();
+    // computers are told apart by their id: with the switch off only the listed ones get to locked pipes,
+    // with it on all but the listed ones
+    private boolean computersAllowed;
+    private final SortedSet<Integer> computerExceptions = new TreeSet<>();
 
     // empty for a station nobody has claimed yet
     public Optional<UUID> owner() {
@@ -92,5 +98,34 @@ public final class SecuritySettings {
             return Access.NO_ENERGY;
         }
         return automatedRemoval ? Access.ALLOWED : Access.DENIED;
+    }
+
+    public boolean computersAllowed() {
+        return computersAllowed;
+    }
+
+    public void setComputersAllowed(boolean allowed) {
+        computersAllowed = allowed;
+    }
+
+    // the ids the switch does not go for, lowest first
+    public List<Integer> computerExceptions() {
+        return List.copyOf(computerExceptions);
+    }
+
+    public void addComputerException(int computer) {
+        computerExceptions.add(computer);
+    }
+
+    public void removeComputerException(int computer) {
+        computerExceptions.remove(computer);
+    }
+
+    // for a computer that wants something from a locked pipe, nobody owns a computer so every look costs
+    public Access checkComputer(int computer, EnergySource energy) {
+        if (!energy.use(CHECK_ENERGY)) {
+            return Access.NO_ENERGY;
+        }
+        return computersAllowed != computerExceptions.contains(computer) ? Access.ALLOWED : Access.DENIED;
     }
 }

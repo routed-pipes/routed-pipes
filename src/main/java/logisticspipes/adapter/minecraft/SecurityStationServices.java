@@ -1,5 +1,6 @@
 package logisticspipes.adapter.minecraft;
 
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 import logisticspipes.adapter.minecraft.menu.ChannelMenu;
@@ -12,5 +13,7 @@ public record SecurityStationServices(
         Supplier<BlockEntityType<SecurityStationBlockEntity>> blockEntityType,
         Supplier<MenuType<SecurityStationMenu>> menu,
         Supplier<SecurityCardItem> card,
-        Supplier<MenuType<ChannelMenu>> channelMenu) {
+        Supplier<MenuType<ChannelMenu>> channelMenu,
+        // whether the game has computers at all, their settings are only shown then
+        BooleanSupplier computers) {
 }

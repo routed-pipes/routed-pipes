@@ -58,6 +58,14 @@ class HexagonalArchitectureTest {
             .that().resideOutsideOfPackage("logisticspipes.adapter.jade..")
             .should().dependOnClassesThat().resideInAnyPackage("snownee.jade..", "logisticspipes.adapter.jade..");
 
+    // computers are optional too, the peripherals are registered by one class and tried out by another
+    @ArchTest
+    static final ArchRule computersStayInTheirOwnAdapter = noClasses()
+            .that().resideOutsideOfPackage("logisticspipes.adapter.computercraft..")
+            .and().haveNameNotMatching(".*\\.ComputerCraft(Support|Checks)(\\$.*)?")
+            .should().dependOnClassesThat()
+            .resideInAnyPackage("dan200.computercraft..", "logisticspipes.adapter.computercraft..");
+
     @ArchTest
     static final ArchRule everythingLivesInALayer = classes()
             .should().resideInAnyPackage(

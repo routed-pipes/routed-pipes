@@ -111,6 +111,11 @@ public final class PipeSecurity {
         return told(player, access(player, permission));
     }
 
+    // what the station of this pipe says to a computer, -1 is one that is not at the pipe itself
+    public Access computerAccess(int computer) {
+        return settings().map(settings -> settings.checkComputer(computer, pipe::usePower)).orElse(Access.ALLOWED);
+    }
+
     // for explosions and machines
     public boolean allowsAutomatedRemoval() {
         return settings().map(settings -> settings.checkAutomatedRemoval(pipe::usePower)).orElse(Access.ALLOWED).allowed();

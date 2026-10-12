@@ -49,6 +49,10 @@ public class SecurityStationBlockEntity extends BlockEntity {
         return SecurityStations.of(level).station(id);
     }
 
+    public boolean hasComputers() {
+        return block().services().computers().getAsBoolean();
+    }
+
     private SecurityStationBlock block() {
         return (SecurityStationBlock) getBlockState().getBlock();
     }
