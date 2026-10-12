@@ -22,6 +22,12 @@ import logisticspipes.adapter.minecraft.PowerJunctionBlockEntity;
 import logisticspipes.adapter.minecraft.RemoteOrdererItem;
 import logisticspipes.adapter.minecraft.RequestTableBlock;
 import logisticspipes.adapter.minecraft.SettingsCopierItem;
+import logisticspipes.adapter.minecraft.TubeBlock;
+import logisticspipes.adapter.minecraft.TubeBlockEntity;
+import logisticspipes.adapter.minecraft.TubeBlockItem;
+import logisticspipes.adapter.minecraft.TubePartBlock;
+import logisticspipes.adapter.minecraft.TubePartBlockEntity;
+import logisticspipes.adapter.minecraft.TubeServices;
 import logisticspipes.adapter.minecraft.UpgradeItem;
 import logisticspipes.adapter.minecraft.menu.ChassisMenu;
 import logisticspipes.adapter.minecraft.menu.FirewallMenu;
@@ -35,6 +41,7 @@ import logisticspipes.adapter.minecraft.menu.UpgradeMenu;
 import logisticspipes.adapter.neoforge.benchmark.Benchmark;
 import logisticspipes.domain.logistics.ModuleKind;
 import logisticspipes.domain.logistics.PipeKind;
+import logisticspipes.domain.tube.TubeKind;
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
@@ -50,6 +57,7 @@ import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.PushReaction;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -198,6 +206,33 @@ public class LogisticsPipes {
                             POWER_JUNCTION.get())
                     .build(null));
 
+    private static final TubeServices TUBE_SERVICES = new TubeServices(() -> LogisticsPipes.TUBE_BLOCK_ENTITY.get(),
+            () -> LogisticsPipes.TUBE_PART_BLOCK_ENTITY.get(), () -> LogisticsPipes.TUBE_PART.get(), SERVICES.networks());
+
+    public static final Map<TubeKind, DeferredBlock<TubeBlock>> TUBES = new EnumMap<>(TubeKind.class);
+
+    static {
+        for (TubeKind kind : TubeKind.values()) {
+            String name = kind.name().toLowerCase(Locale.ROOT) + "_tube";
+            DeferredBlock<TubeBlock> tube = BLOCKS.register(name, () -> new TubeBlock(tubeProperties(), kind, TUBE_SERVICES));
+            ITEMS.register(name, () -> new TubeBlockItem(tube.get(), new Item.Properties()));
+            TUBES.put(kind, tube);
+        }
+    }
+
+    public static final DeferredBlock<TubePartBlock> TUBE_PART = BLOCKS.register("tube_part",
+            () -> new TubePartBlock(tubeProperties().noLootTable(), TUBE_SERVICES));
+    public static final Supplier<BlockEntityType<TubeBlockEntity>> TUBE_BLOCK_ENTITY = BLOCK_ENTITIES.register("tube",
+            () -> BlockEntityType.Builder
+                    .of((pos, state) -> new TubeBlockEntity(LogisticsPipes.TUBE_BLOCK_ENTITY.get(), pos, state),
+                            TUBES.values().stream().map(Supplier::get).toArray(Block[]::new))
+                    .build(null));
+    public static final Supplier<BlockEntityType<TubePartBlockEntity>> TUBE_PART_BLOCK_ENTITY =
+            BLOCK_ENTITIES.register("tube_part", () -> BlockEntityType.Builder
+                    .of((pos, state) -> new TubePartBlockEntity(LogisticsPipes.TUBE_PART_BLOCK_ENTITY.get(), pos, state),
+                            TUBE_PART.get())
+                    .build(null));
+
     static {
         ITEMS.registerSimpleBlockItem(CRAFTING_TABLE);
         ITEMS.registerSimpleBlockItem(POWER_JUNCTION);
@@ -232,6 +267,10 @@ public class LogisticsPipes {
                 BlockBehaviour.Properties.of().strength(0.5f).sound(SoundType.GLASS).noOcclusion(), kind, moduleSlots, SERVICES));
         ITEMS.registerSimpleBlockItem(block);
         return block;
+    }
+
+    private static BlockBehaviour.Properties tubeProperties() {
+        return BlockBehaviour.Properties.of().strength(0.5f).sound(SoundType.GLASS).noOcclusion().pushReaction(PushReaction.BLOCK);
     }
 
     private static Supplier<MenuType<PipeConfigMenu>> configMenu(String name, PipeKind kind) {

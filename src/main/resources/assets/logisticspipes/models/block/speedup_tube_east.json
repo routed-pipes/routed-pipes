@@ -1,0 +1,11 @@
+{
+  "loader": "neoforge:obj",
+  "model": "logisticspipes:models/block/pipe/speedup_tube_east.obj",
+  "flip_v": true,
+  "automatic_culling": false,
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "frame": "logisticspipes:block/speedup_tube",
+    "particle": "logisticspipes:block/speedup_tube"
+  }
+}

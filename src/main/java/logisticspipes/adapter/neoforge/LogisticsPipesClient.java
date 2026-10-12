@@ -12,6 +12,7 @@ import logisticspipes.adapter.minecraft.client.PipeItemRenderer;
 import logisticspipes.adapter.minecraft.client.RemoteOrdererKey;
 import logisticspipes.adapter.minecraft.client.RequestScreen;
 import logisticspipes.adapter.minecraft.client.RequestTableScreen;
+import logisticspipes.adapter.minecraft.client.TubeItemRenderer;
 import logisticspipes.adapter.minecraft.client.UpgradeScreen;
 import logisticspipes.adapter.neoforge.visualtest.ClientBenchmark;
 import logisticspipes.adapter.neoforge.visualtest.VisualTest;
@@ -73,5 +74,6 @@ public class LogisticsPipesClient {
 
     private static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(LogisticsPipes.PIPE_BLOCK_ENTITY.get(), PipeItemRenderer::new);
+        event.registerBlockEntityRenderer(LogisticsPipes.TUBE_BLOCK_ENTITY.get(), TubeItemRenderer::new);
     }
 }

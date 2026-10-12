@@ -500,6 +500,18 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         setChanged();
     }
 
+    // takes an item coming out of a tube
+    void acceptFromTube(TravellingItem item) {
+        transport.insert(item);
+        setChanged();
+        level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
+    }
+
+    // a viewer guessing that an item came out of a tube
+    void expectFromTube(TravellingItem item) {
+        transport.expect(item);
+    }
+
     // empty for plain pipes and on the client
     public Optional<RouterStatus> networkStatus() {
         if (level == null || level.isClientSide || !pipe().routed()) {
@@ -730,6 +742,8 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             BlockPos target = worldPosition.relative(Directions.toMinecraft(exit));
             if (level.getBlockEntity(target) instanceof PipeBlockEntity neighbour) {
                 neighbour.transport.expect(departure.item().enteringFrom(exit.opposite()));
+            } else {
+                TubeBlockEntity.expectFromPipe(level, target, Directions.toMinecraft(exit.opposite()), departure.item());
             }
         }
     }
@@ -803,6 +817,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             transport.insert(TravellingItem.restore(item.id(), item.batch(), item.origin(),
                     item.destination().orElse(null), item.nextHop().orElse(null), item.mode(), exit,
                     PipeTransport.PIPE_LENGTH - item.speed(), item.speed()));
+            return;
+        }
+        if (TubeBlockEntity.takeFromPipe(level, target, side.getOpposite(), item)) {
             return;
         }
         if (level.getBlockEntity(target) instanceof PipeBlockEntity neighbour) {

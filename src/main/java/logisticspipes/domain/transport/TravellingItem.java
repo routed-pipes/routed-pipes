@@ -72,6 +72,19 @@ public final class TravellingItem {
         return next;
     }
 
+    // an item coming out of a tube, back at the speed of its mode
+    static TravellingItem fromTube(long id, ItemBatch batch, Side origin, RouterId destination, RouterId nextHop,
+            TransportMode mode, long movedAt) {
+        TravellingItem item = new TravellingItem(id, batch, origin, destination, mode);
+        item.nextHop = nextHop;
+        item.movedAt = movedAt;
+        return item;
+    }
+
+    long movedAt() {
+        return movedAt;
+    }
+
     // stays the same from pipe to pipe, so a viewer can tell which item is which
     public long id() {
         return id;

@@ -12,6 +12,10 @@ MODULES = ["module_item_sink", "module_extractor", "module_provider", "module_te
            "module_polymorphic_item_sink", "module_quick_sort", "module_advanced_extractor", "module_mod_item_sink",
            "module_tag_item_sink", "module_creative_tab_item_sink", "module_enchantment_sink", "module_enchantment_sink_mk2",
            "module_crafter", "module_active_supplier"]
+# high speed tubes: the model of the original and the texture it is drawn with
+TUBES = {"line_tube": ("tube_line", "line_tube"), "speedup_tube": ("tube_speedup", "speedup_tube")}
+FACINGS = ["north", "east", "south", "west"]
+OPPOSITE = {"north": "south", "south": "north", "east": "west", "west": "east"}
 ASSETS = "src/main/resources/assets/logisticspipes/"
 DATA = "src/main/resources/data/logisticspipes/"
 
@@ -38,10 +42,10 @@ def write(path, content):
         file.write(json.dumps(content, indent=2) + "\n")
 
 
-def read_model():
+def read_model(path=MODEL):
     """Returns vertices, texture coordinates and the faces of every named mesh."""
     vertices, coords, meshes, current = [], [], {}, None
-    with open(MODEL) as file:
+    with open(path) as file:
         for line in file:
             parts = line.split()
             if not parts:
@@ -170,6 +174,51 @@ def blockstate(name, shared):
     return {"multipart": parts}
 
 
+def turned(vertices, turns):
+    """Quarter turns around the middle of the main block, seen from above north goes to east."""
+    for _ in range(turns):
+        vertices = [(1 - z, y, x) for x, y, z in vertices]
+    return vertices
+
+
+def fitted(vertices):
+    """Shrunk into one block, a whole tube is too long for a hand."""
+    low = [min(vertex[axis] for vertex in vertices) for axis in range(3)]
+    high = [max(vertex[axis] for vertex in vertices) for axis in range(3)]
+    scale = 1 / max(high[axis] - low[axis] for axis in range(3))
+    return [tuple(0.5 + (vertex[axis] - (low[axis] + high[axis]) / 2) * scale for axis in range(3)) for vertex in vertices]
+
+
+def pipe_end(shared, facing):
+    """The main block of a speedup tube is a piece of pipe: straight through, with an arm for the pipe behind it."""
+    back = OPPOSITE[facing]
+    state = {side: "true" if side in (facing, back) else "false" for side in SIDES}
+    models = [entry["apply"] for entry in shared if all(state[side] == value for side, value in entry["when"].items())]
+    models.append({"model": f"logisticspipes:block/transport_pipe_side_{back}"})
+    return [{"when": {"facing": facing}, "apply": model} for model in models]
+
+
+def write_tubes(shared):
+    """A tube is drawn as a whole by its main block, the models of the original face north."""
+    folder = ASSETS + "models/block/pipe/"
+    for name, (model, texture) in TUBES.items():
+        vertices, coords, meshes = read_model(f"scripts/source/{model}.obj")
+        textures = {"frame": f"logisticspipes:block/{texture}", "particle": f"logisticspipes:block/{texture}"}
+        parts = []
+        for turns, facing in enumerate(FACINGS):
+            write_part(folder + f"{name}_{facing}.obj", turned(vertices, turns), coords, meshes.values(), "frame")
+            write(ASSETS + f"models/block/{name}_{facing}.json", part_model(f"{name}_{facing}", textures))
+            parts.append({"when": {"facing": facing}, "apply": {"model": f"logisticspipes:block/{name}_{facing}"}})
+            if name == "speedup_tube":
+                parts += pipe_end(shared, facing)
+        write(ASSETS + f"blockstates/{name}.json", {"multipart": parts})
+        write_part(folder + f"{name}_item.obj", fitted(vertices), coords, meshes.values(), "frame")
+        write(ASSETS + f"models/item/{name}.json", {"parent": "minecraft:block/block", **part_model(f"{name}_item", textures)})
+    # the other blocks of a tube are not drawn, this is only for the bits flying off when one breaks
+    write(ASSETS + "models/block/tube_part.json", {"textures": {"particle": "logisticspipes:block/line_tube"}})
+    write(ASSETS + "blockstates/tube_part.json", {"variants": {"": {"model": "logisticspipes:block/tube_part"}}})
+
+
 def main():
     vertices, coords, meshes = read_model()
     folder = ASSETS + "models/block/pipe/"
@@ -193,6 +242,7 @@ def main():
             **{f"plate_{side}": part_model(f"plate_{side}", {"icon": icon}) for side in SIDES}},
             "textures": {"particle": "logisticspipes:block/pipe_frame"}})
         write(ASSETS + f"blockstates/{name}.json", blockstate(name, shared))
+    write_tubes(shared)
     upgrades = ["sneaky", "speed", "module_upgrade", "action_speed", "item_extraction", "item_stack_extraction",
                 "crafting_byproduct", "crafting_cleanup", "disconnection"]
     for module in MODULES + ["remote_orderer", "pipe_controller", "settings_copier"] + ["upgrade_" + upgrade for upgrade in upgrades]:
@@ -213,12 +263,12 @@ def main():
     write(ASSETS + f"models/item/{table}.json", {"parent": f"logisticspipes:block/{table}"})
     write(ASSETS + f"blockstates/{table}.json", {"multipart": [{"apply": {"model": f"logisticspipes:block/{table}"}}]})
     cubes.append(table)
-    for name in PIPES + cubes:
+    for name in PIPES + cubes + list(TUBES):
         write(DATA + f"loot_table/blocks/{name}.json", {"type": "minecraft:block", "pools": [{
             "rolls": 1, "entries": [{"type": "minecraft:item", "name": f"logisticspipes:{name}"}],
             "conditions": [{"condition": "minecraft:survives_explosion"}]}]})
     write("src/main/resources/data/minecraft/tags/block/mineable/pickaxe.json",
-          {"values": [f"logisticspipes:{name}" for name in PIPES + cubes]})
+          {"values": [f"logisticspipes:{name}" for name in PIPES + cubes + list(TUBES) + ["tube_part"]]})
 
 
 if __name__ == "__main__":

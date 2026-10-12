@@ -179,6 +179,10 @@ public class LogisticsPipeBlock extends Block implements EntityBlock {
         if (level.getBlockState(neighbour).getBlock() instanceof LogisticsPipeBlock) {
             return true;
         }
+        // of all tube ends only the one made for pipes
+        if (Tubes.entryAt(level, neighbour, direction.getOpposite()).filter(Tubes.Entry::pipeEnd).isPresent()) {
+            return true;
+        }
         if (!routed()) {
             return false;
         }
