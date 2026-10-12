@@ -15,7 +15,6 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.Container;
-import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.SimpleMenuProvider;
@@ -179,32 +178,16 @@ public class CraftingTableBlockEntity extends BlockEntity {
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
-        tag.put("Pattern", save(pattern, registries));
-        tag.put("Storage", save(storage, registries));
-        tag.put("Surplus", save(surplus, registries));
+        tag.put("Pattern", ContainerTags.save(pattern, registries));
+        tag.put("Storage", ContainerTags.save(storage, registries));
+        tag.put("Surplus", ContainerTags.save(surplus, registries));
     }
 
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-        load(pattern, tag.getCompound("Pattern"), registries);
-        load(storage, tag.getCompound("Storage"), registries);
-        load(surplus, tag.getCompound("Surplus"), registries);
-    }
-
-    private static CompoundTag save(SimpleContainer container, HolderLookup.Provider registries) {
-        NonNullList<ItemStack> items = NonNullList.withSize(container.getContainerSize(), ItemStack.EMPTY);
-        for (int slot = 0; slot < items.size(); slot++) {
-            items.set(slot, container.getItem(slot));
-        }
-        return ContainerHelper.saveAllItems(new CompoundTag(), items, registries);
-    }
-
-    private static void load(SimpleContainer container, CompoundTag tag, HolderLookup.Provider registries) {
-        NonNullList<ItemStack> items = NonNullList.withSize(container.getContainerSize(), ItemStack.EMPTY);
-        ContainerHelper.loadAllItems(tag, items, registries);
-        for (int slot = 0; slot < items.size(); slot++) {
-            container.setItem(slot, items.get(slot));
-        }
+        ContainerTags.load(pattern, tag.getCompound("Pattern"), registries);
+        ContainerTags.load(storage, tag.getCompound("Storage"), registries);
+        ContainerTags.load(surplus, tag.getCompound("Surplus"), registries);
     }
 }

@@ -35,7 +35,6 @@ import logisticspipes.domain.transport.UnroutedPipe;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -44,7 +43,6 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.Container;
-import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.Containers;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.SimpleContainer;
@@ -512,49 +510,20 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = new CompoundTag();
-        tag.put("Items", saveItems(registries));
+        tag.put("Items", TransportTags.save(transport, registries));
         return tag;
-    }
-
-    private ListTag saveItems(HolderLookup.Provider registries) {
-        ListTag items = new ListTag();
-        for (TravellingItem item : transport.items()) {
-            CompoundTag entry = new CompoundTag();
-            entry.putLong("Id", item.id());
-            entry.put("Stack", McItemType.stackOf(item.batch()).save(registries));
-            entry.putString("Origin", item.origin().name());
-            item.exit().ifPresent(exit -> entry.putString("Exit", exit.name()));
-            item.destination().ifPresent(destination -> entry.putUUID("Destination", destination.value()));
-            item.nextHop().ifPresent(nextHop -> entry.putUUID("NextHop", nextHop.value()));
-            entry.putInt("Progress", item.progress());
-            entry.putInt("Speed", item.ticksPerPipe());
-            items.add(entry);
-        }
-        return items;
     }
 
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         tag.putUUID("Router", routerId.value());
-        tag.put("Items", saveItems(registries));
+        tag.put("Items", TransportTags.save(transport, registries));
         tag.putInt("Satellite", satelliteId);
         tag.putBoolean("DefaultRoute", defaultRoute);
-        NonNullList<ItemStack> settings = NonNullList.withSize(CONFIG_SLOTS, ItemStack.EMPTY);
-        for (int slot = 0; slot < CONFIG_SLOTS; slot++) {
-            settings.set(slot, config.getItem(slot));
-        }
-        tag.put("Config", ContainerHelper.saveAllItems(new CompoundTag(), settings, registries));
-        NonNullList<ItemStack> plugged = NonNullList.withSize(MODULE_SLOTS, ItemStack.EMPTY);
-        for (int slot = 0; slot < MODULE_SLOTS; slot++) {
-            plugged.set(slot, modules.getItem(slot));
-        }
-        tag.put("Modules", ContainerHelper.saveAllItems(new CompoundTag(), plugged, registries));
-        NonNullList<ItemStack> installed = NonNullList.withSize(UPGRADE_SLOTS, ItemStack.EMPTY);
-        for (int slot = 0; slot < UPGRADE_SLOTS; slot++) {
-            installed.set(slot, upgrades.getItem(slot));
-        }
-        tag.put("Upgrades", ContainerHelper.saveAllItems(new CompoundTag(), installed, registries));
+        tag.put("Config", ContainerTags.save(config, registries));
+        tag.put("Modules", ContainerTags.save(modules, registries));
+        tag.put("Upgrades", ContainerTags.save(upgrades, registries));
         ListTag orders = new ListTag();
         for (OutputOrder order : outputOrders.all()) {
             CompoundTag entry = new CompoundTag();
@@ -572,52 +541,14 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         if (tag.hasUUID("Router")) {
             routerId = new RouterId(tag.getUUID("Router"));
         }
-        // an item the viewer already shows keeps its place, the update only fills in the rest
-        PipeTransport shown = new PipeTransport();
-        transport.clear().forEach(shown::insert);
-        ListTag items = tag.getList("Items", Tag.TAG_COMPOUND);
-        for (int index = 0; index < items.size(); index++) {
-            CompoundTag entry = items.getCompound(index);
-            Optional<ItemStack> stack = ItemStack.parse(registries, entry.getCompound("Stack"));
-            if (stack.isEmpty() || stack.get().isEmpty()) {
-                continue;
-            }
-            long id = entry.getLong("Id");
-            TravellingItem item = TravellingItem.restore(
-                    id,
-                    McItemType.batchOf(stack.get()),
-                    Side.valueOf(entry.getString("Origin")),
-                    entry.hasUUID("Destination") ? new RouterId(entry.getUUID("Destination")) : null,
-                    entry.hasUUID("NextHop") ? new RouterId(entry.getUUID("NextHop")) : null,
-                    entry.contains("Exit") ? Side.valueOf(entry.getString("Exit")) : null,
-                    shown.progressOf(id).orElse(entry.getInt("Progress")));
-            if (entry.getInt("Speed") > 0) {
-                item.setTicksPerPipe(entry.getInt("Speed"));
-            }
-            transport.insert(item);
-        }
+        TransportTags.load(transport, tag.getList("Items", Tag.TAG_COMPOUND), registries);
+        // updates for clients carry only the items, everything else stays as it is
         if (tag.contains("Config")) {
             satelliteId = tag.getInt("Satellite");
             defaultRoute = !tag.contains("DefaultRoute") || tag.getBoolean("DefaultRoute");
-            NonNullList<ItemStack> settings = NonNullList.withSize(CONFIG_SLOTS, ItemStack.EMPTY);
-            ContainerHelper.loadAllItems(tag.getCompound("Config"), settings, registries);
-            for (int slot = 0; slot < CONFIG_SLOTS; slot++) {
-                config.setItem(slot, settings.get(slot));
-            }
-        }
-        if (tag.contains("Modules")) {
-            NonNullList<ItemStack> plugged = NonNullList.withSize(MODULE_SLOTS, ItemStack.EMPTY);
-            ContainerHelper.loadAllItems(tag.getCompound("Modules"), plugged, registries);
-            for (int slot = 0; slot < MODULE_SLOTS; slot++) {
-                modules.setItem(slot, plugged.get(slot));
-            }
-        }
-        if (tag.contains("Upgrades")) {
-            NonNullList<ItemStack> installed = NonNullList.withSize(UPGRADE_SLOTS, ItemStack.EMPTY);
-            ContainerHelper.loadAllItems(tag.getCompound("Upgrades"), installed, registries);
-            for (int slot = 0; slot < UPGRADE_SLOTS; slot++) {
-                upgrades.setItem(slot, installed.get(slot));
-            }
+            ContainerTags.load(config, tag.getCompound("Config"), registries);
+            ContainerTags.load(modules, tag.getCompound("Modules"), registries);
+            ContainerTags.load(upgrades, tag.getCompound("Upgrades"), registries);
         }
         ListTag orders = tag.getList("Orders", Tag.TAG_COMPOUND);
         for (int index = 0; index < orders.size(); index++) {
