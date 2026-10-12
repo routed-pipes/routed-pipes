@@ -2,6 +2,7 @@ package logisticspipes.application.port;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Set;
 
 import logisticspipes.domain.crafting.OutputOrders;
@@ -27,6 +28,11 @@ public interface RouterNode {
 
     // takes items out of the inventories and sends them on their way, returns how many went out
     int send(ItemType type, int count, RouterId destination);
+
+    // basic pipes only, how much the pipe wants an item nobody asked for
+    default OptionalInt sinkPriority(ItemType type) {
+        return OptionalInt.empty();
+    }
 
     // crafting pipes only
     default Optional<Recipe> recipe() {

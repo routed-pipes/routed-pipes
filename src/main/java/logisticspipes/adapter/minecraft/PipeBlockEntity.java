@@ -6,6 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Set;
 import java.util.UUID;
 
@@ -18,6 +19,7 @@ import logisticspipes.domain.crafting.OutputOrders;
 import logisticspipes.domain.crafting.Recipe;
 import logisticspipes.domain.item.ItemBatch;
 import logisticspipes.domain.item.ItemType;
+import logisticspipes.domain.logistics.ItemSink;
 import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.domain.request.RequestPlan;
 import logisticspipes.domain.routing.RouterId;
@@ -62,22 +64,27 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     private final ContainerData data = new ContainerData() {
         @Override
         public int get(int index) {
-            return satelliteId;
+            return index == PipeConfigMenu.DATA_DEFAULT_ROUTE ? (defaultRoute ? 1 : 0) : satelliteId;
         }
 
         @Override
         public void set(int index, int value) {
-            satelliteId = value;
+            if (index == PipeConfigMenu.DATA_DEFAULT_ROUTE) {
+                defaultRoute = value != 0;
+            } else {
+                satelliteId = value;
+            }
             setChanged();
         }
 
         @Override
         public int getCount() {
-            return 1;
+            return PipeConfigMenu.DATA_COUNT;
         }
     };
     private RouterId routerId = new RouterId(UUID.randomUUID());
     private int satelliteId;
+    private boolean defaultRoute = true;
     private boolean announced;
     private boolean linksDirty;
 
@@ -115,7 +122,11 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     }
 
     public void setSatelliteId(int id) {
-        data.set(0, id);
+        data.set(PipeConfigMenu.DATA_SATELLITE, id);
+    }
+
+    public void setDefaultRoute(boolean enabled) {
+        data.set(PipeConfigMenu.DATA_DEFAULT_ROUTE, enabled ? 1 : 0);
     }
 
     // takes a stack coming in from outside through the given side
@@ -316,6 +327,14 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     }
 
     @Override
+    public OptionalInt sinkPriority(ItemType type) {
+        if (kind() != PipeKind.BASIC) {
+            return OptionalInt.empty();
+        }
+        return new ItemSink(supplyTargets().keySet(), defaultRoute).priority(type);
+    }
+
+    @Override
     public Optional<Recipe> recipe() {
         ItemStack output = config.getItem(OUTPUT_SLOT);
         List<ItemBatch> inputs = new ArrayList<>();
@@ -401,6 +420,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         tag.putUUID("Router", routerId.value());
         tag.put("Items", saveItems(registries));
         tag.putInt("Satellite", satelliteId);
+        tag.putBoolean("DefaultRoute", defaultRoute);
         NonNullList<ItemStack> settings = NonNullList.withSize(CONFIG_SLOTS, ItemStack.EMPTY);
         for (int slot = 0; slot < CONFIG_SLOTS; slot++) {
             settings.set(slot, config.getItem(slot));
@@ -445,6 +465,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         }
         if (tag.contains("Config")) {
             satelliteId = tag.getInt("Satellite");
+            defaultRoute = !tag.contains("DefaultRoute") || tag.getBoolean("DefaultRoute");
             NonNullList<ItemStack> settings = NonNullList.withSize(CONFIG_SLOTS, ItemStack.EMPTY);
             ContainerHelper.loadAllItems(tag.getCompound("Config"), settings, registries);
             for (int slot = 0; slot < CONFIG_SLOTS; slot++) {

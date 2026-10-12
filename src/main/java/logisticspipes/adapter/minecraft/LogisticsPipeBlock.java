@@ -61,7 +61,7 @@ public class LogisticsPipeBlock extends Block implements EntityBlock {
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
-        if (kind == null || kind == PipeKind.BASIC || kind == PipeKind.PROVIDER) {
+        if (kind == null || kind != PipeKind.REQUEST && !services.hasSettings(kind)) {
             return InteractionResult.PASS;
         }
         if (!level.isClientSide && level.getBlockEntity(pos) instanceof PipeBlockEntity pipe) {

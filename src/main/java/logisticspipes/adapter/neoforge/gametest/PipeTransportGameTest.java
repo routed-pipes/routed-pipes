@@ -140,4 +140,31 @@ public class PipeTransportGameTest {
             helper.succeed();
         });
     }
+
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void filteredPipeGetsItsItemsBeforeANearerDefaultRoute(GameTestHelper helper) {
+        router(helper, 1);
+        BlockPos near = chestAbove(helper, 1);
+        router(helper, 2);
+        transport(helper, 3, 5);
+        router(helper, 6);
+        BlockPos far = chestAbove(helper, 6);
+        PipeBlockEntity filtered = helper.getBlockEntity(new BlockPos(6, 1, 1));
+        filtered.config().setItem(0, new ItemStack(Items.DIAMOND));
+        filtered.setDefaultRoute(false);
+
+        // wait until the far pipe is known, before that the near chest is the only choice
+        helper.runAfterDelay(5, () -> {
+            insert(helper, 2, Direction.DOWN, new ItemStack(Items.DIAMOND, 3));
+            insert(helper, 2, Direction.DOWN, new ItemStack(Items.STONE, 5));
+        });
+
+        helper.runAfterDelay(150, () -> {
+            assertCount(helper, far, Items.DIAMOND, 3);
+            assertCount(helper, far, Items.STONE, 0);
+            assertCount(helper, near, Items.STONE, 5);
+            assertCount(helper, near, Items.DIAMOND, 0);
+            helper.succeed();
+        });
+    }
 }

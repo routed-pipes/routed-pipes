@@ -8,6 +8,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Set;
 
 import logisticspipes.application.port.RouterNode;
@@ -33,7 +34,6 @@ import logisticspipes.domain.transport.TravellingItem;
 // the routed pipes of one world and the decisions they make for passing, requesting and crafting items
 public final class LogisticsNetwork {
 
-    private static final int DEFAULT_ROUTE_PRIORITY = 0;
     // in ticks, after that an item is assumed lost and may be ordered again
     static final long PROVISION_TIMEOUT = 1200;
     static final long CRAFT_TIMEOUT = 24000;
@@ -93,14 +93,15 @@ public final class LogisticsNetwork {
     private Optional<RouterId> findDestination(RouterId at, TravellingItem item) {
         List<SinkOffer> offers = new ArrayList<>();
         for (Map.Entry<RouterId, RouterNode> entry : nodes.entrySet()) {
-            if (entry.getValue().kind() != PipeKind.BASIC) {
+            OptionalInt priority = entry.getValue().sinkPriority(item.batch().type());
+            if (priority.isEmpty()) {
                 continue;
             }
             Set<Side> sides = entry.getKey().equals(at)
                     ? deliverySides(at, item)
                     : entry.getValue().inventoriesAccepting(item.batch());
             if (!sides.isEmpty()) {
-                offers.add(new SinkOffer(entry.getKey(), DEFAULT_ROUTE_PRIORITY));
+                offers.add(new SinkOffer(entry.getKey(), priority.getAsInt()));
             }
         }
         return DestinationSelector.select(at, offers, routing.routesFrom(at));

@@ -201,6 +201,7 @@ public final class VisualTest {
         step(0, () -> minecraft.options.hideGui = false);
         screenShot("gui_request", REQUEST, "2.5 -60 2.5 90 0");
         screenShot("gui_supplier", SUPPLIER, "4.5 -60 6.5 90 0");
+        screenShot("gui_basic", new BlockPos(0, -59, 6), "2.5 -60 6.5 90 0");
         screenShot("gui_crafting", CRAFTING, "2.5 -60 12.5 90 0");
         screenShot("gui_satellite", SATELLITE, "2.5 -60 12.5 90 0");
         screenShot("gui_crafting_table", TABLE, "2.5 -60 17.5 90 0");

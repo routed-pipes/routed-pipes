@@ -1,5 +1,6 @@
 package logisticspipes.adapter.minecraft;
 
+import java.util.Map;
 import java.util.function.Supplier;
 
 import logisticspipes.adapter.minecraft.menu.PipeConfigMenu;
@@ -14,16 +15,13 @@ public record PipeServices(
         ItemStorage storage,
         LevelNetworks networks,
         Supplier<MenuType<RequestMenu>> requestMenu,
-        Supplier<MenuType<PipeConfigMenu>> supplierMenu,
-        Supplier<MenuType<PipeConfigMenu>> craftingMenu,
-        Supplier<MenuType<PipeConfigMenu>> satelliteMenu) {
+        Map<PipeKind, Supplier<MenuType<PipeConfigMenu>>> configMenus) {
+
+    public boolean hasSettings(PipeKind kind) {
+        return configMenus.containsKey(kind);
+    }
 
     public MenuType<PipeConfigMenu> configMenu(PipeKind kind) {
-        return switch (kind) {
-            case SUPPLIER -> supplierMenu.get();
-            case CRAFTING -> craftingMenu.get();
-            case SATELLITE -> satelliteMenu.get();
-            default -> throw new IllegalArgumentException("no settings for " + kind);
-        };
+        return configMenus.get(kind).get();
     }
 }

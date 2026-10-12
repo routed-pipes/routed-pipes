@@ -12,12 +12,14 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> {
 
     private static final int TEXT = 0x404040;
 
+    private Button defaultRoute;
+
     public PipeConfigScreen(PipeConfigMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
     }
 
     private boolean hasSatelliteControls() {
-        return menu.kind() != PipeKind.SUPPLIER;
+        return menu.kind() == PipeKind.CRAFTING || menu.kind() == PipeKind.SATELLITE;
     }
 
     // crafting pipes show the satellite under the output slot, satellite pipes in the middle
@@ -32,6 +34,10 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> {
     @Override
     protected void init() {
         super.init();
+        if (menu.kind() == PipeKind.BASIC) {
+            defaultRoute = addRenderableWidget(Button.builder(defaultRouteLabel(),
+                    button -> press(PipeConfigMenu.BUTTON_DEFAULT_ROUTE)).bounds(leftPos + 92, topPos + 34, 76, 16).build());
+        }
         if (menu.kind() == PipeKind.CRAFTING) {
             addRenderableWidget(Button.builder(Component.translatable("logisticspipes.gui.import"),
                     button -> press(PipeConfigMenu.BUTTON_IMPORT_RECIPE)).bounds(leftPos + 87, topPos + 25, 34, 14).build());
@@ -45,6 +51,17 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> {
                 .bounds(x - 30, y - 3, 14, 14).build());
         addRenderableWidget(Button.builder(Component.literal("+"), button -> press(PipeConfigMenu.BUTTON_SATELLITE_UP))
                 .bounds(x + 16, y - 3, 14, 14).build());
+    }
+
+    private Component defaultRouteLabel() {
+        return Component.translatable(menu.defaultRoute() ? "logisticspipes.gui.default_route.on" : "logisticspipes.gui.default_route.off");
+    }
+
+    @Override
+    protected void containerTick() {
+        if (defaultRoute != null) {
+            defaultRoute.setMessage(defaultRouteLabel());
+        }
     }
 
     private void press(int button) {

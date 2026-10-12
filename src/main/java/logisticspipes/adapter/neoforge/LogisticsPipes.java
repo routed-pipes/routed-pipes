@@ -51,16 +51,21 @@ public class LogisticsPipes {
     public static final Supplier<MenuType<RequestMenu>> REQUEST_MENU = MENUS.register("request",
             () -> new MenuType<>((id, inventory) -> new RequestMenu(LogisticsPipes.REQUEST_MENU.get(), id),
                     FeatureFlags.DEFAULT_FLAGS));
-    public static final Supplier<MenuType<PipeConfigMenu>> SUPPLIER_MENU = configMenu("supplier", PipeKind.SUPPLIER);
-    public static final Supplier<MenuType<PipeConfigMenu>> CRAFTING_MENU = configMenu("crafting", PipeKind.CRAFTING);
-    public static final Supplier<MenuType<PipeConfigMenu>> SATELLITE_MENU = configMenu("satellite", PipeKind.SATELLITE);
+    public static final Map<PipeKind, Supplier<MenuType<PipeConfigMenu>>> CONFIG_MENUS = new EnumMap<>(PipeKind.class);
+
+    static {
+        CONFIG_MENUS.put(PipeKind.BASIC, configMenu("basic", PipeKind.BASIC));
+        CONFIG_MENUS.put(PipeKind.SUPPLIER, configMenu("supplier", PipeKind.SUPPLIER));
+        CONFIG_MENUS.put(PipeKind.CRAFTING, configMenu("crafting", PipeKind.CRAFTING));
+        CONFIG_MENUS.put(PipeKind.SATELLITE, configMenu("satellite", PipeKind.SATELLITE));
+    }
 
     public static final Supplier<MenuType<CraftingTableMenu>> CRAFTING_TABLE_MENU = MENUS.register("crafting_table",
             () -> new MenuType<>((id, inventory) -> new CraftingTableMenu(LogisticsPipes.CRAFTING_TABLE_MENU.get(), id, inventory),
                     FeatureFlags.DEFAULT_FLAGS));
 
     private static final PipeServices SERVICES = new PipeServices(() -> LogisticsPipes.PIPE_BLOCK_ENTITY.get(),
-            new CapabilityItemStorage(), new LevelNetworks(), REQUEST_MENU, SUPPLIER_MENU, CRAFTING_MENU, SATELLITE_MENU);
+            new CapabilityItemStorage(), new LevelNetworks(), REQUEST_MENU, CONFIG_MENUS);
 
     public static final DeferredBlock<LogisticsPipeBlock> TRANSPORT_PIPE = pipe("transport_pipe", null);
     public static final Map<PipeKind, DeferredBlock<LogisticsPipeBlock>> LOGISTICS_PIPES = new EnumMap<>(PipeKind.class);

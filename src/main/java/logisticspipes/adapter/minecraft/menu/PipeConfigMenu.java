@@ -17,12 +17,16 @@ import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
-// settings of supplier, crafting and satellite pipes: marker slots that only remember an item and a count
+// settings of basic, supplier, crafting and satellite pipes: marker slots that only remember an item and a count
 public class PipeConfigMenu extends AbstractContainerMenu {
 
     public static final int BUTTON_SATELLITE_DOWN = 0;
     public static final int BUTTON_SATELLITE_UP = 1;
     public static final int BUTTON_IMPORT_RECIPE = 2;
+    public static final int BUTTON_DEFAULT_ROUTE = 3;
+    public static final int DATA_SATELLITE = 0;
+    public static final int DATA_DEFAULT_ROUTE = 1;
+    public static final int DATA_COUNT = 2;
     public static final int MAX_SATELLITE_ID = 99;
     private static final int MAX_MARKER_COUNT = 64;
 
@@ -34,7 +38,7 @@ public class PipeConfigMenu extends AbstractContainerMenu {
 
     // client side
     public PipeConfigMenu(MenuType<?> type, int id, Inventory inventory, PipeKind kind) {
-        this(type, id, inventory, kind, new SimpleContainer(PipeBlockEntity.CONFIG_SLOTS), new SimpleContainerData(1),
+        this(type, id, inventory, kind, new SimpleContainer(PipeBlockEntity.CONFIG_SLOTS), new SimpleContainerData(DATA_COUNT),
                 player -> true, () -> { });
     }
 
@@ -46,7 +50,7 @@ public class PipeConfigMenu extends AbstractContainerMenu {
         this.usable = usable;
         this.importRecipe = importRecipe;
         if (kind != PipeKind.SATELLITE) {
-            int left = kind == PipeKind.CRAFTING ? 30 : 62;
+            int left = kind == PipeKind.SUPPLIER ? 62 : 30;
             for (int slot = 0; slot < PipeBlockEntity.OUTPUT_SLOT; slot++) {
                 addSlot(new MarkerSlot(config, slot, left + slot % 3 * 18, 17 + slot / 3 * 18));
             }
@@ -71,7 +75,11 @@ public class PipeConfigMenu extends AbstractContainerMenu {
     }
 
     public int satelliteId() {
-        return data.get(0);
+        return data.get(DATA_SATELLITE);
+    }
+
+    public boolean defaultRoute() {
+        return data.get(DATA_DEFAULT_ROUTE) != 0;
     }
 
     // left click copies the held stack or clears, right click changes the count by one
@@ -104,11 +112,15 @@ public class PipeConfigMenu extends AbstractContainerMenu {
             importRecipe.run();
             return true;
         }
+        if (id == BUTTON_DEFAULT_ROUTE && kind == PipeKind.BASIC) {
+            data.set(DATA_DEFAULT_ROUTE, defaultRoute() ? 0 : 1);
+            return true;
+        }
         if (id != BUTTON_SATELLITE_DOWN && id != BUTTON_SATELLITE_UP) {
             return false;
         }
         int change = id == BUTTON_SATELLITE_UP ? 1 : -1;
-        data.set(0, Mth.clamp(data.get(0) + change, 0, MAX_SATELLITE_ID));
+        data.set(DATA_SATELLITE, Mth.clamp(satelliteId() + change, 0, MAX_SATELLITE_ID));
         return true;
     }
 

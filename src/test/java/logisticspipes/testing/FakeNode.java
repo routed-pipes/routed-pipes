@@ -6,6 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Set;
 
 import logisticspipes.application.port.RouterNode;
@@ -13,6 +14,7 @@ import logisticspipes.domain.crafting.OutputOrders;
 import logisticspipes.domain.crafting.Recipe;
 import logisticspipes.domain.item.ItemBatch;
 import logisticspipes.domain.item.ItemType;
+import logisticspipes.domain.logistics.ItemSink;
 import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.domain.routing.RouterId;
 import logisticspipes.domain.routing.Side;
@@ -29,6 +31,8 @@ public final class FakeNode implements RouterNode {
     public final Map<ItemType, Integer> supplyTargets = new LinkedHashMap<>();
     public final OutputOrders outputOrders = new OutputOrders();
     public Recipe recipe;
+    // basic pipes take everything by default, like a fresh one in the game
+    public ItemSink sink = new ItemSink(Set.of(), true);
     public int satelliteId;
     private final PipeKind kind;
 
@@ -70,6 +74,11 @@ public final class FakeNode implements RouterNode {
             shipments.add(new Shipment(new ItemBatch(type, sent), destination));
         }
         return sent;
+    }
+
+    @Override
+    public OptionalInt sinkPriority(ItemType type) {
+        return kind == PipeKind.BASIC ? sink.priority(type) : OptionalInt.empty();
     }
 
     @Override

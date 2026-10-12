@@ -23,9 +23,7 @@ public class LogisticsPipesClient {
 
     private static void registerScreens(RegisterMenuScreensEvent event) {
         event.register(LogisticsPipes.REQUEST_MENU.get(), RequestScreen::new);
-        event.register(LogisticsPipes.SUPPLIER_MENU.get(), PipeConfigScreen::new);
-        event.register(LogisticsPipes.CRAFTING_MENU.get(), PipeConfigScreen::new);
-        event.register(LogisticsPipes.SATELLITE_MENU.get(), PipeConfigScreen::new);
+        LogisticsPipes.CONFIG_MENUS.values().forEach(menu -> event.register(menu.get(), PipeConfigScreen::new));
         event.register(LogisticsPipes.CRAFTING_TABLE_MENU.get(), CraftingTableScreen::new);
     }
 

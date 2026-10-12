@@ -233,8 +233,8 @@ public class RequestGameTest {
     public static void settingsMenuMarksItemsWithoutTakingThem(GameTestHelper helper) {
         PipeBlockEntity supplier = pipe(helper, PipeKind.SUPPLIER, 0, 1);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        PipeConfigMenu menu = new PipeConfigMenu(LogisticsPipes.SUPPLIER_MENU.get(), 1, player.getInventory(),
-                PipeKind.SUPPLIER, supplier.config(), new SimpleContainerData(1), user -> true, () -> { });
+        PipeConfigMenu menu = new PipeConfigMenu(LogisticsPipes.CONFIG_MENUS.get(PipeKind.SUPPLIER).get(), 1, player.getInventory(),
+                PipeKind.SUPPLIER, supplier.config(), new SimpleContainerData(PipeConfigMenu.DATA_COUNT), user -> true, () -> { });
 
         menu.setCarried(new ItemStack(Items.COAL, 16));
         menu.clicked(0, 0, ClickType.PICKUP, player);

@@ -5,8 +5,10 @@ import static logisticspipes.testing.Fixtures.router;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
+import java.util.Set;
 
 import logisticspipes.domain.routing.Side;
+import logisticspipes.domain.logistics.ItemSink;
 import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.domain.routing.Link;
 import logisticspipes.domain.routing.RouterId;
@@ -161,5 +163,27 @@ class LogisticsNetworkTest {
         network.chooseExit(A, item);
 
         assertThat(item.nextHop()).contains(B);
+    }
+
+    @Test
+    void filteredSinkBeatsANearerDefaultRoute() {
+        line();
+        a.inventories.add(Side.DOWN);
+        c.inventories.add(Side.UP);
+        c.sink = new ItemSink(Set.of(batch("stone", 1).type()), false);
+        TravellingItem item = itemFrom(Side.UP);
+
+        assertThat(network.chooseExit(B, item)).contains(Side.EAST);
+        assertThat(item.destination()).contains(C);
+    }
+
+    @Test
+    void filteredSinkIgnoresOtherItems() {
+        line();
+        c.inventories.add(Side.UP);
+        c.sink = new ItemSink(Set.of(batch("dirt", 1).type()), false);
+        TravellingItem item = itemFrom(Side.UP);
+
+        assertThat(network.chooseExit(A, item)).isEmpty();
     }
 }

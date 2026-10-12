@@ -14,5 +14,7 @@
   "logisticspipes.request.missing": "Request failed, missing:",
   "logisticspipes.request.missing_entry": "%s x %s",
   "block.logisticspipes.logistics_crafting_table": "Logistics Crafting Table",
-  "logisticspipes.gui.import": "Import"
+  "logisticspipes.gui.import": "Import",
+  "logisticspipes.gui.default_route.on": "Default: yes",
+  "logisticspipes.gui.default_route.off": "Default: no"
 }
