@@ -200,10 +200,13 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     // null unless this is a fluid pipe
     private final FluidPipe fluids;
     private final PowerPipe power = new PowerPipe(this);
+    // null unless this is a routed pipe
+    private final PipeSigns signs;
 
     public PipeBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
         fluids = FluidPipe.of(this, kind());
+        signs = kind() == null ? null : new PipeSigns(this);
         if (kind() == PipeKind.SUPPLIER) {
             mode = SupplyMode.BULK50.ordinal();
         }
@@ -768,6 +771,11 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         return drive;
     }
 
+    // null unless this is a routed pipe
+    public PipeSigns signs() {
+        return signs;
+    }
+
     // remote means the player does not have to stand next to the pipe
     public void openRequestScreen(Player player, boolean remote) {
         player.openMenu(requestScreen(remote));
@@ -1132,6 +1140,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         }
         if (pipe().routed()) {
             power.serverTick();
+            signs.tick();
         }
         if (!transport.isEmpty()) {
             for (Departure departure : transport.tick(level.getGameTime(), this::chooseExit)) {
@@ -1530,6 +1539,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         } else {
             tag.put("Items", TransportTags.save(transport, registries));
         }
+        if (signs != null) {
+            tag.put("Signs", signs.save(registries, true));
+        }
         return tag;
     }
 
@@ -1592,6 +1604,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         }
         tag.putLongArray("Statistics", StatisticsTags.save(statistics));
         tag.put("Security", security.save(registries));
+        if (signs != null) {
+            tag.put("Signs", signs.save(registries, false));
+        }
     }
 
     @Override
@@ -1668,6 +1683,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         }
         if (fluids != null && tag.contains("Fluids")) {
             fluids.load(tag.getCompound("Fluids"), registries);
+        }
+        if (signs != null && tag.contains("Signs")) {
+            signs.load(tag.getCompound("Signs"), registries);
         }
         ListTag orders = tag.getList("Orders", Tag.TAG_COMPOUND);
         for (int index = 0; index < orders.size(); index++) {

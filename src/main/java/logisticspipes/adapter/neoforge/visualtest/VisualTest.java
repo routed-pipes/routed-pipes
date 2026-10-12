@@ -277,6 +277,16 @@ public final class VisualTest {
             command("setblock 22 -60 49 stone");
         });
         shotFrom("pipes_on_the_ground", "21.5 -59.5 53.5 180 15");
+        // a crafting sign on the crafting pipe that has a recipe
+        step(5, () -> onServer(server -> {
+            if (server.overworld().getBlockEntity(CRAFTING) instanceof PipeBlockEntity pipe) {
+                pipe.signs().place(Direction.WEST, logisticspipes.domain.sign.SignKind.CRAFTING);
+            }
+        }));
+        shotFrom("sign_crafting", "-1.5 -59 13.5 -90 10");
+        step(5, () -> minecraft.setScreen(new logisticspipes.adapter.minecraft.client.GuideBookScreen()));
+        step(5, () -> shot("guide_book_contents"));
+        step(5, () -> minecraft.setScreen(null));
         shotFrom("pipes_overview", "7.5 -58 7.5 90 12");
         shotFrom("pipes_close", "2.5 -60 4.5 90 0");
         shotFrom("pipes_junction", "3.5 -58.5 8.5 120 15");

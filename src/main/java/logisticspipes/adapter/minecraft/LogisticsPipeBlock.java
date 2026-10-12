@@ -89,8 +89,8 @@ public class LogisticsPipeBlock extends Block implements EntityBlock {
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
             InteractionHand hand, BlockHitResult hit) {
-        if (kind != null && stack.getItem() instanceof SettingsCopierItem) {
-            // the copier pastes instead of opening the pipe
+        if (kind != null && (stack.getItem() instanceof SettingsCopierItem || stack.getItem() instanceof SignCreatorItem)) {
+            // the copier pastes and the sign creator puts up a sign instead of opening the pipe
             return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
         }
         if (stack.getItem() instanceof PipeControllerItem && level.getBlockEntity(pos) instanceof PipeBlockEntity pipe

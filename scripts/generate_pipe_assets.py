@@ -365,9 +365,15 @@ def main():
                 "power_transportation", "opaque", "cc_remote_control", "sneaky_combination", "pattern", "fuzzy"]
     parts = ["chip_basic_raw", "chip_basic", "chip_advanced_raw", "chip_advanced", "chip_fpga_raw", "chip_fpga", "module_blank",
              "logistics_programmer"]
-    for module in MODULES + ["remote_orderer", "pipe_controller", "settings_copier", "security_card", "disk", "frequency_card"] + ["upgrade_" + upgrade for upgrade in upgrades] + parts:
+    for module in MODULES + ["remote_orderer", "pipe_controller", "settings_copier", "security_card", "disk", "frequency_card", "guide_book"] + ["upgrade_" + upgrade for upgrade in upgrades] + parts:
         write(ASSETS + f"models/item/{module}.json",
               {"parent": "minecraft:item/generated", "textures": {"layer0": f"logisticspipes:item/{module}"}})
+    # the sign creator looks like the kind of sign it makes
+    write(ASSETS + "models/item/sign_creator.json", {"parent": "minecraft:item/generated",
+          "textures": {"layer0": "logisticspipes:item/sign_creator_crafting"},
+          "overrides": [{"predicate": {"logisticspipes:sign_mode": 1}, "model": "logisticspipes:item/sign_creator_item_amount"}]})
+    write(ASSETS + "models/item/sign_creator_item_amount.json", {"parent": "minecraft:item/generated",
+          "textures": {"layer0": "logisticspipes:item/sign_creator_item_amount"}})
     # the window of the container is tinted with the colour of the fluid in it
     write(ASSETS + "models/item/fluid_container.json", {"parent": "minecraft:item/generated", "textures": {
         "layer0": "logisticspipes:item/fluid_container", "layer1": "logisticspipes:item/fluid_container_window"}})

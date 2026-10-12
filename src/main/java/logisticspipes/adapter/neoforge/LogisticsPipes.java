@@ -18,6 +18,7 @@ import logisticspipes.adapter.minecraft.DiskItem;
 import logisticspipes.adapter.minecraft.DiskMenus;
 import logisticspipes.adapter.minecraft.FluidContainerItem;
 import logisticspipes.adapter.minecraft.FrequencyCardItem;
+import logisticspipes.adapter.minecraft.GuideBookItem;
 import logisticspipes.adapter.minecraft.FluidContents;
 import logisticspipes.adapter.minecraft.FluidServices;
 import logisticspipes.adapter.minecraft.LevelNetworks;
@@ -38,6 +39,7 @@ import logisticspipes.adapter.minecraft.ProgrammerItem;
 import logisticspipes.adapter.minecraft.RemoteOrdererItem;
 import logisticspipes.adapter.minecraft.RequestTableBlock;
 import logisticspipes.adapter.minecraft.SettingsCopierItem;
+import logisticspipes.adapter.minecraft.SignCreatorItem;
 import logisticspipes.adapter.minecraft.TubeBlock;
 import logisticspipes.adapter.minecraft.TubeBlockEntity;
 import logisticspipes.adapter.minecraft.TubeBlockItem;
@@ -68,6 +70,7 @@ import logisticspipes.adapter.minecraft.menu.ProgramCompilerMenu;
 import logisticspipes.adapter.minecraft.menu.RequestMenu;
 import logisticspipes.adapter.minecraft.menu.RequestTableMenu;
 import logisticspipes.adapter.minecraft.menu.SecurityStationMenu;
+import logisticspipes.adapter.minecraft.menu.SignItemMenu;
 import logisticspipes.adapter.minecraft.menu.StatisticsTableMenu;
 import logisticspipes.adapter.minecraft.menu.UpgradeMenu;
 import logisticspipes.adapter.neoforge.benchmark.Benchmark;
@@ -281,6 +284,19 @@ public class LogisticsPipes {
     public static final DeferredItem<SettingsCopierItem> SETTINGS_COPIER = ITEMS.register("settings_copier",
             () -> new SettingsCopierItem(new Item.Properties()));
 
+    public static final Supplier<MenuType<SignItemMenu>> SIGN_ITEM_MENU = MENUS.register("sign_item",
+            () -> new MenuType<>((id, inventory) -> new SignItemMenu(LogisticsPipes.SIGN_ITEM_MENU.get(), id, inventory),
+                    FeatureFlags.DEFAULT_FLAGS));
+    public static final DeferredItem<SignCreatorItem> SIGN_CREATOR = ITEMS.register("sign_creator",
+            () -> new SignCreatorItem(new Item.Properties(), SIGN_ITEM_MENU));
+
+    static {
+        DATA_COMPONENTS.register("sign_mode", () -> SignCreatorItem.MODE);
+    }
+
+    public static final DeferredItem<GuideBookItem> GUIDE_BOOK = ITEMS.register("guide_book",
+            () -> new GuideBookItem(new Item.Properties()));
+
     // never in a player's hands, so it is in no creative tab and has no recipe
     public static final DeferredItem<FluidContainerItem> FLUID_CONTAINER = ITEMS.register("fluid_container",
             () -> new FluidContainerItem(new Item.Properties(), FLUIDS.storage()));
@@ -443,6 +459,7 @@ public class LogisticsPipes {
         modEventBus.addListener(LogisticsPipes::registerPayloads);
         NeoForge.EVENT_BUS.addListener(LogisticsPipes::buildCreativeTabs);
         SecurityEvents.register();
+        GuideBookGift.register(modEventBus);
         ComputerCraftSupport.registerIfInstalled(modEventBus);
         Benchmark.registerIfRequested();
     }

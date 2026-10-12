@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "logisticspipes:item/sign_creator_item_amount"
+  }
+}

@@ -7,9 +7,11 @@ import java.util.List;
 import java.util.Map;
 
 import logisticspipes.adapter.minecraft.FluidContents;
+import logisticspipes.adapter.minecraft.GuideBookItem;
 import logisticspipes.adapter.minecraft.LogisticsPipeBlock;
 import logisticspipes.adapter.minecraft.PipeMounts;
 import logisticspipes.adapter.minecraft.RequestTableBlock;
+import logisticspipes.adapter.minecraft.SignCreatorItem;
 import logisticspipes.adapter.minecraft.client.ChannelScreen;
 import logisticspipes.adapter.minecraft.client.ChassisScreen;
 import logisticspipes.adapter.minecraft.client.ClientMenuLink;
@@ -18,6 +20,7 @@ import logisticspipes.adapter.minecraft.client.DiskScreen;
 import logisticspipes.adapter.minecraft.client.FirewallScreen;
 import logisticspipes.adapter.minecraft.client.FluidConfigScreen;
 import logisticspipes.adapter.minecraft.client.FrequencyCardScreen;
+import logisticspipes.adapter.minecraft.client.GuideBookScreen;
 import logisticspipes.adapter.minecraft.client.FluidRequestScreen;
 import logisticspipes.adapter.minecraft.client.MacroEditScreen;
 import logisticspipes.adapter.minecraft.client.NamesScreen;
@@ -29,15 +32,18 @@ import logisticspipes.adapter.minecraft.client.RequestScreen;
 import logisticspipes.adapter.minecraft.client.RequestTableScreen;
 import logisticspipes.adapter.minecraft.client.TubeItemRenderer;
 import logisticspipes.adapter.minecraft.client.SecurityStationScreen;
+import logisticspipes.adapter.minecraft.client.SignItemScreen;
 import logisticspipes.adapter.minecraft.client.StatisticsTableScreen;
 import logisticspipes.adapter.minecraft.client.UpgradeScreen;
 import logisticspipes.adapter.minecraft.menu.RequestMenu;
 import logisticspipes.adapter.neoforge.visualtest.ClientBenchmark;
 import logisticspipes.adapter.neoforge.visualtest.VisualTest;
 import logisticspipes.domain.look.Mount;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.BlockModelShaper;
 import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.BlockPos;
@@ -52,6 +58,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
@@ -75,6 +82,7 @@ public class LogisticsPipesClient {
         modEventBus.addListener(LogisticsPipesClient::registerItemColors);
         modEventBus.addListener(LogisticsPipesClient::registerMountModels);
         modEventBus.addListener(LogisticsPipesClient::addMountsToPipes);
+        modEventBus.addListener(LogisticsPipesClient::registerItemProperties);
         modEventBus.addListener((RegisterKeyMappingsEvent event) -> event.register(RemoteOrdererKey.MAPPING));
         NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post event) -> RemoteOrdererKey.tick());
         ClientMenuLink.setSender(new ClientMenuLink.Sender() {
@@ -98,6 +106,7 @@ public class LogisticsPipesClient {
                 PacketDistributor.sendToServer(new AskIngredientsPayload(containerId, question, order, ingredients));
             }
         });
+        GuideBookItem.setOpener(() -> Minecraft.getInstance().setScreen(new GuideBookScreen()));
         VisualTest.registerIfRequested();
         ClientBenchmark.registerIfRequested();
     }
@@ -115,6 +124,7 @@ public class LogisticsPipesClient {
         event.register(LogisticsPipes.CONNECTOR_MENU.get(), ChannelScreen::new);
         event.register(LogisticsPipes.CHANNEL_MENU.get(), ChannelScreen::new);
         event.register(LogisticsPipes.FREQUENCY_CARD_MENU.get(), FrequencyCardScreen::new);
+        event.register(LogisticsPipes.SIGN_ITEM_MENU.get(), SignItemScreen::new);
         event.register(LogisticsPipes.UPGRADE_MENU.get(), UpgradeScreen::new);
         event.register(LogisticsPipes.SECURITY_STATION_MENU.get(), SecurityStationScreen::new);
         event.register(LogisticsPipes.STATISTICS_TABLE_MENU.get(), StatisticsTableScreen::new);
@@ -128,6 +138,13 @@ public class LogisticsPipesClient {
         event.register((stack, layer) -> layer == 1 && stack.get(FluidContents.TYPE) != null
                 ? IClientFluidTypeExtensions.of(stack.get(FluidContents.TYPE).fluid()).getTintColor() | 0xFF000000 : -1,
                 LogisticsPipes.FLUID_CONTAINER.get());
+    }
+
+    // the model of the sign creator asks for the kind of sign it makes
+    private static void registerItemProperties(FMLClientSetupEvent event) {
+        event.enqueueWork(() -> ItemProperties.register(LogisticsPipes.SIGN_CREATOR.get(),
+                ResourceLocation.fromNamespaceAndPath(LogisticsPipes.MODID, "sign_mode"),
+                (stack, level, entity, seed) -> SignCreatorItem.modeOf(stack).ordinal()));
     }
 
     private static ModelResourceLocation mountModel(Mount mount) {

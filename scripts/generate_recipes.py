@@ -17,7 +17,7 @@ NAMES = {
     "planks": "#minecraft:planks", "chest": "#c:chests/wooden", "black_dye": "#c:dyes/black",
     "purple_dye": "#c:dyes/purple", "paper": "minecraft:paper", "crafting_table": "minecraft:crafting_table",
     "piston": "minecraft:piston", "redstone_block": "minecraft:redstone_block", "bucket": "minecraft:bucket",
-    "ender_pearl": "minecraft:ender_pearl", "blaze_powder": "minecraft:blaze_powder",
+    "ender_pearl": "minecraft:ender_pearl", "blaze_powder": "minecraft:blaze_powder", "sign": "#minecraft:signs", "book": "minecraft:book",
 }
 HAS_COPPER = {"type": "neoforge:not", "value": {"type": "neoforge:tag_empty", "tag": "c:ingots/copper"}}
 NO_COPPER = {"type": "neoforge:tag_empty", "tag": "c:ingots/copper"}
@@ -135,6 +135,8 @@ RECIPES = [
     # tools
     shaped("remote_orderer", ["chip_advanced gold chip_advanced", "redstone glass lapis", "redstone redstone lapis"]),
     shaped("pipe_controller", ["gold chip_basic gold", "redstone glass lapis", "redstone redstone lapis"]),
+    shaped("guide_book", ["book transport_pipe"]),
+    shaped("sign_creator", ["chip_basic . chip_basic", ". sign .", ". chip_advanced ."]),
 
     # pipes
     programmed("request_pipe", PIPE_LEVEL_2, "basic_logistics_pipe"),

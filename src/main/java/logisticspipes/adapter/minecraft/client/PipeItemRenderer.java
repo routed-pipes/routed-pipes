@@ -15,19 +15,22 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemDisplayContext;
 
-// draws the items moving through a pipe
+// draws the items moving through a pipe and the signs on it
 public class PipeItemRenderer implements BlockEntityRenderer<PipeBlockEntity> {
 
     private static final float ITEM_SCALE = 0.4f;
 
     private final ItemRenderer itemRenderer;
+    private final PipeSignRenderer signs;
 
     public PipeItemRenderer(BlockEntityRendererProvider.Context context) {
         itemRenderer = context.getItemRenderer();
+        signs = new PipeSignRenderer(context);
     }
 
     @Override
     public void render(PipeBlockEntity pipe, float partialTick, PoseStack pose, MultiBufferSource buffers, int light, int overlay) {
+        signs.render(pipe, pose, buffers, light);
         for (TravellingItem item : pipe.travellingItems()) {
             float progress = Math.min(item.progress() + partialTick * item.speed(), PipeTransport.PIPE_LENGTH)
                     / (float) PipeTransport.PIPE_LENGTH;
