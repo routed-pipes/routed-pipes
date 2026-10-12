@@ -1,0 +1,6 @@
+{
+  "parent": "logisticspipes:block/pipe_edge_up",
+  "textures": {
+    "pipe": "logisticspipes:block/request_pipe"
+  }
+}

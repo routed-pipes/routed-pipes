@@ -1,0 +1,12 @@
+{
+  "values": [
+    "logisticspipes:transport_pipe",
+    "logisticspipes:basic_logistics_pipe",
+    "logisticspipes:provider_pipe",
+    "logisticspipes:request_pipe",
+    "logisticspipes:supplier_pipe",
+    "logisticspipes:crafting_pipe",
+    "logisticspipes:satellite_pipe",
+    "logisticspipes:logistics_crafting_table"
+  ]
+}

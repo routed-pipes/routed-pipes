@@ -1,0 +1,252 @@
+package logisticspipes.adapter.neoforge.gametest;
+
+import logisticspipes.adapter.minecraft.CraftingTableBlockEntity;
+import logisticspipes.adapter.minecraft.McItemType;
+import logisticspipes.adapter.minecraft.PipeBlockEntity;
+import logisticspipes.adapter.minecraft.menu.CraftingTableMenu;
+import logisticspipes.adapter.neoforge.LogisticsPipes;
+import logisticspipes.domain.logistics.PipeKind;
+import logisticspipes.domain.request.RequestPlan;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.gametest.framework.GameTest;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.Container;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.block.Blocks;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.gametest.GameTestHolder;
+import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
+
+@GameTestHolder(LogisticsPipes.MODID)
+@PrefixGameTestTemplate(false)
+public class CraftingTableGameTest {
+
+    private static final String EMPTY = "empty";
+    private static final int SETTLE = 5;
+
+    private static CraftingTableBlockEntity table(GameTestHelper helper, int x, int y, Item... pattern) {
+        BlockPos pos = new BlockPos(x, y, 1);
+        helper.setBlock(pos, LogisticsPipes.CRAFTING_TABLE.get());
+        CraftingTableBlockEntity table = helper.getBlockEntity(pos);
+        for (int slot = 0; slot < pattern.length; slot++) {
+            if (pattern[slot] != null) {
+                table.pattern().setItem(slot, new ItemStack(pattern[slot]));
+            }
+        }
+        return table;
+    }
+
+    private static PipeBlockEntity pipe(GameTestHelper helper, PipeKind kind, int x) {
+        BlockPos pos = new BlockPos(x, 1, 1);
+        helper.setBlock(pos, LogisticsPipes.pipe(kind));
+        return helper.getBlockEntity(pos);
+    }
+
+    private static BlockPos chest(GameTestHelper helper, int x, ItemStack... contents) {
+        BlockPos pos = new BlockPos(x, 2, 1);
+        helper.setBlock(pos, Blocks.CHEST);
+        Container container = helper.getBlockEntity(pos);
+        for (int slot = 0; slot < contents.length; slot++) {
+            container.setItem(slot, contents[slot]);
+        }
+        return pos;
+    }
+
+    private static void assertStack(GameTestHelper helper, ItemStack stack, Item item, int count, String what) {
+        helper.assertTrue(stack.is(item) && stack.getCount() == count, what + ": expected " + count + " " + item + " but got " + stack);
+    }
+
+    private static void assertCount(GameTestHelper helper, Container container, Item item, int expected, String what) {
+        helper.assertTrue(container.countItem(item) == expected,
+                what + ": expected " + expected + " " + item + " but found " + container.countItem(item));
+    }
+
+    @GameTest(template = EMPTY)
+    public static void knowsTheResultOfItsRecipeGrid(GameTestHelper helper) {
+        CraftingTableBlockEntity table = table(helper, 0, 1, Items.OAK_LOG);
+
+        assertStack(helper, table.result(), Items.OAK_PLANKS, 4, "result");
+        helper.assertTrue(table.available().isEmpty(), "nothing to take without ingredients");
+
+        table.pattern().setItem(0, new ItemStack(Items.DIRT));
+        helper.assertTrue(table.result().isEmpty(), "dirt alone is not a recipe");
+        helper.succeed();
+    }
+
+    @GameTest(template = EMPTY)
+    public static void craftsOnlyWhenTheResultIsTaken(GameTestHelper helper) {
+        CraftingTableBlockEntity table = table(helper, 0, 1, Items.OAK_LOG);
+        table.storage().setItem(0, new ItemStack(Items.OAK_LOG, 3));
+
+        assertStack(helper, table.available(), Items.OAK_PLANKS, 12, "available");
+        assertStack(helper, table.takeResult(6, true), Items.OAK_PLANKS, 6, "simulated");
+        assertCount(helper, table.storage(), Items.OAK_LOG, 3, "simulation must not use ingredients");
+
+        assertStack(helper, table.takeResult(6, false), Items.OAK_PLANKS, 6, "taken");
+        assertCount(helper, table.storage(), Items.OAK_LOG, 1, "two crafts for six planks");
+        assertStack(helper, table.surplus().getItem(0), Items.OAK_PLANKS, 2, "left over");
+
+        assertStack(helper, table.takeResult(64, false), Items.OAK_PLANKS, 6, "rest");
+        helper.assertTrue(table.storage().isEmpty() && table.surplus().isEmpty(), "everything used up");
+        helper.assertTrue(table.takeResult(1, false).isEmpty(), "nothing left to craft");
+        helper.succeed();
+    }
+
+    @GameTest(template = EMPTY)
+    public static void usesShapedRecipesAndEveryGridSlot(GameTestHelper helper) {
+        CraftingTableBlockEntity table = table(helper, 0, 1, Items.OAK_PLANKS, null, null, Items.OAK_PLANKS);
+        table.storage().setItem(0, new ItemStack(Items.OAK_PLANKS, 5));
+
+        assertStack(helper, table.available(), Items.STICK, 8, "two crafts from five planks");
+        assertStack(helper, table.takeResult(8, false), Items.STICK, 8, "sticks");
+        assertCount(helper, table.storage(), Items.OAK_PLANKS, 1, "one plank cannot make sticks");
+        helper.succeed();
+    }
+
+    @GameTest(template = EMPTY)
+    public static void keepsWhatARecipeLeavesBehind(GameTestHelper helper) {
+        CraftingTableBlockEntity table = table(helper, 0, 1, Items.HONEY_BOTTLE);
+        table.storage().setItem(0, new ItemStack(Items.HONEY_BOTTLE, 1));
+
+        assertStack(helper, table.takeResult(3, false), Items.SUGAR, 3, "sugar");
+        assertCount(helper, table.storage(), Items.GLASS_BOTTLE, 1, "empty bottle goes back into storage");
+        helper.succeed();
+    }
+
+    @GameTest(template = EMPTY)
+    public static void otherBlocksInsertIngredientsAndExtractOnlyResults(GameTestHelper helper) {
+        CraftingTableBlockEntity table = table(helper, 0, 1, Items.OAK_LOG);
+        IItemHandler handler = helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK,
+                helper.absolutePos(new BlockPos(0, 1, 1)), Direction.DOWN);
+        helper.assertTrue(handler != null, "table should expose an item handler");
+
+        ItemStack rest = ItemHandlerHelper.insertItemStacked(handler, new ItemStack(Items.OAK_LOG, 2), false);
+        helper.assertTrue(rest.isEmpty(), "logs should fit");
+        assertCount(helper, table.storage(), Items.OAK_LOG, 2, "storage");
+
+        int result = handler.getSlots() - 1;
+        for (int slot = 0; slot < result; slot++) {
+            helper.assertTrue(handler.extractItem(slot, 64, false).isEmpty(), "ingredients must stay inside");
+        }
+        assertStack(helper, handler.getStackInSlot(result), Items.OAK_PLANKS, 8, "offered");
+        assertStack(helper, handler.extractItem(result, 4, false), Items.OAK_PLANKS, 4, "extracted");
+        assertCount(helper, table.storage(), Items.OAK_LOG, 1, "one log used");
+        helper.succeed();
+    }
+
+    @GameTest(template = EMPTY)
+    public static void menuSetsTheRecipeGridWithMarkers(GameTestHelper helper) {
+        CraftingTableBlockEntity table = table(helper, 0, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        CraftingTableMenu menu = new CraftingTableMenu(LogisticsPipes.CRAFTING_TABLE_MENU.get(), 1, player.getInventory(), table);
+
+        menu.setCarried(new ItemStack(Items.OAK_LOG, 16));
+        menu.clicked(4, 0, ClickType.PICKUP, player);
+        helper.assertTrue(menu.getCarried().getCount() == 16, "held stack must stay in hand");
+        assertStack(helper, table.pattern().getItem(4), Items.OAK_LOG, 1, "marker");
+        menu.broadcastChanges();
+        assertStack(helper, menu.getSlot(9).getItem(), Items.OAK_PLANKS, 4, "preview");
+
+        menu.clicked(9, 0, ClickType.PICKUP, player);
+        helper.assertTrue(menu.getCarried().is(Items.OAK_LOG), "the preview cannot be taken");
+
+        menu.setCarried(ItemStack.EMPTY);
+        menu.clicked(4, 0, ClickType.PICKUP, player);
+        helper.assertTrue(table.pattern().isEmpty(), "empty hand clears the marker");
+        helper.succeed();
+    }
+
+    @GameTest(template = EMPTY)
+    public static void shiftClickMovesItemsBetweenPlayerAndStorage(GameTestHelper helper) {
+        CraftingTableBlockEntity table = table(helper, 0, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.getInventory().setItem(0, new ItemStack(Items.OAK_LOG, 10));
+        CraftingTableMenu menu = new CraftingTableMenu(LogisticsPipes.CRAFTING_TABLE_MENU.get(), 1, player.getInventory(), table);
+        int hotbar = menu.slots.size() - 9;
+
+        menu.quickMoveStack(player, hotbar);
+        assertCount(helper, table.storage(), Items.OAK_LOG, 10, "into storage");
+        helper.assertTrue(player.getInventory().getItem(0).isEmpty(), "out of the hotbar");
+
+        menu.quickMoveStack(player, 10);
+        helper.assertTrue(table.storage().isEmpty(), "out of storage");
+        helper.assertTrue(player.getInventory().countItem(Items.OAK_LOG) == 10, "back to the player");
+        helper.succeed();
+    }
+
+    @GameTest(template = EMPTY)
+    public static void tableStateSurvivesSaveAndLoad(GameTestHelper helper) {
+        CraftingTableBlockEntity original = table(helper, 0, 1, Items.OAK_LOG);
+        original.storage().setItem(3, new ItemStack(Items.OAK_LOG, 7));
+        original.takeResult(2, false);
+        CompoundTag saved = original.saveWithoutMetadata(helper.getLevel().registryAccess());
+
+        CraftingTableBlockEntity loaded = table(helper, 4, 1);
+        loaded.loadWithComponents(saved, helper.getLevel().registryAccess());
+
+        assertStack(helper, loaded.result(), Items.OAK_PLANKS, 4, "recipe");
+        assertStack(helper, loaded.storage().getItem(3), Items.OAK_LOG, 6, "storage slot");
+        assertStack(helper, loaded.surplus().getItem(0), Items.OAK_PLANKS, 2, "left over");
+        helper.succeed();
+    }
+
+    @GameTest(template = EMPTY, timeoutTicks = 300)
+    public static void craftingPipeImportsTheRecipeAndCraftsOnRequest(GameTestHelper helper) {
+        PipeBlockEntity request = pipe(helper, PipeKind.REQUEST, 0);
+        BlockPos target = chest(helper, 0);
+        pipe(helper, PipeKind.PROVIDER, 1);
+        chest(helper, 1, new ItemStack(Items.OAK_LOG, 16));
+        PipeBlockEntity crafting = pipe(helper, PipeKind.CRAFTING, 2);
+        CraftingTableBlockEntity table = table(helper, 2, 2, Items.OAK_LOG);
+
+        crafting.importRecipe();
+        helper.assertTrue(crafting.recipe().isPresent(), "recipe should be imported from the table");
+
+        helper.runAfterDelay(SETTLE, () -> {
+            RequestPlan plan = request.request(McItemType.batchOf(new ItemStack(Items.OAK_PLANKS, 10)));
+            helper.assertTrue(plan.complete(), "planks should be craftable, missing " + plan.missing());
+        });
+
+        helper.succeedWhen(() -> {
+            Container chest = helper.getBlockEntity(target);
+            assertCount(helper, chest, Items.OAK_PLANKS, 10, "delivered");
+            assertStack(helper, table.surplus().getItem(0), Items.OAK_PLANKS, 2, "third craft leaves two");
+        });
+    }
+
+    // sticks need planks, planks need logs, each step on its own table
+    @GameTest(template = EMPTY, timeoutTicks = 400)
+    public static void craftsIngredientsOnAnotherTableFirst(GameTestHelper helper) {
+        PipeBlockEntity request = pipe(helper, PipeKind.REQUEST, 0);
+        BlockPos target = chest(helper, 0);
+        pipe(helper, PipeKind.PROVIDER, 1);
+        BlockPos source = chest(helper, 1, new ItemStack(Items.OAK_LOG, 16));
+        PipeBlockEntity planks = pipe(helper, PipeKind.CRAFTING, 2);
+        table(helper, 2, 2, Items.OAK_LOG);
+        PipeBlockEntity sticks = pipe(helper, PipeKind.CRAFTING, 3);
+        table(helper, 3, 2, Items.OAK_PLANKS, null, null, Items.OAK_PLANKS);
+        planks.importRecipe();
+        sticks.importRecipe();
+
+        helper.runAfterDelay(SETTLE, () -> {
+            RequestPlan plan = request.request(McItemType.batchOf(new ItemStack(Items.STICK, 8)));
+            helper.assertTrue(plan.complete(), "sticks should be craftable, missing " + plan.missing());
+        });
+
+        helper.succeedWhen(() -> {
+            Container chest = helper.getBlockEntity(target);
+            Container logs = helper.getBlockEntity(source);
+            assertCount(helper, chest, Items.STICK, 8, "delivered");
+            assertCount(helper, logs, Items.OAK_LOG, 15, "one log is enough");
+        });
+    }
+}

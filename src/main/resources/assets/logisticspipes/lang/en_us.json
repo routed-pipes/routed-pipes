@@ -1,0 +1,18 @@
+{
+  "itemGroup.logisticspipes": "Logistics Pipes",
+  "block.logisticspipes.transport_pipe": "Transport Pipe",
+  "block.logisticspipes.basic_logistics_pipe": "Basic Logistics Pipe",
+  "block.logisticspipes.provider_pipe": "Provider Logistics Pipe",
+  "block.logisticspipes.request_pipe": "Request Logistics Pipe",
+  "block.logisticspipes.supplier_pipe": "Supplier Logistics Pipe",
+  "block.logisticspipes.crafting_pipe": "Crafting Logistics Pipe",
+  "block.logisticspipes.satellite_pipe": "Satellite Logistics Pipe",
+  "logisticspipes.gui.satellite": "Satellite",
+  "logisticspipes.gui.request": "Request",
+  "logisticspipes.gui.nothing_selected": "Select an item",
+  "logisticspipes.request.started": "Requested %s x %s",
+  "logisticspipes.request.missing": "Request failed, missing:",
+  "logisticspipes.request.missing_entry": "%s x %s",
+  "block.logisticspipes.logistics_crafting_table": "Logistics Crafting Table",
+  "logisticspipes.gui.import": "Import"
+}

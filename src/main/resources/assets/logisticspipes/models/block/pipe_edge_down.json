@@ -1,0 +1,25 @@
+{
+  "textures": {
+    "particle": "#pipe"
+  },
+  "render_type": "minecraft:cutout",
+  "elements": [
+    {
+      "from": [
+        4,
+        4,
+        4
+      ],
+      "to": [
+        12,
+        5,
+        4
+      ],
+      "faces": {
+        "north": {
+          "texture": "#pipe"
+        }
+      }
+    }
+  ]
+}

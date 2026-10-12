@@ -1,0 +1,6 @@
+{
+  "parent": "logisticspipes:block/pipe_symbol",
+  "textures": {
+    "pipe": "logisticspipes:block/basic_logistics_pipe"
+  }
+}
