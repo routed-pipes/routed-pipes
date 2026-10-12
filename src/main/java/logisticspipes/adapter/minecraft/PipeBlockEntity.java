@@ -65,11 +65,13 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     public static final int OUTPUT_SLOT = 9;
     // the largest chassis has this many
     public static final int MODULE_SLOTS = 8;
+    public static final int UPGRADE_SLOTS = 4;
     private static final int UPKEEP_INTERVAL = 20;
 
     private final PipeTransport transport = new PipeTransport();
     private final SimpleContainer config = new SimpleContainer(CONFIG_SLOTS);
     private final SimpleContainer modules = new SimpleContainer(MODULE_SLOTS);
+    private final SimpleContainer upgrades = new SimpleContainer(UPGRADE_SLOTS);
     private final OutputOrders outputOrders = new OutputOrders();
     private final ContainerData data = new ContainerData() {
         @Override
@@ -102,6 +104,10 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         super(type, pos, state);
         config.addListener(container -> setChanged());
         modules.addListener(container -> setChanged());
+        upgrades.addListener(container -> {
+            transport.setPace(pace());
+            setChanged();
+        });
     }
 
     RouterId routerId() {
@@ -134,6 +140,54 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
 
     public Container modules() {
         return modules;
+    }
+
+    // puts one upgrade from the stack into the pipe, false when there is no room
+    public boolean installUpgrade(ItemStack stack) {
+        if (!pipe().routed() || !(stack.getItem() instanceof UpgradeItem)) {
+            return false;
+        }
+        for (int slot = 0; slot < UPGRADE_SLOTS; slot++) {
+            if (upgrades.getItem(slot).isEmpty()) {
+                upgrades.setItem(slot, stack.split(1));
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // takes all upgrades out again
+    public List<ItemStack> removeUpgrades() {
+        return upgrades.removeAllItems();
+    }
+
+    private int upgradeCount(UpgradeItem.Kind kind) {
+        int count = 0;
+        for (int slot = 0; slot < UPGRADE_SLOTS; slot++) {
+            if (upgrades.getItem(slot).getItem() instanceof UpgradeItem upgrade && upgrade.kind() == kind) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    // ticks an item needs per pipe after leaving this one, every speed upgrade makes it quicker
+    private Integer pace() {
+        if (!pipe().routed()) {
+            return null;
+        }
+        return Math.max(2, PipeTransport.TICKS_PER_PIPE / (1 + upgradeCount(UpgradeItem.Kind.SPEED)));
+    }
+
+    // the face of an inventory this pipe uses when the inventory is on the given side of the pipe
+    private Direction accessFace(Direction side) {
+        for (int slot = 0; slot < UPGRADE_SLOTS; slot++) {
+            ItemStack stack = upgrades.getItem(slot);
+            if (stack.getItem() instanceof UpgradeItem upgrade && upgrade.kind() == UpgradeItem.Kind.SNEAKY) {
+                return UpgradeItem.sideOf(stack);
+            }
+        }
+        return side.getOpposite();
     }
 
     // the modules in the slots this chassis really has
@@ -228,6 +282,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         if (!announced) {
             announced = true;
             linksDirty = true;
+            transport.setPace(pace());
             pipe().refreshConnections(getBlockState(), level, worldPosition);
             if (pipe().routed()) {
                 network().addRouter(routerId, this, level.getGameTime());
@@ -281,7 +336,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         if (!level.isLoaded(target)) {
             // wait at the chunk border and try again next tick
             transport.insert(TravellingItem.restore(item.id(), item.batch(), item.origin(),
-                    item.destination().orElse(null), item.nextHop().orElse(null), exit, PipeTransport.TICKS_PER_PIPE - 1));
+                    item.destination().orElse(null), item.nextHop().orElse(null), exit, item.ticksPerPipe() - 1));
             return;
         }
         if (level.getBlockEntity(target) instanceof PipeBlockEntity neighbour) {
@@ -289,8 +344,8 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             neighbour.setChanged();
             return;
         }
-        ItemStack rest = storage().exists(level, target, side.getOpposite())
-                ? storage().insert(level, target, side.getOpposite(), stack, false)
+        ItemStack rest = storage().exists(level, target, accessFace(side))
+                ? storage().insert(level, target, accessFace(side), stack, false)
                 : stack;
         if (rest.isEmpty()) {
             return;
@@ -310,7 +365,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             BlockPos target = worldPosition.relative(side);
             if (getBlockState().getValue(LogisticsPipeBlock.CONNECTED.get(side))
                     && !(level.getBlockState(target).getBlock() instanceof LogisticsPipeBlock)
-                    && storage().exists(level, target, side.getOpposite())) {
+                    && storage().exists(level, target, accessFace(side))) {
                 sides.add(side);
             }
         }
@@ -332,7 +387,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         Set<Side> sides = EnumSet.noneOf(Side.class);
         ItemStack stack = McItemType.stackOf(batch);
         for (Direction side : inventorySides()) {
-            ItemStack rest = storage().insert(level, worldPosition.relative(side), side.getOpposite(), stack, true);
+            ItemStack rest = storage().insert(level, worldPosition.relative(side), accessFace(side), stack, true);
             if (rest.getCount() < stack.getCount()) {
                 sides.add(Directions.toDomain(side));
             }
@@ -344,7 +399,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     public Map<ItemType, Integer> contents() {
         Map<ItemType, Integer> contents = new LinkedHashMap<>();
         for (Direction side : inventorySides()) {
-            for (ItemStack stack : storage().contents(level, worldPosition.relative(side), side.getOpposite())) {
+            for (ItemStack stack : storage().contents(level, worldPosition.relative(side), accessFace(side))) {
                 contents.merge(McItemType.batchOf(stack).type(), stack.getCount(), Integer::sum);
             }
         }
@@ -357,7 +412,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         int remaining = count;
         for (Direction side : inventorySides()) {
             while (remaining > 0) {
-                ItemStack taken = storage().extract(level, worldPosition.relative(side), side.getOpposite(), match,
+                ItemStack taken = storage().extract(level, worldPosition.relative(side), accessFace(side), match,
                         Math.min(remaining, match.getMaxStackSize()));
                 if (taken.isEmpty()) {
                     break;
@@ -434,6 +489,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
 
     void dropContents() {
         Containers.dropContents(level, worldPosition, modules);
+        Containers.dropContents(level, worldPosition, upgrades);
         for (TravellingItem item : transport.clear()) {
             Block.popResource(level, worldPosition, McItemType.stackOf(item.batch()));
         }
@@ -471,6 +527,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             item.destination().ifPresent(destination -> entry.putUUID("Destination", destination.value()));
             item.nextHop().ifPresent(nextHop -> entry.putUUID("NextHop", nextHop.value()));
             entry.putInt("Progress", item.progress());
+            entry.putInt("Speed", item.ticksPerPipe());
             items.add(entry);
         }
         return items;
@@ -493,6 +550,11 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             plugged.set(slot, modules.getItem(slot));
         }
         tag.put("Modules", ContainerHelper.saveAllItems(new CompoundTag(), plugged, registries));
+        NonNullList<ItemStack> installed = NonNullList.withSize(UPGRADE_SLOTS, ItemStack.EMPTY);
+        for (int slot = 0; slot < UPGRADE_SLOTS; slot++) {
+            installed.set(slot, upgrades.getItem(slot));
+        }
+        tag.put("Upgrades", ContainerHelper.saveAllItems(new CompoundTag(), installed, registries));
         ListTag orders = new ListTag();
         for (OutputOrder order : outputOrders.all()) {
             CompoundTag entry = new CompoundTag();
@@ -521,14 +583,18 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
                 continue;
             }
             long id = entry.getLong("Id");
-            transport.insert(TravellingItem.restore(
+            TravellingItem item = TravellingItem.restore(
                     id,
                     McItemType.batchOf(stack.get()),
                     Side.valueOf(entry.getString("Origin")),
                     entry.hasUUID("Destination") ? new RouterId(entry.getUUID("Destination")) : null,
                     entry.hasUUID("NextHop") ? new RouterId(entry.getUUID("NextHop")) : null,
                     entry.contains("Exit") ? Side.valueOf(entry.getString("Exit")) : null,
-                    shown.progressOf(id).orElse(entry.getInt("Progress"))));
+                    shown.progressOf(id).orElse(entry.getInt("Progress")));
+            if (entry.getInt("Speed") > 0) {
+                item.setTicksPerPipe(entry.getInt("Speed"));
+            }
+            transport.insert(item);
         }
         if (tag.contains("Config")) {
             satelliteId = tag.getInt("Satellite");
@@ -544,6 +610,13 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             ContainerHelper.loadAllItems(tag.getCompound("Modules"), plugged, registries);
             for (int slot = 0; slot < MODULE_SLOTS; slot++) {
                 modules.setItem(slot, plugged.get(slot));
+            }
+        }
+        if (tag.contains("Upgrades")) {
+            NonNullList<ItemStack> installed = NonNullList.withSize(UPGRADE_SLOTS, ItemStack.EMPTY);
+            ContainerHelper.loadAllItems(tag.getCompound("Upgrades"), installed, registries);
+            for (int slot = 0; slot < UPGRADE_SLOTS; slot++) {
+                upgrades.setItem(slot, installed.get(slot));
             }
         }
         ListTag orders = tag.getList("Orders", Tag.TAG_COMPOUND);

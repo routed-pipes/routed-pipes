@@ -16,6 +16,7 @@ import logisticspipes.adapter.minecraft.ModuleItem;
 import logisticspipes.adapter.minecraft.PipeBlockEntity;
 import logisticspipes.adapter.minecraft.PipeServices;
 import logisticspipes.adapter.minecraft.RemoteOrdererItem;
+import logisticspipes.adapter.minecraft.UpgradeItem;
 import logisticspipes.adapter.minecraft.menu.ChassisMenu;
 import logisticspipes.adapter.minecraft.menu.CraftingTableMenu;
 import logisticspipes.adapter.minecraft.menu.PipeConfigMenu;
@@ -108,6 +109,15 @@ public class LogisticsPipes {
             MODULES.put(kind, ITEMS.register("module_" + kind.name().toLowerCase(Locale.ROOT),
                     () -> new ModuleItem(new Item.Properties(), kind, ModuleItem.settingsLayoutFor(kind).orElse(null),
                             ModuleItem.settingsLayoutFor(kind).map(CONFIG_MENUS::get).orElse(null))));
+        }
+    }
+
+    public static final Map<UpgradeItem.Kind, DeferredItem<UpgradeItem>> UPGRADES = new EnumMap<>(UpgradeItem.Kind.class);
+
+    static {
+        for (UpgradeItem.Kind kind : UpgradeItem.Kind.values()) {
+            UPGRADES.put(kind, ITEMS.register("upgrade_" + kind.name().toLowerCase(Locale.ROOT),
+                    () -> new UpgradeItem(new Item.Properties(), kind)));
         }
     }
 

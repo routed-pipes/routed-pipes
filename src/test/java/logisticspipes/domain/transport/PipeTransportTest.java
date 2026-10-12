@@ -83,7 +83,7 @@ class PipeTransportTest {
     void viewerLetsUnconfirmedItemsFadeOutAtTheCentre() {
         transport.expect(item());
 
-        for (int i = 0; i < PipeTransport.CENTRE - 1; i++) {
+        for (int i = 0; i < PipeTransport.TICKS_PER_PIPE / 2 - 1; i++) {
             assertThat(transport.advance()).isEmpty();
         }
         assertThat(transport.isEmpty()).isFalse();
@@ -121,7 +121,7 @@ class PipeTransportTest {
         TravellingItem item = item();
         transport.insert(item);
 
-        assertThat(tick(PipeTransport.MAX_WAIT + PipeTransport.CENTRE - 1, travelling -> Optional.empty())).isEmpty();
+        assertThat(tick(PipeTransport.MAX_WAIT + PipeTransport.TICKS_PER_PIPE / 2 - 1, travelling -> Optional.empty())).isEmpty();
         assertThat(transport.tick(travelling -> Optional.empty())).containsExactly(new Departure(item, Optional.empty()));
         assertThat(transport.isEmpty()).isTrue();
     }
@@ -231,5 +231,44 @@ class PipeTransportTest {
         item.passTo(router(5));
 
         assertThat(item.enteringFrom(Side.WEST).nextHop()).contains(router(5));
+    }
+
+    @Test
+    void routedPipeSetsThePaceOfItemsPassingThrough() {
+        transport.setPace(4);
+        TravellingItem item = item();
+        transport.insert(item);
+
+        assertThat(tick(3, travelling -> Optional.of(Side.EAST))).isEmpty();
+        assertThat(transport.tick(travelling -> Optional.of(Side.EAST))).containsExactly(new Departure(item, Optional.of(Side.EAST)));
+        assertThat(item.ticksPerPipe()).isEqualTo(4);
+    }
+
+    @Test
+    void plainPipeKeepsThePaceTheItemArrivedWith() {
+        TravellingItem fast = item();
+        fast.setTicksPerPipe(2);
+        TravellingItem next = fast.enteringFrom(Side.WEST);
+        transport.insert(next);
+
+        assertThat(tick(1, travelling -> Optional.of(Side.EAST))).isEmpty();
+        assertThat(transport.tick(travelling -> Optional.of(Side.EAST))).hasSize(1);
+    }
+
+    @Test
+    void fastItemWithoutExitStillStopsAtTheCentre() {
+        TravellingItem item = TravellingItem.restore(1, batch("stone", 1), Side.WEST, null, null, null, 0);
+        item.setTicksPerPipe(4);
+        transport.insert(item);
+
+        List<Departure> departures = tick(PipeTransport.MAX_WAIT + 2, travelling -> Optional.empty());
+
+        assertThat(departures).containsExactly(new Departure(item, Optional.empty()));
+    }
+
+    @Test
+    void rejectsAPaceThatWouldNeverArrive() {
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> item().setTicksPerPipe(0))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 }

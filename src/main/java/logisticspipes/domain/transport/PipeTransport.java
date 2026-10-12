@@ -14,7 +14,6 @@ import logisticspipes.domain.routing.Side;
 public final class PipeTransport {
 
     public static final int TICKS_PER_PIPE = 10;
-    public static final int CENTRE = TICKS_PER_PIPE / 2;
     // how long an item waits for an exit, covers networks that are still loading
     public static final int MAX_WAIT = 40;
 
@@ -22,6 +21,12 @@ public final class PipeTransport {
     // ids a viewer guessed and the real pipe has not confirmed yet
     private final Set<Long> unconfirmed = new HashSet<>();
     private boolean changed;
+    // routed pipes set the pace of every item that passes, plain pipes leave it alone
+    private Integer pace;
+
+    public void setPace(Integer ticksPerPipe) {
+        pace = ticksPerPipe;
+    }
 
     public void insert(TravellingItem item) {
         items.add(item);
@@ -63,14 +68,17 @@ public final class PipeTransport {
                     continue;
                 }
                 item.decide(exit);
+                if (pace != null) {
+                    item.setTicksPerPipe(pace);
+                }
                 changed = true;
             }
             item.advance();
-            if (item.exit().isEmpty() && item.progress() >= CENTRE) {
+            if (item.exit().isEmpty() && item.pastCentre()) {
                 iterator.remove();
                 changed = true;
                 departures.add(new Departure(item, Optional.empty()));
-            } else if (item.progress() >= TICKS_PER_PIPE) {
+            } else if (item.atExit()) {
                 iterator.remove();
                 departures.add(new Departure(item, item.exit()));
             }
@@ -87,7 +95,7 @@ public final class PipeTransport {
                 // without an exit a real item waits where it is, a guessed one fades out at the centre
                 if (unconfirmed.contains(item.id())) {
                     item.advance();
-                    if (item.progress() >= CENTRE) {
+                    if (item.pastCentre()) {
                         iterator.remove();
                         unconfirmed.remove(item.id());
                     }
@@ -95,7 +103,7 @@ public final class PipeTransport {
                 continue;
             }
             item.advance();
-            if (item.progress() >= TICKS_PER_PIPE) {
+            if (item.atExit()) {
                 iterator.remove();
                 departures.add(new Departure(item, item.exit()));
             }

@@ -20,6 +20,8 @@ public final class TravellingItem {
     private RouterId nextHop;
     private Side exit;
     private int progress;
+    // how long this item takes to cross one pipe
+    private int ticksPerPipe = PipeTransport.TICKS_PER_PIPE;
     private boolean decided;
     private boolean arrived;
     private int waited;
@@ -49,6 +51,7 @@ public final class TravellingItem {
     public TravellingItem enteringFrom(Side side) {
         TravellingItem next = new TravellingItem(id, batch, side, destination);
         next.nextHop = nextHop;
+        next.ticksPerPipe = ticksPerPipe;
         return next;
     }
 
@@ -91,6 +94,26 @@ public final class TravellingItem {
 
     public int progress() {
         return progress;
+    }
+
+    public int ticksPerPipe() {
+        return ticksPerPipe;
+    }
+
+    public void setTicksPerPipe(int ticks) {
+        if (ticks <= 0) {
+            throw new IllegalArgumentException("ticks per pipe must be positive: " + ticks);
+        }
+        ticksPerPipe = ticks;
+    }
+
+    // true once the item has left the origin half of the pipe
+    public boolean pastCentre() {
+        return progress * 2 >= ticksPerPipe;
+    }
+
+    public boolean atExit() {
+        return progress >= ticksPerPipe;
     }
 
     public boolean decided() {

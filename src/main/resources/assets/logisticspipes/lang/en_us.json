@@ -42,5 +42,16 @@
   "logisticspipes.remote_orderer.linked": "Linked to this Request Pipe",
   "logisticspipes.remote_orderer.not_linked": "Not linked to a Request Pipe yet",
   "logisticspipes.remote_orderer.other_dimension": "The linked Request Pipe is in another dimension",
-  "logisticspipes.remote_orderer.pipe_missing": "The linked Request Pipe is gone or too far away to be loaded"
+  "logisticspipes.remote_orderer.pipe_missing": "The linked Request Pipe is gone or too far away to be loaded",
+  "item.logisticspipes.upgrade_sneaky": "Sneaky Upgrade",
+  "item.logisticspipes.upgrade_sneaky.description": "The pipe uses another face of its inventory. Use in your hand to turn it, use on a pipe to install.",
+  "item.logisticspipes.upgrade_speed": "Speed Upgrade",
+  "item.logisticspipes.upgrade_speed.description": "Items leaving the pipe travel faster. Use on a pipe to install, up to four.",
+  "logisticspipes.upgrade.sneaky.side": "Face: %s",
+  "logisticspipes.side.down": "bottom",
+  "logisticspipes.side.up": "top",
+  "logisticspipes.side.north": "north",
+  "logisticspipes.side.south": "south",
+  "logisticspipes.side.west": "west",
+  "logisticspipes.side.east": "east"
 }

@@ -5,8 +5,11 @@ import java.util.Map;
 import logisticspipes.domain.logistics.PipeKind;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -66,7 +69,27 @@ public class LogisticsPipeBlock extends Block implements EntityBlock {
     }
 
     @Override
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
+            InteractionHand hand, BlockHitResult hit) {
+        if (kind == null || !(stack.getItem() instanceof UpgradeItem)) {
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        }
+        if (!level.isClientSide && level.getBlockEntity(pos) instanceof PipeBlockEntity pipe) {
+            // creative players keep their stack
+            pipe.installUpgrade(player.hasInfiniteMaterials() ? stack.copy() : stack);
+        }
+        return ItemInteractionResult.sidedSuccess(level.isClientSide);
+    }
+
+    @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
+        if (kind != null && player.isShiftKeyDown()) {
+            // sneaking with an empty hand takes the upgrades out
+            if (!level.isClientSide && level.getBlockEntity(pos) instanceof PipeBlockEntity pipe) {
+                pipe.removeUpgrades().forEach(upgrade -> popResource(level, pos, upgrade));
+            }
+            return InteractionResult.sidedSuccess(level.isClientSide);
+        }
         if (kind == null || kind == PipeKind.PROVIDER) {
             return InteractionResult.PASS;
         }
