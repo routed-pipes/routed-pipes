@@ -146,4 +146,9 @@ public interface RouterNode {
     default Optional<FluidNode> fluidNode() {
         return Optional.empty();
     }
+
+    // empty for pipes that never carry the energy of power providers
+    default Optional<PowerNode> powerNode() {
+        return Optional.empty();
+    }
 }

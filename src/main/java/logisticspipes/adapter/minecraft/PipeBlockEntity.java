@@ -22,6 +22,7 @@ import logisticspipes.application.LogisticsNetwork;
 import logisticspipes.application.RequestOutcome;
 import logisticspipes.application.RouterStatus;
 import logisticspipes.application.port.FluidNode;
+import logisticspipes.application.port.PowerNode;
 import logisticspipes.application.port.RouterNode;
 import logisticspipes.domain.crafting.Cleanup;
 import logisticspipes.domain.crafting.CraftingSetup;
@@ -178,6 +179,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     private boolean linksDirty;
     // null unless this is a fluid pipe
     private final FluidPipe fluids;
+    private final PowerPipe power = new PowerPipe(this);
 
     public PipeBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -240,6 +242,15 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     @Override
     public Optional<FluidNode> fluidNode() {
         return Optional.ofNullable(fluids);
+    }
+
+    public PowerPipe powerPipe() {
+        return power;
+    }
+
+    @Override
+    public Optional<PowerNode> powerNode() {
+        return Optional.of(power);
     }
 
     void insert(TravellingItem item) {
@@ -396,6 +407,10 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
 
     private int upgradeCount(UpgradeKind kind) {
         return count(upgrades, 0, UPGRADE_SLOTS, kind);
+    }
+
+    boolean hasUpgrade(UpgradeKind kind) {
+        return upgradeCount(kind) > 0;
     }
 
     // upgrades in the two slots of a module
@@ -872,6 +887,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         if (linksDirty && pipe().routed()) {
             linksDirty = false;
             network().updateLinks(routerId, PipeTopology.discoverLinks(level, worldPosition), level.getGameTime());
+            network().subSystemPower().updateStraightLinks(routerId, PipeTopology.straightNeighbours(level, worldPosition));
         }
         if (table != null) {
             table.tick();
@@ -881,6 +897,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         }
         if (fluids != null) {
             fluids.serverTick();
+        }
+        if (pipe().routed()) {
+            power.serverTick();
         }
         if (!transport.isEmpty()) {
             for (Departure departure : transport.tick(level.getGameTime(), this::chooseExit)) {
@@ -1285,6 +1304,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         if (fluids != null) {
             tag.put("Fluids", fluids.save(registries));
         }
+        if (power.buffered() > 0) {
+            tag.putInt("Power", power.buffered());
+        }
         tag.putLongArray("Statistics", StatisticsTags.save(statistics));
         tag.put("Security", security.save(registries));
     }
@@ -1340,6 +1362,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         }
         if (tag.contains("Upgrades")) {
             ContainerTags.load(upgrades, tag.getCompound("Upgrades"), registries);
+        }
+        if (tag.contains("Power")) {
+            power.load(tag.getInt("Power"));
         }
         StatisticsTags.load(statistics, tag.getLongArray("Statistics"));
         if (tag.contains("Security")) {

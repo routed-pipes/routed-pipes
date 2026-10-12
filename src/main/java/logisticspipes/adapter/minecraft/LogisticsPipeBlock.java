@@ -217,6 +217,9 @@ public class LogisticsPipeBlock extends Block implements EntityBlock {
         if (level.getBlockState(neighbour).getBlock() instanceof PowerJunctionBlock) {
             return true;
         }
+        if (level.getBlockState(neighbour).getBlock() instanceof PowerProviderBlock) {
+            return true;
+        }
         // fluid pipes have no use for inventories
         return kind.fluid() ? services.fluids().storage().tanks(level, neighbour, direction.getOpposite()).isPresent()
                 : services.storage().exists(level, neighbour, direction.getOpposite());

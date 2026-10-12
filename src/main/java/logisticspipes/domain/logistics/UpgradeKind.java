@@ -21,7 +21,11 @@ public enum UpgradeKind {
     // cuts the pipe off from what is next to it, side by side
     DISCONNECTION(1),
     // every ingredient of a crafter can go to a satellite of its own
-    ADVANCED_SATELLITE(1);
+    ADVANCED_SATELLITE(1),
+    // the pipe feeds the machines next to it with energy from power providers
+    POWER_SUPPLIER_RF(1),
+    // energy from power providers may go through the pipe
+    POWER_TRANSPORTATION(1);
 
     private final int most;
 
@@ -36,7 +40,7 @@ public enum UpgradeKind {
 
     public boolean fitsPipe(PipeKind pipe) {
         return switch (this) {
-            case SNEAKY, SPEED, DISCONNECTION -> true;
+            case SNEAKY, SPEED, DISCONNECTION, POWER_SUPPLIER_RF, POWER_TRANSPORTATION -> true;
             case MODULE_UPGRADE -> pipe == PipeKind.CHASSIS;
             case CRAFTING_BYPRODUCT, CRAFTING_CLEANUP, ADVANCED_SATELLITE -> pipe == PipeKind.CRAFTING;
             default -> false;

@@ -25,6 +25,7 @@
     "logisticspipes:fluid_container_supplier_pipe",
     "logisticspipes:logistics_crafting_table",
     "logisticspipes:power_junction",
+    "logisticspipes:power_provider_rf",
     "logisticspipes:security_station",
     "logisticspipes:statistics_table",
     "logisticspipes:request_table",

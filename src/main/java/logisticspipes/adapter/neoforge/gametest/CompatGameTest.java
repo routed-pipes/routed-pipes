@@ -16,12 +16,14 @@ import logisticspipes.adapter.minecraft.McItemType;
 import logisticspipes.adapter.minecraft.PipeBlockEntity;
 import logisticspipes.adapter.minecraft.PipeDetails;
 import logisticspipes.adapter.minecraft.PowerJunctionBlockEntity;
+import logisticspipes.adapter.minecraft.PowerProviderBlockEntity;
 import logisticspipes.adapter.minecraft.menu.CraftingTableMenu;
 import logisticspipes.adapter.minecraft.menu.MenuRequests;
 import logisticspipes.adapter.neoforge.CapabilityItemStorage;
 import logisticspipes.adapter.neoforge.LogisticsPipes;
 import logisticspipes.domain.fluid.FluidBatch;
 import logisticspipes.domain.logistics.PipeKind;
+import logisticspipes.domain.logistics.UpgradeKind;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -51,6 +53,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.energy.IEnergyStorage;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
@@ -189,6 +192,12 @@ public class CompatGameTest {
         }
         if (has("createaddition:alternator")) {
             tests.add(test("compat.createaddition.alternator_charges_junction", CompatGameTest::alternatorChargesJunction, 400));
+            tests.add(test("compat.createaddition.alternator_charges_power_provider",
+                    CompatGameTest::alternatorChargesPowerProvider, 400));
+        }
+        if (has("createaddition:electric_motor")) {
+            tests.add(test("compat.createaddition.supplier_pipe_charges_electric_motor",
+                    CompatGameTest::supplierPipeChargesElectricMotor, 400));
         }
         if (has("create:millstone")) {
             tests.add(test("compat.create.crafts_with_millstone", CompatGameTest::createCraftsWithMillstone, 2400));
@@ -364,6 +373,33 @@ public class CompatGameTest {
         helper.succeedWhen(() -> helper.assertTrue(junction.stored() > 0 || above.stored() > 0,
                 "no energy arrived, alternator is " + helper.getBlockState(new BlockPos(1, 1, 1)) + " "
                         + helper.getBlockEntity(new BlockPos(1, 1, 1)).saveWithoutMetadata(helper.getLevel().registryAccess())));
+    }
+
+    // the same row with a power provider at the end
+    private static void alternatorChargesPowerProvider(GameTestHelper helper) {
+        helper.setBlock(new BlockPos(0, 1, 1), facing(block("create:creative_motor"), Direction.EAST));
+        helper.setBlock(new BlockPos(1, 1, 1), facing(block("createaddition:alternator"), Direction.WEST));
+        PowerProviderBlockEntity provider = GameTestPower.provider(helper, new BlockPos(2, 1, 1), 0);
+        PowerProviderBlockEntity above = GameTestPower.provider(helper, new BlockPos(1, 2, 1), 0);
+
+        helper.succeedWhen(() -> helper.assertTrue(provider.stored() > 0 || above.stored() > 0,
+                "no energy arrived, alternator is " + helper.getBlockState(new BlockPos(1, 1, 1))));
+    }
+
+    // a machine of another mod next to a pipe with a supplier upgrade gets energy from the provider behind the pipe
+    private static void supplierPipeChargesElectricMotor(GameTestHelper helper) {
+        GameTestPower.junction(helper, new BlockPos(1, 1, 2), 10_000);
+        PowerProviderBlockEntity provider = GameTestPower.provider(helper, new BlockPos(1, 1, 0), 1_000_000);
+        BlockPos motor = new BlockPos(1, 2, 1);
+        helper.setBlock(motor, facing(block("createaddition:electric_motor"), Direction.UP));
+        PowerSupplierGameTest.pipe(helper, new BlockPos(1, 1, 1), UpgradeKind.POWER_SUPPLIER_RF);
+
+        helper.succeedWhen(() -> {
+            IEnergyStorage energy = helper.getLevel().getCapability(Capabilities.EnergyStorage.BLOCK, helper.absolutePos(motor),
+                    Direction.DOWN);
+            helper.assertTrue(energy != null && energy.getEnergyStored() > 0, "the motor got no energy, the provider holds "
+                    + provider.stored() + " and the motor " + (energy == null ? "takes none" : "is " + helper.getBlockState(motor)));
+        });
     }
 
     // a crafting pipe beside a millstone turned by a creative motor: cobblestone in, gravel out

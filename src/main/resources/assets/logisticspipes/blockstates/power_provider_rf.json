@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "logisticspipes:block/power_provider_rf"
+    }
+  }
+}

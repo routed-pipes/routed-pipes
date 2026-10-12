@@ -1,9 +1,11 @@
 package logisticspipes.adapter.neoforge.gametest;
 
 import logisticspipes.adapter.minecraft.PowerJunctionBlockEntity;
+import logisticspipes.adapter.minecraft.PowerProviderBlockEntity;
 import logisticspipes.adapter.neoforge.LogisticsPipes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
 
 // test scenes keep their first routed pipes at x 0 or 1, a full junction beside each powers the whole network
 final class GameTestPower {
@@ -21,5 +23,15 @@ final class GameTestPower {
         PowerJunctionBlockEntity junction = helper.getBlockEntity(pos);
         junction.receive(energy, false);
         return junction;
+    }
+
+    // a power provider that already holds that much
+    static PowerProviderBlockEntity provider(GameTestHelper helper, BlockPos pos, int energy) {
+        helper.setBlock(pos, LogisticsPipes.POWER_PROVIDER_RF.get());
+        PowerProviderBlockEntity provider = helper.getBlockEntity(pos);
+        CompoundTag tag = new CompoundTag();
+        tag.putInt("Energy", energy);
+        provider.loadWithComponents(tag, helper.getLevel().registryAccess());
+        return provider;
     }
 }

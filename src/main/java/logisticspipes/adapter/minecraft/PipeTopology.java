@@ -56,6 +56,40 @@ final class PipeTopology {
         return links;
     }
 
+    // the routed pipes reached through plain pipes in a straight line, what the energy of power providers can take
+    // tubes do not carry it
+    static Set<RouterId> straightNeighbours(Level level, BlockPos routerPos) {
+        Set<RouterId> routers = new HashSet<>();
+        BlockState own = level.getBlockState(routerPos);
+        if (!(own.getBlock() instanceof LogisticsPipeBlock) || !(level.getBlockEntity(routerPos) instanceof PipeBlockEntity self)) {
+            return routers;
+        }
+        for (Direction direction : Direction.values()) {
+            if (!own.getValue(LogisticsPipeBlock.CONNECTED.get(direction))) {
+                continue;
+            }
+            BlockPos pos = routerPos.relative(direction);
+            for (int pipes = 0; pipes < MAX_PIPES && level.isLoaded(pos); pipes++) {
+                BlockState state = level.getBlockState(pos);
+                if (!(state.getBlock() instanceof LogisticsPipeBlock pipe)) {
+                    break;
+                }
+                if (pipe.routed()) {
+                    if (level.getBlockEntity(pos) instanceof PipeBlockEntity router
+                            && PipeLock.connects(self.security().station(), router.security().station())) {
+                        routers.add(router.routerId());
+                    }
+                    break;
+                }
+                if (!state.getValue(LogisticsPipeBlock.CONNECTED.get(direction))) {
+                    break;
+                }
+                pos = pos.relative(direction);
+            }
+        }
+        return routers;
+    }
+
     // the routed pipes at the other end of the plain pipes on every side
     static Set<PipeBlockEntity> neighbours(Level level, BlockPos routerPos) {
         Set<PipeBlockEntity> routers = new HashSet<>();

@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import logisticspipes.application.port.FluidNode;
+import logisticspipes.application.port.PowerNode;
 import logisticspipes.application.port.RouterNode;
 import logisticspipes.domain.crafting.Cleanup;
 import logisticspipes.domain.crafting.CraftingSetup;
@@ -76,6 +77,8 @@ public final class FakeNode implements RouterNode {
     public boolean extractionExcludes = true;
     // set by tests about fluid pipes
     public FluidNode fluid;
+    // set by tests about power providers
+    public PowerNode subSystemPower;
     private final PipeKind kind;
 
     public FakeNode(PipeKind kind) {
@@ -96,6 +99,11 @@ public final class FakeNode implements RouterNode {
     @Override
     public Optional<FluidNode> fluidNode() {
         return Optional.ofNullable(fluid);
+    }
+
+    @Override
+    public Optional<PowerNode> powerNode() {
+        return Optional.ofNullable(subSystemPower);
     }
 
     @Override

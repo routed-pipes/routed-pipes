@@ -91,9 +91,14 @@ public final class LogisticsNetwork {
     private final Map<ItemType, Set<RouterId>> sinksByItem = new HashMap<>();
     private final Set<RouterId> sinksForAnything = new HashSet<>();
     private final FluidLogistics fluids = new FluidLogistics(this);
+    private final SubSystemPower subSystemPower = new SubSystemPower(this);
 
     public FluidLogistics fluids() {
         return fluids;
+    }
+
+    public SubSystemPower subSystemPower() {
+        return subSystemPower;
     }
 
     // null for a router that is not there
@@ -133,6 +138,7 @@ public final class LogisticsNetwork {
         open = null;
         pending.forget(id);
         fluids.forget(id);
+        subSystemPower.forget(id);
         changedAt.remove(id);
         forgetSinks(id);
         lastChangeOfComponent.clear();

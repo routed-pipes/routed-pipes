@@ -25,6 +25,8 @@ import logisticspipes.adapter.minecraft.PipeControllerItem;
 import logisticspipes.adapter.minecraft.PipeServices;
 import logisticspipes.adapter.minecraft.PowerJunctionBlock;
 import logisticspipes.adapter.minecraft.PowerJunctionBlockEntity;
+import logisticspipes.adapter.minecraft.PowerProviderBlock;
+import logisticspipes.adapter.minecraft.PowerProviderBlockEntity;
 import logisticspipes.adapter.minecraft.RemoteOrdererItem;
 import logisticspipes.adapter.minecraft.RequestTableBlock;
 import logisticspipes.adapter.minecraft.SettingsCopierItem;
@@ -58,6 +60,7 @@ import logisticspipes.adapter.minecraft.menu.SecurityStationMenu;
 import logisticspipes.adapter.minecraft.menu.StatisticsTableMenu;
 import logisticspipes.adapter.minecraft.menu.UpgradeMenu;
 import logisticspipes.adapter.neoforge.benchmark.Benchmark;
+import logisticspipes.adapter.neoforge.gametest.TestBattery;
 import logisticspipes.adapter.neoforge.gametest.TestTank;
 import logisticspipes.domain.logistics.ModuleKind;
 import logisticspipes.domain.logistics.PipeKind;
@@ -173,7 +176,8 @@ public class LogisticsPipes {
 
     private static final PipeServices SERVICES = new PipeServices(() -> LogisticsPipes.PIPE_BLOCK_ENTITY.get(),
             new CapabilityItemStorage(), new LevelNetworks(), REQUEST_MENU, CHASSIS_MENU, UPGRADE_MENU, FIREWALL_MENU,
-            REQUEST_TABLE_MENU, CONFIG_MENUS, FLUIDS, DISK_MENUS);
+            REQUEST_TABLE_MENU, CONFIG_MENUS, FLUIDS, DISK_MENUS,
+            new CapabilityEnergyAccess());
 
     public static final DeferredBlock<LogisticsPipeBlock> TRANSPORT_PIPE = pipe("transport_pipe", null, 0);
     public static final Map<PipeKind, DeferredBlock<LogisticsPipeBlock>> LOGISTICS_PIPES = new EnumMap<>(PipeKind.class);
@@ -281,6 +285,15 @@ public class LogisticsPipes {
                             POWER_JUNCTION.get())
                     .build(null));
 
+    public static final DeferredBlock<PowerProviderBlock> POWER_PROVIDER_RF = BLOCKS.register("power_provider_rf",
+            () -> new PowerProviderBlock(BlockBehaviour.Properties.of().strength(2.5f).sound(SoundType.METAL),
+                    () -> LogisticsPipes.POWER_PROVIDER_BLOCK_ENTITY.get(), SERVICES.networks()));
+    public static final Supplier<BlockEntityType<PowerProviderBlockEntity>> POWER_PROVIDER_BLOCK_ENTITY =
+            BLOCK_ENTITIES.register("power_provider", () -> BlockEntityType.Builder
+                    .of((pos, state) -> new PowerProviderBlockEntity(LogisticsPipes.POWER_PROVIDER_BLOCK_ENTITY.get(), pos, state),
+                            POWER_PROVIDER_RF.get())
+                    .build(null));
+
     private static final TubeServices TUBE_SERVICES = new TubeServices(() -> LogisticsPipes.TUBE_BLOCK_ENTITY.get(),
             () -> LogisticsPipes.TUBE_PART_BLOCK_ENTITY.get(), () -> LogisticsPipes.TUBE_PART.get(), SERVICES.networks());
 
@@ -338,6 +351,7 @@ public class LogisticsPipes {
     static {
         ITEMS.registerSimpleBlockItem(CRAFTING_TABLE);
         ITEMS.registerSimpleBlockItem(POWER_JUNCTION);
+        ITEMS.registerSimpleBlockItem(POWER_PROVIDER_RF);
         ITEMS.registerSimpleBlockItem(SECURITY_STATION);
         ITEMS.registerSimpleBlockItem(STATISTICS_TABLE);
     }
@@ -426,9 +440,12 @@ public class LogisticsPipes {
                 (pipe, side) -> side == null || pipe.fluidPipe() == null || !pipe.fluidPipe().receives()
                         ? null : new PipeFluidHandler(pipe.fluidPipe(), side));
         TestTank.registerIfTesting(event);
+        TestBattery.registerIfTesting(event);
         event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, CRAFTING_TABLE_BLOCK_ENTITY.get(),
                 (table, side) -> new CraftingTableItemHandler(table));
         event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, POWER_JUNCTION_BLOCK_ENTITY.get(),
                 (junction, side) -> new PowerJunctionEnergy(junction));
+        event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, POWER_PROVIDER_BLOCK_ENTITY.get(),
+                (provider, side) -> new PowerProviderEnergy(provider));
     }
 }
