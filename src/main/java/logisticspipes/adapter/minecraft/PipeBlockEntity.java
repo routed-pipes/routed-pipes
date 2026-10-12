@@ -403,6 +403,19 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         return modes[Math.floorMod(mode, modes.length)];
     }
 
+    public boolean defaultRoute() {
+        return defaultRoute;
+    }
+
+    // provider mode of a provider pipe, supply mode of a supplier pipe, as its number
+    public int mode() {
+        return mode;
+    }
+
+    public boolean exclude() {
+        return exclude;
+    }
+
     public void setSatelliteId(int id) {
         data.set(PipeConfigMenu.DATA_SATELLITE, id);
     }

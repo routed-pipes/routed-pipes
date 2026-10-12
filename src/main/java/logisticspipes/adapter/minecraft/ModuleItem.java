@@ -33,13 +33,16 @@ import logisticspipes.domain.logistics.SupplyMode;
 import logisticspipes.domain.logistics.Terminus;
 import logisticspipes.domain.logistics.TraitSink;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.Container;
+import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.SimpleContainer;
@@ -63,6 +66,7 @@ public class ModuleItem extends Item {
     private static final String MODE_TAG = "LogisticsPipesMode";
     private static final String EXCLUDE_TAG = "LogisticsPipesExclude";
     private static final String NAMES_TAG = "LogisticsPipesNames";
+    private static final String SETTINGS_TAG = "Settings";
     private static final String SATELLITE_TAG = "LogisticsPipesSatellite";
     private static final String PRIORITY_TAG = "LogisticsPipesPriority";
 
@@ -275,6 +279,21 @@ public class ModuleItem extends Item {
         }
         module.set(DataComponents.CONTAINER, ItemContainerContents.fromItems(slots.subList(0, FILTER_SLOTS)));
         CustomData.update(DataComponents.CUSTOM_DATA, module, tag -> tag.putBoolean(DEFAULT_ROUTE_TAG, defaultRoute));
+    }
+
+    // what was set up on a module, for carrying it over to another module of the same kind
+    public static CompoundTag saveSettings(ItemStack module, HolderLookup.Provider registries) {
+        CompoundTag tag = ContainerHelper.saveAllItems(new CompoundTag(), filterOf(module), registries);
+        // modes, names, satellite and the rest all live in the custom data
+        tag.put(SETTINGS_TAG, module.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag());
+        return tag;
+    }
+
+    public static void loadSettings(ItemStack module, CompoundTag settings, HolderLookup.Provider registries) {
+        NonNullList<ItemStack> filter = NonNullList.withSize(FILTER_SLOTS, ItemStack.EMPTY);
+        ContainerHelper.loadAllItems(settings, filter, registries);
+        module.set(DataComponents.CONTAINER, ItemContainerContents.fromItems(filter));
+        CustomData.set(DataComponents.CUSTOM_DATA, module, settings.getCompound(SETTINGS_TAG));
     }
 
     @Override

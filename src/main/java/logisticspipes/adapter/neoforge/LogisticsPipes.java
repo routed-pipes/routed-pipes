@@ -20,6 +20,7 @@ import logisticspipes.adapter.minecraft.PipeServices;
 import logisticspipes.adapter.minecraft.PowerJunctionBlock;
 import logisticspipes.adapter.minecraft.PowerJunctionBlockEntity;
 import logisticspipes.adapter.minecraft.RemoteOrdererItem;
+import logisticspipes.adapter.minecraft.SettingsCopierItem;
 import logisticspipes.adapter.minecraft.UpgradeItem;
 import logisticspipes.adapter.minecraft.menu.ChassisMenu;
 import logisticspipes.adapter.minecraft.menu.CraftingTableMenu;
@@ -152,6 +153,9 @@ public class LogisticsPipes {
 
     public static final DeferredItem<RemoteOrdererItem> REMOTE_ORDERER = ITEMS.register("remote_orderer",
             () -> new RemoteOrdererItem(new Item.Properties()));
+
+    public static final DeferredItem<SettingsCopierItem> SETTINGS_COPIER = ITEMS.register("settings_copier",
+            () -> new SettingsCopierItem(new Item.Properties()));
 
     public static final Supplier<BlockEntityType<PipeBlockEntity>> PIPE_BLOCK_ENTITY = BLOCK_ENTITIES.register("pipe",
             () -> BlockEntityType.Builder
