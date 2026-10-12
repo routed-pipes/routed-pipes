@@ -43,6 +43,11 @@ public interface RouterNode {
     // everything that can be taken out of the inventories next to the pipe
     Map<ItemType, Integer> contents();
 
+    // everything the inventories next to the pipe hold, also what cannot be taken out, like the input of a machine
+    default Map<ItemType, Integer> held() {
+        return contents();
+    }
+
     // takes items out of the inventories and sends them on their way, returns how many went out
     // ordered items wait at a full destination, sorted ones go looking for another
     int send(ItemType type, int count, RouterId destination, TransportMode mode);

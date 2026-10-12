@@ -192,6 +192,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     private boolean announced;
     private LogisticsNetwork network;
     private Map<ItemType, Integer> contentsCache;
+    // what the inventories hold, also what cannot be taken out, looked up at most once per tick
+    private Map<ItemType, Integer> heldCache;
+    private long heldCachedAt;
     // worked out from modules and settings when first asked for, dropped when those change
     private List<SinkRule> sinkRulesCache;
     private List<Extraction> extractionsCache;
@@ -1411,6 +1414,23 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             contentsCachedAt = level.getGameTime();
         }
         return new LinkedHashMap<>(contentsCache);
+    }
+
+    @Override
+    public Map<ItemType, Integer> held() {
+        if (heldCache == null || heldCachedAt != level.getGameTime()) {
+            Map<ItemType, Integer> held = new LinkedHashMap<>();
+            for (Direction side : inventorySides()) {
+                for (ItemStack stack : storage().held(level, worldPosition.relative(side), accessFace(side))) {
+                    if (!stack.isEmpty()) {
+                        held.merge(McItemType.batchOf(stack).type(), stack.getCount(), Integer::sum);
+                    }
+                }
+            }
+            heldCache = held;
+            heldCachedAt = level.getGameTime();
+        }
+        return new LinkedHashMap<>(heldCache);
     }
 
     @Override

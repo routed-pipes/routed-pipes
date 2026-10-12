@@ -80,6 +80,8 @@ public final class FakeNode implements RouterNode {
     // empty means the provider hands out all it has
     public Map<ItemType, Integer> provided;
     public SupplyMode supplyMode = SupplyMode.BULK50;
+    // empty means everything held can be taken out
+    public Map<ItemType, Integer> held;
     public int roomLeft = Integer.MAX_VALUE;
     public final List<ExtractionMode> extractions = new ArrayList<>();
     // extractors take everything unless a test lists items
@@ -142,6 +144,11 @@ public final class FakeNode implements RouterNode {
     @Override
     public List<ItemBatch> satelliteInputs() {
         return satelliteInputs;
+    }
+
+    @Override
+    public Map<ItemType, Integer> held() {
+        return held == null ? contents() : new LinkedHashMap<>(held);
     }
 
     @Override

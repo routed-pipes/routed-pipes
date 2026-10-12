@@ -370,4 +370,24 @@ public class CraftingTableGameTest {
             helper.succeed();
         });
     }
+
+    // the table's storage cannot be taken out of from outside, but a supplier on it still counts what is in it
+    @GameTest(template = EMPTY, timeoutTicks = 300)
+    public static void supplierOnTheTableCountsItsStorage(GameTestHelper helper) {
+        GameTestPower.supply(helper);
+        PipeBlockEntity supplier = pipe(helper, PipeKind.SUPPLIER, 0);
+        supplier.config().setItem(0, new ItemStack(Items.RAW_IRON, 16));
+        supplier.setMode(logisticspipes.domain.logistics.SupplyMode.PARTIAL.ordinal());
+        CraftingTableBlockEntity table = table(helper, 0, 2, Items.RAW_IRON);
+        table.storage().setItem(0, new ItemStack(Items.RAW_IRON, 32));
+        pipe(helper, PipeKind.PROVIDER, 1);
+        BlockPos source = chest(helper, 1, new ItemStack(Items.RAW_IRON, 64));
+
+        helper.runAfterDelay(200, () -> {
+            Container chest = helper.getBlockEntity(source);
+            assertCount(helper, chest, Items.RAW_IRON, 64, "nothing should have been ordered");
+            assertCount(helper, table.storage(), Items.RAW_IRON, 32, "the table keeps what it had");
+            helper.succeed();
+        });
+    }
 }

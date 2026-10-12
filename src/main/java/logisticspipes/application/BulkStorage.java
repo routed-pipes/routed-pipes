@@ -81,7 +81,7 @@ final class BulkStorage {
             }
             Set<ItemType> types = new HashSet<>();
             if (node.hasInventory()) {
-                node.contents().forEach((type, count) -> {
+                node.held().forEach((type, count) -> {
                     if (count > 0) {
                         types.add(type);
                     }

@@ -323,7 +323,7 @@ public final class LogisticsNetwork {
         Map<ItemType, Integer> contents = Map.of();
         if (rules.stream().anyMatch(SinkRule::needsContents)) {
             // what is already on its way here counts as if it were in the inventory
-            contents = new HashMap<>(node.contents());
+            contents = new HashMap<>(node.held());
             contents.merge(type, pending.expected(id, type, now), Integer::sum);
         }
         Map<ItemType, Integer> seen = contents;
@@ -972,7 +972,8 @@ public final class LogisticsNetwork {
     }
 
     private void supply(RouterId id, RouterNode node, Supply supply, long now) {
-        Map<ItemType, Integer> contents = node.contents();
+        // what is in the inventory counts whether it can be taken out or not
+        Map<ItemType, Integer> contents = node.held();
         supply.targets().forEach((type, wanted) -> {
             int amount = supply.mode().amount(wanted, contents.getOrDefault(type, 0), pending.expected(id, type, now),
                     node.roomFor(type, SUPPLY_ROOM_CHECK));

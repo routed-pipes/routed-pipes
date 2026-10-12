@@ -26,6 +26,7 @@ import logisticspipes.domain.crafting.Cleanup;
 import java.util.Optional;
 import java.util.Set;
 import logisticspipes.domain.transport.TransportMode;
+import logisticspipes.domain.logistics.PassiveSupplier;
 import org.junit.jupiter.api.Test;
 
 class LogisticsNetworkRequestTest {
@@ -896,5 +897,18 @@ class LogisticsNetworkRequestTest {
 
         assertThat(provider.shipments).containsExactly(new Shipment(batch("coal", 8), REQUEST));
         assertThat(second.shipments).containsExactly(new Shipment(batch("coal", 12), REQUEST));
+    }
+
+    @Test
+    void aSupplierCountsWhatItsInventoryHoldsEvenWhereNothingCanBeTakenOut() {
+        connect();
+        provider.stock("ore", 64);
+        supplier.supplyMode = SupplyMode.PARTIAL;
+        supplier.supplyTargets.put(item("ore"), 16);
+        supplier.held = Map.of(item("ore"), 32);
+
+        network.tick(SUPPLIER, 0);
+
+        assertThat(provider.shipments).isEmpty();
     }
 }

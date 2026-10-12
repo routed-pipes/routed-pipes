@@ -486,4 +486,18 @@ class LogisticsNetworkChassisTest {
 
         assertThat(chassis.shipments).containsExactly(new Shipment(batch("stone", 8), STORE));
     }
+
+    @Test
+    void passiveSupplierCountsWhatItsInventoryHoldsEvenWhereNothingCanBeTakenOut() {
+        connect();
+        chassis.inventories.add(Side.UP);
+        chassis.sink = new PassiveSupplier(Map.of(item("coal"), 16));
+        network.sinksChanged(CHASSIS);
+        chassis.held = Map.of(item("coal"), 16);
+        TravellingItem coal = new TravellingItem(batch("coal", 4), Side.UP, null);
+
+        network.chooseExit(STORE, coal, NOW);
+
+        assertThat(coal.destination()).isNotEqualTo(Optional.of(CHASSIS));
+    }
 }
