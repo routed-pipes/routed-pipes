@@ -137,6 +137,8 @@ RECIPES = [
     shaped("pipe_controller", ["gold chip_basic gold", "redstone glass lapis", "redstone redstone lapis"]),
     shaped("guide_book", ["book transport_pipe"]),
     shaped("sign_creator", ["chip_basic . chip_basic", ". sign .", ". chip_advanced ."]),
+    # no recipe in the original: iron bows, a glass in front of each eye, the chip that shows the panels on the nose
+    shaped("hud_glasses", ["iron . iron", "glass chip_advanced glass"]),
 
     # pipes
     programmed("request_pipe", PIPE_LEVEL_2, "basic_logistics_pipe"),

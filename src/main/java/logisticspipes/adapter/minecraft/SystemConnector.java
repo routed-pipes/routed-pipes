@@ -53,6 +53,8 @@ public final class SystemConnector {
     private UUID toldChannel;
     private Direction toldSide;
     private int toldResistance;
+    // the last tick it still waited for something, for the panel of the glasses
+    private long waitedAt = Long.MIN_VALUE / 2;
 
     SystemConnector(PipeBlockEntity pipe) {
         this.pipe = pipe;
@@ -105,6 +107,14 @@ public final class SystemConnector {
     void tick() {
         tellNetwork();
         takeOut();
+        if (!waiting.isEmpty()) {
+            waitedAt = pipe.getLevel().getGameTime();
+        }
+    }
+
+    // 0 while it waits for something
+    public long ticksEmpty() {
+        return waiting.isEmpty() ? pipe.getLevel().getGameTime() - waitedAt : 0;
     }
 
     private void tellNetwork() {
@@ -158,6 +168,7 @@ public final class SystemConnector {
             waiting.remove(0);
         }
         waiting.add(entry);
+        waitedAt = pipe.getLevel().getGameTime();
         pipe.setChanged();
     }
 

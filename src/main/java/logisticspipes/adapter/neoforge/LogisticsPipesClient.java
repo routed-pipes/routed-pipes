@@ -21,6 +21,8 @@ import logisticspipes.adapter.minecraft.client.FirewallScreen;
 import logisticspipes.adapter.minecraft.client.FluidConfigScreen;
 import logisticspipes.adapter.minecraft.client.FrequencyCardScreen;
 import logisticspipes.adapter.minecraft.client.GuideBookScreen;
+import logisticspipes.adapter.minecraft.client.HudRenderer;
+import logisticspipes.adapter.minecraft.client.HudSettingsScreen;
 import logisticspipes.adapter.minecraft.client.FluidRequestScreen;
 import logisticspipes.adapter.minecraft.client.MacroEditScreen;
 import logisticspipes.adapter.minecraft.client.NamesScreen;
@@ -64,8 +66,11 @@ import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
+import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
+import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.client.model.BakedModelWrapper;
 import net.neoforged.neoforge.client.model.data.ModelData;
 import net.neoforged.neoforge.client.model.data.ModelProperty;
@@ -84,7 +89,17 @@ public class LogisticsPipesClient {
         modEventBus.addListener(LogisticsPipesClient::addMountsToPipes);
         modEventBus.addListener(LogisticsPipesClient::registerItemProperties);
         modEventBus.addListener((RegisterKeyMappingsEvent event) -> event.register(RemoteOrdererKey.MAPPING));
+        modEventBus.addListener((RegisterGuiLayersEvent event) -> event.registerAbove(VanillaGuiLayers.CROSSHAIR,
+                ResourceLocation.fromNamespaceAndPath(LogisticsPipes.MODID, "hud_crosshair"),
+                (graphics, delta) -> HudRenderer.drawCrosshair(graphics)));
         NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post event) -> RemoteOrdererKey.tick());
+        // after everything see-through, the panels are see-through themselves
+        // the last stage, a panel drawn over everything clears the depth and nothing after it needs that
+        NeoForge.EVENT_BUS.addListener((RenderLevelStageEvent event) -> {
+            if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_WEATHER) {
+                HudRenderer.render(event.getPoseStack(), event.getCamera());
+            }
+        });
         ClientMenuLink.setSender(new ClientMenuLink.Sender() {
             @Override
             public void setMarker(int containerId, int slot, ItemStack stack) {
@@ -131,6 +146,7 @@ public class LogisticsPipesClient {
         event.register(LogisticsPipes.PROGRAM_COMPILER_MENU.get(), ProgramCompilerScreen::new);
         LogisticsPipes.FLUID_CONFIG_MENUS.values().forEach(menu -> event.register(menu.get(), FluidConfigScreen::new));
         event.register(LogisticsPipes.FLUID_REQUEST_MENU.get(), FluidRequestScreen::new);
+        event.register(LogisticsPipes.HUD_SETTINGS_MENU.get(), HudSettingsScreen::new);
     }
 
     // the window of a fluid container shows the colour of what is in it

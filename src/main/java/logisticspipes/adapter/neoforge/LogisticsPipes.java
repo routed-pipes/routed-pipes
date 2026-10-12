@@ -21,6 +21,8 @@ import logisticspipes.adapter.minecraft.FrequencyCardItem;
 import logisticspipes.adapter.minecraft.GuideBookItem;
 import logisticspipes.adapter.minecraft.FluidContents;
 import logisticspipes.adapter.minecraft.FluidServices;
+import logisticspipes.adapter.minecraft.HudGlassesItem;
+import logisticspipes.adapter.minecraft.HudWatch;
 import logisticspipes.adapter.minecraft.LevelNetworks;
 import logisticspipes.adapter.minecraft.LogisticsPipeBlock;
 import logisticspipes.adapter.minecraft.ModuleItem;
@@ -40,6 +42,7 @@ import logisticspipes.adapter.minecraft.RemoteOrdererItem;
 import logisticspipes.adapter.minecraft.RequestTableBlock;
 import logisticspipes.adapter.minecraft.SettingsCopierItem;
 import logisticspipes.adapter.minecraft.SignCreatorItem;
+import logisticspipes.adapter.minecraft.ShownHudPanels;
 import logisticspipes.adapter.minecraft.TubeBlock;
 import logisticspipes.adapter.minecraft.TubeBlockEntity;
 import logisticspipes.adapter.minecraft.TubeBlockItem;
@@ -58,6 +61,7 @@ import logisticspipes.adapter.minecraft.menu.ChannelMenu;
 import logisticspipes.adapter.minecraft.menu.ChassisMenu;
 import logisticspipes.adapter.minecraft.menu.DiskMenu;
 import logisticspipes.adapter.minecraft.menu.FirewallMenu;
+import logisticspipes.adapter.minecraft.menu.HudSettingsMenu;
 import logisticspipes.adapter.minecraft.menu.MacroEditMenu;
 import logisticspipes.adapter.minecraft.menu.FrequencyCardMenu;
 import logisticspipes.adapter.minecraft.menu.CraftingTableMenu;
@@ -81,11 +85,15 @@ import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.domain.tube.TubeKind;
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
@@ -102,6 +110,8 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
@@ -127,6 +137,7 @@ public class LogisticsPipes {
             DeferredRegister.create(Registries.DATA_COMPONENT_TYPE, MODID);
     private static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS =
             DeferredRegister.create(Registries.RECIPE_SERIALIZER, MODID);
+    private static final DeferredRegister<ArmorMaterial> ARMOR_MATERIALS = DeferredRegister.create(Registries.ARMOR_MATERIAL, MODID);
 
     public static final Supplier<MenuType<RequestMenu>> REQUEST_MENU = MENUS.register("request",
             () -> new MenuType<>((id, inventory) -> new RequestMenu(LogisticsPipes.REQUEST_MENU.get(), id),
@@ -296,6 +307,19 @@ public class LogisticsPipes {
 
     public static final DeferredItem<GuideBookItem> GUIDE_BOOK = ITEMS.register("guide_book",
             () -> new GuideBookItem(new Item.Properties()));
+    public static final Supplier<MenuType<HudSettingsMenu>> HUD_SETTINGS_MENU = MENUS.register("hud_settings",
+            () -> new MenuType<>((id, inventory) -> new HudSettingsMenu(LogisticsPipes.HUD_SETTINGS_MENU.get(), id, inventory),
+                    FeatureFlags.DEFAULT_FLAGS));
+    private static final Holder<ArmorMaterial> HUD_GLASSES_MATERIAL = ARMOR_MATERIALS.register("hud_glasses",
+            () -> HudGlassesItem.material(ResourceLocation.fromNamespaceAndPath(MODID, "hud_glasses")));
+    public static final DeferredItem<HudGlassesItem> HUD_GLASSES = ITEMS.register("hud_glasses",
+            () -> new HudGlassesItem(HUD_GLASSES_MATERIAL, new Item.Properties(), LogisticsPipes.HUD_SETTINGS_MENU));
+
+    private static final HudWatch HUD_WATCH = new HudWatch((player, reset, changed, gone) -> {
+        if (player instanceof ServerPlayer receiver) {
+            PacketDistributor.sendToPlayer(receiver, new HudPanelsPayload(reset, changed, gone));
+        }
+    });
 
     // never in a player's hands, so it is in no creative tab and has no recipe
     public static final DeferredItem<FluidContainerItem> FLUID_CONTAINER = ITEMS.register("fluid_container",
@@ -455,9 +479,15 @@ public class LogisticsPipes {
         TABS.register(modEventBus);
         DATA_COMPONENTS.register(modEventBus);
         RECIPE_SERIALIZERS.register(modEventBus);
+        ARMOR_MATERIALS.register(modEventBus);
         modEventBus.addListener(LogisticsPipes::registerCapabilities);
         modEventBus.addListener(LogisticsPipes::registerPayloads);
         NeoForge.EVENT_BUS.addListener(LogisticsPipes::buildCreativeTabs);
+        NeoForge.EVENT_BUS.addListener((PlayerTickEvent.Post event) -> {
+            if (!event.getEntity().level().isClientSide) {
+                HUD_WATCH.tick(event.getEntity());
+            }
+        });
         SecurityEvents.register();
         GuideBookGift.register(modEventBus);
         ComputerCraftSupport.registerIfInstalled(modEventBus);
@@ -520,6 +550,8 @@ public class LogisticsPipes {
                         payload.order()));
         registrar.playToServer(OpenRemoteOrdererPayload.TYPE, OpenRemoteOrdererPayload.CODEC, (payload, context) ->
                 RemoteOrdererItem.openFromInventory(context.player()));
+        registrar.playToClient(HudPanelsPayload.TYPE, HudPanelsPayload.CODEC, (payload, context) ->
+                ShownHudPanels.apply(payload.reset(), payload.changed(), payload.gone()));
     }
 
     private static void registerCapabilities(RegisterCapabilitiesEvent event) {

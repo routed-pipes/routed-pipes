@@ -619,6 +619,11 @@ public final class LogisticsNetwork {
         return reachableFrom(from);
     }
 
+    // what was sent to a router and has not arrived there yet
+    public Map<ItemType, Integer> onTheWayTo(RouterId destination, long now) {
+        return pending.expectedAt(destination, now);
+    }
+
     // how many of each item the network of the router holds for the taking, its own inventory included
     public Map<ItemType, Integer> amounts(RouterId at) {
         Map<ItemType, Integer> amounts = new LinkedHashMap<>();

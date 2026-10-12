@@ -56,4 +56,17 @@ class PendingDeliveriesTest {
 
         assertThat(pending.expected(router(1), STONE, 0)).isZero();
     }
+
+    @Test
+    void listsWhatIsStillOnItsWayToOneRouter() {
+        ItemType coal = new TestItem("coal");
+        pending.expect(router(1), STONE, 10, 100);
+        pending.expect(router(1), STONE, 5, 200);
+        pending.expect(router(1), coal, 3, 100);
+        pending.expect(router(2), coal, 7, 200);
+
+        assertThat(pending.expectedAt(router(1), 0)).containsExactly(java.util.Map.entry(STONE, 15), java.util.Map.entry(coal, 3));
+        assertThat(pending.expectedAt(router(1), 150)).containsExactly(java.util.Map.entry(STONE, 5));
+        assertThat(pending.expectedAt(router(3), 0)).isEmpty();
+    }
 }

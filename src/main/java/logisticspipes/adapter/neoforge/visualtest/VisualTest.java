@@ -284,6 +284,16 @@ public final class VisualTest {
             }
         }));
         shotFrom("sign_crafting", "-1.5 -59 13.5 -90 10");
+        // panels float at the pipes near a player who wears the glasses
+        step(5, () -> command("item replace entity @p armor.head with logisticspipes:hud_glasses"));
+        // panels hide with the rest of the interface, which the world shots switch off
+        step(10, () -> {
+            command("tp @p 3.5 -59 8.5 50 15");
+            minecraft.options.hideGui = false;
+        });
+        step(40, () -> shot("hud_panels"));
+        step(1, () -> minecraft.options.hideGui = true);
+        step(5, () -> command("item replace entity @p armor.head with air"));
         step(5, () -> minecraft.setScreen(new logisticspipes.adapter.minecraft.client.GuideBookScreen()));
         step(5, () -> shot("guide_book_contents"));
         step(5, () -> minecraft.setScreen(null));

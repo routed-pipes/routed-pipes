@@ -2,7 +2,7 @@ package logisticspipes.application;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import logisticspipes.domain.item.ItemType;
@@ -24,7 +24,8 @@ final class PendingDeliveries {
     private record Key(RouterId destination, ItemType type) {
     }
 
-    private final Map<Key, Deque<Expected>> expected = new HashMap<>();
+    // in the order they were first expected
+    private final Map<Key, Deque<Expected>> expected = new LinkedHashMap<>();
 
     void expect(RouterId destination, ItemType type, int count, long deadline) {
         if (count > 0) {
@@ -62,6 +63,20 @@ final class PendingDeliveries {
             return 0;
         }
         return queue.stream().mapToInt(entry -> entry.count).sum();
+    }
+
+    // everything that is still on its way to a router
+    Map<ItemType, Integer> expectedAt(RouterId destination, long now) {
+        Map<ItemType, Integer> counts = new LinkedHashMap<>();
+        for (Map.Entry<Key, Deque<Expected>> entry : expected.entrySet()) {
+            if (entry.getKey().destination().equals(destination)) {
+                int count = entry.getValue().stream().filter(one -> one.deadline > now).mapToInt(one -> one.count).sum();
+                if (count > 0) {
+                    counts.put(entry.getKey().type(), count);
+                }
+            }
+        }
+        return counts;
     }
 
     void forget(RouterId destination) {
