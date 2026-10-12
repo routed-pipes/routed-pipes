@@ -1,5 +1,7 @@
 package logisticspipes.adapter.neoforge;
 
+import java.util.List;
+
 import logisticspipes.adapter.minecraft.client.ChassisScreen;
 import logisticspipes.adapter.minecraft.client.ClientMenuLink;
 import logisticspipes.adapter.minecraft.client.CraftingTableScreen;
@@ -45,6 +47,11 @@ public class LogisticsPipesClient {
             @Override
             public void openRemoteOrderer() {
                 PacketDistributor.sendToServer(new OpenRemoteOrdererPayload());
+            }
+
+            @Override
+            public void askIngredients(int containerId, int question, List<ItemStack> ingredients, boolean order) {
+                PacketDistributor.sendToServer(new AskIngredientsPayload(containerId, question, order, ingredients));
             }
         });
         VisualTest.registerIfRequested();

@@ -362,11 +362,30 @@ public final class LogisticsNetwork {
         return request(requester, wanted, now, 0, false);
     }
 
-    // with partial set, whatever part of the order can be had is started
+    // orders what the requester needs beyond what it has and what is already on its way to it, all of it or nothing
+    // with simulate nothing is ordered and no power is used, the outcome only tells what would be missing
+    public RequestOutcome requestShortfall(RouterId requester, Map<ItemType, Integer> needed, Map<ItemType, Integer> have,
+            long now, boolean simulate) {
+        List<ItemBatch> wanted = new ArrayList<>();
+        needed.forEach((type, count) -> {
+            int missing = count - have.getOrDefault(type, 0) - pending.expected(requester, type, now);
+            if (missing > 0) {
+                wanted.add(new ItemBatch(type, missing));
+            }
+        });
+        return request(requester, wanted, now, 0, false, simulate);
+    }
+
     private RequestOutcome request(RouterId requester, ItemBatch wanted, long now, int extraEnergy, boolean partial) {
+        return request(requester, List.of(wanted), now, extraEnergy, partial, false);
+    }
+
+    // with partial set, whatever part of the order can be had is started
+    private RequestOutcome request(RouterId requester, List<ItemBatch> wanted, long now, int extraEnergy, boolean partial,
+            boolean simulate) {
         RequestPlan plan = new RequestPlanner(stockFor(requester), craftersFor(requester)).plan(requester, wanted);
         boolean nothing = plan.provisions().isEmpty() && plan.crafts().isEmpty();
-        if (!plan.complete() && (!partial || nothing)) {
+        if (simulate || !plan.complete() && (!partial || nothing)) {
             return new RequestOutcome(plan, true);
         }
         int items = plan.provisions().stream().mapToInt(provision -> provision.batch().count()).sum();

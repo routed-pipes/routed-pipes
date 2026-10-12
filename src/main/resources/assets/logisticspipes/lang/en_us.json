@@ -128,6 +128,7 @@
   "block.logisticspipes.chassis_pipe_mk3.description": "Routed pipe that does what the modules plugged into it do. Holds 3 modules.",
   "block.logisticspipes.chassis_pipe_mk4.description": "Routed pipe that does what the modules plugged into it do. Holds 4 modules.",
   "block.logisticspipes.chassis_pipe_mk5.description": "Routed pipe that does what the modules plugged into it do. Holds 8 modules.",
+  "logisticspipes.jei.network_cannot_supply": "The network cannot supply:",
   "logisticspipes.jei.recipe_does_not_fit": "A crafting pipe takes up to nine different items",
   "logisticspipes.gui.search": "Search",
   "logisticspipes.status.alone": "Not connected to other logistics pipes",

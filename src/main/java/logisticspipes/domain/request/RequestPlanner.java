@@ -53,11 +53,18 @@ public final class RequestPlanner {
     }
 
     public RequestPlan plan(RouterId destination, ItemBatch wanted) {
+        return plan(destination, List.of(wanted));
+    }
+
+    // several items for one destination in one plan, a later one only gets what the earlier ones left
+    public RequestPlan plan(RouterId destination, List<ItemBatch> wanted) {
         Draft draft = new Draft();
         for (Stock entry : stock) {
             draft.stock.computeIfAbsent(entry.provider(), provider -> new LinkedHashMap<>()).putAll(entry.items());
         }
-        resolve(draft, destination, wanted.type(), wanted.count(), new HashSet<>());
+        for (ItemBatch batch : wanted) {
+            resolve(draft, destination, batch.type(), batch.count(), new HashSet<>());
+        }
         return new RequestPlan(mergedProvisions(draft.provisions), merged(draft.crafts), Map.copyOf(draft.missing));
     }
 

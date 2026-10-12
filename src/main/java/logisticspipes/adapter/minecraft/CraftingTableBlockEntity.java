@@ -7,10 +7,14 @@ import java.util.Map;
 import java.util.Optional;
 
 import logisticspipes.adapter.minecraft.menu.CraftingTableMenu;
+import logisticspipes.application.RequestOutcome;
 import logisticspipes.domain.crafting.Recipe;
 import logisticspipes.domain.item.ItemBatch;
 import logisticspipes.domain.item.ItemType;
+import logisticspipes.domain.logistics.InventoryRef;
+import logisticspipes.domain.logistics.PipeKind;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
@@ -101,6 +105,10 @@ public class CraftingTableBlockEntity extends BlockEntity {
         if (result.isEmpty() || inputs.isEmpty()) {
             return 0;
         }
+        return new Recipe(inputs, McItemType.batchOf(result)).runsPossible(stock());
+    }
+
+    private Map<ItemType, Integer> stock() {
         Map<ItemType, Integer> stock = new LinkedHashMap<>();
         for (int slot = 0; slot < STORAGE_SLOTS; slot++) {
             ItemStack stack = storage.getItem(slot);
@@ -108,7 +116,33 @@ public class CraftingTableBlockEntity extends BlockEntity {
                 stock.merge(McItemType.batchOf(stack).type(), stack.getCount(), Integer::sum);
             }
         }
-        return new Recipe(inputs, McItemType.batchOf(result)).runsPossible(stock);
+        return stock;
+    }
+
+    // the crafting or request pipe that has this table as its inventory, what it orders ends up in the storage
+    private Optional<PipeBlockEntity> orderingPipe() {
+        InventoryRef self = new InventoryRef(worldPosition.asLong());
+        for (Direction side : Direction.values()) {
+            BlockPos target = worldPosition.relative(side);
+            if (level.isLoaded(target) && level.getBlockEntity(target) instanceof PipeBlockEntity pipe
+                    && (pipe.kind() == PipeKind.CRAFTING || pipe.kind() == PipeKind.REQUEST)
+                    && pipe.inventories().containsValue(self)) {
+                return Optional.of(pipe);
+            }
+        }
+        return Optional.empty();
+    }
+
+    // has the network bring the ingredients of one craft that are not in storage or on their way, all of them or none
+    // empty when no pipe next to the table can order, with simulate it only finds out what would be missing
+    public Optional<RequestOutcome> orderIngredients(List<ItemStack> ingredients, boolean simulate) {
+        Map<ItemType, Integer> needed = new LinkedHashMap<>();
+        for (ItemStack ingredient : ingredients) {
+            if (!ingredient.isEmpty()) {
+                needed.merge(McItemType.batchOf(ingredient).type(), 1, Integer::sum);
+            }
+        }
+        return orderingPipe().map(pipe -> pipe.requestShortfall(needed, stock(), simulate));
     }
 
     // what could be taken out right now, capped at one stack

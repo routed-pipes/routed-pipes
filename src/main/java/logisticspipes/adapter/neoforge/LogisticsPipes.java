@@ -243,6 +243,9 @@ public class LogisticsPipes {
                 MenuRequests.apply(context.player(), payload.containerId(), payload.slot(), payload.stack()));
         registrar.playToServer(SetMenuTextPayload.TYPE, SetMenuTextPayload.CODEC, (payload, context) ->
                 MenuRequests.applyText(context.player(), payload.containerId(), payload.field(), payload.text()));
+        registrar.playToServer(AskIngredientsPayload.TYPE, AskIngredientsPayload.CODEC, (payload, context) ->
+                MenuRequests.askIngredients(context.player(), payload.containerId(), payload.question(), payload.ingredients(),
+                        payload.order()));
         registrar.playToServer(OpenRemoteOrdererPayload.TYPE, OpenRemoteOrdererPayload.CODEC, (payload, context) ->
                 RemoteOrdererItem.openFromInventory(context.player()));
     }

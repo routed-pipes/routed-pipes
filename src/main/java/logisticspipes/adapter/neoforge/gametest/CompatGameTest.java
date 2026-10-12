@@ -1,15 +1,21 @@
 package logisticspipes.adapter.neoforge.gametest;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 
+import logisticspipes.adapter.minecraft.CraftingTableBlockEntity;
 import logisticspipes.adapter.minecraft.McItemType;
 import logisticspipes.adapter.minecraft.PipeBlockEntity;
 import logisticspipes.adapter.minecraft.PipeDetails;
 import logisticspipes.adapter.minecraft.PowerJunctionBlockEntity;
+import logisticspipes.adapter.minecraft.menu.CraftingTableMenu;
+import logisticspipes.adapter.minecraft.menu.MenuRequests;
 import logisticspipes.adapter.neoforge.CapabilityItemStorage;
 import logisticspipes.adapter.neoforge.LogisticsPipes;
 import logisticspipes.domain.logistics.PipeKind;
@@ -25,15 +31,19 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.level.block.state.properties.Property;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.gametest.GameTestHolder;
@@ -95,6 +105,9 @@ public class CompatGameTest {
         }
         if (has("create:millstone")) {
             tests.add(test("compat.create.crafts_with_millstone", CompatGameTest::createCraftsWithMillstone, 2400));
+        }
+        if (ModList.get().isLoaded("jei")) {
+            tests.add(test("compat.jei.table_transfer_links_and_reports", CompatGameTest::jeiTableTransferLinksAndReports));
         }
         if (ModList.get().isLoaded("jade")) {
             tests.add(test("compat.jade.sends_pipe_details", CompatGameTest::jadeSendsPipeDetails));
@@ -331,6 +344,97 @@ public class CompatGameTest {
             PipeDetails details = PipeDetails.load(data.getCompound("LogisticsPipesDetails"), helper.getLevel().registryAccess());
             helper.assertTrue(details.listed().shown().size() == 1 && details.listed().shown().get(0).stack().is(Items.DIAMOND),
                     "Jade should get the filter of the pipe, got " + data);
+            helper.succeed();
+        });
+    }
+
+    // the transfer handler for the crafting table against the JEI that is installed, as far as that goes without a client:
+    // a recipe with slots cannot be made up here, the slot views of JEI need client classes a server refuses to load
+    // so the handler gets a recipe without ingredients, and the error it shows is made by hand. Everything is found by name
+    private static void jeiTableTransferLinksAndReports(GameTestHelper helper) {
+        GameTestPower.supply(helper);
+        pipe(helper, PipeKind.CRAFTING, 1);
+        BlockPos tablePos = new BlockPos(1, 2, 1);
+        helper.setBlock(tablePos, LogisticsPipes.CRAFTING_TABLE.get());
+        CraftingTableBlockEntity table = helper.getBlockEntity(tablePos);
+        table.pattern().setItem(4, new ItemStack(Items.OAK_LOG));
+
+        helper.runAfterDelay(15, () -> {
+            TestPlayer player = TestPlayer.in(helper);
+            helper.getBlockState(tablePos).useWithoutItem(helper.getLevel(), player, new BlockHitResult(
+                    Vec3.atCenterOf(helper.absolutePos(tablePos)), Direction.UP, helper.absolutePos(tablePos), false));
+            CraftingTableMenu menu = (CraftingTableMenu) player.containerMenu;
+            List<Boolean> orders = new ArrayList<>();
+            try {
+                // what the client would send goes to the server half directly
+                Class<?> senderType = Class.forName("logisticspipes.adapter.minecraft.client.ClientMenuLink$Sender");
+                Field senderField = Class.forName("logisticspipes.adapter.minecraft.client.ClientMenuLink").getDeclaredField("sender");
+                senderField.setAccessible(true);
+                Object oldSender = senderField.get(null);
+                senderField.set(null, Proxy.newProxyInstance(senderType.getClassLoader(), new Class<?>[] {senderType}, (proxy, method, arguments) -> {
+                    if (method.getName().equals("setMarker")) {
+                        MenuRequests.apply(player, (int) arguments[0], (int) arguments[1], (ItemStack) arguments[2]);
+                    } else if (method.getName().equals("askIngredients")) {
+                        @SuppressWarnings("unchecked")
+                        List<ItemStack> ingredients = (List<ItemStack>) arguments[2];
+                        orders.add((boolean) arguments[3]);
+                        MenuRequests.askIngredients(player, (int) arguments[0], (int) arguments[1], ingredients, (boolean) arguments[3]);
+                    }
+                    return null;
+                }));
+                try {
+                    Class<?> slotsType = Class.forName("mezz.jei.api.gui.ingredient.IRecipeSlotsView");
+                    Object slots = Proxy.newProxyInstance(slotsType.getClassLoader(), new Class<?>[] {slotsType}, (proxy, method, arguments) -> {
+                        if (method.getName().equals("getSlotViews")) {
+                            return List.of();
+                        }
+                        throw new UnsupportedOperationException(method.getName());
+                    });
+                    Class<?> handlerType = Class.forName("logisticspipes.adapter.jei.LogisticsPipesJeiPlugin$TableTransfer");
+                    Constructor<?> constructor = handlerType.getDeclaredConstructor();
+                    constructor.setAccessible(true);
+                    Object handler = constructor.newInstance();
+                    // only methods the classes declare themselves are looked up, the ones inherited from JEI mention client classes
+                    Method transfer = handlerType.getDeclaredMethod("transferRecipe", CraftingTableMenu.class, RecipeHolder.class, slotsType,
+                            Player.class, boolean.class, boolean.class);
+                    transfer.setAccessible(true);
+
+                    helper.assertTrue(transfer.invoke(handler, menu, null, slots, player, false, false) == null, "looking at a recipe is no error");
+                    helper.assertTrue(orders.equals(List.of(false)) && menu.answeredQuestion() == 1
+                            && menu.network() == CraftingTableMenu.NETWORK_SUPPLIES, "the look asked the server, which had nothing to bring");
+                    helper.assertTrue(table.pattern().getItem(4).is(Items.OAK_LOG), "and changed nothing");
+                    helper.assertTrue(transfer.invoke(handler, menu, null, slots, player, false, true) == null, "the transfer goes through");
+                    helper.assertTrue(table.pattern().isEmpty() && orders.equals(List.of(false, true)), "it sets the recipe grid and orders");
+
+                    // the error for a recipe the network cannot serve, with what the server really reports as missing
+                    MenuRequests.askIngredients(player, menu.containerId, 5, List.of(new ItemStack(Items.OAK_PLANKS), new ItemStack(Items.OAK_PLANKS)), false);
+                    Constructor<?> errorConstructor = Class.forName("logisticspipes.adapter.jei.LogisticsPipesJeiPlugin$TableTransfer$NetworkShortfall")
+                            .getDeclaredConstructor(List.class);
+                    errorConstructor.setAccessible(true);
+                    Object error = errorConstructor.newInstance(menu.shortfall());
+                    Method getType = error.getClass().getDeclaredMethod("getType");
+                    getType.setAccessible(true);
+                    helper.assertTrue(getType.invoke(error).toString().equals("COSMETIC"), "the button stays usable");
+                    List<Object> lines = new ArrayList<>();
+                    Class<?> tooltipType = Class.forName("mezz.jei.api.gui.builder.ITooltipBuilder");
+                    Object tooltip = Proxy.newProxyInstance(tooltipType.getClassLoader(), new Class<?>[] {tooltipType}, (proxy, method, arguments) -> {
+                        if (method.getName().equals("add")) {
+                            lines.add(arguments[0]);
+                            return null;
+                        }
+                        throw new UnsupportedOperationException(method.getName());
+                    });
+                    Method getTooltip = error.getClass().getDeclaredMethod("getTooltip", tooltipType);
+                    getTooltip.setAccessible(true);
+                    getTooltip.invoke(error, tooltip);
+                    helper.assertTrue(lines.size() == 2 && lines.get(1).toString().contains("oak_planks") && lines.get(1).toString().contains("2"),
+                            "the tooltip names the two planks the network cannot bring, got " + lines);
+                } finally {
+                    senderField.set(null, oldSender);
+                }
+            } catch (ReflectiveOperationException e) {
+                throw new IllegalStateException(e);
+            }
             helper.succeed();
         });
     }

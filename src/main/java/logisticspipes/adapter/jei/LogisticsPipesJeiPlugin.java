@@ -11,12 +11,14 @@ import logisticspipes.adapter.minecraft.client.MarkerScreen;
 import logisticspipes.adapter.minecraft.client.PipeConfigScreen;
 import logisticspipes.adapter.minecraft.client.RecipeViewerCheck;
 import logisticspipes.adapter.minecraft.menu.CraftingTableMenu;
+import logisticspipes.adapter.minecraft.menu.IngredientQuestions;
 import logisticspipes.adapter.minecraft.menu.PipeConfigMenu;
 import logisticspipes.domain.logistics.PipeKind;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.constants.VanillaTypes;
+import mezz.jei.api.gui.builder.ITooltipBuilder;
 import mezz.jei.api.gui.handlers.IGhostIngredientHandler;
 import mezz.jei.api.gui.ingredient.IRecipeSlotView;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
@@ -33,6 +35,8 @@ import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.registration.IRecipeTransferRegistration;
 import mezz.jei.api.runtime.IJeiRuntime;
+import net.minecraft.ChatFormatting;
+import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -101,8 +105,31 @@ public class LogisticsPipesJeiPlugin implements IModPlugin {
         }
     }
 
-    // the plus button on a crafting recipe fills the grid of an open logistics crafting table
+    // the plus button on a crafting recipe fills the grid of an open logistics crafting table and has the network
+    // bring the ingredients its storage lacks, hovering the button tells which of them the network cannot bring
     private static final class TableTransfer implements IRecipeTransferHandler<CraftingTableMenu, RecipeHolder<CraftingRecipe>> {
+
+        // the button still sets the grid, nothing is ordered until the network has everything
+        private record NetworkShortfall(List<ItemStack> shortfall) implements IRecipeTransferError {
+
+            @Override
+            public Type getType() {
+                return Type.COSMETIC;
+            }
+
+            @Override
+            public void getTooltip(ITooltipBuilder tooltip) {
+                tooltip.add(Component.translatable("logisticspipes.jei.network_cannot_supply").withStyle(ChatFormatting.RED));
+                for (ItemStack stack : shortfall) {
+                    tooltip.add(Component.translatable("logisticspipes.request.missing_entry",
+                            CraftingTableMenu.shortfallCount(stack), stack.getHoverName()));
+                }
+            }
+        }
+
+        private final IngredientQuestions questions = new IngredientQuestions(
+                (containerId, question, ingredients) -> ClientMenuLink.askIngredients(containerId, question, ingredients, false),
+                Util::getMillis);
 
         @Override
         public Class<? extends CraftingTableMenu> getContainerClass() {
@@ -119,17 +146,27 @@ public class LogisticsPipesJeiPlugin implements IModPlugin {
             return RecipeTypes.CRAFTING;
         }
 
+        // JEI calls this every tick for every recipe on screen to find out what its button should say
         @Override
         public IRecipeTransferError transferRecipe(CraftingTableMenu menu, RecipeHolder<CraftingRecipe> recipe,
                 IRecipeSlotsView recipeSlots, Player player, boolean maxTransfer, boolean doTransfer) {
-            if (doTransfer) {
-                List<IRecipeSlotView> inputs = recipeSlots.getSlotViews(RecipeIngredientRole.INPUT);
-                for (int slot = 0; slot < menu.markerSlots(); slot++) {
-                    ItemStack stack = slot < inputs.size() ? inputs.get(slot).getDisplayedItemStack().orElse(ItemStack.EMPTY) : ItemStack.EMPTY;
-                    ClientMenuLink.setMarker(menu.containerId, slot, stack.copyWithCount(stack.isEmpty() ? 0 : 1));
-                }
+            List<IRecipeSlotView> inputs = recipeSlots.getSlotViews(RecipeIngredientRole.INPUT);
+            List<ItemStack> ingredients = new ArrayList<>();
+            for (int slot = 0; slot < menu.markerSlots(); slot++) {
+                ItemStack stack = slot < inputs.size() ? inputs.get(slot).getDisplayedItemStack().orElse(ItemStack.EMPTY) : ItemStack.EMPTY;
+                ingredients.add(stack.copyWithCount(stack.isEmpty() ? 0 : 1));
             }
-            return null;
+            if (doTransfer) {
+                for (int slot = 0; slot < ingredients.size(); slot++) {
+                    ClientMenuLink.setMarker(menu.containerId, slot, ingredients.get(slot));
+                }
+                // nobody waits for the answer to this one, the next look at the button asks again
+                ClientMenuLink.askIngredients(menu.containerId, 0, ingredients, true);
+                questions.forget();
+                return null;
+            }
+            return questions.answer(menu, ingredients).filter(answer -> answer.network() == CraftingTableMenu.NETWORK_MISSING)
+                    .<IRecipeTransferError>map(answer -> new NetworkShortfall(answer.shortfall())).orElse(null);
         }
     }
 

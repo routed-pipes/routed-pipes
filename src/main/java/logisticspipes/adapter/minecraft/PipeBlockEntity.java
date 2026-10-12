@@ -446,6 +446,11 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         return network().request(routerId, wanted, level.getGameTime());
     }
 
+    // orders what is needed beyond what is already there, all of it or nothing, with simulate it only plans
+    public RequestOutcome requestShortfall(Map<ItemType, Integer> needed, Map<ItemType, Integer> have, boolean simulate) {
+        return network().requestShortfall(routerId, needed, have, level.getGameTime(), simulate);
+    }
+
     // remote means the player does not have to stand next to the pipe
     public void openRequestScreen(Player player, boolean remote) {
         player.openMenu(requestScreen(remote));
