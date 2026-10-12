@@ -454,6 +454,11 @@ public final class LogisticsNetwork {
         return new RequestOutcome(plan, true);
     }
 
+    // whether some sink would take the batch if it were put into the pipe
+    public boolean wanted(RouterId at, ItemBatch batch, long now) {
+        return findDestination(at, batch, null, false, ItemSink.DEFAULT_ROUTE_PRIORITY, now).isPresent();
+    }
+
     // an ordered item fell out of the pipes on its way, a crafter orders its ingredients again
     public void itemLost(RouterId destination, ItemBatch batch, long now) {
         pending.arrived(destination, batch.type(), batch.count());

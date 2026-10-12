@@ -33,7 +33,7 @@ public class FirewallScreen extends AbstractContainerScreen<FirewallMenu> implem
             int id = flag;
             switches.add(addRenderableWidget(Button.builder(label(flag),
                     button -> minecraft.gameMode.handleInventoryButtonClick(menu.containerId, id))
-                    .bounds(leftPos + 120, topPos + 28 + flag * 21, 48, 12).build()));
+                    .bounds(leftPos + 120, topPos + 26 + flag * 22, 48, 12).build()));
         }
     }
 
@@ -64,7 +64,7 @@ public class FirewallScreen extends AbstractContainerScreen<FirewallMenu> implem
     protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
         super.renderLabels(graphics, mouseX, mouseY);
         for (int flag = 0; flag < FirewallSettings.FLAGS; flag++) {
-            graphics.drawString(font, Component.translatable("logisticspipes.gui.firewall." + LABELS[flag]), 120, 18 + flag * 21, TEXT, false);
+            graphics.drawString(font, Component.translatable("logisticspipes.gui.firewall." + LABELS[flag]), 120, 16 + flag * 22, TEXT, false);
         }
     }
 

@@ -15,6 +15,7 @@ import java.util.UUID;
 import logisticspipes.adapter.minecraft.menu.ChassisMenu;
 import logisticspipes.adapter.minecraft.menu.FirewallMenu;
 import logisticspipes.adapter.minecraft.menu.PipeConfigMenu;
+import logisticspipes.adapter.minecraft.menu.RequestTableMenu;
 import logisticspipes.adapter.minecraft.menu.UpgradeMenu;
 import logisticspipes.adapter.minecraft.menu.RequestMenu;
 import logisticspipes.application.LogisticsNetwork;
@@ -53,6 +54,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
@@ -147,6 +149,8 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     private Boolean upkeepCache;
     // only a firewall pipe has these
     private FirewallSettings firewall;
+    // only a request table has these
+    private RequestTable table;
     private boolean announced;
     private LogisticsNetwork network;
     private Map<ItemType, Integer> contentsCache;
@@ -167,6 +171,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         }
         if (kind() == PipeKind.FIREWALL) {
             firewall = new FirewallSettings(this::setChanged);
+        }
+        if (kind() == PipeKind.REQUEST_TABLE) {
+            table = new RequestTable(this);
         }
         // a crafter that cleans up keeps what is on its list unless told otherwise
         exclude = kind() == PipeKind.CRAFTING;
@@ -486,6 +493,32 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         if (kind() == PipeKind.REQUEST) {
             return requestScreen(false);
         }
+        if (kind() == PipeKind.REQUEST_TABLE) {
+            RequestTableMenu.Actions actions = new RequestTableMenu.Actions() {
+                @Override
+                public ItemStack result() {
+                    return table.result();
+                }
+
+                @Override
+                public void craft() {
+                    table.craft();
+                }
+
+                @Override
+                public void order(Player player, int crafts, boolean missingOnly) {
+                    tellWhatIsMissing(player, table.orderIngredients(crafts, missingOnly));
+                }
+
+                @Override
+                public void openList(Player player) {
+                    openRequestScreen(player, false);
+                }
+            };
+            return new SimpleMenuProvider((id, inventory, player) -> new RequestTableMenu(services.requestTableMenu().get(), id,
+                    inventory, table.grid(), table.buffer(), table.sort(), user -> Container.stillValidBlockEntity(this, user),
+                    actions), title);
+        }
         if (kind() == PipeKind.FIREWALL) {
             return new SimpleMenuProvider((id, inventory, player) -> new FirewallMenu(services.firewallMenu().get(), id, inventory,
                     firewall.list(), firewall.data(), user -> Container.stillValidBlockEntity(this, user)), title);
@@ -525,6 +558,33 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             item.settingsProvider(module, user -> Container.stillValidBlockEntity(this, user) && modules.getItem(slot) == module,
                     this::settingsChanged, this::importRecipe, upgrade -> moduleUpgradeCount(slot, upgrade)).ifPresent(player::openMenu);
         }
+    }
+
+    public RequestTable requestTable() {
+        return table;
+    }
+
+    // puts a stack into the pipes if somebody takes it, false if nobody does
+    boolean sendOff(ItemStack stack) {
+        if (!network().wanted(routerId, McItemType.batchOf(stack), level.getGameTime())) {
+            return false;
+        }
+        accept(stack.copy(), Direction.UP);
+        return true;
+    }
+
+    private void tellWhatIsMissing(Player player, RequestOutcome outcome) {
+        if (outcome.started()) {
+            return;
+        }
+        if (!outcome.powered()) {
+            player.displayClientMessage(Component.translatable("logisticspipes.request.no_power"), false);
+            return;
+        }
+        MutableComponent missing = Component.translatable("logisticspipes.request.missing");
+        outcome.missing().forEach((type, count) -> missing.append("\n").append(Component.translatable(
+                "logisticspipes.request.missing_entry", count, McItemType.stackOf(new ItemBatch(type, 1)).getHoverName())));
+        player.displayClientMessage(missing, false);
     }
 
     public FirewallSettings firewallSettings() {
@@ -644,6 +704,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             linksDirty = false;
             network().updateLinks(routerId, PipeTopology.discoverLinks(level, worldPosition), level.getGameTime());
         }
+        if (table != null) {
+            table.tick();
+        }
         if (needsUpkeep()) {
             network().tick(routerId, level.getGameTime());
         }
@@ -675,6 +738,11 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     private void depart(Departure departure) {
         TravellingItem item = departure.item();
         ItemStack stack = McItemType.stackOf(item.batch());
+        if (departure.exit().isEmpty() && table != null && item.destination().filter(routerId::equals).isPresent()) {
+            // what a request table ordered ends up in its buffer
+            popOut(table.takeIn(stack));
+            return;
+        }
         if (departure.exit().isEmpty()) {
             if (item.mode() == TransportMode.REQUESTED && item.destination().filter(wanted -> !wanted.equals(routerId)).isPresent()) {
                 network().itemLost(item.destination().get(), item.batch(), level.getGameTime());
@@ -719,7 +787,10 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
 
     // an item with nowhere to go ends up lying on top of the pipe
     // dropped inside the pipe it would be squeezed out sideways and fly off
-    private void popOut(ItemStack stack) {
+    void popOut(ItemStack stack) {
+        if (stack.isEmpty()) {
+            return;
+        }
         ItemEntity item = new ItemEntity(level, worldPosition.getX() + 0.5, worldPosition.getY() + 0.8,
                 worldPosition.getZ() + 0.5, stack, 0, 0, 0);
         item.setDefaultPickUpDelay();
@@ -750,6 +821,10 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
                     && storage().exists(level, target, accessFace(side))) {
                 sides.add(side);
             }
+        }
+        if (table != null) {
+            // a request table keeps what it gets, it does not fill inventories next to it
+            sides.clear();
         }
         pointableCache = sides;
         if (kind() == PipeKind.CHASSIS && !sides.isEmpty()) {
@@ -947,6 +1022,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         Containers.dropContents(level, worldPosition, modules);
         Containers.dropContents(level, worldPosition, upgrades);
         Containers.dropContents(level, worldPosition, moduleUpgrades);
+        if (table != null) {
+            table.drops().forEach(stack -> Block.popResource(level, worldPosition, stack));
+        }
         for (TravellingItem item : transport.clear()) {
             Block.popResource(level, worldPosition, McItemType.stackOf(item.batch()));
         }
@@ -984,6 +1062,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         tag.putInt("Priority", priority);
         if (firewall != null) {
             tag.put("Firewall", firewall.save(registries));
+        }
+        if (table != null) {
+            tag.put("Table", table.save(registries));
         }
         tag.putBoolean("Exclude", exclude);
         if (pointed != null) {
@@ -1023,6 +1104,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         }
         if (tag.contains("Mode")) {
             mode = tag.getInt("Mode");
+        }
+        if (table != null && tag.contains("Table")) {
+            table.load(tag.getCompound("Table"), registries);
         }
         if (firewall != null && tag.contains("Firewall")) {
             firewall.load(tag.getCompound("Firewall"), registries);

@@ -17,5 +17,7 @@ public enum PipeKind {
     // does whatever the modules plugged into it do
     CHASSIS,
     // filters what passes on the ways that lead out of it
-    FIREWALL
+    FIREWALL,
+    // a request pipe as a block with a crafting grid and a buffer of its own
+    REQUEST_TABLE
 }

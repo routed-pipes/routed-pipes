@@ -20,6 +20,7 @@ import logisticspipes.adapter.minecraft.PipeServices;
 import logisticspipes.adapter.minecraft.PowerJunctionBlock;
 import logisticspipes.adapter.minecraft.PowerJunctionBlockEntity;
 import logisticspipes.adapter.minecraft.RemoteOrdererItem;
+import logisticspipes.adapter.minecraft.RequestTableBlock;
 import logisticspipes.adapter.minecraft.SettingsCopierItem;
 import logisticspipes.adapter.minecraft.UpgradeItem;
 import logisticspipes.adapter.minecraft.menu.ChassisMenu;
@@ -29,6 +30,7 @@ import logisticspipes.adapter.minecraft.menu.MenuRequests;
 import logisticspipes.adapter.minecraft.menu.NamesMenu;
 import logisticspipes.adapter.minecraft.menu.PipeConfigMenu;
 import logisticspipes.adapter.minecraft.menu.RequestMenu;
+import logisticspipes.adapter.minecraft.menu.RequestTableMenu;
 import logisticspipes.adapter.minecraft.menu.UpgradeMenu;
 import logisticspipes.adapter.neoforge.benchmark.Benchmark;
 import logisticspipes.domain.logistics.ModuleKind;
@@ -104,13 +106,17 @@ public class LogisticsPipes {
             () -> new MenuType<>((id, inventory) -> new FirewallMenu(LogisticsPipes.FIREWALL_MENU.get(), id, inventory),
                     FeatureFlags.DEFAULT_FLAGS));
 
+    public static final Supplier<MenuType<RequestTableMenu>> REQUEST_TABLE_MENU = MENUS.register("request_table",
+            () -> new MenuType<>((id, inventory) -> new RequestTableMenu(LogisticsPipes.REQUEST_TABLE_MENU.get(), id, inventory),
+                    FeatureFlags.DEFAULT_FLAGS));
+
     public static final Supplier<MenuType<ChassisMenu>> CHASSIS_MENU = MENUS.register("chassis",
             () -> new MenuType<>((id, inventory) -> new ChassisMenu(LogisticsPipes.CHASSIS_MENU.get(), id, inventory),
                     FeatureFlags.DEFAULT_FLAGS));
 
     private static final PipeServices SERVICES = new PipeServices(() -> LogisticsPipes.PIPE_BLOCK_ENTITY.get(),
             new CapabilityItemStorage(), new LevelNetworks(), REQUEST_MENU, CHASSIS_MENU, UPGRADE_MENU, FIREWALL_MENU,
-            CONFIG_MENUS);
+            REQUEST_TABLE_MENU, CONFIG_MENUS);
 
     public static final DeferredBlock<LogisticsPipeBlock> TRANSPORT_PIPE = pipe("transport_pipe", null, 0);
     public static final Map<PipeKind, DeferredBlock<LogisticsPipeBlock>> LOGISTICS_PIPES = new EnumMap<>(PipeKind.class);
@@ -123,6 +129,10 @@ public class LogisticsPipes {
         LOGISTICS_PIPES.put(PipeKind.CRAFTING, pipe("crafting_pipe", PipeKind.CRAFTING, 0));
         LOGISTICS_PIPES.put(PipeKind.SATELLITE, pipe("satellite_pipe", PipeKind.SATELLITE, 0));
         LOGISTICS_PIPES.put(PipeKind.FIREWALL, pipe("firewall_pipe", PipeKind.FIREWALL, 0));
+        DeferredBlock<LogisticsPipeBlock> table = BLOCKS.register("request_table", () -> new RequestTableBlock(
+                BlockBehaviour.Properties.of().strength(2.5f).sound(SoundType.METAL), SERVICES));
+        ITEMS.registerSimpleBlockItem(table);
+        LOGISTICS_PIPES.put(PipeKind.REQUEST_TABLE, table);
     }
 
     // chassis mk1 to mk5 by number of module slots

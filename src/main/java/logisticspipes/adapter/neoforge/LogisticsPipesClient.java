@@ -11,6 +11,7 @@ import logisticspipes.adapter.minecraft.client.PipeConfigScreen;
 import logisticspipes.adapter.minecraft.client.PipeItemRenderer;
 import logisticspipes.adapter.minecraft.client.RemoteOrdererKey;
 import logisticspipes.adapter.minecraft.client.RequestScreen;
+import logisticspipes.adapter.minecraft.client.RequestTableScreen;
 import logisticspipes.adapter.minecraft.client.UpgradeScreen;
 import logisticspipes.adapter.neoforge.visualtest.ClientBenchmark;
 import logisticspipes.adapter.neoforge.visualtest.VisualTest;
@@ -65,6 +66,7 @@ public class LogisticsPipesClient {
         event.register(LogisticsPipes.CRAFTING_TABLE_MENU.get(), CraftingTableScreen::new);
         event.register(LogisticsPipes.CHASSIS_MENU.get(), ChassisScreen::new);
         event.register(LogisticsPipes.NAMES_MENU.get(), NamesScreen::new);
+        event.register(LogisticsPipes.REQUEST_TABLE_MENU.get(), RequestTableScreen::new);
         event.register(LogisticsPipes.FIREWALL_MENU.get(), FirewallScreen::new);
         event.register(LogisticsPipes.UPGRADE_MENU.get(), UpgradeScreen::new);
     }

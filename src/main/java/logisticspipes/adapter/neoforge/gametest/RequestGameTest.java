@@ -628,4 +628,81 @@ public class RequestGameTest {
         helper.assertTrue(without.isEmpty(), "no recipe for " + without);
         helper.succeed();
     }
+
+    // the table orders the logs its grid needs into its buffer and crafts planks from them there
+    @GameTest(template = EMPTY, timeoutTicks = 300)
+    public static void requestTableOrdersItsIngredientsAndCraftsFromItsBuffer(GameTestHelper helper) {
+        GameTestPower.supply(helper);
+        PipeBlockEntity pipe = pipe(helper, PipeKind.REQUEST_TABLE, 0, 1);
+        logisticspipes.adapter.minecraft.RequestTable table = pipe.requestTable();
+        BlockPos beside = chest(helper, 0, 2);
+        pipe(helper, PipeKind.PROVIDER, 1, 1);
+        chest(helper, 1, 2, new ItemStack(Items.OAK_LOG, 8));
+        table.grid().setItem(0, new ItemStack(Items.OAK_LOG));
+
+        helper.runAfterDelay(SETTLE + 15, () -> {
+            helper.assertTrue(table.result().is(Items.OAK_PLANKS), "the grid should make planks");
+            helper.assertTrue(!table.craft(), "nothing to craft from yet");
+            helper.assertTrue(table.orderIngredients(2, false).started(), "two logs can be had");
+        });
+        helper.runAfterDelay(100, () -> {
+            helper.assertTrue(table.buffer().countItem(Items.OAK_LOG) == 2, "the logs should be in the buffer");
+            assertCount(helper, beside, Items.OAK_LOG, 0);
+            helper.assertTrue(table.orderIngredients(1, true).started(), "nothing is missing for one craft");
+            helper.assertTrue(table.craft(), "one craft");
+            helper.assertTrue(table.buffer().countItem(Items.OAK_PLANKS) == 4 && table.buffer().countItem(Items.OAK_LOG) == 1,
+                    "four planks made of one log");
+            helper.succeed();
+        });
+    }
+
+    // what goes into the sort slot leaves for a sink, and stays when there is none
+    @GameTest(template = EMPTY, timeoutTicks = 300)
+    public static void requestTableSortSlotSendsItemsIntoTheNetwork(GameTestHelper helper) {
+        GameTestPower.supply(helper);
+        PipeBlockEntity pipe = pipe(helper, PipeKind.REQUEST_TABLE, 0, 1);
+        logisticspipes.adapter.minecraft.RequestTable table = pipe.requestTable();
+        PipeBlockEntity sink = pipe(helper, PipeKind.BASIC, 1, 1);
+        sink.setDefaultRoute(false);
+        sink.config().setItem(0, new ItemStack(Items.COAL));
+        BlockPos target = chest(helper, 1, 2);
+
+        helper.runAfterDelay(SETTLE + 15, () -> table.sort().setItem(0, new ItemStack(Items.DIAMOND, 3)));
+        helper.runAfterDelay(60, () -> {
+            helper.assertTrue(table.sort().getItem(0).getCount() == 3, "nobody takes diamonds, so they stay");
+            table.sort().setItem(0, new ItemStack(Items.COAL, 5));
+        });
+        helper.runAfterDelay(260, () -> {
+            helper.assertTrue(table.sort().isEmpty(), "the coal should have left");
+            assertCount(helper, target, Items.COAL, 5);
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = EMPTY)
+    public static void requestTableScreenWorksItsGridAndSurvivesSaveAndLoad(GameTestHelper helper) {
+        GameTestPower.supply(helper);
+        PipeBlockEntity pipe = pipe(helper, PipeKind.REQUEST_TABLE, 0, 1);
+        logisticspipes.adapter.minecraft.RequestTable table = pipe.requestTable();
+        table.buffer().setItem(4, new ItemStack(Items.OAK_LOG, 2));
+        TestPlayer player = TestPlayer.in(helper);
+        player.openMenu(pipe.menuProvider());
+
+        player.containerMenu.setCarried(new ItemStack(Items.OAK_LOG, 7));
+        player.containerMenu.clicked(0, 0, ClickType.PICKUP, player);
+        helper.assertTrue(player.containerMenu.getCarried().getCount() == 7 && table.grid().getItem(0).is(Items.OAK_LOG),
+                "the grid remembers the log without taking it");
+        player.containerMenu.setCarried(ItemStack.EMPTY);
+        player.containerMenu.clicked(logisticspipes.adapter.minecraft.menu.RequestTableMenu.RESULT_SLOT, 0, ClickType.PICKUP, player);
+        helper.assertTrue(table.buffer().countItem(Items.OAK_PLANKS) == 4, "a click on the result crafts into the buffer");
+
+        PipeBlockEntity loaded = pipe(helper, PipeKind.REQUEST_TABLE, 3, 1);
+        loaded.loadWithComponents(pipe.saveWithoutMetadata(helper.getLevel().registryAccess()), helper.getLevel().registryAccess());
+        helper.assertTrue(loaded.requestTable().grid().getItem(0).is(Items.OAK_LOG)
+                && loaded.requestTable().buffer().countItem(Items.OAK_PLANKS) == 4, "grid and buffer are saved");
+
+        player.containerMenu.clickMenuButton(player, logisticspipes.adapter.minecraft.menu.RequestTableMenu.BUTTON_CLEAR);
+        helper.assertTrue(table.grid().isEmpty(), "the grid is cleared");
+        helper.succeed();
+    }
 }

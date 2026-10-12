@@ -205,6 +205,14 @@ def main():
             "bottom": f"logisticspipes:block/{cube}_bottom"}})
         write(ASSETS + f"models/item/{cube}.json", {"parent": f"logisticspipes:block/{cube}"})
         write(ASSETS + f"blockstates/{cube}.json", {"variants": {"": {"model": f"logisticspipes:block/{cube}"}}})
+    # the request table is a pipe underneath, so its state has the connection properties and one model for all of them
+    table = "request_table"
+    write(ASSETS + f"models/block/{table}.json", {"parent": "minecraft:block/cube_bottom_top", "textures": {
+        "top": f"logisticspipes:block/{table}_top", "side": f"logisticspipes:block/{table}_side",
+        "bottom": f"logisticspipes:block/{table}_bottom"}})
+    write(ASSETS + f"models/item/{table}.json", {"parent": f"logisticspipes:block/{table}"})
+    write(ASSETS + f"blockstates/{table}.json", {"multipart": [{"apply": {"model": f"logisticspipes:block/{table}"}}]})
+    cubes.append(table)
     for name in PIPES + cubes:
         write(DATA + f"loot_table/blocks/{name}.json", {"type": "minecraft:block", "pools": [{
             "rolls": 1, "entries": [{"type": "minecraft:item", "name": f"logisticspipes:{name}"}],

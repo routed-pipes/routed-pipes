@@ -197,6 +197,8 @@ public final class VisualTest {
             command("setblock 0 -59 2 logisticspipes:request_pipe");
             command("fill 0 -59 3 0 -59 5 logisticspipes:transport_pipe");
             command("setblock 0 -59 6 logisticspipes:basic_logistics_pipe");
+            command("setblock -1 -59 2 logisticspipes:request_table");
+            command("setblock -1 -59 6 logisticspipes:firewall_pipe");
             command("fill 0 -59 7 0 -59 10 logisticspipes:transport_pipe");
             command("setblock 0 -59 11 logisticspipes:provider_pipe");
             command("setblock 0 -58 11 chest{Items:[{Slot:0b,id:\"minecraft:cobblestone\",count:64},"
@@ -286,6 +288,8 @@ public final class VisualTest {
         screenShot("gui_supplier", SUPPLIER, "4.5 -60 6.5 90 0");
         screenShot("gui_basic", new BlockPos(0, -59, 6), "2.5 -60 6.5 90 0");
         screenShot("gui_provider", new BlockPos(0, -59, 11), "2.5 -60 11.5 90 0");
+        screenShot("gui_request_table", new BlockPos(-1, -59, 2), "2.5 -60 2.5 90 0");
+        screenShot("gui_firewall", new BlockPos(-1, -59, 6), "2.5 -60 6.5 90 0");
         screenShot("gui_crafting", CRAFTING, "2.5 -60 12.5 90 0");
         screenShot("gui_satellite", SATELLITE, "2.5 -60 12.5 90 0");
         screenShot("gui_chassis", CHASSIS, "2.5 -60 0.5 90 0");
