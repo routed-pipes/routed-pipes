@@ -39,7 +39,8 @@ class HexagonalArchitectureTest {
     @ArchTest
     static final ArchRule clientCodeStaysInClientClasses = noClasses()
             .that().resideOutsideOfPackages("logisticspipes.adapter.minecraft.client..",
-                    "logisticspipes.adapter.neoforge.visualtest..", "logisticspipes.adapter.jei..")
+                    "logisticspipes.adapter.neoforge.visualtest..", "logisticspipes.adapter.jei..",
+                    "logisticspipes.adapter.jade..")
             // the client entry class and the classes nested in it
             .and().haveNameNotMatching(".*\\.LogisticsPipesClient(\\$.*)?")
             .should().dependOnClassesThat()
@@ -51,6 +52,11 @@ class HexagonalArchitectureTest {
     static final ArchRule recipeViewerStaysInItsOwnAdapter = noClasses()
             .that().resideOutsideOfPackage("logisticspipes.adapter.jei..")
             .should().dependOnClassesThat().resideInAnyPackage("mezz.jei..", "logisticspipes.adapter.jei..");
+
+    @ArchTest
+    static final ArchRule blockInfoOverlayStaysInItsOwnAdapter = noClasses()
+            .that().resideOutsideOfPackage("logisticspipes.adapter.jade..")
+            .should().dependOnClassesThat().resideInAnyPackage("snownee.jade..", "logisticspipes.adapter.jade..");
 
     @ArchTest
     static final ArchRule everythingLivesInALayer = classes()

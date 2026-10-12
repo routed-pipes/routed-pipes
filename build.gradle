@@ -173,6 +173,7 @@ configurations {
 dependencies {
     // optional at runtime, the plugin class is only ever loaded by JEI itself
     compileOnly "mezz.jei:jei-1.21.1-common-api:${jei_version}"
+    compileOnly 'maven.modrinth:jade:eYz2YBGT'
 
     // pinned by modrinth version id
     compatMods "mezz.jei:jei-1.21.1-neoforge:${jei_version}"

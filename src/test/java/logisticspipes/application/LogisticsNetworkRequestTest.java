@@ -400,4 +400,18 @@ class LogisticsNetworkRequestTest {
 
         assertThat(network.chooseExit(REQUEST, new TravellingItem(batch("log", 8), Side.DOWN, null), NOW)).contains(Side.WEST);
     }
+
+    @Test
+    void statusCountsReachableRoutersAndTheirPooledEnergy() {
+        connect();
+        noPower();
+        request.power = 30;
+        supplier.power = 50;
+        FakeNode island = new FakeNode(PipeKind.BASIC);
+        network.addRouter(ISLAND, island, 0);
+
+        assertThat(network.status(REQUEST)).isEqualTo(new RouterStatus(4, 80));
+        assertThat(network.status(ISLAND)).isEqualTo(new RouterStatus(0, 1_000_000));
+        assertThat(request.power + supplier.power).isEqualTo(80);
+    }
 }

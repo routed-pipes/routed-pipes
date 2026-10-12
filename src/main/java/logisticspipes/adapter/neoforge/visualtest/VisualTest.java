@@ -257,6 +257,8 @@ public final class VisualTest {
         step(40, () -> command("tick unfreeze"));
 
         step(0, () -> minecraft.options.hideGui = false);
+        // with a block info mod installed this shows its tooltip for a pipe
+        shotFrom("hud_looking_at_pipe", "2.5 -60 0.5 90 0");
         screenShot("gui_request", REQUEST, "2.5 -60 2.5 90 0");
         // the same screen again with a search typed in
         step(10, () -> onServer(server -> pipe(server, REQUEST).openRequestScreen(server.getPlayerList().getPlayers().get(0), true)));

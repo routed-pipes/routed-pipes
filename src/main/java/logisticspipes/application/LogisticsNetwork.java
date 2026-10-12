@@ -166,6 +166,15 @@ public final class LogisticsNetwork {
         return new RequestOutcome(plan, true);
     }
 
+    public RouterStatus status(RouterId id) {
+        List<RouterId> reachable = reachableFrom(id);
+        long energy = nodes.containsKey(id) ? nodes.get(id).drawPower(Integer.MAX_VALUE, true) : 0;
+        for (RouterId other : reachable) {
+            energy += nodes.get(other).drawPower(Integer.MAX_VALUE, true);
+        }
+        return new RouterStatus(reachable.size(), (int) Math.min(energy, Integer.MAX_VALUE));
+    }
+
     // takes energy from the junctions of the network the router is in, all of it or nothing
     private boolean usePower(RouterId at, int amount) {
         List<RouterNode> sources = new ArrayList<>();

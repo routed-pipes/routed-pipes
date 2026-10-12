@@ -72,5 +72,10 @@
   "block.logisticspipes.chassis_pipe_mk4.description": "Routed pipe that does what the modules plugged into it do. Holds 4 modules.",
   "block.logisticspipes.chassis_pipe_mk5.description": "Routed pipe that does what the modules plugged into it do. Holds 8 modules.",
   "logisticspipes.jei.recipe_does_not_fit": "A crafting pipe takes up to nine different items",
-  "logisticspipes.gui.search": "Search"
+  "logisticspipes.gui.search": "Search",
+  "logisticspipes.status.alone": "Not connected to other logistics pipes",
+  "logisticspipes.status.routers": "Connected logistics pipes: %s",
+  "logisticspipes.status.energy": "Network power: %s FE",
+  "logisticspipes.status.items": "Items inside: %s",
+  "config.jade.plugin_logisticspipes.pipe_status": "Logistics pipe status"
 }

@@ -15,6 +15,7 @@ import logisticspipes.adapter.minecraft.menu.PipeConfigMenu;
 import logisticspipes.adapter.minecraft.menu.RequestMenu;
 import logisticspipes.application.LogisticsNetwork;
 import logisticspipes.application.RequestOutcome;
+import logisticspipes.application.RouterStatus;
 import logisticspipes.application.port.RouterNode;
 import logisticspipes.domain.crafting.OutputOrder;
 import logisticspipes.domain.crafting.OutputOrders;
@@ -218,6 +219,14 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     public void accept(ItemStack stack, Direction side) {
         transport.insert(new TravellingItem(McItemType.batchOf(stack), Directions.toDomain(side), null));
         setChanged();
+    }
+
+    // empty for plain pipes and on the client
+    public Optional<RouterStatus> networkStatus() {
+        if (level == null || level.isClientSide || !pipe().routed()) {
+            return Optional.empty();
+        }
+        return Optional.of(network().status(routerId));
     }
 
     public Map<ItemType, Integer> available() {
