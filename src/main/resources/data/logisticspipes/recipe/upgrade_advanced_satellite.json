@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "minecraft:paper"
+    },
+    {
+      "item": "minecraft:redstone"
+    },
+    {
+      "item": "minecraft:gold_ingot"
+    },
+    {
+      "item": "logisticspipes:satellite_pipe"
+    }
+  ],
+  "result": {
+    "id": "logisticspipes:upgrade_advanced_satellite",
+    "count": 1
+  }
+}

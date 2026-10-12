@@ -265,7 +265,7 @@ def main():
         write(ASSETS + f"blockstates/{name}.json", blockstate(name, shared))
     write_tubes(shared)
     upgrades = ["sneaky", "speed", "module_upgrade", "action_speed", "item_extraction", "item_stack_extraction",
-                "crafting_byproduct", "crafting_cleanup", "disconnection"]
+                "crafting_byproduct", "crafting_cleanup", "disconnection", "advanced_satellite"]
     for module in MODULES + ["remote_orderer", "pipe_controller", "settings_copier", "security_card"] + ["upgrade_" + upgrade for upgrade in upgrades]:
         write(ASSETS + f"models/item/{module}.json",
               {"parent": "minecraft:item/generated", "textures": {"layer0": f"logisticspipes:item/{module}"}})

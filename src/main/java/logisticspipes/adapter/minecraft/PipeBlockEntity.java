@@ -116,7 +116,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
                 case PipeConfigMenu.DATA_PRIORITY -> priority;
                 case PipeConfigMenu.DATA_BYPRODUCT -> upgradeCount(UpgradeKind.CRAFTING_BYPRODUCT);
                 case PipeConfigMenu.DATA_CLEANUP -> upgradeCount(UpgradeKind.CRAFTING_CLEANUP);
-                default -> satelliteId;
+                case PipeConfigMenu.DATA_ADVANCED_SATELLITE -> upgradeCount(UpgradeKind.ADVANCED_SATELLITE);
+                case PipeConfigMenu.DATA_SATELLITE -> satelliteId;
+                default -> slotSatellites[index - PipeConfigMenu.DATA_SLOT_SATELLITE];
             };
         }
 
@@ -127,9 +129,10 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
                 case PipeConfigMenu.DATA_MODE -> mode = value;
                 case PipeConfigMenu.DATA_EXCLUDE -> exclude = value != 0;
                 case PipeConfigMenu.DATA_PRIORITY -> priority = value;
-                case PipeConfigMenu.DATA_BYPRODUCT, PipeConfigMenu.DATA_CLEANUP -> {
+                case PipeConfigMenu.DATA_BYPRODUCT, PipeConfigMenu.DATA_CLEANUP, PipeConfigMenu.DATA_ADVANCED_SATELLITE -> {
                 }
-                default -> satelliteId = value;
+                case PipeConfigMenu.DATA_SATELLITE -> satelliteId = value;
+                default -> slotSatellites[index - PipeConfigMenu.DATA_SLOT_SATELLITE] = value;
             }
             settingsChanged();
         }
@@ -150,6 +153,8 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     private boolean exclude;
     // how eagerly a crafting pipe is used, higher first
     private int priority;
+    // with the upgrade for it every ingredient slot can have a satellite of its own
+    private final int[] slotSatellites = new int[OUTPUT_SLOT];
     private Boolean upkeepCache;
     // sides cut off with a disconnection upgrade, one bit per direction
     private int disconnected;
@@ -746,15 +751,34 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             ItemStack extra = config.getItem(BYPRODUCT_SLOT);
             Optional<ItemBatch> byproduct = extra.isEmpty() || upgradeCount(UpgradeKind.CRAFTING_BYPRODUCT) == 0
                     ? Optional.empty() : Optional.of(McItemType.batchOf(extra));
-            return recipe().map(recipe -> List.of(new CraftingSetup(recipe, satelliteInputs(), satelliteId, priority, byproduct)))
+            return recipe().map(recipe -> List.of(new CraftingSetup(recipe, bySatellite(), priority, byproduct)))
                     .orElse(List.of());
         }
         List<CraftingSetup> crafts = new ArrayList<>();
         for (int slot = 0; slot < pipe().moduleSlots(); slot++) {
-            ModuleItem.craftingOf(modules.getItem(slot), moduleUpgradeCount(slot, UpgradeKind.CRAFTING_BYPRODUCT) > 0)
+            ModuleItem.craftingOf(modules.getItem(slot), moduleUpgradeCount(slot, UpgradeKind.CRAFTING_BYPRODUCT) > 0,
+                    moduleUpgradeCount(slot, UpgradeKind.ADVANCED_SATELLITE) > 0)
                     .ifPresent(crafts::add);
         }
         return crafts;
+    }
+
+    // which ingredients go to which satellite: one of its own per slot with the upgrade, else the bottom row to one
+    private Map<Integer, List<ItemBatch>> bySatellite() {
+        if (upgradeCount(UpgradeKind.ADVANCED_SATELLITE) == 0) {
+            return Map.of(satelliteId, satelliteInputs());
+        }
+        Map<Integer, List<ItemBatch>> inputs = new LinkedHashMap<>();
+        for (int slot = 0; slot < OUTPUT_SLOT; slot++) {
+            if (slotSatellites[slot] != 0 && !config.getItem(slot).isEmpty()) {
+                inputs.computeIfAbsent(slotSatellites[slot], key -> new ArrayList<>()).add(McItemType.batchOf(config.getItem(slot)));
+            }
+        }
+        return inputs;
+    }
+
+    public void setSlotSatellite(int slot, int id) {
+        data.set(PipeConfigMenu.DATA_SLOT_SATELLITE + slot, id);
     }
 
     private static Set<ItemType> plainTypes(Container container, int from, int to) {
@@ -1195,6 +1219,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         tag.putBoolean("DefaultRoute", defaultRoute);
         tag.putInt("Mode", mode);
         tag.putInt("Priority", priority);
+        tag.putIntArray("SlotSatellites", slotSatellites);
         tag.putInt("Disconnected", disconnected);
         if (firewall != null) {
             tag.put("Firewall", firewall.save(registries));
@@ -1255,6 +1280,8 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         if (tag.contains("Disconnected")) {
             disconnected = tag.getInt("Disconnected");
         }
+        int[] savedSatellites = tag.getIntArray("SlotSatellites");
+        System.arraycopy(savedSatellites, 0, slotSatellites, 0, Math.min(savedSatellites.length, slotSatellites.length));
         if (tag.contains("Priority")) {
             priority = tag.getInt("Priority");
         }

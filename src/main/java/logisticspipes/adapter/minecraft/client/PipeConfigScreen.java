@@ -14,11 +14,16 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> im
 
     private static final int TEXT = 0x404040;
     private static final int SATELLITE_TINT = 0xFF6F8FBF;
+    private static final int SELECTED = 0xFFFFD040;
 
     private Button defaultRoute;
     private Button mode;
     private Button exclude;
     private Button importCleanup;
+    // the ingredient whose satellite is being set, only with the upgrade for that
+    private int satelliteSlot;
+    private Button previousSlot;
+    private Button nextSlot;
 
     public PipeConfigScreen(PipeConfigMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
@@ -73,10 +78,33 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> im
         }
         int x = leftPos + satelliteX();
         int y = topPos + satelliteY();
-        addRenderableWidget(Button.builder(Component.literal("-"), button -> press(PipeConfigMenu.BUTTON_SATELLITE_DOWN))
+        if (menu.kind() == PipeKind.CRAFTING) {
+            previousSlot = addRenderableWidget(Button.builder(Component.literal("<"), button -> turnSatelliteSlot(-1))
+                    .bounds(x - 30, y + 12, 10, 10).build());
+            nextSlot = addRenderableWidget(Button.builder(Component.literal(">"), button -> turnSatelliteSlot(1))
+                    .bounds(x + 20, y + 12, 10, 10).build());
+        }
+        addRenderableWidget(Button.builder(Component.literal("-"), button -> pressSatellite(false))
                 .bounds(x - 30, y - 3, 14, 14).build());
-        addRenderableWidget(Button.builder(Component.literal("+"), button -> press(PipeConfigMenu.BUTTON_SATELLITE_UP))
+        addRenderableWidget(Button.builder(Component.literal("+"), button -> pressSatellite(true))
                 .bounds(x + 16, y - 3, 14, 14).build());
+    }
+
+    private void turnSatelliteSlot(int change) {
+        satelliteSlot = Math.floorMod(satelliteSlot + change, PipeBlockEntity.OUTPUT_SLOT);
+    }
+
+    // with the upgrade the buttons set the satellite of the chosen ingredient, without it the one of the bottom row
+    private void pressSatellite(boolean up) {
+        if (menu.advancedSatellite()) {
+            press(PipeConfigMenu.BUTTON_SLOT_SATELLITE + satelliteSlot * 2 + (up ? 1 : 0));
+        } else {
+            press(up ? PipeConfigMenu.BUTTON_SATELLITE_UP : PipeConfigMenu.BUTTON_SATELLITE_DOWN);
+        }
+    }
+
+    private int shownSatellite() {
+        return menu.advancedSatellite() ? menu.slotSatellite(satelliteSlot) : menu.satelliteId();
     }
 
     private Component defaultRouteLabel() {
@@ -105,6 +133,10 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> im
             // modules that share this layout have no mode to choose
             mode.visible = menu.mode() >= 0;
             mode.setMessage(modeLabel());
+        }
+        if (previousSlot != null) {
+            previousSlot.visible = menu.advancedSatellite();
+            nextSlot.visible = menu.advancedSatellite();
         }
         if (importCleanup != null) {
             importCleanup.visible = menu.cleanupSlots() > 0;
@@ -148,12 +180,17 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> im
     @Override
     protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
         Panel.draw(graphics, leftPos, topPos, imageWidth, imageHeight, menu);
-        if (menu.kind() == PipeKind.CRAFTING && menu.satelliteId() != 0) {
-            // the bottom row of the recipe is what goes to the satellite
-            for (int slot = PipeBlockEntity.SATELLITE_ROW; slot < PipeBlockEntity.OUTPUT_SLOT; slot++) {
-                int x = leftPos + menu.getSlot(slot).x;
-                int y = topPos + menu.getSlot(slot).y;
+        for (int slot = 0; slot < PipeBlockEntity.OUTPUT_SLOT && menu.kind() == PipeKind.CRAFTING; slot++) {
+            // without the upgrade the bottom row of the recipe is what goes to the satellite
+            boolean toSatellite = menu.advancedSatellite() ? menu.slotSatellite(slot) != 0
+                    : menu.satelliteId() != 0 && slot >= PipeBlockEntity.SATELLITE_ROW;
+            int x = leftPos + menu.getSlot(slot).x;
+            int y = topPos + menu.getSlot(slot).y;
+            if (toSatellite) {
                 graphics.fill(x, y, x + 16, y + 16, SATELLITE_TINT);
+            }
+            if (menu.advancedSatellite() && slot == satelliteSlot) {
+                graphics.renderOutline(x - 1, y - 1, 18, 18, SELECTED);
             }
         }
     }
@@ -174,7 +211,11 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> im
         }
         Component label = Component.translatable("logisticspipes.gui.satellite");
         graphics.drawString(font, label, satelliteX() - font.width(label) / 2, satelliteY() - 14, TEXT, false);
-        String id = menu.satelliteId() == 0 ? "-" : Integer.toString(menu.satelliteId());
+        String id = shownSatellite() == 0 ? "-" : Integer.toString(shownSatellite());
+        if (menu.kind() == PipeKind.CRAFTING && menu.advancedSatellite()) {
+            Component slot = Component.translatable("logisticspipes.gui.satellite.slot", satelliteSlot + 1);
+            graphics.drawString(font, slot, satelliteX() - font.width(slot) / 2, satelliteY() + 13, TEXT, false);
+        }
         graphics.drawString(font, id, satelliteX() - font.width(id) / 2, satelliteY(), TEXT, false);
     }
 }

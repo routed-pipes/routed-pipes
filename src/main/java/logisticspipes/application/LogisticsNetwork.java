@@ -766,17 +766,19 @@ public final class LogisticsNetwork {
                     continue;
                 }
                 int backlog = node.outputOrders().owedInTotal();
-                if (craft.satellite() == 0) {
-                    candidates.add(new Candidate(Crafter.of(id, craft.recipe(), null, Map.of(), backlog).withPriority(craft.priority()),
-                            craft.priority()));
-                    continue;
+                Map<RouterId, Map<ItemType, Integer>> forSatellites = new LinkedHashMap<>();
+                boolean allFound = true;
+                for (Map.Entry<Integer, List<ItemBatch>> entry : craft.bySatellite().entrySet()) {
+                    Optional<RouterId> found = satellite(reachable, entry.getKey());
+                    allFound &= found.isPresent();
+                    found.ifPresent(satellite -> entry.getValue().forEach(input -> forSatellites
+                            .computeIfAbsent(satellite, key -> new LinkedHashMap<>()).merge(input.type(), input.count(), Integer::sum)));
                 }
-                Map<ItemType, Integer> forSatellite = new LinkedHashMap<>();
-                craft.satelliteInputs().forEach(input -> forSatellite.merge(input.type(), input.count(), Integer::sum));
-                // without its satellite the pipe cannot get its ingredients to the right place
-                satellite(reachable, craft.satellite()).ifPresent(found -> candidates.add(
-                        new Candidate(Crafter.of(id, craft.recipe(), found, forSatellite, backlog).withPriority(craft.priority()),
-                                craft.priority())));
+                // without its satellites the pipe cannot get its ingredients to the right place
+                if (allFound) {
+                    candidates.add(new Candidate(Crafter.of(id, craft.recipe(), forSatellites, backlog).withPriority(craft.priority()),
+                            craft.priority()));
+                }
             }
         }
         candidates.sort(Comparator.comparingInt(Candidate::priority).reversed()

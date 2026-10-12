@@ -72,6 +72,7 @@ public class ModuleItem extends Item {
     private static final String SETTINGS_TAG = "Settings";
     private static final String SATELLITE_TAG = "LogisticsPipesSatellite";
     private static final String PRIORITY_TAG = "LogisticsPipesPriority";
+    private static final String SLOT_SATELLITES_TAG = "LogisticsPipesSlotSatellites";
 
     private final ModuleKind kind;
     private final PipeKind settingsLayout;
@@ -237,19 +238,31 @@ public class ModuleItem extends Item {
         return set ? intOf(module, EXCLUDE_TAG) != 0 : ((ModuleItem) module.getItem()).kind == ModuleKind.CRAFTER;
     }
 
+    private static int[] slotSatellitesOf(ItemStack module) {
+        int[] saved = module.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getIntArray(SLOT_SATELLITES_TAG);
+        return java.util.Arrays.copyOf(saved, PipeBlockEntity.OUTPUT_SLOT);
+    }
+
     public static Optional<CraftingSetup> craftingOf(ItemStack module, boolean withByproduct) {
+        return craftingOf(module, withByproduct, false);
+    }
+
+    // advanced means every ingredient slot goes to the satellite set for it instead of the bottom row to one
+    public static Optional<CraftingSetup> craftingOf(ItemStack module, boolean withByproduct, boolean advanced) {
         if (!(module.getItem() instanceof ModuleItem item) || item.kind != ModuleKind.CRAFTER) {
             return Optional.empty();
         }
         NonNullList<ItemStack> slots = filterOf(module);
         int satellite = intOf(module, SATELLITE_TAG);
+        int[] slotSatellites = slotSatellitesOf(module);
         List<ItemBatch> inputs = new ArrayList<>();
-        List<ItemBatch> forSatellite = new ArrayList<>();
+        Map<Integer, List<ItemBatch>> forSatellite = new LinkedHashMap<>();
         for (int slot = 0; slot < PipeBlockEntity.OUTPUT_SLOT; slot++) {
             if (!slots.get(slot).isEmpty()) {
                 inputs.add(McItemType.batchOf(slots.get(slot)));
-                if (satellite != 0 && slot >= PipeBlockEntity.SATELLITE_ROW) {
-                    forSatellite.add(McItemType.batchOf(slots.get(slot)));
+                int target = advanced ? slotSatellites[slot] : slot >= PipeBlockEntity.SATELLITE_ROW ? satellite : 0;
+                if (target != 0) {
+                    forSatellite.computeIfAbsent(target, key -> new ArrayList<>()).add(McItemType.batchOf(slots.get(slot)));
                 }
             }
         }
@@ -258,7 +271,7 @@ public class ModuleItem extends Item {
             return Optional.empty();
         }
         ItemStack extra = slots.get(PipeBlockEntity.BYPRODUCT_SLOT);
-        return Optional.of(new CraftingSetup(new Recipe(inputs, McItemType.batchOf(output)), forSatellite, satellite,
+        return Optional.of(new CraftingSetup(new Recipe(inputs, McItemType.batchOf(output)), forSatellite,
                 intOf(module, PRIORITY_TAG), withByproduct && !extra.isEmpty() ? Optional.of(McItemType.batchOf(extra)) : Optional.empty()));
     }
 
@@ -380,7 +393,9 @@ public class ModuleItem extends Item {
                     case PipeConfigMenu.DATA_CLEANUP -> upgrades.applyAsInt(UpgradeKind.CRAFTING_CLEANUP);
                     case PipeConfigMenu.DATA_SATELLITE -> intOf(module, SATELLITE_TAG);
                     case PipeConfigMenu.DATA_PRIORITY -> intOf(module, PRIORITY_TAG);
-                    default -> 0;
+                    case PipeConfigMenu.DATA_ADVANCED_SATELLITE -> upgrades.applyAsInt(UpgradeKind.ADVANCED_SATELLITE);
+                    default -> index >= PipeConfigMenu.DATA_SLOT_SATELLITE
+                            ? slotSatellitesOf(module)[index - PipeConfigMenu.DATA_SLOT_SATELLITE] : 0;
                 };
             }
 
@@ -388,7 +403,12 @@ public class ModuleItem extends Item {
             public void set(int index, int value) {
                 if (index == PipeConfigMenu.DATA_DEFAULT_ROUTE) {
                     configureSink(module, filterOf(module), value != 0);
-                } else if (index != PipeConfigMenu.DATA_BYPRODUCT && index != PipeConfigMenu.DATA_CLEANUP) {
+                } else if (index >= PipeConfigMenu.DATA_SLOT_SATELLITE) {
+                    int[] satellites = slotSatellitesOf(module);
+                    satellites[index - PipeConfigMenu.DATA_SLOT_SATELLITE] = value;
+                    CustomData.update(DataComponents.CUSTOM_DATA, module, data -> data.putIntArray(SLOT_SATELLITES_TAG, satellites));
+                } else if (index != PipeConfigMenu.DATA_BYPRODUCT && index != PipeConfigMenu.DATA_CLEANUP
+                        && index != PipeConfigMenu.DATA_ADVANCED_SATELLITE) {
                     String tag = switch (index) {
                         case PipeConfigMenu.DATA_MODE -> MODE_TAG;
                         case PipeConfigMenu.DATA_EXCLUDE -> EXCLUDE_TAG;

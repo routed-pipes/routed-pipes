@@ -37,7 +37,12 @@ public class PipeConfigMenu extends AbstractContainerMenu implements MarkerMenu 
     // whether there is a slot for what else the machine puts out, and how many cleanup upgrades there are
     public static final int DATA_BYPRODUCT = 5;
     public static final int DATA_CLEANUP = 6;
-    public static final int DATA_COUNT = 7;
+    // not 0 with the upgrade that gives every ingredient a satellite of its own, followed by those nine satellites
+    public static final int DATA_ADVANCED_SATELLITE = 7;
+    public static final int DATA_SLOT_SATELLITE = 8;
+    public static final int DATA_COUNT = 17;
+    // plus two per ingredient slot: down and up
+    public static final int BUTTON_SLOT_SATELLITE = 30;
     public static final int BUTTON_IMPORT_CLEANUP = 8;
     public static final int CLEANUP_PER_UPGRADE = 3;
     public static final int BUTTON_PRIORITY_DOWN = 6;
@@ -118,6 +123,14 @@ public class PipeConfigMenu extends AbstractContainerMenu implements MarkerMenu 
     // crafting settings have a row more than the others
     public static int inventoryTop(PipeKind kind) {
         return kind == PipeKind.CRAFTING ? 144 : 84;
+    }
+
+    public boolean advancedSatellite() {
+        return data.get(DATA_ADVANCED_SATELLITE) != 0;
+    }
+
+    public int slotSatellite(int slot) {
+        return data.get(DATA_SLOT_SATELLITE + slot);
     }
 
     public boolean hasByproduct() {
@@ -215,6 +228,13 @@ public class PipeConfigMenu extends AbstractContainerMenu implements MarkerMenu 
         if ((id == BUTTON_PRIORITY_DOWN || id == BUTTON_PRIORITY_UP) && kind == PipeKind.CRAFTING) {
             int change = id == BUTTON_PRIORITY_UP ? 1 : -1;
             data.set(DATA_PRIORITY, Mth.clamp(priority() + change, -MAX_PRIORITY, MAX_PRIORITY));
+            return true;
+        }
+        int slotButton = id - BUTTON_SLOT_SATELLITE;
+        if (kind == PipeKind.CRAFTING && advancedSatellite() && slotButton >= 0 && slotButton < PipeBlockEntity.OUTPUT_SLOT * 2) {
+            int slot = slotButton / 2;
+            int change = slotButton % 2 == 1 ? 1 : -1;
+            data.set(DATA_SLOT_SATELLITE + slot, Mth.clamp(slotSatellite(slot) + change, 0, MAX_SATELLITE_ID));
             return true;
         }
         if (id != BUTTON_SATELLITE_DOWN && id != BUTTON_SATELLITE_UP) {

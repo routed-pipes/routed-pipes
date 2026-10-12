@@ -19,7 +19,9 @@ public enum UpgradeKind {
     // an idle crafter clears its machine, three more items to list per upgrade
     CRAFTING_CLEANUP(4),
     // cuts the pipe off from what is next to it, side by side
-    DISCONNECTION(1);
+    DISCONNECTION(1),
+    // every ingredient of a crafter can go to a satellite of its own
+    ADVANCED_SATELLITE(1);
 
     private final int most;
 
@@ -36,7 +38,7 @@ public enum UpgradeKind {
         return switch (this) {
             case SNEAKY, SPEED, DISCONNECTION -> true;
             case MODULE_UPGRADE -> pipe == PipeKind.CHASSIS;
-            case CRAFTING_BYPRODUCT, CRAFTING_CLEANUP -> pipe == PipeKind.CRAFTING;
+            case CRAFTING_BYPRODUCT, CRAFTING_CLEANUP, ADVANCED_SATELLITE -> pipe == PipeKind.CRAFTING;
             default -> false;
         };
     }
@@ -45,7 +47,7 @@ public enum UpgradeKind {
         return switch (this) {
             case ACTION_SPEED, ITEM_EXTRACTION, ITEM_STACK_EXTRACTION ->
                     module == ModuleKind.EXTRACTOR || module == ModuleKind.ADVANCED_EXTRACTOR;
-            case CRAFTING_BYPRODUCT, CRAFTING_CLEANUP -> module == ModuleKind.CRAFTER;
+            case CRAFTING_BYPRODUCT, CRAFTING_CLEANUP, ADVANCED_SATELLITE -> module == ModuleKind.CRAFTER;
             default -> false;
         };
     }

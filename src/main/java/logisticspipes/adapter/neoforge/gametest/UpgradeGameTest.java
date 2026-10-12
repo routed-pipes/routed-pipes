@@ -365,4 +365,34 @@ public class UpgradeGameTest {
             helper.succeed();
         });
     }
+
+    // with the upgrade the satellite of an ingredient slot is set on its own, and only that slot goes there
+    @GameTest(template = EMPTY)
+    public static void advancedSatelliteUpgradeGivesEverySlotItsOwnSatellite(GameTestHelper helper) {
+        GameTestPower.supply(helper);
+        PipeBlockEntity crafting = pipe(helper, PipeKind.CRAFTING, 0);
+        crafting.config().setItem(0, new ItemStack(Items.RAW_IRON));
+        crafting.config().setItem(7, new ItemStack(Items.COAL));
+        crafting.config().setItem(PipeBlockEntity.OUTPUT_SLOT, new ItemStack(Items.IRON_INGOT));
+        crafting.setSatelliteId(5);
+        TestPlayer player = TestPlayer.in(helper);
+
+        helper.assertTrue(crafting.crafts().get(0).bySatellite().keySet().equals(java.util.Set.of(5)), "the bottom row goes to satellite 5");
+        player.openMenu(crafting.menuProvider());
+        int slotZeroUp = logisticspipes.adapter.minecraft.menu.PipeConfigMenu.BUTTON_SLOT_SATELLITE + 1;
+        helper.assertTrue(!player.containerMenu.clickMenuButton(player, slotZeroUp), "no slot satellites without the upgrade");
+
+        crafting.installUpgrade(upgrade(UpgradeKind.ADVANCED_SATELLITE, 1));
+        player.openMenu(crafting.menuProvider());
+        player.containerMenu.clickMenuButton(player, slotZeroUp);
+        player.containerMenu.clickMenuButton(player, slotZeroUp);
+        java.util.Map<Integer, java.util.List<logisticspipes.domain.item.ItemBatch>> bySatellite = crafting.crafts().get(0).bySatellite();
+        helper.assertTrue(bySatellite.keySet().equals(java.util.Set.of(2)), "only the first slot has a satellite now, number 2: " + bySatellite);
+        helper.assertTrue(bySatellite.get(2).equals(java.util.List.of(McItemType.batchOf(new ItemStack(Items.RAW_IRON)))), "the iron goes there");
+
+        PipeBlockEntity loaded = pipe(helper, PipeKind.CRAFTING, 2);
+        loaded.loadWithComponents(crafting.saveWithoutMetadata(helper.getLevel().registryAccess()), helper.getLevel().registryAccess());
+        helper.assertTrue(loaded.crafts().get(0).bySatellite().keySet().equals(java.util.Set.of(2)), "slot satellites are saved");
+        helper.succeed();
+    }
 }

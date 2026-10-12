@@ -138,7 +138,7 @@ class RequestPlannerTest {
         Crafter crafter = Crafter.of(CRAFTER, recipe, SATELLITE, Map.of(item("log"), 1), 0);
 
         assertThat(crafter.ownInputs()).containsOnly(Map.entry(item("log"), 2));
-        assertThat(crafter.satelliteInputs()).containsOnly(Map.entry(item("log"), 1));
+        assertThat(crafter.satelliteInputs().get(SATELLITE)).containsOnly(Map.entry(item("log"), 1));
     }
 
     @Test
@@ -245,5 +245,17 @@ class RequestPlannerTest {
         assertThat(plan.crafts()).containsExactly(new CraftJob(CRAFTER, REQUESTER, batch("planks", 8)));
         assertThat(plan.provisions()).containsExactly(new Provision(NEAR, CRAFTER, batch("log", 2)));
         assertThat(plan.missing()).containsOnly(Map.entry(item("log"), 3));
+    }
+
+    @Test
+    void sendsEveryIngredientToTheSatelliteSetForIt() {
+        Recipe alloy = new Recipe(List.of(batch("ore", 2), batch("coal", 1), batch("sand", 1)), batch("alloy", 1));
+        Crafter smelter = Crafter.of(CRAFTER, alloy, Map.of(SATELLITE, Map.of(item("ore"), 2), FAR, Map.of(item("coal"), 1)), 0);
+        RequestPlan plan = new RequestPlanner(List.of(stock(NEAR, "ore", 8), stock(NEAR, "coal", 8), stock(NEAR, "sand", 8)),
+                List.of(smelter)).plan(REQUESTER, batch("alloy", 2));
+
+        assertThat(plan.complete()).isTrue();
+        assertThat(plan.provisions()).containsExactlyInAnyOrder(new Provision(NEAR, SATELLITE, batch("ore", 4)),
+                new Provision(NEAR, FAR, batch("coal", 2)), new Provision(NEAR, CRAFTER, batch("sand", 2)));
     }
 }

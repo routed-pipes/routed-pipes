@@ -820,4 +820,22 @@ class LogisticsNetworkRequestTest {
         assertThat(new Cleanup(Set.of(item("planks")), false).removes(item("planks"))).isTrue();
         assertThat(new Cleanup(Set.of(item("planks")), false).removes(item("dirt"))).isFalse();
     }
+
+    @Test
+    void aCrafterWithSeveralSatellitesNeedsAllOfThem() {
+        connect();
+        provider.stock("ore", 8);
+        provider.stock("coal", 8);
+        satellite.satelliteId = 3;
+        Recipe smelting = new Recipe(List.of(batch("ore", 1), batch("coal", 1)), batch("ingot", 1));
+        crafting.crafts = List.of(new CraftingSetup(smelting, Map.of(3, List.of(batch("ore", 1)), 4, List.of(batch("coal", 1))),
+                0, Optional.empty()));
+
+        assertThat(network.available(REQUEST)).doesNotContainKey(item("ingot"));
+
+        crafting.crafts = List.of(new CraftingSetup(smelting, Map.of(3, List.of(batch("ore", 1))), 0, Optional.empty()));
+        assertThat(network.request(REQUEST, batch("ingot", 2), 0).started()).isTrue();
+        assertThat(provider.shipments).containsExactlyInAnyOrder(new Shipment(batch("ore", 2), SATELLITE),
+                new Shipment(batch("coal", 2), CRAFTING));
+    }
 }

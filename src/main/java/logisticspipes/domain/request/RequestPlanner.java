@@ -208,9 +208,8 @@ public final class RequestPlanner {
         for (Map.Entry<ItemType, Integer> input : crafter.ownInputs().entrySet()) {
             resolve(draft, crafter.router(), input.getKey(), input.getValue() * runs, crafting);
         }
-        for (Map.Entry<ItemType, Integer> input : crafter.satelliteInputs().entrySet()) {
-            resolve(draft, crafter.satellite(), input.getKey(), input.getValue() * runs, crafting);
-        }
+        crafter.satelliteInputs().forEach((satellite, inputs) -> inputs.forEach((type, count) ->
+                resolve(draft, satellite, type, count * runs, crafting)));
     }
 
     // returns how many are still needed
