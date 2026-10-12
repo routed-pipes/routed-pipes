@@ -258,4 +258,23 @@ class RequestPlannerTest {
         assertThat(plan.provisions()).containsExactlyInAnyOrder(new Provision(NEAR, SATELLITE, batch("ore", 4)),
                 new Provision(NEAR, FAR, batch("coal", 2)), new Provision(NEAR, CRAFTER, batch("sand", 2)));
     }
+
+    @Test
+    void aHugeRequestReportsWhatIsMissingInsteadOfOverflowing() {
+        RequestPlan plan = new RequestPlanner(List.of(stock(NEAR, "log", 64)), List.of(crafter(CRAFTER, PLANKS)))
+                .plan(REQUESTER, batch("planks", Integer.MAX_VALUE));
+
+        assertThat(plan.complete()).isFalse();
+        assertThat(plan.missing().values()).allMatch(count -> count > 0);
+    }
+
+    @Test
+    void ingredientsOfAHugeRequestStayPositive() {
+        Recipe dense = new Recipe(List.of(batch("log", 1000)), batch("block", 1));
+        RequestPlan plan = new RequestPlanner(List.of(stock(NEAR, "log", 64)), List.of(crafter(CRAFTER, dense)))
+                .plan(REQUESTER, batch("block", 5_000_000));
+
+        assertThat(plan.complete()).isFalse();
+        assertThat(plan.missing().values()).allMatch(count -> count > 0);
+    }
 }

@@ -148,13 +148,22 @@ public final class RequestPlanner {
             crafting.remove(type);
         }
         if (remaining > 0) {
-            draft.missing.merge(type, remaining, Integer::sum);
+            draft.missing.merge(type, remaining, RequestPlanner::plus);
         }
     }
 
     private static int runsFor(Crafter crafter, int items) {
         int perRun = crafter.output().count();
-        return (items + perRun - 1) / perRun;
+        return (int) ((items + (long) perRun - 1) / perRun);
+    }
+
+    private static int plus(int a, int b) {
+        return (int) Math.min(Integer.MAX_VALUE, (long) a + b);
+    }
+
+    // counts above what an int holds stay at the most it holds, a request that big cannot be met anyway
+    private static int times(int count, int factor) {
+        return (int) Math.min(Integer.MAX_VALUE, (long) count * factor);
     }
 
     // shares the work between crafters of the same priority so that they end up equally busy, in whole runs
@@ -175,9 +184,9 @@ public final class RequestPlanner {
                 }
                 int wanted = runsFor(crafter, Math.min(remaining, share));
                 int done = craft(draft, crafter, destination, wanted, remaining, crafting);
-                int made = Math.min(remaining, done * crafter.output().count());
+                int made = Math.min(remaining, times(done, crafter.output().count()));
                 remaining -= made;
-                load.merge(crafter, done * crafter.output().count(), Integer::sum);
+                load.merge(crafter, times(done, crafter.output().count()), (before, added) -> (int) Math.min(Integer.MAX_VALUE, (long) before + added));
                 if (done < wanted) {
                     // ran out of ingredients
                     load.remove(crafter);
@@ -210,7 +219,7 @@ public final class RequestPlanner {
             return 0;
         }
         attempt.crafts.add(new CraftJob(crafter.router(), destination,
-                new ItemBatch(crafter.output().type(), Math.min(needed, possible * crafter.output().count()))));
+                new ItemBatch(crafter.output().type(), Math.min(needed, times(possible, crafter.output().count())))));
         draft.become(attempt);
         return possible;
     }
@@ -224,10 +233,10 @@ public final class RequestPlanner {
 
     private void resolveInputs(Draft draft, Crafter crafter, int runs, Set<ItemType> crafting) {
         for (Map.Entry<ItemType, Integer> input : crafter.ownInputs().entrySet()) {
-            resolve(draft, crafter.router(), input.getKey(), input.getValue() * runs, crafting);
+            resolve(draft, crafter.router(), input.getKey(), times(input.getValue(), runs), crafting);
         }
         crafter.satelliteInputs().forEach((satellite, inputs) -> inputs.forEach((type, count) ->
-                resolve(draft, satellite, type, count * runs, crafting)));
+                resolve(draft, satellite, type, times(count, runs), crafting)));
     }
 
     // returns how many are still needed
