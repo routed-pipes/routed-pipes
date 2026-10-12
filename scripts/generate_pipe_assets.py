@@ -5,7 +5,8 @@ import os
 
 PIPES = ["transport_pipe", "basic_logistics_pipe", "provider_pipe", "request_pipe", "supplier_pipe",
          "crafting_pipe", "satellite_pipe"] + [f"chassis_pipe_mk{tier}" for tier in range(1, 6)]
-MODULES = ["module_item_sink", "module_extractor", "module_provider"]
+MODULES = ["module_item_sink", "module_extractor", "module_provider", "module_terminus", "module_passive_supplier",
+           "module_polymorphic_item_sink", "module_quick_sort"]
 ASSETS = "src/main/resources/assets/logisticspipes/"
 DATA = "src/main/resources/data/logisticspipes/"
 

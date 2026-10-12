@@ -14,8 +14,10 @@ import logisticspipes.domain.crafting.OutputOrders;
 import logisticspipes.domain.crafting.Recipe;
 import logisticspipes.domain.item.ItemBatch;
 import logisticspipes.domain.item.ItemType;
+import logisticspipes.domain.logistics.ExtractionMode;
 import logisticspipes.domain.logistics.ItemSink;
 import logisticspipes.domain.logistics.PipeKind;
+import logisticspipes.domain.logistics.SinkRule;
 import logisticspipes.domain.routing.RouterId;
 import logisticspipes.domain.routing.Side;
 
@@ -32,10 +34,10 @@ public final class FakeNode implements RouterNode {
     public final OutputOrders outputOrders = new OutputOrders();
     public Recipe recipe;
     // basic pipes take everything by default, like a fresh one in the game
-    public ItemSink sink = new ItemSink(Set.of(), true);
+    public SinkRule sink = new ItemSink(Set.of(), true);
     public int satelliteId;
     public boolean provides;
-    public boolean extracts;
+    public final List<ExtractionMode> extractions = new ArrayList<>();
     private final PipeKind kind;
 
     public FakeNode(PipeKind kind) {
@@ -84,13 +86,13 @@ public final class FakeNode implements RouterNode {
     }
 
     @Override
-    public boolean extracts() {
-        return extracts;
+    public List<ExtractionMode> extractions() {
+        return extractions;
     }
 
     @Override
     public OptionalInt sinkPriority(ItemType type) {
-        return kind == PipeKind.BASIC || kind == PipeKind.CHASSIS ? sink.priority(type) : OptionalInt.empty();
+        return kind == PipeKind.BASIC || kind == PipeKind.CHASSIS ? sink.priority(type, contents) : OptionalInt.empty();
     }
 
     @Override

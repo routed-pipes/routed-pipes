@@ -1,14 +1,15 @@
 package logisticspipes.domain.logistics;
 
+import java.util.Map;
 import java.util.OptionalInt;
 import java.util.Set;
 
 import logisticspipes.domain.item.ItemType;
 
 // what a basic pipe takes in: listed items first, and as default route anything nobody else wants
-public record ItemSink(Set<ItemType> filter, boolean defaultRoute) {
+public record ItemSink(Set<ItemType> filter, boolean defaultRoute) implements SinkRule {
 
-    public static final int FILTER_PRIORITY = 1;
+    public static final int FILTER_PRIORITY = 3;
     public static final int DEFAULT_ROUTE_PRIORITY = 0;
 
     public ItemSink {
@@ -21,5 +22,10 @@ public record ItemSink(Set<ItemType> filter, boolean defaultRoute) {
             return OptionalInt.of(FILTER_PRIORITY);
         }
         return defaultRoute ? OptionalInt.of(DEFAULT_ROUTE_PRIORITY) : OptionalInt.empty();
+    }
+
+    @Override
+    public OptionalInt priority(ItemType type, Map<ItemType, Integer> contents) {
+        return priority(type);
     }
 }

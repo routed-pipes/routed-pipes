@@ -141,8 +141,8 @@ public class ChassisGameTest {
         PipeBlockEntity small = chassis(helper, 1, 0, ItemStack.EMPTY, module(ModuleKind.EXTRACTOR));
         PipeBlockEntity large = chassis(helper, 2, 4, ItemStack.EMPTY, module(ModuleKind.EXTRACTOR));
 
-        helper.assertTrue(!small.extracts(), "mk1 has only one slot");
-        helper.assertTrue(large.extracts(), "mk2 uses its second slot");
+        helper.assertTrue(small.extractions().isEmpty(), "mk1 has only one slot");
+        helper.assertTrue(!large.extractions().isEmpty(), "mk2 uses its second slot");
         helper.assertTrue(!large.provides(), "no provider module");
         helper.succeed();
     }
@@ -180,14 +180,14 @@ public class ChassisGameTest {
         menu.quickMoveStack(player, hotbar + 2);
         menu.quickMoveStack(player, hotbar + 3);
 
-        helper.assertTrue(pipe.extracts() && pipe.provides(), "two modules plugged in");
+        helper.assertTrue(!pipe.extractions().isEmpty() && pipe.provides(), "two modules plugged in");
         helper.assertTrue(pipe.modules().getItem(2).isEmpty(), "third slot is not usable on a mk2");
         helper.assertTrue(player.getInventory().getItem(1).getCount() == 3, "diamonds are not modules");
         helper.assertTrue(!player.getInventory().getItem(3).isEmpty(), "no room for a third module");
         helper.assertTrue(!menu.getSlot(2).isActive() && menu.getSlot(1).isActive(), "slot activity follows the chassis size");
 
         menu.quickMoveStack(player, 0);
-        helper.assertTrue(!pipe.extracts(), "module taken out again");
+        helper.assertTrue(pipe.extractions().isEmpty(), "module taken out again");
         helper.succeed();
     }
 
@@ -201,7 +201,7 @@ public class ChassisGameTest {
         PipeBlockEntity loaded = chassis(helper, 2, 4);
         loaded.loadWithComponents(saved, helper.getLevel().registryAccess());
 
-        helper.assertTrue(loaded.extracts(), "extractor");
+        helper.assertTrue(!loaded.extractions().isEmpty(), "extractor");
         helper.assertTrue(loaded.sinkPriority(McItemType.batchOf(new ItemStack(Items.DIAMOND)).type()).isPresent(), "sink filter");
         helper.assertTrue(loaded.sinkPriority(McItemType.batchOf(new ItemStack(Items.DIRT)).type()).isEmpty(), "nothing else");
         helper.succeed();
@@ -242,6 +242,102 @@ public class ChassisGameTest {
 
         helper.assertTrue(player.containerMenu == player.inventoryMenu, "nothing should open");
         player.discard();
+        helper.succeed();
+    }
+
+    // the diamond chest is full, so diamonds overflow into the terminus and not into the default chest
+    @GameTest(template = EMPTY, timeoutTicks = 400)
+    public static void terminusCatchesOverflowBeforeTheDefaultRoute(GameTestHelper helper) {
+        chassis(helper, 1, 0, module(ModuleKind.EXTRACTOR));
+        chest(helper, 0, new ItemStack(Items.DIAMOND, 5));
+        ItemStack sink = module(ModuleKind.ITEM_SINK);
+        ModuleItem.configureSink(sink, List.of(new ItemStack(Items.DIAMOND)), false);
+        chassis(helper, 1, 1, sink);
+        BlockPos full = chest(helper, 1);
+        Container fullChest = helper.getBlockEntity(full);
+        for (int slot = 0; slot < fullChest.getContainerSize(); slot++) {
+            fullChest.setItem(slot, new ItemStack(Items.STONE, 64));
+        }
+        pipe(helper, PipeKind.BASIC, 2);
+        helper.setBlock(new BlockPos(2, 1, 0), Blocks.CHEST);
+        BlockPos fallback = new BlockPos(2, 1, 0);
+        ItemStack terminus = module(ModuleKind.TERMINUS);
+        ModuleItem.configureSink(terminus, List.of(new ItemStack(Items.DIAMOND)), false);
+        chassis(helper, 1, 3, terminus);
+        BlockPos overflow = chest(helper, 3);
+
+        helper.succeedWhen(() -> {
+            assertCount(helper, overflow, Items.DIAMOND, 5);
+            assertCount(helper, fallback, Items.DIAMOND, 0);
+        });
+    }
+
+    @GameTest(template = EMPTY, timeoutTicks = 400)
+    public static void polymorphicSinkCollectsMoreOfWhatItHolds(GameTestHelper helper) {
+        chassis(helper, 1, 0, module(ModuleKind.EXTRACTOR));
+        BlockPos source = chest(helper, 0, new ItemStack(Items.COAL, 20), new ItemStack(Items.DIRT, 9));
+        chassis(helper, 1, 1, module(ModuleKind.POLYMORPHIC_ITEM_SINK));
+        BlockPos target = chest(helper, 1, new ItemStack(Items.COAL, 1));
+
+        helper.runAfterDelay(200, () -> {
+            assertCount(helper, target, Items.COAL, 21);
+            assertCount(helper, target, Items.DIRT, 0);
+            assertCount(helper, source, Items.DIRT, 9);
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = EMPTY, timeoutTicks = 400)
+    public static void passiveSupplierFillsUpToItsTargetAndNoFurther(GameTestHelper helper) {
+        PipeBlockEntity source = pipe(helper, PipeKind.BASIC, 0);
+        ItemStack supplier = module(ModuleKind.PASSIVE_SUPPLIER);
+        ModuleItem.configureSink(supplier, List.of(new ItemStack(Items.COAL, 8)), false);
+        chassis(helper, 1, 1, supplier);
+        BlockPos target = chest(helper, 1);
+
+        helper.runAfterDelay(15, () -> source.accept(new ItemStack(Items.COAL, 8), net.minecraft.core.Direction.DOWN));
+        helper.runAfterDelay(100, () -> {
+            assertCount(helper, target, Items.COAL, 8);
+            source.accept(new ItemStack(Items.COAL, 8), net.minecraft.core.Direction.DOWN);
+        });
+        helper.runAfterDelay(250, () -> {
+            assertCount(helper, target, Items.COAL, 8);
+            helper.assertItemEntityPresent(Items.COAL, new BlockPos(0, 1, 1), 2);
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = EMPTY, timeoutTicks = 400)
+    public static void quickSortOnlyFeedsPipesThatAskedByName(GameTestHelper helper) {
+        chassis(helper, 1, 0, module(ModuleKind.QUICK_SORT));
+        BlockPos source = chest(helper, 0, new ItemStack(Items.DIAMOND, 64), new ItemStack(Items.DIAMOND, 30), new ItemStack(Items.DIRT, 9));
+        ItemStack sink = module(ModuleKind.ITEM_SINK);
+        ModuleItem.configureSink(sink, List.of(new ItemStack(Items.DIAMOND)), false);
+        chassis(helper, 1, 1, sink);
+        BlockPos sorted = chest(helper, 1);
+        pipe(helper, PipeKind.BASIC, 2);
+        BlockPos fallback = chest(helper, 2);
+
+        helper.runAfterDelay(200, () -> {
+            assertCount(helper, sorted, Items.DIAMOND, 94);
+            assertCount(helper, source, Items.DIRT, 9);
+            helper.assertContainerEmpty(fallback);
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = EMPTY)
+    public static void modulesWithListsHaveSettingsAndTheOthersDoNot(GameTestHelper helper) {
+        for (ModuleKind kind : ModuleKind.values()) {
+            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+            ItemStack held = module(kind);
+            player.setItemInHand(InteractionHand.MAIN_HAND, held);
+            held.use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            boolean opened = player.containerMenu instanceof PipeConfigMenu;
+            boolean expected = ModuleItem.settingsLayoutFor(kind).isPresent();
+            helper.assertTrue(opened == expected, kind + " settings screen: expected " + expected);
+            player.discard();
+        }
         helper.succeed();
     }
 }

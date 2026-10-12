@@ -105,7 +105,8 @@ public class LogisticsPipes {
     static {
         for (ModuleKind kind : ModuleKind.values()) {
             MODULES.put(kind, ITEMS.register("module_" + kind.name().toLowerCase(Locale.ROOT),
-                    () -> new ModuleItem(new Item.Properties(), kind, CONFIG_MENUS.get(PipeKind.BASIC))));
+                    () -> new ModuleItem(new Item.Properties(), kind, ModuleItem.settingsLayoutFor(kind).orElse(null),
+                            ModuleItem.settingsLayoutFor(kind).map(CONFIG_MENUS::get).orElse(null))));
         }
     }
 

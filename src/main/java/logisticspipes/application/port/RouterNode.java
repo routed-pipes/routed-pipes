@@ -1,5 +1,6 @@
 package logisticspipes.application.port;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
@@ -9,6 +10,7 @@ import logisticspipes.domain.crafting.OutputOrders;
 import logisticspipes.domain.crafting.Recipe;
 import logisticspipes.domain.item.ItemBatch;
 import logisticspipes.domain.item.ItemType;
+import logisticspipes.domain.logistics.ExtractionMode;
 import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.domain.routing.RouterId;
 import logisticspipes.domain.routing.Side;
@@ -34,9 +36,9 @@ public interface RouterNode {
         return kind() == PipeKind.PROVIDER;
     }
 
-    // whether the pipe pushes the contents of its inventory to whoever takes them
-    default boolean extracts() {
-        return false;
+    // the ways the pipe pushes the contents of its inventory to other pipes
+    default List<ExtractionMode> extractions() {
+        return List.of();
     }
 
     // how much the pipe wants an item nobody asked for, empty for not at all

@@ -16,6 +16,8 @@ import logisticspipes.domain.crafting.OutputOrder;
 import logisticspipes.domain.item.ItemBatch;
 import logisticspipes.domain.item.ItemType;
 import logisticspipes.domain.logistics.DestinationSelector;
+import logisticspipes.domain.logistics.ExtractionMode;
+import logisticspipes.domain.logistics.ItemSink;
 import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.domain.logistics.SinkOffer;
 import logisticspipes.domain.request.CraftJob;
@@ -39,8 +41,6 @@ public final class LogisticsNetwork {
     static final long CRAFT_TIMEOUT = 24000;
     // how long after a change to the network no new destinations are handed out
     static final long SETTLE_TICKS = 10;
-    // items an extractor moves per upkeep round
-    static final int EXTRACT_AMOUNT = 16;
 
     private final RoutingNetwork routing = new RoutingNetwork();
     private final Map<RouterId, RouterNode> nodes = new HashMap<>();
@@ -87,7 +87,7 @@ public final class LogisticsNetwork {
             // routers are still finding each other, a choice made now could be the wrong one
             return Optional.empty();
         }
-        Optional<RouterId> destination = findDestination(at, item.batch(), item.origin(), true);
+        Optional<RouterId> destination = findDestination(at, item.batch(), item.origin(), true, ItemSink.DEFAULT_ROUTE_PRIORITY);
         destination.ifPresentOrElse(item::routeTo, item::clearDestination);
         return destination.flatMap(found -> exitTowards(at, found, item));
     }
@@ -105,12 +105,13 @@ public final class LogisticsNetwork {
     }
 
     // best sink for a batch that is at the given router and came in through origin
-    private Optional<RouterId> findDestination(RouterId at, ItemBatch batch, Side origin, boolean mayStay) {
+    // only sinks that want it at least as much as minPriority count
+    private Optional<RouterId> findDestination(RouterId at, ItemBatch batch, Side origin, boolean mayStay, int minPriority) {
         List<SinkOffer> offers = new ArrayList<>();
         for (Map.Entry<RouterId, RouterNode> entry : nodes.entrySet()) {
             boolean here = entry.getKey().equals(at);
             OptionalInt priority = entry.getValue().sinkPriority(batch.type());
-            if (priority.isEmpty() || here && !mayStay) {
+            if (priority.isEmpty() || priority.getAsInt() < minPriority || here && !mayStay) {
                 continue;
             }
             Set<Side> sides = here ? deliverySides(at, batch, origin) : entry.getValue().inventoriesAccepting(batch);
@@ -191,16 +192,17 @@ public final class LogisticsNetwork {
                 }
             });
         }
-        if (node.extracts() && now - lastChange >= SETTLE_TICKS) {
-            extract(id, node);
+        if (now - lastChange >= SETTLE_TICKS) {
+            node.extractions().forEach(mode -> extract(id, node, mode));
         }
     }
 
     // sends off the first kind of item in the inventory that some other router wants
-    private void extract(RouterId id, RouterNode node) {
+    private void extract(RouterId id, RouterNode node, ExtractionMode mode) {
+        int minPriority = mode.usesDefaultRoutes() ? ItemSink.DEFAULT_ROUTE_PRIORITY : ItemSink.DEFAULT_ROUTE_PRIORITY + 1;
         for (Map.Entry<ItemType, Integer> stock : node.contents().entrySet()) {
-            ItemBatch batch = new ItemBatch(stock.getKey(), Math.min(stock.getValue(), EXTRACT_AMOUNT));
-            Optional<RouterId> destination = findDestination(id, batch, null, false);
+            ItemBatch batch = new ItemBatch(stock.getKey(), Math.min(stock.getValue(), mode.amount()));
+            Optional<RouterId> destination = findDestination(id, batch, null, false, minPriority);
             if (destination.isPresent()) {
                 node.send(batch.type(), batch.count(), destination.get());
                 return;

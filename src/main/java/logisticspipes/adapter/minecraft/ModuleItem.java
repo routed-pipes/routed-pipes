@@ -1,18 +1,26 @@
 package logisticspipes.adapter.minecraft;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 import logisticspipes.adapter.minecraft.menu.PipeConfigMenu;
 import logisticspipes.domain.item.ItemType;
+import logisticspipes.domain.logistics.ExtractionMode;
 import logisticspipes.domain.logistics.ItemSink;
 import logisticspipes.domain.logistics.ModuleKind;
+import logisticspipes.domain.logistics.PassiveSupplier;
 import logisticspipes.domain.logistics.PipeKind;
+import logisticspipes.domain.logistics.PolymorphicItemSink;
+import logisticspipes.domain.logistics.SinkRule;
+import logisticspipes.domain.logistics.Terminus;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.SimpleContainer;
@@ -22,6 +30,7 @@ import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.level.Level;
@@ -33,11 +42,15 @@ public class ModuleItem extends Item {
     private static final String DEFAULT_ROUTE_TAG = "LogisticsPipesDefaultRoute";
 
     private final ModuleKind kind;
+    private final PipeKind settingsLayout;
     private final Supplier<MenuType<PipeConfigMenu>> settingsMenu;
 
-    public ModuleItem(Properties properties, ModuleKind kind, Supplier<MenuType<PipeConfigMenu>> settingsMenu) {
+    // modules without settings get no layout and no menu
+    public ModuleItem(Properties properties, ModuleKind kind, PipeKind settingsLayout,
+            Supplier<MenuType<PipeConfigMenu>> settingsMenu) {
         super(properties.stacksTo(1));
         this.kind = kind;
+        this.settingsLayout = settingsLayout;
         this.settingsMenu = settingsMenu;
     }
 
@@ -45,15 +58,54 @@ public class ModuleItem extends Item {
         return kind;
     }
 
+    // which settings screen a kind of module uses: with or without the default route switch
+    public static Optional<PipeKind> settingsLayoutFor(ModuleKind kind) {
+        return switch (kind) {
+            case ITEM_SINK -> Optional.of(PipeKind.BASIC);
+            case TERMINUS, PASSIVE_SUPPLIER -> Optional.of(PipeKind.SUPPLIER);
+            default -> Optional.empty();
+        };
+    }
+
     // what an item sink module takes
     public static ItemSink sinkOf(ItemStack module) {
-        Set<ItemType> filter = new HashSet<>();
+        return new ItemSink(filterTypes(module).keySet(), defaultRouteOf(module));
+    }
+
+    // how a module wants unrequested items, empty for modules that do not take any
+    public static Optional<SinkRule> ruleOf(ItemStack module) {
+        if (!(module.getItem() instanceof ModuleItem item)) {
+            return Optional.empty();
+        }
+        return switch (item.kind) {
+            case ITEM_SINK -> Optional.of(sinkOf(module));
+            case TERMINUS -> Optional.of(new Terminus(filterTypes(module).keySet()));
+            case PASSIVE_SUPPLIER -> Optional.of(new PassiveSupplier(filterTypes(module)));
+            case POLYMORPHIC_ITEM_SINK -> Optional.of(new PolymorphicItemSink());
+            default -> Optional.empty();
+        };
+    }
+
+    public static Optional<ExtractionMode> extractionOf(ItemStack module) {
+        if (!(module.getItem() instanceof ModuleItem item)) {
+            return Optional.empty();
+        }
+        return switch (item.kind) {
+            case EXTRACTOR -> Optional.of(ExtractionMode.EXTRACTOR);
+            case QUICK_SORT -> Optional.of(ExtractionMode.QUICK_SORT);
+            default -> Optional.empty();
+        };
+    }
+
+    // listed items with their marker counts added up
+    private static Map<ItemType, Integer> filterTypes(ItemStack module) {
+        Map<ItemType, Integer> types = new LinkedHashMap<>();
         for (ItemStack stack : filterOf(module)) {
             if (!stack.isEmpty()) {
-                filter.add(McItemType.batchOf(stack).type());
+                types.merge(McItemType.batchOf(stack).type(), stack.getCount(), Integer::sum);
             }
         }
-        return new ItemSink(filter, defaultRouteOf(module));
+        return types;
     }
 
     public static NonNullList<ItemStack> filterOf(ItemStack module) {
@@ -75,11 +127,16 @@ public class ModuleItem extends Item {
         CustomData.update(DataComponents.CUSTOM_DATA, module, tag -> tag.putBoolean(DEFAULT_ROUTE_TAG, defaultRoute));
     }
 
-    // item sink modules are set up by using them in the hand
+    @Override
+    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+        tooltip.add(Component.translatable(getDescriptionId() + ".description").withStyle(ChatFormatting.GRAY));
+    }
+
+    // modules with settings are set up by using them in the hand
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack module = player.getItemInHand(hand);
-        if (kind != ModuleKind.ITEM_SINK) {
+        if (settingsLayout == null) {
             return InteractionResultHolder.pass(module);
         }
         if (!level.isClientSide) {
@@ -88,7 +145,7 @@ public class ModuleItem extends Item {
         return InteractionResultHolder.sidedSuccess(module, level.isClientSide);
     }
 
-    // the same screen as a basic pipe, every change is written straight back to the module
+    // the same screen as a pipe with that layout, every change is written straight back to the module
     private PipeConfigMenu settings(int id, Player player, ItemStack module) {
         SimpleContainer filter = new SimpleContainer(PipeBlockEntity.CONFIG_SLOTS);
         NonNullList<ItemStack> stored = filterOf(module);
@@ -120,7 +177,7 @@ public class ModuleItem extends Item {
             }
             configureSink(module, slots, defaultRouteOf(module));
         });
-        return new PipeConfigMenu(settingsMenu.get(), id, player.getInventory(), PipeKind.BASIC, filter, data,
+        return new PipeConfigMenu(settingsMenu.get(), id, player.getInventory(), settingsLayout, filter, data,
                 user -> !module.isEmpty() && user.getInventory().contains(module), () -> { });
     }
 }

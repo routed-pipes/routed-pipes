@@ -20,9 +20,11 @@ import logisticspipes.domain.crafting.OutputOrders;
 import logisticspipes.domain.crafting.Recipe;
 import logisticspipes.domain.item.ItemBatch;
 import logisticspipes.domain.item.ItemType;
+import logisticspipes.domain.logistics.ExtractionMode;
 import logisticspipes.domain.logistics.ItemSink;
 import logisticspipes.domain.logistics.ModuleKind;
 import logisticspipes.domain.logistics.PipeKind;
+import logisticspipes.domain.logistics.SinkRule;
 import logisticspipes.domain.request.RequestPlan;
 import logisticspipes.domain.routing.RouterId;
 import logisticspipes.domain.routing.Side;
@@ -133,13 +135,19 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         return modules;
     }
 
-    private boolean hasModule(ModuleKind wanted) {
+    // the modules in the slots this chassis really has
+    private List<ItemStack> pluggedModules() {
+        List<ItemStack> plugged = new ArrayList<>();
         for (int slot = 0; slot < pipe().moduleSlots(); slot++) {
-            if (modules.getItem(slot).getItem() instanceof ModuleItem module && module.kind() == wanted) {
-                return true;
+            if (modules.getItem(slot).getItem() instanceof ModuleItem) {
+                plugged.add(modules.getItem(slot));
             }
         }
-        return false;
+        return plugged;
+    }
+
+    private boolean hasModule(ModuleKind wanted) {
+        return pluggedModules().stream().anyMatch(stack -> ((ModuleItem) stack.getItem()).kind() == wanted);
     }
 
     public void setSatelliteId(int id) {
@@ -359,8 +367,8 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     }
 
     @Override
-    public boolean extracts() {
-        return hasModule(ModuleKind.EXTRACTOR);
+    public List<ExtractionMode> extractions() {
+        return pluggedModules().stream().flatMap(stack -> ModuleItem.extractionOf(stack).stream()).distinct().toList();
     }
 
     @Override
@@ -368,18 +376,12 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         if (kind() == PipeKind.BASIC) {
             return new ItemSink(supplyTargets().keySet(), defaultRoute).priority(type);
         }
-        // a chassis wants an item as much as its keenest item sink module does
-        OptionalInt best = OptionalInt.empty();
-        for (int slot = 0; slot < pipe().moduleSlots(); slot++) {
-            ItemStack stack = modules.getItem(slot);
-            if (stack.getItem() instanceof ModuleItem module && module.kind() == ModuleKind.ITEM_SINK) {
-                OptionalInt priority = ModuleItem.sinkOf(stack).priority(type);
-                if (priority.isPresent() && (best.isEmpty() || priority.getAsInt() > best.getAsInt())) {
-                    best = priority;
-                }
-            }
-        }
-        return best;
+        // a chassis wants an item as much as its keenest module does
+        List<SinkRule> rules = pluggedModules().stream().flatMap(stack -> ModuleItem.ruleOf(stack).stream()).toList();
+        Map<ItemType, Integer> contents = rules.stream().anyMatch(SinkRule::needsContents) ? contents() : Map.of();
+        return rules.stream()
+                .flatMapToInt(rule -> rule.priority(type, contents).stream())
+                .max();
     }
 
     @Override

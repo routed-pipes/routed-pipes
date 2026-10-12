@@ -9,7 +9,12 @@ import java.util.Map;
 import java.util.Set;
 
 import logisticspipes.domain.item.ItemType;
+import logisticspipes.domain.logistics.ExtractionMode;
 import logisticspipes.domain.logistics.ItemSink;
+import logisticspipes.domain.logistics.PassiveSupplier;
+import logisticspipes.domain.logistics.PolymorphicItemSink;
+import logisticspipes.domain.logistics.Terminus;
+import logisticspipes.domain.transport.TravellingItem;
 import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.domain.routing.Link;
 import logisticspipes.domain.routing.RouterId;
@@ -49,19 +54,19 @@ class LogisticsNetworkChassisTest {
     @Test
     void extractorPushesItemsToWhoeverTakesThem() {
         connect();
-        chassis.extracts = true;
+        chassis.extractions.add(ExtractionMode.EXTRACTOR);
         chassis.stock("stone", 40);
         store.inventories.add(Side.UP);
 
         network.tick(CHASSIS, NOW);
 
-        assertThat(chassis.shipments).containsExactly(new Shipment(batch("stone", LogisticsNetwork.EXTRACT_AMOUNT), STORE));
+        assertThat(chassis.shipments).containsExactly(new Shipment(batch("stone", ExtractionMode.EXTRACTOR.amount()), STORE));
     }
 
     @Test
     void extractorLeavesItemsNobodyWants() {
         connect();
-        chassis.extracts = true;
+        chassis.extractions.add(ExtractionMode.EXTRACTOR);
         chassis.stock("stone", 40);
 
         network.tick(CHASSIS, NOW);
@@ -72,7 +77,7 @@ class LogisticsNetworkChassisTest {
     @Test
     void extractorSkipsToAnItemSomebodyWants() {
         connect();
-        chassis.extracts = true;
+        chassis.extractions.add(ExtractionMode.EXTRACTOR);
         chassis.stock("stone", 40).stock("dirt", 3);
         store.inventories.add(Side.UP);
         store.sink = new ItemSink(Set.of(item("dirt")), false);
@@ -85,7 +90,7 @@ class LogisticsNetworkChassisTest {
     @Test
     void extractorNeverSendsItemsToItsOwnChassis() {
         connect();
-        chassis.extracts = true;
+        chassis.extractions.add(ExtractionMode.EXTRACTOR);
         chassis.sink = new ItemSink(Set.of(), true);
         chassis.stock("stone", 40);
 
@@ -97,7 +102,7 @@ class LogisticsNetworkChassisTest {
     @Test
     void extractorWaitsWhileTheNetworkIsSettling() {
         connect();
-        chassis.extracts = true;
+        chassis.extractions.add(ExtractionMode.EXTRACTOR);
         chassis.stock("stone", 40);
         store.inventories.add(Side.UP);
 
@@ -140,5 +145,80 @@ class LogisticsNetworkChassisTest {
 
         assertThat(network.chooseExit(STORE, stone, NOW)).contains(Side.WEST);
         assertThat(network.chooseExit(STORE, dirt, NOW)).isEmpty();
+    }
+
+    @Test
+    void quickSortMovesWholeStacksToPipesThatAskedByName() {
+        connect();
+        chassis.extractions.add(ExtractionMode.QUICK_SORT);
+        chassis.stock("stone", 200);
+        store.inventories.add(Side.UP);
+        store.sink = new ItemSink(Set.of(item("stone")), false);
+
+        network.tick(CHASSIS, NOW);
+
+        assertThat(chassis.shipments).containsExactly(new Shipment(batch("stone", 64), STORE));
+    }
+
+    @Test
+    void quickSortIgnoresDefaultRoutes() {
+        connect();
+        chassis.extractions.add(ExtractionMode.QUICK_SORT);
+        chassis.stock("stone", 200);
+        store.inventories.add(Side.UP);
+
+        network.tick(CHASSIS, NOW);
+
+        assertThat(chassis.shipments).isEmpty();
+    }
+
+    @Test
+    void itemSinkBeatsPassiveSupplierBeatsTerminusBeatsDefaultRoute() {
+        assertThat(ItemSink.FILTER_PRIORITY).isGreaterThan(PassiveSupplier.PRIORITY);
+        assertThat(PassiveSupplier.PRIORITY).isGreaterThan(Terminus.PRIORITY);
+        assertThat(Terminus.PRIORITY).isGreaterThan(ItemSink.DEFAULT_ROUTE_PRIORITY);
+    }
+
+    @Test
+    void terminusTakesListedItemsBeforeANearerDefaultRoute() {
+        connect();
+        request.inventories.add(Side.UP);
+        FakeNode far = new FakeNode(PipeKind.CHASSIS);
+        far.inventories.add(Side.UP);
+        far.sink = new Terminus(Set.of(item("stone")));
+        network.addRouter(router(4), far, 0);
+        network.updateLinks(REQUEST, List.of(new Link(STORE, Side.WEST, 1), new Link(router(4), Side.EAST, 5)), 0);
+        store.inventories.add(Side.UP);
+
+        TravellingItem stone = new TravellingItem(batch("stone", 4), Side.DOWN, null);
+        TravellingItem dirt = new TravellingItem(batch("dirt", 4), Side.DOWN, null);
+
+        assertThat(network.chooseExit(REQUEST, stone, NOW)).contains(Side.EAST);
+        assertThat(network.chooseExit(REQUEST, dirt, NOW)).contains(Side.WEST);
+    }
+
+    @Test
+    void passiveSupplierStopsTakingItemsOnceStocked() {
+        connect();
+        chassis.inventories.add(Side.UP);
+        chassis.sink = new PassiveSupplier(Map.of(item("coal"), 16));
+        chassis.contents.put(item("coal"), 10);
+
+        assertThat(network.chooseExit(STORE, new TravellingItem(batch("coal", 4), Side.UP, null), NOW)).contains(Side.WEST);
+
+        chassis.contents.put(item("coal"), 16);
+        assertThat(network.chooseExit(STORE, new TravellingItem(batch("coal", 4), Side.UP, null), NOW)).isEmpty();
+        assertThat(network.chooseExit(STORE, new TravellingItem(batch("dirt", 4), Side.UP, null), NOW)).isEmpty();
+    }
+
+    @Test
+    void polymorphicSinkTakesWhatItAlreadyHolds() {
+        connect();
+        chassis.inventories.add(Side.UP);
+        chassis.sink = new PolymorphicItemSink();
+        chassis.contents.put(item("stone"), 1);
+
+        assertThat(network.chooseExit(STORE, new TravellingItem(batch("stone", 4), Side.UP, null), NOW)).contains(Side.WEST);
+        assertThat(network.chooseExit(STORE, new TravellingItem(batch("dirt", 4), Side.UP, null), NOW)).isEmpty();
     }
 }

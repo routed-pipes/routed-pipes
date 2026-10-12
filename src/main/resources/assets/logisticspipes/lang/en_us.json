@@ -24,5 +24,16 @@
   "block.logisticspipes.chassis_pipe_mk5": "Logistics Chassis Mk5",
   "item.logisticspipes.module_item_sink": "ItemSink Module",
   "item.logisticspipes.module_extractor": "Extractor Module",
-  "item.logisticspipes.module_provider": "Provider Module"
+  "item.logisticspipes.module_provider": "Provider Module",
+  "item.logisticspipes.module_item_sink.description": "Takes the listed items. Use it in your hand to set it up.",
+  "item.logisticspipes.module_extractor.description": "Pushes items out of the inventory to any pipe that takes them.",
+  "item.logisticspipes.module_provider.description": "Makes the contents of the inventory available to requests.",
+  "item.logisticspipes.module_terminus": "Terminus Module",
+  "item.logisticspipes.module_terminus.description": "Takes the listed items when no ItemSink has room. Use it in your hand to set it up.",
+  "item.logisticspipes.module_passive_supplier": "Passive Supplier Module",
+  "item.logisticspipes.module_passive_supplier.description": "Takes passing items until the inventory holds the listed amounts. Use it in your hand to set it up.",
+  "item.logisticspipes.module_polymorphic_item_sink": "Polymorphic ItemSink Module",
+  "item.logisticspipes.module_polymorphic_item_sink.description": "Takes more of whatever the inventory already holds.",
+  "item.logisticspipes.module_quick_sort": "QuickSort Module",
+  "item.logisticspipes.module_quick_sort.description": "Moves whole stacks to pipes that list the item, never to default routes."
 }
