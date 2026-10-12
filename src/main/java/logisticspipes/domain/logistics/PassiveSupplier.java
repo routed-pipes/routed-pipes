@@ -22,6 +22,12 @@ public record PassiveSupplier(Map<ItemType, Integer> targets) implements SinkRul
         return contents.getOrDefault(type, 0) < wanted ? OptionalInt.of(PRIORITY) : OptionalInt.empty();
     }
 
+    // only what is missing up to the target
+    @Override
+    public int maxItems(ItemType type, Map<ItemType, Integer> contents) {
+        return Math.max(0, targets.getOrDefault(type, 0) - contents.getOrDefault(type, 0));
+    }
+
     @Override
     public boolean needsContents() {
         return true;

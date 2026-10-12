@@ -61,6 +61,7 @@ public final class PipeTransport {
     // moves everything one step, the exit is picked when an item is first seen
     public List<Departure> tick(long now, ExitChooser chooser) {
         List<Departure> departures = new ArrayList<>();
+        List<TravellingItem> cutOff = new ArrayList<>();
         for (Iterator<TravellingItem> iterator = items.iterator(); iterator.hasNext();) {
             TravellingItem item = iterator.next();
             if (item.movedIn(now)) {
@@ -69,6 +70,8 @@ public final class PipeTransport {
             }
             if (!item.decided()) {
                 Optional<Side> exit = chooser.chooseExit(item);
+                // a destination that wants only part of the item leaves the rest here to find another one
+                item.takeCutOff().ifPresent(rest -> cutOff.add(new TravellingItem(rest, item.origin(), null)));
                 if (exit.isEmpty() && !item.abandoned() && item.waited() < MAX_WAIT) {
                     item.waitForExit();
                     continue;
@@ -88,6 +91,10 @@ public final class PipeTransport {
                 iterator.remove();
                 departures.add(new Departure(item, item.exit()));
             }
+        }
+        if (!cutOff.isEmpty()) {
+            items.addAll(cutOff);
+            changed = true;
         }
         return departures;
     }

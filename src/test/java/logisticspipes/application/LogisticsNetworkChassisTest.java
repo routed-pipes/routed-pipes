@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import logisticspipes.domain.item.ItemType;
@@ -15,6 +16,7 @@ import logisticspipes.domain.logistics.ItemSink;
 import logisticspipes.domain.logistics.PassiveSupplier;
 import logisticspipes.domain.logistics.PolymorphicItemSink;
 import logisticspipes.domain.logistics.Terminus;
+import logisticspipes.domain.transport.TransportMode;
 import logisticspipes.domain.transport.TravellingItem;
 import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.domain.routing.Link;
@@ -357,5 +359,86 @@ class LogisticsNetworkChassisTest {
         assertThat(ExtractionMode.QUICK_SORT.energyFor(64)).isEqualTo(1000);
         assertThat(LogisticsNetwork.ENERGY_PER_PROVIDED_ITEM).isEqualTo(2);
         assertThat(LogisticsNetwork.ENERGY_PER_CRAFTED_ITEM).isEqualTo(20);
+    }
+
+    @Test
+    void passiveSupplierTakesOnlyWhatIsMissingAndLeavesTheRest() {
+        connect();
+        chassis.inventories.add(Side.UP);
+        chassis.sink = new PassiveSupplier(Map.of(item("coal"), 16));
+        network.sinksChanged(CHASSIS);
+        chassis.contents.put(item("coal"), 10);
+        TravellingItem item = new TravellingItem(batch("coal", 20), Side.UP, null);
+
+        assertThat(network.chooseExit(STORE, item, NOW)).contains(Side.WEST);
+
+        assertThat(item.batch()).isEqualTo(batch("coal", 6));
+        assertThat(item.takeCutOff()).contains(batch("coal", 14));
+    }
+
+    @Test
+    void sinkIsAskedAgainWhenTheItemArrives() {
+        connect();
+        chassis.inventories.add(Side.UP);
+        chassis.sink = new PassiveSupplier(Map.of(item("coal"), 16));
+        network.sinksChanged(CHASSIS);
+        chassis.contents.put(item("coal"), 13);
+        TravellingItem arriving = new TravellingItem(batch("coal", 6), Side.EAST, CHASSIS, TransportMode.SORTED);
+
+        assertThat(network.chooseExit(CHASSIS, arriving, NOW)).contains(Side.UP);
+        assertThat(arriving.batch()).isEqualTo(batch("coal", 3));
+        assertThat(arriving.takeCutOff()).contains(batch("coal", 3));
+
+        chassis.contents.put(item("coal"), 16);
+        TravellingItem tooLate = new TravellingItem(batch("coal", 6), Side.EAST, CHASSIS, TransportMode.SORTED);
+        assertThat(network.chooseExit(CHASSIS, tooLate, NOW)).isEmpty();
+        assertThat(tooLate.destination()).isEmpty();
+    }
+
+    @Test
+    void extractorSendsNoMoreThanTheSinkWantsAndAsSortedItems() {
+        connect();
+        chassis.extractions.add(ExtractionMode.EXTRACTOR);
+        chassis.stock("coal", 40);
+        store.inventories.add(Side.UP);
+        store.sink = new PassiveSupplier(Map.of(item("coal"), 5));
+        network.sinksChanged(STORE);
+
+        network.tick(CHASSIS, NOW);
+
+        assertThat(chassis.shipments).containsExactly(new Shipment(batch("coal", 5), STORE));
+        assertThat(chassis.lastMode).isEqualTo(TransportMode.SORTED);
+    }
+
+    @Test
+    void sortedItemAtAFullSinkLooksForAnotherOne() {
+        connect();
+        chassis.inventories.add(Side.UP);
+        chassis.sink = new ItemSink(Set.of(item("stone")), false);
+        network.sinksChanged(CHASSIS);
+        chassis.room = false;
+        store.inventories.add(Side.UP);
+        TravellingItem item = new TravellingItem(batch("stone", 4), Side.EAST, CHASSIS, TransportMode.SORTED);
+
+        assertThat(network.chooseExit(CHASSIS, item, NOW)).contains(Side.EAST);
+        assertThat(item.destination()).contains(STORE);
+    }
+
+    @Test
+    void passiveSupplierCountsWhatIsAlreadyOnItsWay() {
+        connect();
+        chassis.inventories.add(Side.UP);
+        chassis.sink = new PassiveSupplier(Map.of(item("coal"), 16));
+        network.sinksChanged(CHASSIS);
+        chassis.contents.put(item("coal"), 10);
+        network.chooseExit(STORE, new TravellingItem(batch("coal", 4), Side.UP, null), NOW);
+        TravellingItem second = new TravellingItem(batch("coal", 20), Side.UP, null);
+
+        assertThat(network.chooseExit(STORE, second, NOW)).contains(Side.WEST);
+        assertThat(second.batch()).isEqualTo(batch("coal", 2));
+
+        TravellingItem third = new TravellingItem(batch("coal", 20), Side.UP, null);
+        network.chooseExit(STORE, third, NOW);
+        assertThat(third.destination()).isNotEqualTo(Optional.of(CHASSIS));
     }
 }

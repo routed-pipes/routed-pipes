@@ -32,6 +32,7 @@ import logisticspipes.domain.routing.RouterId;
 import logisticspipes.domain.routing.Side;
 import logisticspipes.domain.transport.Departure;
 import logisticspipes.domain.transport.PipeTransport;
+import logisticspipes.domain.transport.TransportMode;
 import logisticspipes.domain.transport.TravellingItem;
 import logisticspipes.domain.transport.UnroutedPipe;
 import net.minecraft.core.BlockPos;
@@ -406,7 +407,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         if (rest.isEmpty()) {
             return;
         }
-        if (pipe().routed() && kind() != PipeKind.BASIC && item.destination().filter(routerId::equals).isPresent()) {
+        if (pipe().routed() && item.mode() == TransportMode.REQUESTED && item.destination().filter(routerId::equals).isPresent()) {
             // ordered for this inventory and it did not all fit, the rest waits in the pipe for room
             transport.insert(item.remainder(McItemType.batchOf(rest)));
         } else if (pipe().routed()) {
@@ -515,7 +516,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     }
 
     @Override
-    public int send(ItemType type, int count, RouterId destination) {
+    public int send(ItemType type, int count, RouterId destination, TransportMode mode) {
         ItemStack match = McItemType.stackOf(new ItemBatch(type, 1));
         int remaining = count;
         for (Direction side : inventorySides()) {
@@ -525,7 +526,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
                 if (taken.isEmpty()) {
                     break;
                 }
-                transport.insert(new TravellingItem(McItemType.batchOf(taken), Directions.toDomain(side), destination));
+                transport.insert(new TravellingItem(McItemType.batchOf(taken), Directions.toDomain(side), destination, mode));
                 remaining -= taken.getCount();
             }
         }

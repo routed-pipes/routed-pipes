@@ -405,4 +405,26 @@ public class ChassisGameTest {
             helper.succeed();
         });
     }
+
+    // twenty coal arrive in one stack, the passive supplier wants eight: it takes exactly eight
+    @GameTest(template = EMPTY, timeoutTicks = 300)
+    public static void passiveSupplierSplitsAStackThatIsTooLarge(GameTestHelper helper) {
+        GameTestPower.supply(helper);
+        PipeBlockEntity source = pipe(helper, PipeKind.BASIC, 0);
+        source.setDefaultRoute(false);
+        ItemStack supplier = module(ModuleKind.PASSIVE_SUPPLIER);
+        ModuleItem.configureSink(supplier, List.of(new ItemStack(Items.COAL, 8)), false);
+        chassis(helper, 1, 1, supplier);
+        BlockPos target = chest(helper, 1);
+        pipe(helper, PipeKind.BASIC, 2);
+        BlockPos rest = chest(helper, 2);
+
+        helper.runAfterDelay(15, () -> source.accept(new ItemStack(Items.COAL, 20), net.minecraft.core.Direction.DOWN));
+
+        helper.runAfterDelay(120, () -> {
+            assertCount(helper, target, Items.COAL, 8);
+            assertCount(helper, rest, Items.COAL, 12);
+            helper.succeed();
+        });
+    }
 }

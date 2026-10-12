@@ -20,6 +20,7 @@ import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.domain.logistics.SinkRule;
 import logisticspipes.domain.routing.RouterId;
 import logisticspipes.domain.routing.Side;
+import logisticspipes.domain.transport.TransportMode;
 
 // a routed pipe with a pretend inventory that takes everything
 public final class FakeNode implements RouterNode {
@@ -41,6 +42,7 @@ public final class FakeNode implements RouterNode {
     // basic pipes take everything by default, like a fresh one in the game
     public SinkRule sink = new ItemSink(Set.of(), true);
     public int satelliteId;
+    public TransportMode lastMode;
     public int extractionBoost = 1;
     // how often the network looked into the inventories of this pipe
     public int probes;
@@ -92,7 +94,8 @@ public final class FakeNode implements RouterNode {
     }
 
     @Override
-    public int send(ItemType type, int count, RouterId destination) {
+    public int send(ItemType type, int count, RouterId destination, TransportMode mode) {
+        lastMode = mode;
         int sent = Math.min(count, contents.getOrDefault(type, 0));
         if (sent > 0) {
             contents.merge(type, -sent, Integer::sum);

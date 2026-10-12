@@ -386,4 +386,32 @@ class PipeTransportTest {
 
         assertThat(entered.progress()).isEqualTo(12);
     }
+
+    @Test
+    void whatADestinationDoesNotWantStaysBehindAsItsOwnItem() {
+        TravellingItem item = new TravellingItem(batch("stone", 20), Side.WEST, null);
+        transport.insert(item);
+
+        transport.tick(clock++, travelling -> {
+            travelling.keepOnly(6);
+            return Optional.of(Side.EAST);
+        });
+
+        assertThat(transport.items()).extracting(TravellingItem::batch).containsExactly(batch("stone", 6), batch("stone", 14));
+        assertThat(transport.items().get(1).decided()).isFalse();
+        assertThat(transport.items().get(1).origin()).isEqualTo(Side.WEST);
+        assertThat(transport.pollChanged()).isTrue();
+    }
+
+    @Test
+    void keepingAllOrMoreCutsNothingOff() {
+        TravellingItem item = new TravellingItem(batch("stone", 20), Side.WEST, null);
+
+        item.keepOnly(20);
+        item.keepOnly(64);
+        item.keepOnly(0);
+
+        assertThat(item.batch()).isEqualTo(batch("stone", 20));
+        assertThat(item.takeCutOff()).isEmpty();
+    }
 }

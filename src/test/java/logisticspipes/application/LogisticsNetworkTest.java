@@ -12,6 +12,7 @@ import logisticspipes.domain.logistics.ItemSink;
 import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.domain.routing.Link;
 import logisticspipes.domain.routing.RouterId;
+import logisticspipes.domain.transport.TransportMode;
 import logisticspipes.domain.transport.TravellingItem;
 import logisticspipes.testing.FakeNode;
 import org.junit.jupiter.api.Test;
@@ -120,7 +121,7 @@ class LogisticsNetworkTest {
     void picksNewDestinationWhenTheOldOneIsFull() {
         line();
         a.inventories.add(Side.DOWN);
-        TravellingItem item = new TravellingItem(batch("stone", 8), Side.WEST, C);
+        TravellingItem item = new TravellingItem(batch("stone", 8), Side.WEST, C, TransportMode.SORTED);
 
         assertThat(network.chooseExit(C, item, NOW)).contains(Side.WEST);
         assertThat(item.destination()).contains(A);
@@ -183,7 +184,7 @@ class LogisticsNetworkTest {
     @Test
     void clearsDestinationWhenNothingIsLeft() {
         line();
-        TravellingItem item = new TravellingItem(batch("stone", 8), Side.WEST, C);
+        TravellingItem item = new TravellingItem(batch("stone", 8), Side.WEST, C, TransportMode.SORTED);
 
         assertThat(network.chooseExit(C, item, NOW)).isEmpty();
         assertThat(item.destination()).isEmpty();

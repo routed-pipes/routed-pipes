@@ -15,6 +15,7 @@ import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.domain.logistics.SinkRule;
 import logisticspipes.domain.routing.RouterId;
 import logisticspipes.domain.routing.Side;
+import logisticspipes.domain.transport.TransportMode;
 
 // what the network needs to know about a routed pipe and the world around it
 public interface RouterNode {
@@ -35,7 +36,12 @@ public interface RouterNode {
     Map<ItemType, Integer> contents();
 
     // takes items out of the inventories and sends them on their way, returns how many went out
-    int send(ItemType type, int count, RouterId destination);
+    // ordered items wait at a full destination, sorted ones go looking for another
+    int send(ItemType type, int count, RouterId destination, TransportMode mode);
+
+    default int send(ItemType type, int count, RouterId destination) {
+        return send(type, count, destination, TransportMode.REQUESTED);
+    }
 
     // whether the contents of the inventory can be ordered
     default boolean provides() {

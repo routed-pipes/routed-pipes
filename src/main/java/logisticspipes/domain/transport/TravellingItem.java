@@ -13,7 +13,9 @@ import logisticspipes.domain.routing.RouterId;
 public final class TravellingItem {
 
     private final long id;
-    private final ItemBatch batch;
+    private ItemBatch batch;
+    // what was cut off this item because its destination only wants part of it, picked up by the pipe
+    private ItemBatch cutOff;
     private final Side origin;
     private RouterId destination;
     // the router this item is passed to next, plain pipes need it at forks
@@ -33,8 +35,11 @@ public final class TravellingItem {
 
     // an item with a destination from the start was ordered, one without is waiting to be claimed
     public TravellingItem(ItemBatch batch, Side origin, RouterId destination) {
-        this(ThreadLocalRandom.current().nextLong(), batch, origin, destination,
-                destination == null ? TransportMode.UNCLAIMED : TransportMode.REQUESTED);
+        this(batch, origin, destination, destination == null ? TransportMode.UNCLAIMED : TransportMode.REQUESTED);
+    }
+
+    public TravellingItem(ItemBatch batch, Side origin, RouterId destination, TransportMode mode) {
+        this(ThreadLocalRandom.current().nextLong(), batch, origin, destination, mode);
     }
 
     private TravellingItem(long id, ItemBatch batch, Side origin, RouterId destination, TransportMode mode) {
@@ -74,6 +79,21 @@ public final class TravellingItem {
 
     public ItemBatch batch() {
         return batch;
+    }
+
+    // the destination takes only this many, the rest is cut off and stays behind as an item of its own
+    public void keepOnly(int count) {
+        if (count > 0 && count < batch.count()) {
+            cutOff = new ItemBatch(batch.type(), batch.count() - count);
+            batch = new ItemBatch(batch.type(), count);
+        }
+    }
+
+    // empty unless something was cut off since the last call
+    public Optional<ItemBatch> takeCutOff() {
+        Optional<ItemBatch> result = Optional.ofNullable(cutOff);
+        cutOff = null;
+        return result;
     }
 
     public Side origin() {
