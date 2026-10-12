@@ -172,6 +172,7 @@ RECIPES = [
     programmed("upgrade_disconnection", UPGRADE_LEVEL_1, count=8),
     programmed("upgrade_advanced_satellite", UPGRADE_LEVEL_2),
     programmed("upgrade_crafting_byproduct", UPGRADE_LEVEL_1),
+    programmed("upgrade_fluid_crafting", UPGRADE_LEVEL_1),
     programmed("upgrade_power_transportation", UPGRADE_LEVEL_1),
     programmed("upgrade_crafting_cleanup", UPGRADE_LEVEL_2),
     programmed("upgrade_module_upgrade", UPGRADE_LEVEL_4),

@@ -37,6 +37,14 @@ public class FluidContainerItem extends Item {
         return of(new FluidBatch(type, 1));
     }
 
+    // the marker of the fluid in a clicked item like a bucket, empty if it holds none
+    public static ItemStack markerOf(ItemStack clicked) {
+        if (!(BuiltInRegistries.ITEM.get(ID) instanceof FluidContainerItem container)) {
+            return ItemStack.EMPTY;
+        }
+        return fluidIn(clicked).or(() -> container.fluids.contained(clicked)).map(batch -> marker(batch.type())).orElse(ItemStack.EMPTY);
+    }
+
     public static Optional<FluidBatch> fluidIn(ItemStack stack) {
         return Optional.ofNullable(stack.get(FluidContents.TYPE)).filter(contents -> contents.amount() > 0)
                 .map(FluidContents::batch);

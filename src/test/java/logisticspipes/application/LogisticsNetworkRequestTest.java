@@ -162,8 +162,8 @@ class LogisticsNetworkRequestTest {
         provider.stock("ore", 20).stock("coal", 20);
         crafting.recipe = new Recipe(List.of(batch("coal", 1), batch("ore", 1)), batch("ingot", 1));
         crafting.satelliteInputs.add(batch("ore", 1));
-        crafting.satelliteId = 7;
-        satellite.satelliteId = 7;
+        crafting.satelliteName = "7";
+        satellite.satelliteName = "7";
 
         network.request(REQUEST, batch("ingot", 3), 0);
 
@@ -188,7 +188,7 @@ class LogisticsNetworkRequestTest {
         connect();
         provider.stock("ore", 20);
         crafting.recipe = new Recipe(List.of(batch("ore", 1)), batch("ingot", 1));
-        crafting.satelliteId = 7;
+        crafting.satelliteName = "7";
 
         assertThat(network.available(REQUEST)).containsOnlyKeys(item("ore"));
         assertThat(network.request(REQUEST, batch("ingot", 3), 0).started()).isFalse();
@@ -826,16 +826,56 @@ class LogisticsNetworkRequestTest {
         connect();
         provider.stock("ore", 8);
         provider.stock("coal", 8);
-        satellite.satelliteId = 3;
+        satellite.satelliteName = "3";
         Recipe smelting = new Recipe(List.of(batch("ore", 1), batch("coal", 1)), batch("ingot", 1));
-        crafting.crafts = List.of(new CraftingSetup(smelting, Map.of(3, List.of(batch("ore", 1)), 4, List.of(batch("coal", 1))),
+        crafting.crafts = List.of(new CraftingSetup(smelting, Map.of("3", List.of(batch("ore", 1)), "4", List.of(batch("coal", 1))),
                 0, Optional.empty()));
 
         assertThat(network.available(REQUEST)).doesNotContainKey(item("ingot"));
 
-        crafting.crafts = List.of(new CraftingSetup(smelting, Map.of(3, List.of(batch("ore", 1))), 0, Optional.empty()));
+        crafting.crafts = List.of(new CraftingSetup(smelting, Map.of("3", List.of(batch("ore", 1))), 0, Optional.empty()));
         assertThat(network.request(REQUEST, batch("ingot", 2), 0).started()).isTrue();
         assertThat(provider.shipments).containsExactlyInAnyOrder(new Shipment(batch("ore", 2), SATELLITE),
                 new Shipment(batch("coal", 2), CRAFTING));
+    }
+
+    @Test
+    void aSatelliteIsFoundByTheNameAPlayerGaveIt() {
+        connect();
+        provider.stock("ore", 8);
+        satellite.satelliteName = "Furnace top";
+        crafting.recipe = new Recipe(List.of(batch("ore", 1)), batch("ingot", 1));
+        crafting.satelliteInputs.add(batch("ore", 1));
+        crafting.satelliteName = "Furnace top";
+
+        network.request(REQUEST, batch("ingot", 2), 0);
+
+        assertThat(provider.shipments).containsExactly(new Shipment(batch("ore", 2), SATELLITE));
+    }
+
+    @Test
+    void listsTheNamedSatellitesOfAKindWithinReachNearestFirst() {
+        connect();
+        satellite.satelliteName = "Far";
+        FakeNode near = new FakeNode(PipeKind.SATELLITE);
+        near.satelliteName = "Near";
+        FakeNode unnamed = new FakeNode(PipeKind.SATELLITE);
+        FakeNode tank = new FakeNode(PipeKind.FLUID_SATELLITE);
+        tank.satelliteName = "Tank";
+        FakeNode island = new FakeNode(PipeKind.SATELLITE);
+        island.satelliteName = "Island";
+        network.addRouter(ISLAND, island, BUILT);
+        List<FakeNode> extra = List.of(near, unnamed, tank);
+        for (int i = 0; i < extra.size(); i++) {
+            // all hang off the provider, which is right next to the request pipe
+            network.addRouter(router(20 + i), extra.get(i), BUILT);
+            network.updateLinks(router(20 + i), List.of(new Link(PROVIDER, Side.DOWN, 1)), BUILT);
+        }
+        network.updateLinks(PROVIDER, List.of(new Link(REQUEST, Side.WEST, 1), new Link(CRAFTING, Side.EAST, 1),
+                new Link(router(20), Side.UP, 1), new Link(router(21), Side.NORTH, 1), new Link(router(22), Side.SOUTH, 1)), BUILT);
+
+        assertThat(network.satelliteNames(REQUEST, PipeKind.SATELLITE)).containsExactly("Near", "Far");
+        assertThat(network.satelliteNames(REQUEST, PipeKind.FLUID_SATELLITE)).containsExactly("Tank");
+        assertThat(network.satelliteNames(SATELLITE, PipeKind.SATELLITE)).containsExactly("Near");
     }
 }

@@ -362,7 +362,8 @@ def main():
     write_tubes(shared)
     upgrades = ["sneaky", "speed", "module_upgrade", "action_speed", "item_extraction", "item_stack_extraction",
                 "crafting_byproduct", "crafting_cleanup", "disconnection", "advanced_satellite", "power_supplier_rf",
-                "power_transportation", "opaque", "cc_remote_control", "sneaky_combination", "pattern", "fuzzy"]
+                "power_transportation", "opaque", "cc_remote_control", "sneaky_combination", "pattern", "fuzzy",
+                "fluid_crafting"]
     parts = ["chip_basic_raw", "chip_basic", "chip_advanced_raw", "chip_advanced", "chip_fpga_raw", "chip_fpga", "module_blank",
              "logistics_programmer"]
     for module in MODULES + ["remote_orderer", "pipe_controller", "settings_copier", "security_card", "disk", "frequency_card", "guide_book"] + ["upgrade_" + upgrade for upgrade in upgrades] + parts:

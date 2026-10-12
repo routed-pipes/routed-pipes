@@ -5,6 +5,8 @@ import logisticspipes.adapter.minecraft.LogisticsPipeBlock;
 import logisticspipes.adapter.minecraft.McFluidType;
 import logisticspipes.adapter.minecraft.PipeBlockEntity;
 import logisticspipes.adapter.minecraft.menu.FluidConfigMenu;
+import logisticspipes.adapter.minecraft.menu.MenuRequests;
+import logisticspipes.adapter.minecraft.menu.SatelliteNames;
 import logisticspipes.adapter.minecraft.menu.FluidRequestMenu;
 import logisticspipes.adapter.neoforge.LogisticsPipes;
 import logisticspipes.application.RequestOutcome;
@@ -517,16 +519,17 @@ public class FluidGameTest {
     }
 
     @GameTest(template = EMPTY)
-    public static void theSatelliteSettingsSetItsNumber(GameTestHelper helper) {
+    public static void theSatelliteSettingsSetItsName(GameTestHelper helper) {
         PipeBlockEntity satellite = pipe(helper, PipeKind.FLUID_SATELLITE, 0, 1);
         Player player = TestPlayer.in(helper);
 
         helper.runAfterDelay(SETTLE, () -> {
             player.openMenu(satellite.menuProvider());
-            player.containerMenu.clickMenuButton(player, FluidConfigMenu.BUTTON_SATELLITE_UP);
-            player.containerMenu.clickMenuButton(player, FluidConfigMenu.BUTTON_SATELLITE_UP);
-            player.containerMenu.clickMenuButton(player, FluidConfigMenu.BUTTON_SATELLITE_DOWN);
-            helper.assertTrue(satellite.satelliteId() == 1, "the satellite should have number 1");
+            MenuRequests.applyText(player, player.containerMenu.containerId, SatelliteNames.FIELD_OWN, " Lava tank ");
+            helper.assertTrue(satellite.satelliteName().equals("Lava tank"), "the satellite takes the name without the blanks around it");
+            helper.assertTrue(((FluidConfigMenu) player.containerMenu).satelliteName().equals("Lava tank"), "the menu shows the name");
+            MenuRequests.applyText(player, player.containerMenu.containerId, SatelliteNames.FIELD_OWN, "  ");
+            helper.assertTrue(satellite.satelliteName().equals("Lava tank"), "a blank name is refused");
             helper.succeed();
         });
     }

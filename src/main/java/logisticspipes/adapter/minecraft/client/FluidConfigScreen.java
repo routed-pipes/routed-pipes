@@ -15,6 +15,8 @@ public class FluidConfigScreen extends AbstractContainerScreen<FluidConfigMenu> 
 
     private Button partial;
     private Button minimum;
+    // only a satellite pipe has one
+    private SatelliteNameField nameField;
 
     public FluidConfigScreen(FluidConfigMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
@@ -24,11 +26,9 @@ public class FluidConfigScreen extends AbstractContainerScreen<FluidConfigMenu> 
     protected void init() {
         super.init();
         if (menu.kind() == PipeKind.FLUID_SATELLITE) {
-            int x = leftPos + imageWidth / 2;
-            addRenderableWidget(Button.builder(Component.literal("-"), button -> press(FluidConfigMenu.BUTTON_SATELLITE_DOWN))
-                    .bounds(x - 30, topPos + 37, 14, 14).build());
-            addRenderableWidget(Button.builder(Component.literal("+"), button -> press(FluidConfigMenu.BUTTON_SATELLITE_UP))
-                    .bounds(x + 16, topPos + 37, 14, 14).build());
+            nameField = new SatelliteNameField(font, leftPos + imageWidth / 2, topPos + 37, menu.containerId);
+            addRenderableWidget(nameField.box());
+            addRenderableWidget(nameField.save());
         }
         if (menu.kind() == PipeKind.FLUID_SUPPLIER) {
             partial = addRenderableWidget(Button.builder(partialLabel(), button -> press(FluidConfigMenu.BUTTON_PARTIAL))
@@ -60,6 +60,17 @@ public class FluidConfigScreen extends AbstractContainerScreen<FluidConfigMenu> 
             partial.setMessage(partialLabel());
             minimum.setMessage(minimumLabel());
         }
+        if (nameField != null) {
+            nameField.show(menu.satelliteName());
+        }
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (nameField != null && nameField.keyPressed(keyCode, scanCode, modifiers)) {
+            return true;
+        }
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
     private void press(int button) {
@@ -92,8 +103,6 @@ public class FluidConfigScreen extends AbstractContainerScreen<FluidConfigMenu> 
         if (menu.kind() == PipeKind.FLUID_SATELLITE) {
             Component label = Component.translatable("logisticspipes.gui.satellite");
             graphics.drawString(font, label, imageWidth / 2 - font.width(label) / 2, 26, TEXT, false);
-            String id = menu.satelliteId() == 0 ? "-" : Integer.toString(menu.satelliteId());
-            graphics.drawString(font, id, imageWidth / 2 - font.width(id) / 2, 40, TEXT, false);
         }
     }
 }

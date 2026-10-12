@@ -76,7 +76,7 @@ public interface RouterNode {
         if (kind() != PipeKind.CRAFTING || recipe().isEmpty()) {
             return List.of();
         }
-        return List.of(new CraftingSetup(recipe().get(), satelliteInputs(), satelliteId(), 0));
+        return List.of(new CraftingSetup(recipe().get(), satelliteInputs(), satelliteName(), 0));
     }
 
     // only firewall pipes have one
@@ -144,9 +144,9 @@ public interface RouterNode {
         return new PipeStatistics();
     }
 
-    // own id for satellites, the chosen satellite for crafting pipes, 0 for none
-    default int satelliteId() {
-        return 0;
+    // own name for satellites, the chosen satellite for crafting pipes, empty for none
+    default String satelliteName() {
+        return "";
     }
 
     // supplier pipes only, how many of each item the inventory should hold

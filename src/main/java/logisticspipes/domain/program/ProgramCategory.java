@@ -6,7 +6,7 @@ import java.util.stream.Stream;
 // programs are unlocked on a disk a category at a time
 public enum ProgramCategory {
     BASIC(pipes("request_pipe", "provider_pipe", "crafting_pipe", "satellite_pipe", "supplier_pipe"),
-            upgrades("sneaky", "speed", "disconnection", "crafting_byproduct", "crafting_cleanup")),
+            upgrades("sneaky", "speed", "disconnection", "crafting_byproduct", "crafting_cleanup", "fluid_crafting")),
     TIER_2(pipes("request_pipe_mk2", "system_entrance_pipe", "system_destination_pipe"),
             upgrades("advanced_satellite", "power_transportation", "action_speed", "item_extraction",
                     "item_stack_extraction")),

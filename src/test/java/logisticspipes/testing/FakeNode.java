@@ -61,7 +61,7 @@ public final class FakeNode implements RouterNode {
     public FirewallRule firewall;
     // basic pipes take everything by default, like a fresh one in the game
     public SinkRule sink = new ItemSink(Set.of(), true);
-    public int satelliteId;
+    public String satelliteName = "";
     public TransportMode lastMode;
     // upgrades of the extractors
     public int actionSpeed;
@@ -246,8 +246,8 @@ public final class FakeNode implements RouterNode {
     }
 
     @Override
-    public int satelliteId() {
-        return satelliteId;
+    public String satelliteName() {
+        return satelliteName;
     }
 
     @Override

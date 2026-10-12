@@ -332,7 +332,7 @@ public class CraftingTableGameTest {
         helper.setBlock(chassisPos, LogisticsPipes.CHASSIS_PIPES.get(1).get());
         PipeBlockEntity chassis = helper.getBlockEntity(chassisPos);
         ItemStack crafter = new ItemStack(LogisticsPipes.MODULES.get(ModuleKind.CRAFTER).get());
-        ModuleItem.configureCrafter(crafter, List.of(new ItemStack(Items.OAK_LOG)), new ItemStack(Items.OAK_PLANKS, 4), 0, 0);
+        ModuleItem.configureCrafter(crafter, List.of(new ItemStack(Items.OAK_LOG)), new ItemStack(Items.OAK_PLANKS, 4), "", 0);
         chassis.modules().setItem(0, crafter);
         table(helper, 2, 2, Items.OAK_LOG);
 

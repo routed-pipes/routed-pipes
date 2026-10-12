@@ -18,7 +18,10 @@ public record RequestSummary(Map<ItemType, Integer> fromStock, Map<ItemType, Int
         long energy = 0;
         for (Provision provision : plan.provisions()) {
             fromStock.merge(provision.batch().type(), provision.batch().count(), Integer::sum);
-            energy += (long) provision.batch().count() * energyPerProvidedItem;
+            // fluid providers send for free
+            if (!provision.batch().type().packedFluid()) {
+                energy += (long) provision.batch().count() * energyPerProvidedItem;
+            }
         }
         for (CraftJob craft : plan.crafts()) {
             crafted.merge(craft.output().type(), craft.output().count(), Integer::sum);

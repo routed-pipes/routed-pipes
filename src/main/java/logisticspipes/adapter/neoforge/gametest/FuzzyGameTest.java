@@ -261,7 +261,7 @@ public class FuzzyGameTest {
         helper.setBlock(chassisPos, LogisticsPipes.CHASSIS_PIPES.get(1).get());
         PipeBlockEntity chassis = helper.getBlockEntity(chassisPos);
         ItemStack module = new ItemStack(LogisticsPipes.MODULES.get(ModuleKind.CRAFTER).get());
-        ModuleItem.configureCrafter(module, List.of(new ItemStack(Items.OAK_PLANKS, 2)), new ItemStack(Items.STICK, 4), 0, 0);
+        ModuleItem.configureCrafter(module, List.of(new ItemStack(Items.OAK_PLANKS, 2)), new ItemStack(Items.STICK, 4), "", 0);
         chassis.modules().setItem(0, module);
         chassis.moduleUpgrades().setItem(0, upgrade(UpgradeKind.FUZZY));
         TestPlayer player = TestPlayer.in(helper);

@@ -68,7 +68,7 @@ public class SettingsCopierItem extends Item {
         settings.putString("Name", pipe.getBlockState().getBlock().getDescriptionId());
         settings.put("Config", ContainerTags.save(pipe.config(), registries));
         settings.putBoolean("DefaultRoute", pipe.defaultRoute());
-        settings.putInt("Satellite", pipe.satelliteId());
+        settings.putString("Satellite", pipe.satelliteName());
         settings.putInt("Mode", pipe.mode());
         settings.putBoolean("Exclude", pipe.exclude());
         ListTag modules = new ListTag();
@@ -100,7 +100,7 @@ public class SettingsCopierItem extends Item {
         HolderLookup.Provider registries = pipe.getLevel().registryAccess();
         ContainerTags.load(pipe.config(), settings.getCompound("Config"), registries);
         pipe.setDefaultRoute(settings.getBoolean("DefaultRoute"));
-        pipe.setSatelliteId(settings.getInt("Satellite"));
+        pipe.setSatelliteName(settings.getString("Satellite"));
         pipe.setMode(settings.getInt("Mode"));
         pipe.setExclude(settings.getBoolean("Exclude"));
         if (pipe.kind() != PipeKind.CHASSIS) {
@@ -157,8 +157,8 @@ public class SettingsCopierItem extends Item {
         if (kind.equals(PipeKind.BASIC.name()) && settings.getBoolean("DefaultRoute")) {
             lines.add(Component.translatable("logisticspipes.status.default_route"));
         }
-        if (settings.getInt("Satellite") != 0) {
-            lines.add(Component.translatable("logisticspipes.settings_copier.satellite", settings.getInt("Satellite")));
+        if (!settings.getString("Satellite").isEmpty()) {
+            lines.add(Component.translatable("logisticspipes.settings_copier.satellite", settings.getString("Satellite")));
         }
         if (kind.equals(PipeKind.PROVIDER.name())) {
             lines.add(Component.translatable("logisticspipes.gui.provider_mode." + mode));

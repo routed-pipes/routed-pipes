@@ -74,7 +74,6 @@ public final class FluidPipe implements FluidNode {
         @Override
         public int get(int index) {
             return switch (index) {
-                case FluidConfigMenu.DATA_SATELLITE -> pipe.satelliteId();
                 case FluidConfigMenu.DATA_BUCKETS -> stockTarget / FluidConfigMenu.BUCKET;
                 case FluidConfigMenu.DATA_REST -> stockTarget % FluidConfigMenu.BUCKET;
                 case FluidConfigMenu.DATA_PARTIAL -> partial ? 1 : 0;
@@ -85,7 +84,6 @@ public final class FluidPipe implements FluidNode {
         @Override
         public void set(int index, int value) {
             switch (index) {
-                case FluidConfigMenu.DATA_SATELLITE -> pipe.setSatelliteId(value);
                 case FluidConfigMenu.DATA_BUCKETS -> stockTarget = value * FluidConfigMenu.BUCKET + stockTarget % FluidConfigMenu.BUCKET;
                 case FluidConfigMenu.DATA_REST -> stockTarget = stockTarget - stockTarget % FluidConfigMenu.BUCKET + value;
                 case FluidConfigMenu.DATA_PARTIAL -> partial = value != 0;
@@ -474,7 +472,8 @@ public final class FluidPipe implements FluidNode {
         }
         return new SimpleMenuProvider((id, inventory, player) -> {
             FluidConfigMenu menu = new FluidConfigMenu(services().configMenu(kind), id, inventory, kind, pipe.config(), data,
-                    user -> Container.stillValidBlockEntity(pipe, user), this::markerOf);
+                    user -> Container.stillValidBlockEntity(pipe, user), this::markerOf,
+                    kind == PipeKind.FLUID_SATELLITE ? pipe.satelliteSettings() : null);
             open.add(menu);
             return menu;
         }, pipe.getBlockState().getBlock().getName());

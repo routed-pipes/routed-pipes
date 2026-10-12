@@ -227,8 +227,8 @@ public final class VisualTest {
             PipeBlockEntity crafting = pipe(server, CRAFTING);
             crafting.config().setItem(PipeBlockEntity.SATELLITE_ROW, new ItemStack(Items.RAW_IRON, 1));
             crafting.config().setItem(PipeBlockEntity.OUTPUT_SLOT, new ItemStack(Items.IRON_INGOT, 1));
-            crafting.setSatelliteId(3);
-            pipe(server, SATELLITE).setSatelliteId(3);
+            crafting.setSatelliteName("Ore");
+            pipe(server, SATELLITE).setSatelliteName("Ore");
             CraftingTableBlockEntity table = (CraftingTableBlockEntity) server.overworld().getBlockEntity(TABLE);
             table.pattern().setItem(0, new ItemStack(Items.OAK_PLANKS));
             table.pattern().setItem(3, new ItemStack(Items.OAK_PLANKS));

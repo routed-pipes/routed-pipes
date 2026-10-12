@@ -142,8 +142,13 @@ public final class FluidLogistics {
         }
     }
 
+    // an order for items found this fluid for one of its crafters, the provider sends it like any other order
+    void order(RouterId provider, FluidBatch batch, RouterId destination) {
+        orders.computeIfAbsent(provider, key -> new FluidOrders()).add(new FluidOrders.Order(batch.type(), batch.amount(), destination));
+    }
+
     // what the providers the requester can reach hold and have not promised to anyone, never its own tank
-    private List<Stock> stockFor(RouterId requester) {
+    List<Stock> stockFor(RouterId requester) {
         List<Stock> stock = new ArrayList<>();
         Set<InventoryRef> counted = new HashSet<>(tanksOf(requester));
         for (RouterId id : network.routes(requester).byDistance()) {

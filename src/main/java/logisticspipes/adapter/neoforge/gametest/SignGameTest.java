@@ -196,7 +196,7 @@ public class SignGameTest {
             helper.assertTrue(view.lines().equals(List.of(new ItemStack(Items.STICK).getHoverName())),
                     "with its name next to it, got " + view.lines());
 
-            crafting.setSatelliteId(7);
+            crafting.setSatelliteName("7");
         });
         helper.runAfterDelay(2 * A_LOOK, () -> {
             SignView view = crafting.signs().views().get(Direction.NORTH);
@@ -228,7 +228,7 @@ public class SignGameTest {
     public static void clientsAreToldTheSignsAndWhatIsOnThem(GameTestHelper helper) {
         PipeBlockEntity crafting = pipe(helper, PipeKind.CRAFTING, PIPE);
         setRecipe(crafting);
-        crafting.setSatelliteId(3);
+        crafting.setSatelliteName("3");
         TestPlayer player = playerWithCreator(helper, SignKind.CRAFTING);
         use(helper, player, PIPE, Direction.NORTH, false);
 

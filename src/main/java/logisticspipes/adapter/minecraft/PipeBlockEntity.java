@@ -2,6 +2,7 @@ package logisticspipes.adapter.minecraft;
 
 import logisticspipes.domain.logistics.UpgradeKind;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
@@ -16,6 +17,7 @@ import logisticspipes.adapter.minecraft.menu.ChassisMenu;
 import logisticspipes.adapter.minecraft.menu.FirewallMenu;
 import logisticspipes.adapter.minecraft.menu.FrequencyCardMenu;
 import logisticspipes.adapter.minecraft.menu.PipeConfigMenu;
+import logisticspipes.adapter.minecraft.menu.SatelliteNames;
 import logisticspipes.adapter.minecraft.menu.RequestTableMenu;
 import logisticspipes.adapter.minecraft.menu.UpgradeMenu;
 import logisticspipes.adapter.minecraft.menu.RequestMenu;
@@ -28,6 +30,8 @@ import logisticspipes.application.port.PowerNode;
 import logisticspipes.application.port.RouterNode;
 import logisticspipes.domain.crafting.Cleanup;
 import logisticspipes.domain.crafting.CraftingSetup;
+import logisticspipes.domain.crafting.FluidInput;
+import logisticspipes.domain.crafting.SatelliteName;
 import logisticspipes.domain.crafting.OutputOrder;
 import logisticspipes.domain.crafting.OutputOrders;
 import logisticspipes.domain.crafting.Recipe;
@@ -65,6 +69,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -90,11 +95,13 @@ import net.minecraft.world.level.block.state.properties.ChestType;
 public class PipeBlockEntity extends BlockEntity implements RouterNode {
 
     // settings slots: 0-8 are recipe inputs or supplier targets, 9 is the recipe output
-    public static final int CONFIG_SLOTS = 23;
+    public static final int CONFIG_SLOTS = 26;
     public static final int BYPRODUCT_SLOT = 10;
     public static final int CLEANUP_FIRST = 11;
     public static final int CLEANUP_SLOTS = 12;
     public static final int OUTPUT_SLOT = 9;
+    // the fluids of a crafter with fluid crafting upgrades
+    public static final int FLUID_FIRST = 23;
     // first slot of the recipe row that is delivered to the satellite
     public static final int SATELLITE_ROW = 6;
     // the largest chassis has this many
@@ -117,6 +124,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     private final SimpleContainer sneakyRow = new SimpleContainer(UPGRADE_SLOTS);
     private SneakyFaces facesCache;
     private final SlotSettings slotSettings = new SlotSettings(this::settingsChanged);
+    private final FluidCraftingSettings fluidCrafting = new FluidCraftingSettings(this::settingsChanged);
     private final OutputOrders outputOrders = new OutputOrders();
     private final PipeStatistics statistics = new PipeStatistics();
     private final PipeSecurity security = new PipeSecurity(this);
@@ -131,9 +139,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
                 case PipeConfigMenu.DATA_PRIORITY -> priority;
                 case PipeConfigMenu.DATA_BYPRODUCT -> upgradeCount(UpgradeKind.CRAFTING_BYPRODUCT);
                 case PipeConfigMenu.DATA_CLEANUP -> upgradeCount(UpgradeKind.CRAFTING_CLEANUP);
-                case PipeConfigMenu.DATA_ADVANCED_SATELLITE -> upgradeCount(UpgradeKind.ADVANCED_SATELLITE);
-                case PipeConfigMenu.DATA_SATELLITE -> satelliteId;
-                default -> slotSatellites[index - PipeConfigMenu.DATA_SLOT_SATELLITE];
+                default -> upgradeCount(UpgradeKind.ADVANCED_SATELLITE);
             };
         }
 
@@ -144,10 +150,8 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
                 case PipeConfigMenu.DATA_MODE -> mode = value;
                 case PipeConfigMenu.DATA_EXCLUDE -> exclude = value != 0;
                 case PipeConfigMenu.DATA_PRIORITY -> priority = value;
-                case PipeConfigMenu.DATA_BYPRODUCT, PipeConfigMenu.DATA_CLEANUP, PipeConfigMenu.DATA_ADVANCED_SATELLITE -> {
+                default -> {
                 }
-                case PipeConfigMenu.DATA_SATELLITE -> satelliteId = value;
-                default -> slotSatellites[index - PipeConfigMenu.DATA_SLOT_SATELLITE] = value;
             }
             settingsChanged();
         }
@@ -158,7 +162,8 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         }
     };
     private RouterId routerId = new RouterId(UUID.randomUUID());
-    private int satelliteId;
+    // the name of a satellite, on a crafting pipe the satellite the bottom row of its recipe goes to
+    private String satelliteName = SatelliteName.NONE;
     // the one inventory a chassis works on, null until it finds one
     private Direction pointed;
     private List<Direction> pointableCache = List.of();
@@ -169,7 +174,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     // how eagerly a crafting pipe is used, higher first
     private int priority;
     // with the upgrade for it every ingredient slot can have a satellite of its own
-    private final int[] slotSatellites = new int[OUTPUT_SLOT];
+    private final String[] slotSatellites = Collections.nCopies(OUTPUT_SLOT, SatelliteName.NONE).toArray(String[]::new);
     private Boolean upkeepCache;
     // sides cut off with a disconnection upgrade, one bit per direction
     private int disconnected;
@@ -690,8 +695,47 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         return exclude;
     }
 
-    public void setSatelliteId(int id) {
-        data.set(PipeConfigMenu.DATA_SATELLITE, id);
+    // no questions asked, a name a player types goes through satelliteSettings
+    public void setSatelliteName(String name) {
+        satelliteName = SatelliteName.clean(name);
+        settingsChanged();
+    }
+
+    // what the settings screen shows and sets of satellite names: a satellite its own, a crafter the ones it sends to
+    SatelliteNames.Source satelliteSettings() {
+        return new SatelliteNames.Source() {
+            @Override
+            public String name(int field) {
+                if (field >= SatelliteNames.FIELD_FLUID) {
+                    return fluidCrafting.satellite(field - SatelliteNames.FIELD_FLUID);
+                }
+                return field == SatelliteNames.FIELD_OWN ? satelliteName : slotSatellites[field - SatelliteNames.FIELD_SLOT];
+            }
+
+            @Override
+            public SatelliteName.Verdict setName(int field, String name) {
+                if (field >= SatelliteNames.FIELD_FLUID) {
+                    fluidCrafting.setSatellite(field - SatelliteNames.FIELD_FLUID, name);
+                    return SatelliteName.Verdict.ACCEPTED;
+                }
+                if (field != SatelliteNames.FIELD_OWN) {
+                    setSlotSatellite(field - SatelliteNames.FIELD_SLOT, name);
+                    return SatelliteName.Verdict.ACCEPTED;
+                }
+                // a crafter may point at any satellite or at none, a satellite needs a name of its own
+                SatelliteName.Verdict verdict = kind() == PipeKind.CRAFTING ? SatelliteName.Verdict.ACCEPTED
+                        : SatelliteName.check(name, network().satelliteNames(routerId, kind()));
+                if (verdict == SatelliteName.Verdict.ACCEPTED) {
+                    setSatelliteName(name);
+                }
+                return verdict;
+            }
+
+            @Override
+            public List<String> offered(PipeKind satellites) {
+                return kind() == PipeKind.CRAFTING ? network().satelliteNames(routerId, satellites) : List.of();
+            }
+        };
     }
 
     public void setDefaultRoute(boolean enabled) {
@@ -869,7 +913,8 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         }
         return new SimpleMenuProvider((id, inventory, player) -> new PipeConfigMenu(services.configMenu(kind()), id,
                 inventory, kind(), config, data, slotSettings.data(() -> upgradeCount(UpgradeKind.PATTERN), () -> upgradeCount(UpgradeKind.FUZZY)),
-                user -> Container.stillValidBlockEntity(this, user), this::importRecipe), title);
+                user -> Container.stillValidBlockEntity(this, user), this::importRecipe, satelliteSettings(),
+                fluidCrafting.data(() -> upgradeCount(UpgradeKind.FLUID_CRAFTING))), title);
     }
 
     // the settings of a module while it sits in the chassis
@@ -877,7 +922,8 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         ItemStack module = modules.getItem(slot);
         if (slot < pipe().moduleSlots() && module.getItem() instanceof ModuleItem item) {
             item.settingsProvider(module, user -> Container.stillValidBlockEntity(this, user) && modules.getItem(slot) == module,
-                    this::settingsChanged, this::importRecipe, upgrade -> moduleUpgradeCount(slot, upgrade)).ifPresent(player::openMenu);
+                    this::settingsChanged, this::importRecipe, upgrade -> moduleUpgradeCount(slot, upgrade),
+                    kind -> network().satelliteNames(routerId, kind)).ifPresent(player::openMenu);
         }
     }
 
@@ -967,34 +1013,37 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             ItemStack extra = config.getItem(BYPRODUCT_SLOT);
             Optional<ItemBatch> byproduct = extra.isEmpty() || upgradeCount(UpgradeKind.CRAFTING_BYPRODUCT) == 0
                     ? Optional.empty() : Optional.of(McItemType.batchOf(extra));
-            return recipe().map(recipe -> List.of(new CraftingSetup(recipe, bySatellite(), priority, byproduct)))
+            List<FluidInput> fluids = fluidCrafting.inputs(config, upgradeCount(UpgradeKind.FLUID_CRAFTING),
+                    hasUpgrade(UpgradeKind.ADVANCED_SATELLITE));
+            return recipe().map(recipe -> List.of(new CraftingSetup(recipe, bySatellite(), priority, byproduct, fluids)))
                     .orElse(List.of());
         }
         List<CraftingSetup> crafts = new ArrayList<>();
         for (int slot = 0; slot < pipe().moduleSlots(); slot++) {
             ModuleItem.craftingOf(modules.getItem(slot), moduleUpgradeCount(slot, UpgradeKind.CRAFTING_BYPRODUCT) > 0,
-                    moduleUpgradeCount(slot, UpgradeKind.ADVANCED_SATELLITE) > 0, moduleUpgradeCount(slot, UpgradeKind.FUZZY) > 0)
-                    .ifPresent(crafts::add);
+                    moduleUpgradeCount(slot, UpgradeKind.ADVANCED_SATELLITE) > 0, moduleUpgradeCount(slot, UpgradeKind.FUZZY) > 0,
+                    moduleUpgradeCount(slot, UpgradeKind.FLUID_CRAFTING)).ifPresent(crafts::add);
         }
         return crafts;
     }
 
     // which ingredients go to which satellite: one of its own per slot with the upgrade, else the bottom row to one
-    private Map<Integer, List<ItemBatch>> bySatellite() {
+    private Map<String, List<ItemBatch>> bySatellite() {
         if (upgradeCount(UpgradeKind.ADVANCED_SATELLITE) == 0) {
-            return Map.of(satelliteId, satelliteInputs());
+            return Map.of(satelliteName, satelliteInputs());
         }
-        Map<Integer, List<ItemBatch>> inputs = new LinkedHashMap<>();
+        Map<String, List<ItemBatch>> inputs = new LinkedHashMap<>();
         for (int slot = 0; slot < OUTPUT_SLOT; slot++) {
-            if (slotSatellites[slot] != 0 && !config.getItem(slot).isEmpty()) {
+            if (!slotSatellites[slot].isEmpty() && !config.getItem(slot).isEmpty()) {
                 inputs.computeIfAbsent(slotSatellites[slot], key -> new ArrayList<>()).add(marked(slot));
             }
         }
         return inputs;
     }
 
-    public void setSlotSatellite(int slot, int id) {
-        data.set(PipeConfigMenu.DATA_SLOT_SATELLITE + slot, id);
+    public void setSlotSatellite(int slot, String name) {
+        slotSatellites[slot] = SatelliteName.clean(name);
+        settingsChanged();
     }
 
     private static Set<ItemType> plainTypes(Container container, int from, int to) {
@@ -1455,7 +1504,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     @Override
     public List<ItemBatch> satelliteInputs() {
         List<ItemBatch> inputs = new ArrayList<>();
-        for (int slot = SATELLITE_ROW; slot < OUTPUT_SLOT && satelliteId != 0; slot++) {
+        for (int slot = SATELLITE_ROW; slot < OUTPUT_SLOT && !satelliteName.isEmpty(); slot++) {
             if (!config.getItem(slot).isEmpty()) {
                 inputs.add(marked(slot));
             }
@@ -1474,8 +1523,8 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     }
 
     @Override
-    public int satelliteId() {
-        return satelliteId;
+    public String satelliteName() {
+        return satelliteName;
     }
 
     @Override
@@ -1550,11 +1599,15 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         super.saveAdditional(tag, registries);
         tag.putUUID("Router", routerId.value());
         tag.put("Items", TransportTags.save(transport, registries));
-        tag.putInt("Satellite", satelliteId);
+        tag.putString("Satellite", satelliteName);
         tag.putBoolean("DefaultRoute", defaultRoute);
         tag.putInt("Mode", mode);
         tag.putInt("Priority", priority);
-        tag.putIntArray("SlotSatellites", slotSatellites);
+        ListTag slotNames = new ListTag();
+        for (String name : slotSatellites) {
+            slotNames.add(StringTag.valueOf(name));
+        }
+        tag.put("SlotSatellites", slotNames);
         tag.putInt("Disconnected", disconnected);
         if (firewall != null) {
             tag.put("Firewall", firewall.save(registries));
@@ -1581,6 +1634,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         tag.put("ModuleUpgrades", ContainerTags.save(moduleUpgrades, registries));
         tag.put("SneakyUpgrades", ContainerTags.save(sneakyRow, registries));
         tag.put("SlotSettings", slotSettings.save());
+        tag.put("FluidCrafting", fluidCrafting.save());
         ListTag orders = new ListTag();
         for (OutputOrder order : outputOrders.all()) {
             CompoundTag entry = new CompoundTag();
@@ -1619,7 +1673,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         opaqueOnClient = tag.getBoolean("Opaque");
         // updates for clients carry only the items, and commands may set any part alone, so every part is optional
         if (tag.contains("Satellite")) {
-            satelliteId = tag.getInt("Satellite");
+            // worlds from before satellites had names kept a number here
+            satelliteName = tag.contains("Satellite", Tag.TAG_STRING) ? tag.getString("Satellite")
+                    : SatelliteName.ofNumber(tag.getInt("Satellite"));
         }
         if (tag.contains("DefaultRoute")) {
             defaultRoute = tag.getBoolean("DefaultRoute");
@@ -1645,8 +1701,15 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         if (tag.contains("Disconnected")) {
             disconnected = tag.getInt("Disconnected");
         }
-        int[] savedSatellites = tag.getIntArray("SlotSatellites");
-        System.arraycopy(savedSatellites, 0, slotSatellites, 0, Math.min(savedSatellites.length, slotSatellites.length));
+        ListTag slotNames = tag.getList("SlotSatellites", Tag.TAG_STRING);
+        int[] slotNumbers = tag.getIntArray("SlotSatellites");
+        for (int slot = 0; slot < slotSatellites.length; slot++) {
+            if (slot < slotNames.size()) {
+                slotSatellites[slot] = slotNames.getString(slot);
+            } else if (slot < slotNumbers.length) {
+                slotSatellites[slot] = SatelliteName.ofNumber(slotNumbers[slot]);
+            }
+        }
         if (tag.contains("Priority")) {
             priority = tag.getInt("Priority");
         }
@@ -1667,6 +1730,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         }
         if (tag.contains("SlotSettings")) {
             slotSettings.load(tag.getCompound("SlotSettings"));
+        }
+        if (tag.contains("FluidCrafting")) {
+            fluidCrafting.load(tag.getCompound("FluidCrafting"));
         }
         if (tag.contains("SneakyUpgrades")) {
             ContainerTags.load(sneakyRow, tag.getCompound("SneakyUpgrades"), registries);

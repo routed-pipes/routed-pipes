@@ -35,7 +35,9 @@ public enum UpgradeKind {
     // a supplier keeps every listed item in a slot of its own
     PATTERN(1),
     // marker slots get flags that let similar items pass for the one in them
-    FUZZY(1);
+    FUZZY(1),
+    // a crafter takes a fluid as an ingredient, one more per upgrade, delivered to a fluid satellite
+    FLUID_CRAFTING(3);
 
     private final int most;
 
@@ -54,7 +56,7 @@ public enum UpgradeKind {
             case MODULE_UPGRADE -> pipe == PipeKind.CHASSIS;
             case PATTERN -> pipe == PipeKind.SUPPLIER;
             case FUZZY -> pipe == PipeKind.CRAFTING || pipe == PipeKind.BASIC;
-            case CRAFTING_BYPRODUCT, CRAFTING_CLEANUP, ADVANCED_SATELLITE -> pipe == PipeKind.CRAFTING;
+            case CRAFTING_BYPRODUCT, CRAFTING_CLEANUP, ADVANCED_SATELLITE, FLUID_CRAFTING -> pipe == PipeKind.CRAFTING;
             default -> false;
         };
     }
@@ -63,7 +65,7 @@ public enum UpgradeKind {
         return switch (this) {
             case ACTION_SPEED, ITEM_EXTRACTION, ITEM_STACK_EXTRACTION ->
                     module == ModuleKind.EXTRACTOR || module == ModuleKind.ADVANCED_EXTRACTOR;
-            case CRAFTING_BYPRODUCT, CRAFTING_CLEANUP, ADVANCED_SATELLITE -> module == ModuleKind.CRAFTER;
+            case CRAFTING_BYPRODUCT, CRAFTING_CLEANUP, ADVANCED_SATELLITE, FLUID_CRAFTING -> module == ModuleKind.CRAFTER;
             case PATTERN -> module == ModuleKind.ACTIVE_SUPPLIER;
             case FUZZY -> module == ModuleKind.CRAFTER || module == ModuleKind.ITEM_SINK;
             case SNEAKY -> module == ModuleKind.ITEM_SINK || module == ModuleKind.POLYMORPHIC_ITEM_SINK

@@ -1,10 +1,13 @@
 package logisticspipes.adapter.minecraft.client;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import logisticspipes.adapter.minecraft.PipeBlockEntity;
 import logisticspipes.adapter.minecraft.menu.MarkerMenu;
 import logisticspipes.adapter.minecraft.menu.PipeConfigMenu;
+import logisticspipes.adapter.minecraft.menu.SatelliteNames;
+import logisticspipes.domain.crafting.FluidSlots;
 import logisticspipes.domain.item.FuzzyFlags;
 import logisticspipes.domain.logistics.PipeKind;
 import net.minecraft.client.gui.GuiGraphics;
@@ -31,6 +34,20 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> im
     private int satelliteSlot;
     private Button previousSlot;
     private Button nextSlot;
+    // shows the satellite of a crafter and opens the list to pick another
+    private Button select;
+    private final SatellitePicker picker = new SatellitePicker();
+    private static final int SELECT_WIDTH = 76;
+    // only a satellite pipe has one
+    private SatelliteNameField nameField;
+    // the fluid panel left of the window: the amount buttons and fluid satellite of every column, and the satellite of all
+    private final List<List<Button>> fluidSteps = new ArrayList<>();
+    private final List<Button> fluidSelects = new ArrayList<>();
+    private Button fluidSelect;
+    private static final int FLUID_PANEL_HEIGHT = 136;
+    private static final int FLUID_STEPS_TOP = 48;
+    private static final int FLUID_SELECT_TOP = 100;
+    private static final int FLUID_SHARED_TOP = 118;
     // the marker whose inventory slot is being set, only with a pattern upgrade
     private int patternMarker;
     private Button limited;
@@ -102,16 +119,94 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> im
         }
         int x = leftPos + satelliteX();
         int y = topPos + satelliteY();
-        if (menu.kind() == PipeKind.CRAFTING) {
-            previousSlot = addRenderableWidget(Button.builder(Component.literal("<"), button -> turnSatelliteSlot(-1))
-                    .bounds(x - 30, y + 12, 10, 10).build());
-            nextSlot = addRenderableWidget(Button.builder(Component.literal(">"), button -> turnSatelliteSlot(1))
-                    .bounds(x + 20, y + 12, 10, 10).build());
+        if (menu.kind() == PipeKind.SATELLITE) {
+            nameField = new SatelliteNameField(font, x, y - 3, menu.containerId);
+            addRenderableWidget(nameField.box());
+            addRenderableWidget(nameField.save());
+            return;
         }
-        addRenderableWidget(Button.builder(Component.literal("-"), button -> pressSatellite(false))
-                .bounds(x - 30, y - 3, 14, 14).build());
-        addRenderableWidget(Button.builder(Component.literal("+"), button -> pressSatellite(true))
-                .bounds(x + 16, y - 3, 14, 14).build());
+        previousSlot = addRenderableWidget(Button.builder(Component.literal("<"), button -> turnSatelliteSlot(-1))
+                .bounds(x - 30, y + 12, 10, 10).build());
+        nextSlot = addRenderableWidget(Button.builder(Component.literal(">"), button -> turnSatelliteSlot(1))
+                .bounds(x + 20, y + 12, 10, 10).build());
+        select = addRenderableWidget(Button.builder(selectLabel(), button -> picker.open(satelliteField(),
+                leftPos + imageWidth - 126, y + 12)).bounds(x - SELECT_WIDTH / 2, y - 3, SELECT_WIDTH, 14).build());
+        addFluidPanel();
+    }
+
+    private void addFluidPanel() {
+        fluidSteps.clear();
+        fluidSelects.clear();
+        for (int slot = 0; slot < FluidSlots.MAX; slot++) {
+            int left = leftPos + PipeConfigMenu.fluidColumnLeft(slot);
+            List<Button> steps = new ArrayList<>();
+            for (int step = 0; step < PipeConfigMenu.FLUID_STEPS.length; step++) {
+                int id = PipeConfigMenu.BUTTON_FLUID_AMOUNT + slot * PipeConfigMenu.FLUID_STEPS.length + step;
+                boolean adds = PipeConfigMenu.FLUID_STEPS[step] > 0;
+                steps.add(addRenderableWidget(Button.builder(Component.literal(adds ? "+" : "-"), button -> press(id))
+                        .bounds(adds ? left + PipeConfigMenu.FLUID_COLUMN - 12 : left + 2, topPos + FLUID_STEPS_TOP + step / 2 * 12, 10, 10)
+                        .build()));
+            }
+            fluidSteps.add(steps);
+            int field = SatelliteNames.FIELD_FLUID_SLOT + slot;
+            fluidSelects.add(addRenderableWidget(Button.builder(Component.empty(), button -> picker.open(field,
+                    leftPos - 124, topPos + FLUID_SELECT_TOP + 14)).bounds(left + 2, topPos + FLUID_SELECT_TOP, PipeConfigMenu.FLUID_COLUMN - 4, 14)
+                    .build()));
+        }
+        fluidSelect = addRenderableWidget(Button.builder(Component.empty(), button -> picker.open(SatelliteNames.FIELD_FLUID,
+                leftPos - 124, topPos + FLUID_SHARED_TOP + 14)).bounds(leftPos - 2 - PipeConfigMenu.FLUID_COLUMN + 2, topPos + FLUID_SHARED_TOP,
+                PipeConfigMenu.FLUID_COLUMN - 4, 14).build());
+    }
+
+    private static Component satelliteLabel(String name, int width, net.minecraft.client.gui.Font font) {
+        return name.isEmpty() ? Component.translatable("logisticspipes.gui.satellite.off") : Component.literal(font.plainSubstrByWidth(name, width - 6));
+    }
+
+    // a column takes changes to its amount once it has a fluid and a satellite to send it to
+    private void showFluidPanel() {
+        int open = menu.fluidSlots();
+        boolean advanced = menu.advancedSatellite();
+        for (int slot = 0; slot < FluidSlots.MAX; slot++) {
+            boolean shown = slot < open;
+            boolean usable = shown && !menu.fluidSatellite(slot).isEmpty() && !menu.fluidMarker(slot).isEmpty();
+            for (Button step : fluidSteps.get(slot)) {
+                step.visible = shown;
+                step.active = usable;
+            }
+            Button select = fluidSelects.get(slot);
+            select.visible = shown && advanced;
+            select.setMessage(satelliteLabel(menu.fluidSatellite(slot), select.getWidth(), font));
+        }
+        // the satellite of all fluids sits under the whole panel
+        fluidSelect.visible = open > 0 && !advanced;
+        fluidSelect.setX(leftPos + PipeConfigMenu.fluidColumnLeft(Math.max(0, open - 1)) + 2);
+        fluidSelect.setWidth(Math.max(1, open) * PipeConfigMenu.FLUID_COLUMN - 4);
+        fluidSelect.setMessage(satelliteLabel(menu.fluidSatellite(0), fluidSelect.getWidth(), font));
+    }
+
+    private int fluidPanelLeft() {
+        return leftPos + PipeConfigMenu.fluidColumnLeft(menu.fluidSlots() - 1) - 2;
+    }
+
+    // a click on the fluid panel is no click outside the window, which would drop what the mouse holds
+    @Override
+    protected boolean hasClickedOutside(double mouseX, double mouseY, int left, int top, int button) {
+        boolean onFluids = menu.fluidSlots() > 0 && mouseX >= fluidPanelLeft() && mouseX < leftPos
+                && mouseY >= topPos && mouseY < topPos + FLUID_PANEL_HEIGHT;
+        return !onFluids && super.hasClickedOutside(mouseX, mouseY, left, top, button);
+    }
+
+    // the list a pick comes from and the name it replaces
+    private List<String> pickable() {
+        return picker.field() >= SatelliteNames.FIELD_FLUID ? menu.fluidSatellitesInReach() : menu.satellitesInReach();
+    }
+
+    private String picked() {
+        if (picker.field() == SatelliteNames.FIELD_FLUID) {
+            return menu.fluidSatellite(0);
+        }
+        return picker.field() > SatelliteNames.FIELD_FLUID ? menu.fluidSatellite(picker.field() - SatelliteNames.FIELD_FLUID_SLOT)
+                : shownSatellite();
     }
 
     private void turnPatternMarker(int change) {
@@ -136,17 +231,19 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> im
         satelliteSlot = Math.floorMod(satelliteSlot + change, PipeBlockEntity.OUTPUT_SLOT);
     }
 
-    // with the upgrade the buttons set the satellite of the chosen ingredient, without it the one of the bottom row
-    private void pressSatellite(boolean up) {
-        if (menu.advancedSatellite()) {
-            press(PipeConfigMenu.BUTTON_SLOT_SATELLITE + satelliteSlot * 2 + (up ? 1 : 0));
-        } else {
-            press(up ? PipeConfigMenu.BUTTON_SATELLITE_UP : PipeConfigMenu.BUTTON_SATELLITE_DOWN);
-        }
+    // with the upgrade a pick is for the chosen ingredient, without it for the bottom row
+    private int satelliteField() {
+        return menu.advancedSatellite() ? SatelliteNames.FIELD_SLOT + satelliteSlot : SatelliteNames.FIELD_OWN;
     }
 
-    private int shownSatellite() {
-        return menu.advancedSatellite() ? menu.slotSatellite(satelliteSlot) : menu.satelliteId();
+    private String shownSatellite() {
+        return menu.advancedSatellite() ? menu.slotSatellite(satelliteSlot) : menu.satelliteName();
+    }
+
+    private Component selectLabel() {
+        String name = shownSatellite();
+        return name.isEmpty() ? Component.translatable("logisticspipes.gui.satellite.off")
+                : Component.literal(font.plainSubstrByWidth(name, SELECT_WIDTH - 6));
     }
 
     private Component defaultRouteLabel() {
@@ -182,6 +279,11 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> im
         if (previousSlot != null) {
             previousSlot.visible = menu.advancedSatellite();
             nextSlot.visible = menu.advancedSatellite();
+            select.setMessage(selectLabel());
+            showFluidPanel();
+        }
+        if (nameField != null) {
+            nameField.show(menu.satelliteName());
         }
         if (importCleanup != null) {
             importCleanup.visible = menu.cleanupSlots() > 0;
@@ -223,7 +325,9 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> im
         Slot marker = hoveredSlot != null && hoveredSlot.index < menu.fuzzySlots() && hoveredSlot.hasItem() ? hoveredSlot : null;
         fuzzy.hover(marker == null ? -1 : marker.index, marker == null ? 0 : leftPos + marker.x, marker == null ? 0 : topPos + marker.y,
                 mouseX, mouseY);
-        if (fuzzy.open() >= 0 && fuzzy.open() < menu.fuzzySlots()) {
+        if (picker.isOpen()) {
+            picker.draw(graphics, font, pickable(), picked(), mouseX, mouseY);
+        } else if (fuzzy.open() >= 0 && fuzzy.open() < menu.fuzzySlots()) {
             fuzzy.draw(graphics, font, menu.fuzzyFlags(fuzzy.open()));
         } else {
             renderTooltip(graphics, mouseX, mouseY);
@@ -231,7 +335,33 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> im
     }
 
     @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (nameField != null && nameField.keyPressed(keyCode, scanCode, modifiers)) {
+            return true;
+        }
+        return super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        if (picker.isOpen()) {
+            picker.scroll(scrollY, pickable());
+            return true;
+        }
+        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+    }
+
+    @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (picker.isOpen()) {
+            // a click on a name picks it, any click closes the list
+            picker.nameAt(mouseX, mouseY, pickable()).ifPresent(name -> {
+                minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+                ClientMenuLink.setText(menu.containerId, picker.field(), name);
+            });
+            picker.close();
+            return true;
+        }
         int flag = fuzzy.flagAt(mouseX, mouseY);
         if (flag < 0 || fuzzy.open() >= menu.fuzzySlots()) {
             return super.mouseClicked(mouseX, mouseY, button);
@@ -243,14 +373,17 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> im
 
     @Override
     protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
+        if (menu.fluidSlots() > 0) {
+            Panel.draw(graphics, fluidPanelLeft(), topPos, leftPos - fluidPanelLeft() + 3, FLUID_PANEL_HEIGHT, menu);
+        }
         Panel.draw(graphics, leftPos, topPos, imageWidth, imageHeight, menu);
         if (menu.patterned()) {
             graphics.renderOutline(leftPos + menu.getSlot(patternMarker).x - 1, topPos + menu.getSlot(patternMarker).y - 1, 18, 18, SELECTED);
         }
         for (int slot = 0; slot < PipeBlockEntity.OUTPUT_SLOT && menu.kind() == PipeKind.CRAFTING; slot++) {
             // without the upgrade the bottom row of the recipe is what goes to the satellite
-            boolean toSatellite = menu.advancedSatellite() ? menu.slotSatellite(slot) != 0
-                    : menu.satelliteId() != 0 && slot >= PipeBlockEntity.SATELLITE_ROW;
+            boolean toSatellite = menu.advancedSatellite() ? !menu.slotSatellite(slot).isEmpty()
+                    : !menu.satelliteName().isEmpty() && slot >= PipeBlockEntity.SATELLITE_ROW;
             int x = leftPos + menu.getSlot(slot).x;
             int y = topPos + menu.getSlot(slot).y;
             if (toSatellite) {
@@ -258,6 +391,24 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> im
             }
             if (menu.advancedSatellite() && slot == satelliteSlot) {
                 graphics.renderOutline(x - 1, y - 1, 18, 18, SELECTED);
+            }
+        }
+    }
+
+    // per column the amount a run takes and what each pair of buttons changes it by
+    private void fluidLabels(GuiGraphics graphics) {
+        if (menu.fluidSlots() == 0) {
+            return;
+        }
+        Component title = Component.translatable("logisticspipes.gui.fluid_crafting");
+        graphics.drawString(font, title, fluidPanelLeft() - leftPos + 6, 6, TEXT, false);
+        for (int slot = 0; slot < menu.fluidSlots(); slot++) {
+            int middle = PipeConfigMenu.fluidColumnLeft(slot) + PipeConfigMenu.FLUID_COLUMN / 2;
+            String amount = menu.fluidAmount(slot) + "mB";
+            graphics.drawString(font, amount, middle - font.width(amount) / 2, 38, TEXT, false);
+            for (int row = 0; row < PipeConfigMenu.FLUID_STEPS.length / 2; row++) {
+                String step = Integer.toString(PipeConfigMenu.FLUID_STEPS[row * 2 + 1]);
+                graphics.drawString(font, step, middle - font.width(step) / 2, FLUID_STEPS_TOP + 1 + row * 12, TEXT, false);
             }
         }
     }
@@ -295,6 +446,7 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> im
         if (menu.patterned()) {
             patternLabels(graphics);
         }
+        fluidLabels(graphics);
         for (int slot = 0; slot < menu.fuzzySlots(); slot++) {
             FuzzyPanel.mark(graphics, menu.getSlot(slot).x, menu.getSlot(slot).y, menu.fuzzyFlags(slot));
         }
@@ -303,11 +455,9 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> im
         }
         Component label = Component.translatable("logisticspipes.gui.satellite");
         graphics.drawString(font, label, satelliteX() - font.width(label) / 2, satelliteY() - 14, TEXT, false);
-        String id = shownSatellite() == 0 ? "-" : Integer.toString(shownSatellite());
         if (menu.kind() == PipeKind.CRAFTING && menu.advancedSatellite()) {
             Component slot = Component.translatable("logisticspipes.gui.satellite.slot", satelliteSlot + 1);
             graphics.drawString(font, slot, satelliteX() - font.width(slot) / 2, satelliteY() + 13, TEXT, false);
         }
-        graphics.drawString(font, id, satelliteX() - font.width(id) / 2, satelliteY(), TEXT, false);
     }
 }

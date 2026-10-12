@@ -214,8 +214,8 @@ public class RequestGameTest {
 
         crafting.config().setItem(PipeBlockEntity.SATELLITE_ROW, new ItemStack(Items.RAW_IRON, 1));
         crafting.config().setItem(PipeBlockEntity.OUTPUT_SLOT, new ItemStack(Items.IRON_INGOT, 1));
-        crafting.setSatelliteId(3);
-        satellite.setSatelliteId(3);
+        crafting.setSatelliteName("Ore");
+        satellite.setSatelliteName("Ore");
 
         helper.runAfterDelay(SETTLE, () -> {
             helper.assertTrue(request.available().containsKey(batch(Items.IRON_INGOT, 1).type()), "ingots should be craftable");
@@ -286,14 +286,14 @@ public class RequestGameTest {
         PipeBlockEntity original = pipe(helper, PipeKind.CRAFTING, 0, 1);
         original.config().setItem(0, new ItemStack(Items.RAW_IRON, 2));
         original.config().setItem(PipeBlockEntity.OUTPUT_SLOT, new ItemStack(Items.IRON_INGOT, 1));
-        original.setSatelliteId(7);
+        original.setSatelliteName("Ore");
         original.accept(new ItemStack(Items.DIAMOND, 5), Direction.UP);
         CompoundTag saved = original.saveWithoutMetadata(helper.getLevel().registryAccess());
 
         PipeBlockEntity loaded = pipe(helper, PipeKind.CRAFTING, 4, 1);
         loaded.loadWithComponents(saved, helper.getLevel().registryAccess());
 
-        helper.assertTrue(loaded.satelliteId() == 7, "satellite id");
+        helper.assertTrue(loaded.satelliteName().equals("Ore"), "satellite name");
         helper.assertTrue(loaded.recipe().equals(original.recipe()) && loaded.recipe().isPresent(), "recipe");
         helper.assertTrue(loaded.travellingItems().size() == 1
                 && loaded.travellingItems().get(0).batch().equals(batch(Items.DIAMOND, 5)), "item in transit");

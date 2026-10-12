@@ -18,7 +18,10 @@ import java.util.function.Predicate;
 import logisticspipes.application.port.RouterNode;
 import logisticspipes.domain.crafting.Cleanup;
 import logisticspipes.domain.crafting.CraftingSetup;
+import logisticspipes.domain.crafting.FluidInput;
 import logisticspipes.domain.crafting.OutputOrder;
+import logisticspipes.domain.fluid.FluidBatch;
+import logisticspipes.domain.fluid.FluidType;
 import logisticspipes.domain.item.ItemBatch;
 import logisticspipes.domain.item.ItemType;
 import logisticspipes.domain.logistics.DestinationSelector;
@@ -598,15 +601,16 @@ public final class LogisticsNetwork {
             items.remove(wanted.type());
             stock.add(new Stock(entry.provider(), items));
         }
+        FluidIngredients fluidIngredients = fluidIngredients(requester);
+        stock.addAll(fluidIngredients.stock(fluids.stockFor(requester)));
         RequestPlan plan = new RequestPlanner(stock, craftersFor(requester)).plan(requester, wanted);
         if (!plan.complete()) {
             return new RequestOutcome(plan, true);
         }
-        int items = plan.provisions().stream().mapToInt(provision -> provision.batch().count()).sum();
-        if (!usePower(requester, items * ENERGY_PER_PROVIDED_ITEM)) {
+        if (!usePower(requester, providedItems(plan) * ENERGY_PER_PROVIDED_ITEM)) {
             return new RequestOutcome(plan, false);
         }
-        execute(plan, now);
+        execute(plan, fluidIngredients, now);
         return new RequestOutcome(plan, true);
     }
 
@@ -674,17 +678,36 @@ public final class LogisticsNetwork {
     // with partial set, whatever part of the order can be had is started
     private RequestOutcome request(RouterId requester, List<ItemBatch> wanted, long now, int extraEnergy, boolean partial,
             boolean simulate) {
-        RequestPlan plan = new RequestPlanner(stockFor(requester), craftersFor(requester)).plan(requester, wanted);
+        FluidIngredients fluidIngredients = fluidIngredients(requester);
+        List<Stock> stock = new ArrayList<>(stockFor(requester));
+        stock.addAll(fluidIngredients.stock(fluids.stockFor(requester)));
+        RequestPlan plan = new RequestPlanner(stock, craftersFor(requester)).plan(requester, wanted);
         boolean nothing = plan.provisions().isEmpty() && plan.crafts().isEmpty();
         if (simulate || !plan.complete() && (!partial || nothing)) {
             return new RequestOutcome(plan, true);
         }
-        int items = plan.provisions().stream().mapToInt(provision -> provision.batch().count()).sum();
-        if (!usePower(requester, items * ENERGY_PER_PROVIDED_ITEM + extraEnergy)) {
+        if (!usePower(requester, providedItems(plan) * ENERGY_PER_PROVIDED_ITEM + extraEnergy)) {
             return new RequestOutcome(plan, false);
         }
-        execute(plan, now);
+        execute(plan, fluidIngredients, now);
         return new RequestOutcome(plan, true);
+    }
+
+    // fluid for a crafter is not paid for, fluid providers send for free
+    private static int providedItems(RequestPlan plan) {
+        return plan.provisions().stream().filter(provision -> !provision.batch().type().packedFluid())
+                .mapToInt(provision -> provision.batch().count()).sum();
+    }
+
+    // the fluids the crafters within reach take, empty in a network without fluid crafting
+    private FluidIngredients fluidIngredients(RouterId requester) {
+        FluidIngredients ingredients = new FluidIngredients();
+        for (RouterId id : reachableFrom(requester)) {
+            for (CraftingSetup craft : nodes.get(id).crafts()) {
+                craft.fluids().forEach(ingredients::add);
+            }
+        }
+        return ingredients;
     }
 
     // whether some sink would take the batch if it were put into the pipe
@@ -772,13 +795,19 @@ public final class LogisticsNetwork {
                 .anyMatch(id -> passes(at, id, FirewallRule::blockPower) && nodes.get(id).drawPower(1, true) > 0));
     }
 
-    private void execute(RequestPlan plan, long now) {
+    private void execute(RequestPlan plan, FluidIngredients fluidIngredients, long now) {
         for (Provision provision : plan.provisions()) {
             RouterNode provider = nodes.get(provision.provider());
             if (provider == null) {
                 continue;
             }
             ItemType type = provision.batch().type();
+            Optional<FluidType> fluid = fluidIngredients.fluidOf(type);
+            if (fluid.isPresent()) {
+                // fluid for a crafter is an order to a fluid provider, it sends it to the fluid satellite at its own pace
+                fluids.order(provision.provider(), new FluidBatch(fluid.get(), provision.batch().count()), provision.destination());
+                continue;
+            }
             // spare output of a crafting pipe is not held back by any provider setting
             int sent = provider.provides()
                     ? provider.provide(type, provision.batch().count(), provision.destination())
@@ -988,11 +1017,17 @@ public final class LogisticsNetwork {
                 int backlog = node.outputOrders().owedInTotal();
                 Map<RouterId, Map<ItemType, Integer>> forSatellites = new LinkedHashMap<>();
                 boolean allFound = true;
-                for (Map.Entry<Integer, List<ItemBatch>> entry : craft.bySatellite().entrySet()) {
-                    Optional<RouterId> found = satellite(reachable, entry.getKey());
+                for (Map.Entry<String, List<ItemBatch>> entry : craft.bySatellite().entrySet()) {
+                    Optional<RouterId> found = satellite(reachable, PipeKind.SATELLITE, entry.getKey());
                     allFound &= found.isPresent();
                     found.ifPresent(satellite -> entry.getValue().forEach(input -> forSatellites
                             .computeIfAbsent(satellite, key -> new LinkedHashMap<>()).merge(input.type(), input.count(), Integer::sum)));
+                }
+                for (FluidInput input : craft.fluids()) {
+                    Optional<RouterId> found = satellite(reachable, PipeKind.FLUID_SATELLITE, input.satellite());
+                    allFound &= found.isPresent();
+                    found.ifPresent(satellite -> forSatellites.computeIfAbsent(satellite, key -> new LinkedHashMap<>())
+                            .merge(input.asItem(), input.amount(), Integer::sum));
                 }
                 // without its satellites the pipe cannot get its ingredients to the right place
                 if (allFound) {
@@ -1006,9 +1041,19 @@ public final class LogisticsNetwork {
         return candidates.stream().map(Candidate::crafter).toList();
     }
 
-    private Optional<RouterId> satellite(List<RouterId> reachable, int satelliteId) {
+    // the nearest satellite of that kind with that name
+    private Optional<RouterId> satellite(List<RouterId> reachable, PipeKind kind, String name) {
         return reachable.stream()
-                .filter(id -> nodes.get(id).kind() == PipeKind.SATELLITE && nodes.get(id).satelliteId() == satelliteId)
+                .filter(id -> nodes.get(id).kind() == kind && nodes.get(id).satelliteName().equals(name))
                 .findFirst();
+    }
+
+    // the names of the satellites of that kind the router has a way to, nearest first
+    public List<String> satelliteNames(RouterId from, PipeKind kind) {
+        if (!nodes.containsKey(from)) {
+            return List.of();
+        }
+        return reachableFrom(from).stream().filter(id -> nodes.get(id).kind() == kind)
+                .map(id -> nodes.get(id).satelliteName()).filter(name -> !name.isEmpty()).distinct().toList();
     }
 }

@@ -1,11 +1,14 @@
 package logisticspipes.adapter.minecraft.menu;
 
+import java.util.Locale;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
 import logisticspipes.adapter.minecraft.FluidPipe;
+import logisticspipes.domain.crafting.SatelliteName;
 import logisticspipes.domain.fluid.FluidSupply;
 import logisticspipes.domain.logistics.PipeKind;
+import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -19,26 +22,23 @@ import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
-// settings of fluid pipes: slots that remember a fluid, and what a supplier or satellite needs on top
-public class FluidConfigMenu extends AbstractContainerMenu {
+// settings of fluid pipes: slots that remember a fluid, and what a supplier needs on top
+// a satellite has nothing but its name, which comes in as text
+public class FluidConfigMenu extends AbstractContainerMenu implements TextMenu {
 
-    public static final int BUTTON_SATELLITE_DOWN = 0;
-    public static final int BUTTON_SATELLITE_UP = 1;
     public static final int BUTTON_PARTIAL = 2;
     public static final int BUTTON_MINIMUM = 3;
     // the buttons after these change the amount a supplier keeps
     public static final int BUTTON_FIRST_STEP = 4;
     public static final int[] AMOUNT_STEPS = {-1000, -100, -10, -1, 1, 10, 100, 1000};
-    public static final int DATA_SATELLITE = 0;
     // menu data is sent as short numbers, so the amount goes over in two parts
-    public static final int DATA_BUCKETS = 1;
-    public static final int DATA_REST = 2;
-    public static final int DATA_PARTIAL = 3;
-    public static final int DATA_MINIMUM = 4;
-    public static final int DATA_COUNT = 5;
+    public static final int DATA_BUCKETS = 0;
+    public static final int DATA_REST = 1;
+    public static final int DATA_PARTIAL = 2;
+    public static final int DATA_MINIMUM = 3;
+    public static final int DATA_COUNT = 4;
     public static final int BUCKET = 1000;
     public static final int MAX_AMOUNT = 32000 * BUCKET;
-    public static final int MAX_SATELLITE_ID = 99;
     private static final int MAX_CONTAINERS = 64;
 
     private final PipeKind kind;
@@ -49,16 +49,19 @@ public class FluidConfigMenu extends AbstractContainerMenu {
     private final Player player;
     private boolean closed;
     private final int markerSlots;
+    private final SatelliteNames names;
 
     // client side
     public FluidConfigMenu(MenuType<?> type, int id, Inventory inventory, PipeKind kind) {
         this(type, id, inventory, kind, new SimpleContainer(FluidPipe.FILTER_SLOTS), new SimpleContainerData(DATA_COUNT),
-                player -> true, null);
+                player -> true, null, null);
     }
 
+    // satellites is what a satellite pipe knows about names, null for the other pipes and on the client
     public FluidConfigMenu(MenuType<?> type, int id, Inventory inventory, PipeKind kind, Container filter, ContainerData data,
-            Predicate<Player> usable, UnaryOperator<ItemStack> markerOf) {
+            Predicate<Player> usable, UnaryOperator<ItemStack> markerOf, SatelliteNames.Source satellites) {
         super(type, id);
+        this.names = new SatelliteNames(satellites);
         this.kind = kind;
         this.data = data;
         this.usable = usable;
@@ -81,6 +84,7 @@ public class FluidConfigMenu extends AbstractContainerMenu {
         for (int column = 0; column < 9; column++) {
             addSlot(new Slot(inventory, column, 8 + column * 18, 142));
         }
+        addSlot(names.slot());
         addDataSlots(data);
     }
 
@@ -97,8 +101,21 @@ public class FluidConfigMenu extends AbstractContainerMenu {
         };
     }
 
-    public int satelliteId() {
-        return data.get(DATA_SATELLITE);
+    // empty until the satellite has been given a name
+    public String satelliteName() {
+        return names.name(SatelliteNames.FIELD_OWN);
+    }
+
+    @Override
+    public void setText(int field, String text) {
+        if (kind != PipeKind.FLUID_SATELLITE || field != SatelliteNames.FIELD_OWN) {
+            return;
+        }
+        SatelliteName.Verdict verdict = names.setName(field, text);
+        if (verdict != SatelliteName.Verdict.ACCEPTED) {
+            player.displayClientMessage(Component.translatable("logisticspipes.gui.satellite.name."
+                    + verdict.name().toLowerCase(Locale.ROOT)), false);
+        }
     }
 
     // how many mB a supplier keeps in its tank
@@ -144,10 +161,6 @@ public class FluidConfigMenu extends AbstractContainerMenu {
 
     @Override
     public boolean clickMenuButton(Player player, int id) {
-        if (kind == PipeKind.FLUID_SATELLITE && (id == BUTTON_SATELLITE_DOWN || id == BUTTON_SATELLITE_UP)) {
-            data.set(DATA_SATELLITE, Mth.clamp(satelliteId() + (id == BUTTON_SATELLITE_UP ? 1 : -1), 0, MAX_SATELLITE_ID));
-            return true;
-        }
         if (kind != PipeKind.FLUID_SUPPLIER) {
             return false;
         }

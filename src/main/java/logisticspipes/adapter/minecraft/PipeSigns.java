@@ -198,9 +198,9 @@ public final class PipeSigns {
         }
         ItemStack result = pipe.config().getItem(PipeBlockEntity.OUTPUT_SLOT).copyWithCount(1);
         List<Component> lines = new ArrayList<>();
-        if (pipe.satelliteId() != 0) {
+        if (!pipe.satelliteName().isEmpty()) {
             // as text, a number does not come back the same from the way to the client
-            lines.add(Component.translatable("logisticspipes.sign.satellite", Integer.toString(pipe.satelliteId())));
+            lines.add(Component.translatable("logisticspipes.sign.satellite", pipe.satelliteName()));
         }
         lines.add(result.getHoverName());
         return new SignView(result, lines);

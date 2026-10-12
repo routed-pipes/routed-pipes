@@ -1,12 +1,18 @@
 package logisticspipes.adapter.minecraft.menu;
 
+import java.util.List;
+import java.util.Locale;
 import java.util.function.Predicate;
 
+import logisticspipes.adapter.minecraft.FluidContainerItem;
 import logisticspipes.adapter.minecraft.PipeBlockEntity;
+import logisticspipes.domain.crafting.FluidSlots;
+import logisticspipes.domain.crafting.SatelliteName;
 import logisticspipes.domain.item.FuzzyFlags;
 import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.domain.logistics.ProviderMode;
 import logisticspipes.domain.logistics.SupplyMode;
+import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -21,15 +27,15 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
 // settings of basic, provider, supplier, crafting and satellite pipes: marker slots that only remember an item and a count
-public class PipeConfigMenu extends AbstractContainerMenu implements MarkerMenu {
+// a satellite has its name typed in, a crafter is told the name of the satellite to use, both as text
+public class PipeConfigMenu extends AbstractContainerMenu implements MarkerMenu, TextMenu {
 
-    public static final int BUTTON_SATELLITE_DOWN = 0;
-    public static final int BUTTON_SATELLITE_UP = 1;
     public static final int BUTTON_IMPORT_RECIPE = 2;
     public static final int BUTTON_DEFAULT_ROUTE = 3;
     public static final int BUTTON_MODE = 4;
     public static final int BUTTON_EXCLUDE = 5;
-    public static final int DATA_SATELLITE = 0;
+    // not 0 with the upgrade that gives every ingredient a satellite of its own
+    public static final int DATA_ADVANCED_SATELLITE = 0;
     public static final int DATA_DEFAULT_ROUTE = 1;
     // which provider or supply mode, -1 where there is none to choose
     public static final int DATA_MODE = 2;
@@ -38,18 +44,12 @@ public class PipeConfigMenu extends AbstractContainerMenu implements MarkerMenu 
     // whether there is a slot for what else the machine puts out, and how many cleanup upgrades there are
     public static final int DATA_BYPRODUCT = 5;
     public static final int DATA_CLEANUP = 6;
-    // not 0 with the upgrade that gives every ingredient a satellite of its own, followed by those nine satellites
-    public static final int DATA_ADVANCED_SATELLITE = 7;
-    public static final int DATA_SLOT_SATELLITE = 8;
-    public static final int DATA_COUNT = 17;
-    // plus two per ingredient slot: down and up
-    public static final int BUTTON_SLOT_SATELLITE = 30;
+    public static final int DATA_COUNT = 7;
     public static final int BUTTON_IMPORT_CLEANUP = 8;
     public static final int CLEANUP_PER_UPGRADE = 3;
     public static final int BUTTON_PRIORITY_DOWN = 6;
     public static final int BUTTON_PRIORITY_UP = 7;
     public static final int MAX_PRIORITY = 99;
-    public static final int MAX_SATELLITE_ID = 99;
     private static final int MAX_MARKER_COUNT = 64;
     // a second set of numbers for what upgrades add to the marker slots
     // not 0 with a pattern upgrade, the switch for what does not fit its slot, and the inventory slot of every marker
@@ -69,6 +69,19 @@ public class PipeConfigMenu extends AbstractContainerMenu implements MarkerMenu 
     public static final int MAX_PATTERN_SLOT = 98;
     // a pattern has no use for the mode that fills all the room there is
     private static final int PATTERN_MODES = SupplyMode.INFINITE.ordinal();
+    // a third set for fluid crafting: how many upgrades, then the amount of every fluid slot in buckets and the rest
+    // menu data is sent as short numbers, an amount would not fit
+    public static final int FLUID_UPGRADES = 0;
+    public static final int FLUID_BUCKETS = 1;
+    public static final int FLUID_REST = FLUID_BUCKETS + FluidSlots.MAX;
+    public static final int FLUID_DATA_COUNT = FLUID_REST + FluidSlots.MAX;
+    public static final int BUCKET = 1000;
+    // plus eight per fluid slot, one for every step, taking away and adding by turns
+    public static final int BUTTON_FLUID_AMOUNT = 150;
+    public static final int[] FLUID_STEPS = {-1, 1, -10, 10, -100, 100, -1000, 1000};
+    // the fluid slots sit in columns left of the window, the first one next to it
+    public static final int FLUID_COLUMN = 46;
+    public static final int FLUID_SLOT_Y = 18;
 
     private final PipeKind kind;
     private final ContainerData data;
@@ -76,6 +89,9 @@ public class PipeConfigMenu extends AbstractContainerMenu implements MarkerMenu 
     private final Predicate<Player> usable;
     private final Runnable importRecipe;
     private final int markerSlots;
+    private final SatelliteNames names;
+    private final ContainerData fluids;
+    private final Player player;
 
     // client side
     public PipeConfigMenu(MenuType<?> type, int id, Inventory inventory, PipeKind kind) {
@@ -90,7 +106,24 @@ public class PipeConfigMenu extends AbstractContainerMenu implements MarkerMenu 
 
     public PipeConfigMenu(MenuType<?> type, int id, Inventory inventory, PipeKind kind, Container config,
             ContainerData data, ContainerData extras, Predicate<Player> usable, Runnable importRecipe) {
+        this(type, id, inventory, kind, config, data, extras, usable, importRecipe, null);
+    }
+
+    // satellites is what the pipe knows about satellite names, null on the client and where there are none
+    public PipeConfigMenu(MenuType<?> type, int id, Inventory inventory, PipeKind kind, Container config,
+            ContainerData data, ContainerData extras, Predicate<Player> usable, Runnable importRecipe,
+            SatelliteNames.Source satellites) {
+        this(type, id, inventory, kind, config, data, extras, usable, importRecipe, satellites, new SimpleContainerData(FLUID_DATA_COUNT));
+    }
+
+    // fluids is what a crafter knows about fluid crafting
+    public PipeConfigMenu(MenuType<?> type, int id, Inventory inventory, PipeKind kind, Container config,
+            ContainerData data, ContainerData extras, Predicate<Player> usable, Runnable importRecipe,
+            SatelliteNames.Source satellites, ContainerData fluids) {
         super(type, id);
+        this.names = new SatelliteNames(satellites);
+        this.fluids = fluids;
+        this.player = inventory.player;
         this.kind = kind;
         this.data = data;
         this.extras = extras;
@@ -110,6 +143,11 @@ public class PipeConfigMenu extends AbstractContainerMenu implements MarkerMenu 
                 addSlot(new MarkerSlot(config, PipeBlockEntity.CLEANUP_FIRST + index, 8 + index % 6 * 18, 96 + index / 6 * 18,
                         () -> number < cleanupSlots()));
             }
+            for (int index = 0; index < FluidSlots.MAX; index++) {
+                int number = index;
+                addSlot(new MarkerSlot(config, PipeBlockEntity.FLUID_FIRST + index, fluidColumnLeft(index) + (FLUID_COLUMN - 16) / 2,
+                        FLUID_SLOT_Y, () -> number < fluidSlots()));
+            }
         }
         markerSlots = slots.size();
         int top = inventoryTop(kind);
@@ -121,8 +159,84 @@ public class PipeConfigMenu extends AbstractContainerMenu implements MarkerMenu 
         for (int column = 0; column < 9; column++) {
             addSlot(new Slot(inventory, column, 8 + column * 18, top + 58));
         }
+        addSlot(names.slot());
         addDataSlots(data);
         addDataSlots(extras);
+        addDataSlots(fluids);
+    }
+
+    // where the column of a fluid slot starts, left of the window
+    public static int fluidColumnLeft(int slot) {
+        return -2 - (slot + 1) * FLUID_COLUMN;
+    }
+
+    // how many fluids the recipe of a crafter takes, one per fluid crafting upgrade
+    public int fluidSlots() {
+        return kind == PipeKind.CRAFTING ? FluidSlots.open(fluids.get(FLUID_UPGRADES)) : 0;
+    }
+
+    // mB per run
+    public int fluidAmount(int slot) {
+        return fluids.get(FLUID_BUCKETS + slot) * BUCKET + fluids.get(FLUID_REST + slot);
+    }
+
+    public ItemStack fluidMarker(int slot) {
+        return slots.get(PipeBlockEntity.FLUID_FIRST + slot).getItem();
+    }
+
+    // the fluid satellite of all fluids, or with the upgrade the one of a fluid slot
+    public String fluidSatellite(int slot) {
+        return names.name(advancedSatellite() ? SatelliteNames.FIELD_FLUID_SLOT + slot : SatelliteNames.FIELD_FLUID);
+    }
+
+    // the fluid satellites a crafter has to pick from, nearest first
+    public List<String> fluidSatellitesInReach() {
+        return names.offeredFluid();
+    }
+
+    private static boolean fluidSlot(int slot) {
+        return slot >= PipeBlockEntity.FLUID_FIRST && slot < PipeBlockEntity.FLUID_FIRST + FluidSlots.MAX;
+    }
+
+    private void setFluidAmount(int slot, int amount) {
+        fluids.set(FLUID_BUCKETS + slot, amount / BUCKET);
+        fluids.set(FLUID_REST + slot, amount % BUCKET);
+    }
+
+    // the name of a satellite pipe, or the one the bottom row of a crafter goes to, empty for none
+    public String satelliteName() {
+        return names.name(SatelliteNames.FIELD_OWN);
+    }
+
+    // the satellites a crafter has to pick from, nearest first
+    public List<String> satellitesInReach() {
+        return names.offered();
+    }
+
+    @Override
+    public void broadcastChanges() {
+        names.tick();
+        super.broadcastChanges();
+    }
+
+    // a satellite gets its own name, a crafter the satellite of its bottom row or with the upgrade the one of a slot
+    @Override
+    public void setText(int field, String text) {
+        boolean own = field == SatelliteNames.FIELD_OWN;
+        boolean fits = kind == PipeKind.SATELLITE ? own : kind == PipeKind.CRAFTING && own != advancedSatellite();
+        if (field >= SatelliteNames.FIELD_FLUID) {
+            // the fluid satellite of all fluids, or with the upgrade one of the open fluid slots
+            fits = advancedSatellite() ? field - SatelliteNames.FIELD_FLUID_SLOT >= 0 && field - SatelliteNames.FIELD_FLUID_SLOT < fluidSlots()
+                    : field == SatelliteNames.FIELD_FLUID && fluidSlots() > 0;
+        }
+        if (!fits || field < 0 || field >= SatelliteNames.FIELDS) {
+            return;
+        }
+        SatelliteName.Verdict verdict = names.setName(field, text);
+        if (verdict != SatelliteName.Verdict.ACCEPTED) {
+            player.displayClientMessage(Component.translatable("logisticspipes.gui.satellite.name."
+                    + verdict.name().toLowerCase(Locale.ROOT)), false);
+        }
     }
 
     // whether the markers of a supplier stand for slots of the inventory
@@ -163,15 +277,12 @@ public class PipeConfigMenu extends AbstractContainerMenu implements MarkerMenu 
 
     @Override
     public void setMarker(int slot, ItemStack stack) {
-        slots.get(slot).set(stack);
+        // a fluid slot only ever holds the marker of a fluid
+        slots.get(slot).set(kind == PipeKind.CRAFTING && fluidSlot(slot) ? FluidContainerItem.markerOf(stack) : stack);
     }
 
     public PipeKind kind() {
         return kind;
-    }
-
-    public int satelliteId() {
-        return data.get(DATA_SATELLITE);
     }
 
     public boolean defaultRoute() {
@@ -187,8 +298,8 @@ public class PipeConfigMenu extends AbstractContainerMenu implements MarkerMenu 
         return data.get(DATA_ADVANCED_SATELLITE) != 0;
     }
 
-    public int slotSatellite(int slot) {
-        return data.get(DATA_SLOT_SATELLITE + slot);
+    public String slotSatellite(int slot) {
+        return names.name(SatelliteNames.FIELD_SLOT + slot);
     }
 
     public boolean hasByproduct() {
@@ -254,6 +365,11 @@ public class PipeConfigMenu extends AbstractContainerMenu implements MarkerMenu 
         ItemStack held = getCarried();
         ItemStack marker = slot.getItem();
         boolean rightClick = button == 1;
+        if (kind == PipeKind.CRAFTING && fluidSlot(slotId)) {
+            // the fluid of what it is clicked with, any other click clears it
+            slot.set(rightClick ? ItemStack.EMPTY : FluidContainerItem.markerOf(held));
+            return;
+        }
         if (held.isEmpty()) {
             slot.set(rightClick && marker.getCount() > 1 ? marker.copyWithCount(marker.getCount() - 1) : ItemStack.EMPTY);
         } else if (ItemStack.isSameItemSameComponents(held, marker)) {
@@ -295,6 +411,12 @@ public class PipeConfigMenu extends AbstractContainerMenu implements MarkerMenu 
             extras.set(EXTRA_LIMITED, limited() ? 0 : 1);
             return true;
         }
+        int fluidButton = id - BUTTON_FLUID_AMOUNT;
+        if (fluidButton >= 0 && fluidButton < fluidSlots() * FLUID_STEPS.length) {
+            int slot = fluidButton / FLUID_STEPS.length;
+            setFluidAmount(slot, FluidSlots.changed(fluidAmount(slot), FLUID_STEPS[fluidButton % FLUID_STEPS.length]));
+            return true;
+        }
         int fuzzyButton = id - BUTTON_FUZZY;
         if (fuzzyButton >= 0 && fuzzyButton < fuzzySlots() * FuzzyFlags.COUNT) {
             int slot = fuzzyButton / FuzzyFlags.COUNT;
@@ -308,19 +430,7 @@ public class PipeConfigMenu extends AbstractContainerMenu implements MarkerMenu 
             extras.set(EXTRA_PATTERN_SLOT + marker, Mth.clamp(patternSlot(marker) + change, 0, MAX_PATTERN_SLOT));
             return true;
         }
-        int slotButton = id - BUTTON_SLOT_SATELLITE;
-        if (kind == PipeKind.CRAFTING && advancedSatellite() && slotButton >= 0 && slotButton < PipeBlockEntity.OUTPUT_SLOT * 2) {
-            int slot = slotButton / 2;
-            int change = slotButton % 2 == 1 ? 1 : -1;
-            data.set(DATA_SLOT_SATELLITE + slot, Mth.clamp(slotSatellite(slot) + change, 0, MAX_SATELLITE_ID));
-            return true;
-        }
-        if (id != BUTTON_SATELLITE_DOWN && id != BUTTON_SATELLITE_UP) {
-            return false;
-        }
-        int change = id == BUTTON_SATELLITE_UP ? 1 : -1;
-        data.set(DATA_SATELLITE, Mth.clamp(satelliteId() + change, 0, MAX_SATELLITE_ID));
-        return true;
+        return false;
     }
 
     @Override

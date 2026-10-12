@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.ToIntFunction;
 import java.util.Set;
@@ -14,9 +15,11 @@ import java.util.function.Supplier;
 
 import logisticspipes.adapter.minecraft.menu.NamesMenu;
 import logisticspipes.adapter.minecraft.menu.PipeConfigMenu;
+import logisticspipes.adapter.minecraft.menu.SatelliteNames;
 import logisticspipes.domain.crafting.Cleanup;
 import logisticspipes.domain.crafting.CraftingSetup;
 import logisticspipes.domain.crafting.Recipe;
+import logisticspipes.domain.crafting.SatelliteName;
 import logisticspipes.domain.item.FuzzyType;
 import logisticspipes.domain.item.ItemBatch;
 import logisticspipes.domain.item.ItemType;
@@ -250,9 +253,33 @@ public class ModuleItem extends Item {
         return set ? intOf(module, EXCLUDE_TAG) != 0 : ((ModuleItem) module.getItem()).kind == ModuleKind.CRAFTER;
     }
 
-    private static int[] slotSatellitesOf(ItemStack module) {
-        int[] saved = module.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getIntArray(SLOT_SATELLITES_TAG);
-        return java.util.Arrays.copyOf(saved, PipeBlockEntity.OUTPUT_SLOT);
+    // modules from before satellites had names kept numbers where the names are now
+    private static String satelliteOf(ItemStack module) {
+        CompoundTag tag = module.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        return tag.contains(SATELLITE_TAG, Tag.TAG_STRING) ? tag.getString(SATELLITE_TAG)
+                : SatelliteName.ofNumber(tag.getInt(SATELLITE_TAG));
+    }
+
+    private static String[] slotSatellitesOf(ItemStack module) {
+        CompoundTag tag = module.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        ListTag names = tag.getList(SLOT_SATELLITES_TAG, Tag.TAG_STRING);
+        int[] numbers = tag.getIntArray(SLOT_SATELLITES_TAG);
+        String[] satellites = new String[PipeBlockEntity.OUTPUT_SLOT];
+        for (int slot = 0; slot < satellites.length; slot++) {
+            satellites[slot] = slot < names.size() ? names.getString(slot)
+                    : SatelliteName.ofNumber(slot < numbers.length ? numbers[slot] : 0);
+        }
+        return satellites;
+    }
+
+    private static void setSlotSatellite(ItemStack module, int slot, String name) {
+        String[] satellites = slotSatellitesOf(module);
+        satellites[slot] = name;
+        ListTag names = new ListTag();
+        for (String satellite : satellites) {
+            names.add(StringTag.valueOf(satellite));
+        }
+        CustomData.update(DataComponents.CUSTOM_DATA, module, data -> data.put(SLOT_SATELLITES_TAG, names));
     }
 
     public static Optional<CraftingSetup> craftingOf(ItemStack module, boolean withByproduct) {
@@ -266,20 +293,27 @@ public class ModuleItem extends Item {
 
     // fuzzy means the fuzzy flags of the slots count
     public static Optional<CraftingSetup> craftingOf(ItemStack module, boolean withByproduct, boolean advanced, boolean fuzzy) {
+        return craftingOf(module, withByproduct, advanced, fuzzy, 0);
+    }
+
+    // fluidUpgrades is how many fluid crafting upgrades the module has, each opens a fluid slot
+    public static Optional<CraftingSetup> craftingOf(ItemStack module, boolean withByproduct, boolean advanced, boolean fuzzy,
+            int fluidUpgrades) {
         if (!(module.getItem() instanceof ModuleItem item) || item.kind != ModuleKind.CRAFTER) {
             return Optional.empty();
         }
         SlotSettings flags = SlotSettings.of(module, () -> { });
         NonNullList<ItemStack> slots = filterOf(module);
-        int satellite = intOf(module, SATELLITE_TAG);
-        int[] slotSatellites = slotSatellitesOf(module);
+        String satellite = satelliteOf(module);
+        String[] slotSatellites = slotSatellitesOf(module);
         List<ItemBatch> inputs = new ArrayList<>();
-        Map<Integer, List<ItemBatch>> forSatellite = new LinkedHashMap<>();
+        Map<String, List<ItemBatch>> forSatellite = new LinkedHashMap<>();
         for (int slot = 0; slot < PipeBlockEntity.OUTPUT_SLOT; slot++) {
             if (!slots.get(slot).isEmpty()) {
                 inputs.add(flags.batch(slot, slots.get(slot), fuzzy));
-                int target = advanced ? slotSatellites[slot] : slot >= PipeBlockEntity.SATELLITE_ROW ? satellite : 0;
-                if (target != 0) {
+                String target = advanced ? slotSatellites[slot]
+                        : slot >= PipeBlockEntity.SATELLITE_ROW ? satellite : SatelliteName.NONE;
+                if (!target.isEmpty()) {
                     forSatellite.computeIfAbsent(target, key -> new ArrayList<>()).add(flags.batch(slot, slots.get(slot), fuzzy));
                 }
             }
@@ -289,11 +323,13 @@ public class ModuleItem extends Item {
             return Optional.empty();
         }
         ItemStack extra = slots.get(PipeBlockEntity.BYPRODUCT_SLOT);
+        SimpleContainer markers = new SimpleContainer(slots.toArray(ItemStack[]::new));
         return Optional.of(new CraftingSetup(new Recipe(inputs, flags.batch(PipeBlockEntity.OUTPUT_SLOT, output, fuzzy)), forSatellite,
-                intOf(module, PRIORITY_TAG), withByproduct && !extra.isEmpty() ? Optional.of(McItemType.batchOf(extra)) : Optional.empty()));
+                intOf(module, PRIORITY_TAG), withByproduct && !extra.isEmpty() ? Optional.of(McItemType.batchOf(extra)) : Optional.empty(),
+                FluidCraftingSettings.of(module, () -> { }).inputs(markers, fluidUpgrades, advanced)));
     }
 
-    public static void configureCrafter(ItemStack module, List<ItemStack> inputs, ItemStack output, int satellite, int priority) {
+    public static void configureCrafter(ItemStack module, List<ItemStack> inputs, ItemStack output, String satellite, int priority) {
         List<ItemStack> slots = new ArrayList<>(inputs);
         while (slots.size() < PipeBlockEntity.OUTPUT_SLOT) {
             slots.add(ItemStack.EMPTY);
@@ -301,7 +337,7 @@ public class ModuleItem extends Item {
         slots.add(output);
         configureSink(module, slots, false);
         CustomData.update(DataComponents.CUSTOM_DATA, module, tag -> {
-            tag.putInt(SATELLITE_TAG, satellite);
+            tag.putString(SATELLITE_TAG, SatelliteName.clean(satellite));
             tag.putInt(PRIORITY_TAG, priority);
         });
     }
@@ -398,6 +434,12 @@ public class ModuleItem extends Item {
     // upgrades says how many of an upgrade the module has where it sits
     public Optional<MenuProvider> settingsProvider(ItemStack module, Predicate<Player> usable, Runnable changed,
             Consumer<Container> importRecipe, ToIntFunction<UpgradeKind> upgrades) {
+        return settingsProvider(module, usable, changed, importRecipe, upgrades, kind -> List.of());
+    }
+
+    // satellites tells the names of the satellites of a kind within reach of where the module sits
+    public Optional<MenuProvider> settingsProvider(ItemStack module, Predicate<Player> usable, Runnable changed,
+            Consumer<Container> importRecipe, ToIntFunction<UpgradeKind> upgrades, Function<PipeKind, List<String>> satellites) {
         if (namesMenu != null) {
             return Optional.of(new SimpleMenuProvider((id, inventory, user) -> new NamesMenu(namesMenu.get(), id, inventory,
                     module, usable, changed), module.getHoverName()));
@@ -406,12 +448,12 @@ public class ModuleItem extends Item {
             return Optional.empty();
         }
         return Optional.of(new SimpleMenuProvider((id, inventory, user) -> settings(id, user, module, usable, changed,
-                importRecipe, upgrades), module.getHoverName()));
+                importRecipe, upgrades, satellites), module.getHoverName()));
     }
 
     // the same screen as a pipe with that layout, every change is written straight back to the module
     private PipeConfigMenu settings(int id, Player player, ItemStack module, Predicate<Player> usable, Runnable changed,
-            Consumer<Container> importRecipe, ToIntFunction<UpgradeKind> upgrades) {
+            Consumer<Container> importRecipe, ToIntFunction<UpgradeKind> upgrades, Function<PipeKind, List<String>> satellites) {
         SimpleContainer filter = new SimpleContainer(PipeBlockEntity.CONFIG_SLOTS);
         NonNullList<ItemStack> stored = filterOf(module);
         for (int slot = 0; slot < FILTER_SLOTS; slot++) {
@@ -426,11 +468,9 @@ public class ModuleItem extends Item {
                     case PipeConfigMenu.DATA_EXCLUDE -> excludes(module) ? 1 : 0;
                     case PipeConfigMenu.DATA_BYPRODUCT -> upgrades.applyAsInt(UpgradeKind.CRAFTING_BYPRODUCT);
                     case PipeConfigMenu.DATA_CLEANUP -> upgrades.applyAsInt(UpgradeKind.CRAFTING_CLEANUP);
-                    case PipeConfigMenu.DATA_SATELLITE -> intOf(module, SATELLITE_TAG);
                     case PipeConfigMenu.DATA_PRIORITY -> intOf(module, PRIORITY_TAG);
                     case PipeConfigMenu.DATA_ADVANCED_SATELLITE -> upgrades.applyAsInt(UpgradeKind.ADVANCED_SATELLITE);
-                    default -> index >= PipeConfigMenu.DATA_SLOT_SATELLITE
-                            ? slotSatellitesOf(module)[index - PipeConfigMenu.DATA_SLOT_SATELLITE] : 0;
+                    default -> 0;
                 };
             }
 
@@ -438,16 +478,11 @@ public class ModuleItem extends Item {
             public void set(int index, int value) {
                 if (index == PipeConfigMenu.DATA_DEFAULT_ROUTE) {
                     configureSink(module, filterOf(module), value != 0);
-                } else if (index >= PipeConfigMenu.DATA_SLOT_SATELLITE) {
-                    int[] satellites = slotSatellitesOf(module);
-                    satellites[index - PipeConfigMenu.DATA_SLOT_SATELLITE] = value;
-                    CustomData.update(DataComponents.CUSTOM_DATA, module, data -> data.putIntArray(SLOT_SATELLITES_TAG, satellites));
                 } else if (index != PipeConfigMenu.DATA_BYPRODUCT && index != PipeConfigMenu.DATA_CLEANUP
                         && index != PipeConfigMenu.DATA_ADVANCED_SATELLITE) {
                     String tag = switch (index) {
                         case PipeConfigMenu.DATA_MODE -> MODE_TAG;
                         case PipeConfigMenu.DATA_EXCLUDE -> EXCLUDE_TAG;
-                        case PipeConfigMenu.DATA_SATELLITE -> SATELLITE_TAG;
                         default -> PRIORITY_TAG;
                     };
                     CustomData.update(DataComponents.CUSTOM_DATA, module, data -> data.putInt(tag, value));
@@ -470,7 +505,40 @@ public class ModuleItem extends Item {
         });
         ContainerData extras = SlotSettings.of(module, changed).data(() -> upgrades.applyAsInt(UpgradeKind.PATTERN),
                 () -> upgrades.applyAsInt(UpgradeKind.FUZZY));
+        // one copy of the fluid settings for the whole menu, so a change through one part is not undone by another
+        FluidCraftingSettings fluidSettings = FluidCraftingSettings.of(module, changed);
+        SatelliteNames.Source names = new SatelliteNames.Source() {
+            @Override
+            public String name(int field) {
+                if (field >= SatelliteNames.FIELD_FLUID) {
+                    return fluidSettings.satellite(field - SatelliteNames.FIELD_FLUID);
+                }
+                return field == SatelliteNames.FIELD_OWN ? satelliteOf(module) : slotSatellitesOf(module)[field - SatelliteNames.FIELD_SLOT];
+            }
+
+            @Override
+            public SatelliteName.Verdict setName(int field, String name) {
+                if (field >= SatelliteNames.FIELD_FLUID) {
+                    // writes itself back to the module and runs changed
+                    fluidSettings.setSatellite(field - SatelliteNames.FIELD_FLUID, name);
+                    return SatelliteName.Verdict.ACCEPTED;
+                }
+                if (field == SatelliteNames.FIELD_OWN) {
+                    CustomData.update(DataComponents.CUSTOM_DATA, module, data -> data.putString(SATELLITE_TAG, name));
+                } else {
+                    setSlotSatellite(module, field - SatelliteNames.FIELD_SLOT, name);
+                }
+                changed.run();
+                return SatelliteName.Verdict.ACCEPTED;
+            }
+
+            @Override
+            public List<String> offered(PipeKind kind) {
+                return satellites.apply(kind);
+            }
+        };
+        ContainerData fluids = fluidSettings.data(() -> upgrades.applyAsInt(UpgradeKind.FLUID_CRAFTING));
         return new PipeConfigMenu(settingsMenu.get(), id, player.getInventory(), settingsLayout, filter, data, extras, usable,
-                () -> importRecipe.accept(filter));
+                () -> importRecipe.accept(filter), settingsLayout == PipeKind.CRAFTING ? names : null, fluids);
     }
 }

@@ -116,19 +116,19 @@ public class SettingsCopierGameTest {
     }
 
     @GameTest(template = EMPTY)
-    public static void copiesSatelliteNumberAndRecipeOfACraftingPipe(GameTestHelper helper) {
+    public static void copiesSatelliteAndRecipeOfACraftingPipe(GameTestHelper helper) {
         GameTestPower.supply(helper);
         PipeBlockEntity source = pipe(helper, PipeKind.CRAFTING, 0);
         source.config().setItem(PipeBlockEntity.SATELLITE_ROW, new ItemStack(Items.RAW_IRON, 2));
         source.config().setItem(PipeBlockEntity.OUTPUT_SLOT, new ItemStack(Items.IRON_INGOT, 2));
-        source.setSatelliteId(7);
+        source.setSatelliteName("Ore");
         PipeBlockEntity target = pipe(helper, PipeKind.CRAFTING, 2);
         TestPlayer player = playerWithCopier(helper);
 
         use(helper, player, 0, true);
         use(helper, player, 2, false);
 
-        helper.assertTrue(target.satelliteId() == 7, "satellite number");
+        helper.assertTrue(target.satelliteName().equals("Ore"), "satellite name");
         helper.assertTrue(target.recipe().isPresent() && target.recipe().equals(source.recipe()), "recipe");
         helper.assertTrue(target.satelliteInputs().equals(source.satelliteInputs()), "satellite row");
         helper.assertTrue(storedKeys(player.getMainHandItem()).contains("logisticspipes.settings_copier.satellite"), "tooltip names the satellite");

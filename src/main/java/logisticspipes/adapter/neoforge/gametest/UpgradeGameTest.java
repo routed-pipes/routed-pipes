@@ -374,25 +374,27 @@ public class UpgradeGameTest {
         crafting.config().setItem(0, new ItemStack(Items.RAW_IRON));
         crafting.config().setItem(7, new ItemStack(Items.COAL));
         crafting.config().setItem(PipeBlockEntity.OUTPUT_SLOT, new ItemStack(Items.IRON_INGOT));
-        crafting.setSatelliteId(5);
+        crafting.setSatelliteName("Fuel");
         TestPlayer player = TestPlayer.in(helper);
+        int firstSlot = logisticspipes.adapter.minecraft.menu.SatelliteNames.FIELD_SLOT;
 
-        helper.assertTrue(crafting.crafts().get(0).bySatellite().keySet().equals(java.util.Set.of(5)), "the bottom row goes to satellite 5");
+        helper.assertTrue(crafting.crafts().get(0).bySatellite().keySet().equals(java.util.Set.of("Fuel")), "the bottom row goes to the satellite");
         player.openMenu(crafting.menuProvider());
-        int slotZeroUp = logisticspipes.adapter.minecraft.menu.PipeConfigMenu.BUTTON_SLOT_SATELLITE + 1;
-        helper.assertTrue(!player.containerMenu.clickMenuButton(player, slotZeroUp), "no slot satellites without the upgrade");
+        logisticspipes.adapter.minecraft.menu.MenuRequests.applyText(player, player.containerMenu.containerId, firstSlot, "Ore");
+        helper.assertTrue(crafting.crafts().get(0).bySatellite().keySet().equals(java.util.Set.of("Fuel")), "no slot satellites without the upgrade");
 
         crafting.installUpgrade(upgrade(UpgradeKind.ADVANCED_SATELLITE, 1));
         player.openMenu(crafting.menuProvider());
-        player.containerMenu.clickMenuButton(player, slotZeroUp);
-        player.containerMenu.clickMenuButton(player, slotZeroUp);
-        java.util.Map<Integer, java.util.List<logisticspipes.domain.item.ItemBatch>> bySatellite = crafting.crafts().get(0).bySatellite();
-        helper.assertTrue(bySatellite.keySet().equals(java.util.Set.of(2)), "only the first slot has a satellite now, number 2: " + bySatellite);
-        helper.assertTrue(bySatellite.get(2).equals(java.util.List.of(McItemType.batchOf(new ItemStack(Items.RAW_IRON)))), "the iron goes there");
+        logisticspipes.adapter.minecraft.menu.MenuRequests.applyText(player, player.containerMenu.containerId, firstSlot, "Ore");
+        java.util.Map<String, java.util.List<logisticspipes.domain.item.ItemBatch>> bySatellite = crafting.crafts().get(0).bySatellite();
+        helper.assertTrue(bySatellite.keySet().equals(java.util.Set.of("Ore")), "only the first slot has a satellite now: " + bySatellite);
+        helper.assertTrue(bySatellite.get("Ore").equals(java.util.List.of(McItemType.batchOf(new ItemStack(Items.RAW_IRON)))), "the iron goes there");
+        helper.assertTrue(((logisticspipes.adapter.minecraft.menu.PipeConfigMenu) player.containerMenu).slotSatellite(0).equals("Ore"),
+                "the menu shows the satellite of the slot");
 
         PipeBlockEntity loaded = pipe(helper, PipeKind.CRAFTING, 2);
         loaded.loadWithComponents(crafting.saveWithoutMetadata(helper.getLevel().registryAccess()), helper.getLevel().registryAccess());
-        helper.assertTrue(loaded.crafts().get(0).bySatellite().keySet().equals(java.util.Set.of(2)), "slot satellites are saved");
+        helper.assertTrue(loaded.crafts().get(0).bySatellite().keySet().equals(java.util.Set.of("Ore")), "slot satellites are saved");
         helper.succeed();
     }
 }
