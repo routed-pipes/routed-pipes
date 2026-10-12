@@ -184,4 +184,76 @@ class LogisticsNetworkFirewallTest {
         assertThat(noProviding.stopsOrdered(item("stone"))).isFalse();
         assertThat(neither.stopsOrdered(item("stone"))).isTrue();
     }
+
+    // the crafter has four planks it made earlier and nobody ordered
+    private FakeNode crafterWithSpare() {
+        FakeNode crafter = new FakeNode(PipeKind.CRAFTING);
+        crafter.recipe = new Recipe(List.of(batch("log", 1)), batch("planks", 4));
+        crafter.stock("planks", 4);
+        RouterId crafterId = router(4);
+        network.addRouter(crafterId, crafter, BUILT);
+        network.updateLinks(crafterId, List.of(new Link(FAR, Side.WEST, 1)), BUILT);
+        network.updateLinks(FAR, List.of(new Link(WALL, Side.WEST, 1), new Link(crafterId, Side.EAST, 1)), BUILT);
+        return crafter;
+    }
+
+    @Test
+    void spareCraftedItemsBehindAFirewallThatRejectsThemAreNotOffered() {
+        connect();
+        FakeNode crafter = crafterWithSpare();
+        wall.firewall = rule(Set.of(item("planks")), true, false, false, false, false);
+
+        assertThat(network.request(NEAR, batch("planks", 4), NOW).started()).isFalse();
+        assertThat(crafter.shipments).isEmpty();
+    }
+
+    @Test
+    void spareCraftedItemsBehindAFirewallThatStopsProvidingAreNotOffered() {
+        connect();
+        FakeNode crafter = crafterWithSpare();
+        wall.firewall = rule(Set.of(), true, true, false, false, false);
+
+        network.request(NEAR, batch("planks", 4), NOW);
+        assertThat(crafter.shipments).isEmpty();
+    }
+
+    @Test
+    void spareCraftedItemsPassAnOpenFirewall() {
+        connect();
+        FakeNode crafter = crafterWithSpare();
+
+        assertThat(network.request(NEAR, batch("planks", 4), NOW).started()).isTrue();
+        assertThat(crafter.shipments).hasSize(1);
+    }
+
+    // the short way crosses a firewall that blocks stone, the long way a second firewall that lets it through
+    private FakeNode secondWallOnTheLongWay() {
+        FakeNode second = new FakeNode(PipeKind.FIREWALL);
+        second.firewall = rule(Set.of(), true, false, false, false, false);
+        RouterId secondId = router(5);
+        network.addRouter(secondId, second, BUILT);
+        network.updateLinks(secondId, List.of(new Link(NEAR, Side.WEST, 10), new Link(FAR, Side.EAST, 10)), BUILT);
+        network.updateLinks(NEAR, List.of(new Link(WALL, Side.EAST, 1), new Link(secondId, Side.NORTH, 10)), BUILT);
+        network.updateLinks(FAR, List.of(new Link(WALL, Side.WEST, 1), new Link(secondId, Side.NORTH, 10)), BUILT);
+        wall.firewall = rule(Set.of(item("stone")), true, false, false, false, false);
+        return second;
+    }
+
+    @Test
+    void theWayAroundMayCrossAFirewallThatLetsTheItemThrough() {
+        connect();
+        secondWallOnTheLongWay();
+
+        assertThat(network.chooseExit(NEAR, loose("stone"), NOW)).contains(Side.NORTH);
+        assertThat(network.chooseExit(NEAR, loose("dirt"), NOW)).contains(Side.EAST);
+    }
+
+    @Test
+    void theWayAroundIsClosedWhenTheSecondFirewallBlocksTheItemToo() {
+        connect();
+        FakeNode second = secondWallOnTheLongWay();
+        second.firewall = rule(Set.of(item("stone")), true, false, false, false, false);
+
+        assertThat(network.chooseExit(NEAR, loose("stone"), NOW)).isEmpty();
+    }
 }

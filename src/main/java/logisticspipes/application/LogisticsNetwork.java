@@ -89,7 +89,8 @@ public final class LogisticsNetwork {
     // for firewalls: the links as they were reported, the firewalls, and the routes that lead out of none of them
     private final Map<RouterId, List<Link>> links = new HashMap<>();
     private final Set<RouterId> firewalls = new HashSet<>();
-    private RoutingNetwork open;
+    // per set of firewalls that say no: the network without the ways out of those, built when first needed
+    private final Map<Set<RouterId>, RoutingNetwork> detours = new HashMap<>();
     // for inventory system connectors: who is on which channel, and the network as it is without their links
     private final ConnectorLinks connectors = new ConnectorLinks();
     private RoutingNetwork wired;
@@ -137,7 +138,7 @@ public final class LogisticsNetwork {
         if (node.kind() == PipeKind.FIREWALL) {
             firewalls.add(id);
         }
-        open = null;
+        detours.clear();
         sinksChanged(id);
         changed(id, now);
     }
@@ -156,7 +157,7 @@ public final class LogisticsNetwork {
         routing.remove(id);
         links.remove(id);
         firewalls.remove(id);
-        open = null;
+        detours.clear();
         wired = null;
         relink(connectors.remove(id), now);
         pending.forget(id);
@@ -171,7 +172,7 @@ public final class LogisticsNetwork {
 
     public void updateLinks(RouterId id, List<Link> links, long now) {
         this.links.put(id, List.copyOf(links));
-        open = null;
+        detours.clear();
         wired = null;
         if (routing.setLinks(id, withConnectors(id, links))) {
             changed(id, now);
@@ -465,9 +466,10 @@ public final class LogisticsNetwork {
         Optional<Route> route = routing.route(at, destination);
         ItemType type = item.batch().type();
         boolean ordered = item.mode() == TransportMode.REQUESTED;
-        if (route.isPresent() && stoppedOnTheWay(at, destination, rule -> ordered ? rule.stopsOrdered(type) : rule.stopsSorted(type))) {
+        Predicate<FirewallRule> stops = rule -> ordered ? rule.stopsOrdered(type) : rule.stopsSorted(type);
+        if (route.isPresent() && stoppedOnTheWay(at, destination, stops)) {
             // a firewall is in the way, so the item takes a way around it if there is one
-            route = open().route(at, destination);
+            route = detour(stops).route(at, destination);
         }
         return route;
     }
@@ -493,14 +495,20 @@ public final class LogisticsNetwork {
         return List.copyOf(passed);
     }
 
-    // the same network with nothing leading out of a firewall, so its routes are the ones no firewall has a say in
-    private RoutingNetwork open() {
-        if (open == null) {
-            open = new RoutingNetwork();
-            nodes.keySet().forEach(open::add);
-            links.forEach((id, own) -> open.setLinks(id, firewalls.contains(id) ? List.of() : withConnectors(id, own)));
+    // the network without the ways out of the firewalls that stop what the test describes, the others still let it through
+    private RoutingNetwork detour(Predicate<FirewallRule> stops) {
+        Set<RouterId> closed = new HashSet<>();
+        for (RouterId firewall : firewalls) {
+            if (nodes.get(firewall).firewall().filter(stops).isPresent()) {
+                closed.add(firewall);
+            }
         }
-        return open;
+        return detours.computeIfAbsent(closed, key -> {
+            RoutingNetwork network = new RoutingNetwork();
+            nodes.keySet().forEach(network::add);
+            links.forEach((id, own) -> network.setLinks(id, key.contains(id) ? List.of() : withConnectors(id, own)));
+            return network;
+        });
     }
 
     // whether a firewall on the shortest way stops what the test describes
@@ -524,7 +532,7 @@ public final class LogisticsNetwork {
 
     // a firewall only counts when there is no way around it
     private boolean passes(RouterId from, RouterId to, Predicate<FirewallRule> stops) {
-        return !stoppedOnTheWay(from, to, stops) || open().route(from, to).isPresent();
+        return !stoppedOnTheWay(from, to, stops) || detour(stops).route(from, to).isPresent();
     }
 
     // best sink for a batch that is at the given router and came in through origin
@@ -1046,7 +1054,8 @@ public final class LogisticsNetwork {
                 for (CraftingSetup craft : node.crafts()) {
                     ItemType made = craft.recipe().output().type();
                     int left = node.contents().getOrDefault(made, 0) - node.outputOrders().owed(made);
-                    if (left > 0) {
+                    // spare output counts as providing, so a firewall that stops that or the item stops it too
+                    if (left > 0 && passes(requester, id, rule -> rule.blockProviding() || rule.rejects(made))) {
                         spare.put(made, left);
                     }
                 }
