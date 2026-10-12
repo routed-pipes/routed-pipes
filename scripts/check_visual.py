@@ -8,7 +8,7 @@ from PIL import Image, ImageChops
 SHOTS = Path(sys.argv[1] if len(sys.argv) > 1 else "build/visual-test") / "screenshots"
 LOG = Path(sys.argv[2]) if len(sys.argv) > 2 else None
 EXPECTED = ["pipes_overview", "pipes_close", "pipes_junction", "pipes_vertical", "tubes_above", "tubes_side", "crafting_table", "chassis",
-            "gui_request", "gui_request_search", "gui_supplier", "gui_basic", "gui_provider", "gui_request_table", "gui_firewall", "gui_controller", "gui_crafting", "gui_satellite", "gui_chassis",
+            "gui_request", "gui_request_search", "gui_supplier", "gui_basic", "gui_provider", "gui_request_table", "gui_firewall", "pipes_on_the_ground", "gui_security_station", "gui_statistics_table", "gui_program_compiler", "gui_fluid_request_pipe", "gui_fluid_basic_pipe", "gui_fluid_supplier_pipe", "gui_request_pipe_mk2", "gui_inventory_system_connector_pipe", "gui_system_entrance_pipe", "gui_controller", "gui_crafting", "gui_satellite", "gui_chassis",
             "gui_module_item_sink", "gui_module_names", "gui_crafting_table", "gui_crafting_imported"]
 FLICKER_FRAMES = 12
 # the grey of the window background drawn by Panel

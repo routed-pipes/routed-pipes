@@ -81,7 +81,7 @@ public class DiskScreen extends AbstractContainerScreen<DiskMenu> {
             name.setValue(disk.name());
         }
         macros = disk.macros().stream().map(Macro::name).toList();
-        if (!macros.contains(selected)) {
+        if (selected != null && !macros.contains(selected)) {
             selected = null;
         }
         scroll = Math.max(0, Math.min(scroll, macros.size() - ROWS));
@@ -139,8 +139,8 @@ public class DiskScreen extends AbstractContainerScreen<DiskMenu> {
         int x = leftPos + LIST_X;
         int y = topPos + LIST_Y;
         graphics.fill(x, y, x + LIST_WIDTH, y + ROWS * ROW, LIST);
-        int row = macros.indexOf(selected) - scroll;
-        if (selected != null && row >= 0 && row < ROWS) {
+        int row = selected == null ? -1 : macros.indexOf(selected) - scroll;
+        if (row >= 0 && row < ROWS) {
             graphics.fill(x, y + row * ROW, x + LIST_WIDTH, y + (row + 1) * ROW, SELECTION);
         }
     }

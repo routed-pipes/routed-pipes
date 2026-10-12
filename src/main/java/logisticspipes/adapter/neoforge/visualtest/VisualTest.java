@@ -259,6 +259,24 @@ public final class VisualTest {
         }));
         shotFrom("tubes_above", "5.5 -50 40.5 180 75");
         shotFrom("tubes_side", "5.5 -57.5 26.5 0 12");
+        // a row of the newer blocks on the ground with no power near them, so pipes show mounts and the dark frame
+        step(5, () -> {
+            command("setblock 0 -60 50 logisticspipes:security_station");
+            command("setblock 2 -60 50 logisticspipes:statistics_table");
+            command("setblock 4 -60 50 logisticspipes:program_compiler");
+            command("setblock 6 -60 50 logisticspipes:fluid_request_pipe");
+            command("setblock 8 -60 50 logisticspipes:fluid_basic_pipe");
+            command("setblock 10 -60 50 logisticspipes:fluid_supplier_pipe");
+            command("setblock 12 -60 50 logisticspipes:request_pipe_mk2");
+            command("setblock 14 -60 50 logisticspipes:inventory_system_connector_pipe");
+            command("setblock 16 -60 50 logisticspipes:system_entrance_pipe");
+            command("setblock 18 -60 50 logisticspipes:power_provider_rf");
+            command("setblock 20 -60 50 logisticspipes:basic_logistics_pipe");
+            command("setblock 21 -60 50 logisticspipes:transport_pipe");
+            command("setblock 22 -60 50 logisticspipes:basic_logistics_pipe");
+            command("setblock 22 -60 49 stone");
+        });
+        shotFrom("pipes_on_the_ground", "21.5 -59.5 53.5 180 15");
         shotFrom("pipes_overview", "7.5 -58 7.5 90 12");
         shotFrom("pipes_close", "2.5 -60 4.5 90 0");
         shotFrom("pipes_junction", "3.5 -58.5 8.5 120 15");
@@ -307,6 +325,16 @@ public final class VisualTest {
         screenShot("gui_provider", new BlockPos(0, -59, 11), "2.5 -60 11.5 90 0");
         screenShot("gui_request_table", new BlockPos(-1, -59, 2), "2.5 -60 2.5 90 0");
         screenShot("gui_firewall", new BlockPos(-1, -59, 6), "2.5 -60 6.5 90 0");
+        screenShot("gui_security_station", new BlockPos(0, -60, 50), "0.5 -60 53.5 180 0");
+        screenShot("gui_statistics_table", new BlockPos(2, -60, 50), "2.5 -60 53.5 180 0");
+        screenShot("gui_program_compiler", new BlockPos(4, -60, 50), "4.5 -60 53.5 180 0");
+        screenShot("gui_fluid_request_pipe", new BlockPos(6, -60, 50), "6.5 -60 53.5 180 0");
+        screenShot("gui_fluid_basic_pipe", new BlockPos(8, -60, 50), "8.5 -60 53.5 180 0");
+        screenShot("gui_fluid_supplier_pipe", new BlockPos(10, -60, 50), "10.5 -60 53.5 180 0");
+        screenShot("gui_request_pipe_mk2", new BlockPos(12, -60, 50), "12.5 -60 53.5 180 0");
+        screenShot("gui_inventory_system_connector_pipe", new BlockPos(14, -60, 50), "14.5 -60 53.5 180 0");
+        screenShot("gui_system_entrance_pipe", new BlockPos(16, -60, 50), "16.5 -60 53.5 180 0");
+        step(10, () -> command("tp @p 2.5 -60 12.5 90 0"));
         step(5, () -> command("item replace entity @p weapon.mainhand with logisticspipes:pipe_controller"));
         step(15, () -> onServer(server -> {
             ServerPlayer player = server.getPlayerList().getPlayers().get(0);

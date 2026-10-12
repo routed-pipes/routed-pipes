@@ -142,10 +142,10 @@ public class ProgramCompilerScreen extends AbstractContainerScreen<ProgramCompil
         boolean idle = menu.task().isEmpty();
         List<ProgramCategory> locked = locked();
         List<Program> programs = programs();
-        if (!locked.contains(selectedCategory)) {
+        if (selectedCategory != null && !locked.contains(selectedCategory)) {
             selectedCategory = null;
         }
-        if (!programs.contains(selectedProgram)) {
+        if (selectedProgram != null && !programs.contains(selectedProgram)) {
             selectedProgram = null;
         }
         categoryScroll = Math.max(0, Math.min(categoryScroll, locked.size() - ROWS));
