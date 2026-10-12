@@ -73,7 +73,7 @@ def main():
             write(ASSETS + f"models/block/{name}_{part}.json", {"parent": f"logisticspipes:block/pipe_{part}", "textures": texture})
         write(ASSETS + f"models/item/{name}.json", {"parent": "logisticspipes:block/pipe_inventory", "textures": texture})
         write(ASSETS + f"blockstates/{name}.json", blockstate(name))
-    for module in MODULES:
+    for module in MODULES + ["remote_orderer"]:
         write(ASSETS + f"models/item/{module}.json",
               {"parent": "minecraft:item/generated", "textures": {"layer0": f"logisticspipes:item/{module}"}})
     table = "logistics_crafting_table"

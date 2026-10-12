@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 import logisticspipes.adapter.minecraft.McItemType;
 import logisticspipes.adapter.minecraft.PipeBlockEntity;
@@ -51,18 +52,20 @@ public class RequestMenu extends AbstractContainerMenu {
     private final Container listing = new SimpleContainer(PAGE_SIZE);
     private final ContainerData data = new SimpleContainerData(4);
     private final PipeBlockEntity pipe;
+    private final Predicate<Player> usable;
     private List<ItemType> listed = List.of();
     private ItemType selected;
     private int ticks;
 
     // client side
     public RequestMenu(MenuType<?> type, int id) {
-        this(type, id, null);
+        this(type, id, null, player -> true);
     }
 
-    public RequestMenu(MenuType<?> type, int id, PipeBlockEntity pipe) {
+    public RequestMenu(MenuType<?> type, int id, PipeBlockEntity pipe, Predicate<Player> usable) {
         super(type, id);
         this.pipe = pipe;
+        this.usable = usable;
         for (int slot = 0; slot < PAGE_SIZE; slot++) {
             addSlot(new MarkerSlot(listing, slot, 8 + slot % COLUMNS * 18, 18 + slot / COLUMNS * 18));
         }
@@ -188,6 +191,6 @@ public class RequestMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        return pipe == null || Container.stillValidBlockEntity(pipe, player);
+        return usable.test(player);
     }
 }

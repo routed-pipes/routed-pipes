@@ -49,6 +49,7 @@ import net.minecraft.world.Containers;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.SimpleMenuProvider;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.item.ItemStack;
@@ -172,12 +173,22 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         return network().request(routerId, wanted, level.getGameTime());
     }
 
+    // remote means the player does not have to stand next to the pipe
+    public void openRequestScreen(Player player, boolean remote) {
+        player.openMenu(requestScreen(remote));
+    }
+
+    private MenuProvider requestScreen(boolean remote) {
+        return new SimpleMenuProvider((id, inventory, player) -> new RequestMenu(pipe().services().requestMenu().get(), id,
+                this, user -> !isRemoved() && (remote || Container.stillValidBlockEntity(this, user))),
+                getBlockState().getBlock().getName());
+    }
+
     MenuProvider menuProvider() {
         Component title = getBlockState().getBlock().getName();
         PipeServices services = pipe().services();
         if (kind() == PipeKind.REQUEST) {
-            return new SimpleMenuProvider(
-                    (id, inventory, player) -> new RequestMenu(services.requestMenu().get(), id, this), title);
+            return requestScreen(false);
         }
         if (kind() == PipeKind.CHASSIS) {
             ContainerData slots = new SimpleContainerData(1);

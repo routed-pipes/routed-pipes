@@ -2,6 +2,7 @@ package logisticspipes.adapter.neoforge.gametest;
 
 import logisticspipes.adapter.minecraft.McItemType;
 import logisticspipes.adapter.minecraft.PipeBlockEntity;
+import logisticspipes.adapter.minecraft.RemoteOrdererItem;
 import logisticspipes.adapter.minecraft.menu.PipeConfigMenu;
 import logisticspipes.adapter.minecraft.menu.RequestMenu;
 import logisticspipes.adapter.neoforge.LogisticsPipes;
@@ -13,15 +14,20 @@ import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
@@ -212,7 +218,7 @@ public class RequestGameTest {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
 
         helper.runAfterDelay(SETTLE, () -> {
-            RequestMenu menu = new RequestMenu(LogisticsPipes.REQUEST_MENU.get(), 1, request);
+            RequestMenu menu = new RequestMenu(LogisticsPipes.REQUEST_MENU.get(), 1, request, user -> true);
             ItemStack first = menu.getSlot(0).getItem();
             helper.assertTrue(first.is(Items.COBBLESTONE) && first.getCount() == 1, "cobblestone should be listed first");
             helper.assertTrue(RequestMenu.listedCount(first) == 128, "listed amount should be 128");
@@ -270,6 +276,64 @@ public class RequestGameTest {
         helper.assertTrue(loaded.recipe().equals(original.recipe()) && loaded.recipe().isPresent(), "recipe");
         helper.assertTrue(loaded.travellingItems().size() == 1
                 && loaded.travellingItems().get(0).batch().equals(batch(Items.DIAMOND, 5)), "item in transit");
+        helper.succeed();
+    }
+
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void remoteOrdererOpensItsLinkedRequestPipeFromAfar(GameTestHelper helper) {
+        PipeBlockEntity request = pipe(helper, PipeKind.REQUEST, 0, 1);
+        BlockPos target = chest(helper, 0, 2);
+        pipe(helper, PipeKind.PROVIDER, 1, 1);
+        chest(helper, 1, 2, new ItemStack(Items.DIAMOND, 9));
+        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        player.setPos(player.getX() + 500, player.getY(), player.getZ());
+        ItemStack orderer = new ItemStack(LogisticsPipes.REMOTE_ORDERER.get());
+        player.setItemInHand(InteractionHand.MAIN_HAND, orderer);
+
+        orderer.use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+        helper.assertTrue(player.containerMenu == player.inventoryMenu, "an unlinked orderer opens nothing");
+
+        BlockPos pipePos = helper.absolutePos(new BlockPos(0, 1, 1));
+        orderer.useOn(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, orderer,
+                new BlockHitResult(Vec3.atCenterOf(pipePos), Direction.UP, pipePos, false)));
+        helper.assertTrue(RemoteOrdererItem.isLinked(orderer), "sneak use on a request pipe links the orderer");
+
+        helper.runAfterDelay(SETTLE, () -> {
+            orderer.use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(player.containerMenu instanceof RequestMenu, "linked orderer opens the request screen");
+            RequestMenu menu = (RequestMenu) player.containerMenu;
+            helper.assertTrue(menu.stillValid(player), "distance does not matter");
+            helper.assertTrue(menu.getSlot(0).getItem().is(Items.DIAMOND), "it lists what the pipe can order");
+            menu.clicked(0, 0, ClickType.PICKUP, player);
+            menu.clickMenuButton(player, RequestMenu.BUTTON_REQUEST);
+        });
+
+        helper.succeedWhen(() -> {
+            assertCount(helper, target, Items.DIAMOND, 1);
+            player.discard();
+        });
+    }
+
+    @GameTest(template = EMPTY)
+    public static void remoteOrdererDoesNotLinkToOtherPipesOrOpenRemovedOnes(GameTestHelper helper) {
+        pipe(helper, PipeKind.PROVIDER, 0, 1);
+        pipe(helper, PipeKind.REQUEST, 2, 1);
+        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        ItemStack orderer = new ItemStack(LogisticsPipes.REMOTE_ORDERER.get());
+        player.setItemInHand(InteractionHand.MAIN_HAND, orderer);
+
+        BlockPos provider = helper.absolutePos(new BlockPos(0, 1, 1));
+        orderer.useOn(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, orderer,
+                new BlockHitResult(Vec3.atCenterOf(provider), Direction.UP, provider, false)));
+        helper.assertTrue(!RemoteOrdererItem.isLinked(orderer), "only request pipes can be linked");
+
+        BlockPos request = helper.absolutePos(new BlockPos(2, 1, 1));
+        orderer.useOn(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, orderer,
+                new BlockHitResult(Vec3.atCenterOf(request), Direction.UP, request, false)));
+        helper.setBlock(new BlockPos(2, 1, 1), Blocks.AIR);
+        orderer.use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+        helper.assertTrue(player.containerMenu == player.inventoryMenu, "a removed pipe cannot be opened");
+        player.discard();
         helper.succeed();
     }
 }

@@ -15,6 +15,7 @@ import logisticspipes.adapter.minecraft.LogisticsPipeBlock;
 import logisticspipes.adapter.minecraft.ModuleItem;
 import logisticspipes.adapter.minecraft.PipeBlockEntity;
 import logisticspipes.adapter.minecraft.PipeServices;
+import logisticspipes.adapter.minecraft.RemoteOrdererItem;
 import logisticspipes.adapter.minecraft.menu.ChassisMenu;
 import logisticspipes.adapter.minecraft.menu.CraftingTableMenu;
 import logisticspipes.adapter.minecraft.menu.PipeConfigMenu;
@@ -109,6 +110,9 @@ public class LogisticsPipes {
                             ModuleItem.settingsLayoutFor(kind).map(CONFIG_MENUS::get).orElse(null))));
         }
     }
+
+    public static final DeferredItem<RemoteOrdererItem> REMOTE_ORDERER = ITEMS.register("remote_orderer",
+            () -> new RemoteOrdererItem(new Item.Properties()));
 
     public static final Supplier<BlockEntityType<PipeBlockEntity>> PIPE_BLOCK_ENTITY = BLOCK_ENTITIES.register("pipe",
             () -> BlockEntityType.Builder

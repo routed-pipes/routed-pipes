@@ -35,5 +35,12 @@
   "item.logisticspipes.module_polymorphic_item_sink": "Polymorphic ItemSink Module",
   "item.logisticspipes.module_polymorphic_item_sink.description": "Takes more of whatever the inventory already holds.",
   "item.logisticspipes.module_quick_sort": "QuickSort Module",
-  "item.logisticspipes.module_quick_sort.description": "Moves whole stacks to pipes that list the item, never to default routes."
+  "item.logisticspipes.module_quick_sort.description": "Moves whole stacks to pipes that list the item, never to default routes.",
+  "item.logisticspipes.remote_orderer": "Remote Orderer",
+  "item.logisticspipes.remote_orderer.description": "Sneak and use on a Request Pipe to link it, then use it anywhere to order.",
+  "logisticspipes.remote_orderer.link": "Linked to %s, %s, %s",
+  "logisticspipes.remote_orderer.linked": "Linked to this Request Pipe",
+  "logisticspipes.remote_orderer.not_linked": "Not linked to a Request Pipe yet",
+  "logisticspipes.remote_orderer.other_dimension": "The linked Request Pipe is in another dimension",
+  "logisticspipes.remote_orderer.pipe_missing": "The linked Request Pipe is gone or too far away to be loaded"
 }
