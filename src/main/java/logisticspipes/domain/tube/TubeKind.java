@@ -17,7 +17,19 @@ public enum TubeKind {
             new TubePart(new Offset(-1, 0, 0), PartType.CURVE_INNER_A), new TubePart(new Offset(0, 0, 1), PartType.CURVE_OUT_A),
             TubePart.alone(-1, 0, 1), new TubePart(new Offset(-2, 0, 1), PartType.CURVE_INNER_B),
             new TubePart(new Offset(-1, 0, 2), PartType.CURVE_OUT_B), TubePart.alone(-2, 0, 2)),
-            new TubeEnd(Offset.ZERO, Side.NORTH), new TubeEnd(new Offset(-2, 0, 2), Side.WEST));
+            new TubeEnd(Offset.ZERO, Side.NORTH), new TubeEnd(new Offset(-2, 0, 2), Side.WEST)),
+    // four blocks north and one east on the way
+    S_CURVE(4, List.of(
+            new TubePart(new Offset(0, 0, -1), PartType.S_CURVE_B), new TubePart(new Offset(0, 0, -2), PartType.S_CURVE_A),
+            new TubePart(new Offset(1, 0, -1), PartType.S_CURVE_A), new TubePart(new Offset(1, 0, -2), PartType.S_CURVE_B),
+            TubePart.alone(1, 0, -3)),
+            new TubeEnd(Offset.ZERO, Side.SOUTH), new TubeEnd(new Offset(1, 0, -3), Side.NORTH)),
+    // four blocks north and one up on the way
+    GAIN(4, List.of(
+            new TubePart(new Offset(0, 0, -1), PartType.GAIN_B), new TubePart(new Offset(0, 0, -2), PartType.GAIN_A),
+            new TubePart(new Offset(0, 1, -1), PartType.GAIN_A), new TubePart(new Offset(0, 1, -2), PartType.GAIN_B),
+            TubePart.alone(0, 1, -3)),
+            new TubeEnd(Offset.ZERO, Side.SOUTH), new TubeEnd(new Offset(0, 1, -3), Side.NORTH));
 
     // a pipe counts this much towards the length of a route, a tube an eighth of that per block
     public static final int PIPE_WEIGHT = 8;
@@ -53,6 +65,16 @@ public enum TubeKind {
         return this == CURVE;
     }
 
+    // true when the far end is one block to the side of the near one
+    boolean shifts() {
+        return this == S_CURVE;
+    }
+
+    // true when it matters to a player which of the two ends is the near one
+    boolean oneWay() {
+        return this != CURVE && this != S_CURVE;
+    }
+
     // the blocks it fills besides the main block
     List<TubePart> parts() {
         return parts;
@@ -64,7 +86,7 @@ public enum TubeKind {
 
     // how many straight pieces stand in for the path when working out the room it takes
     int pieces() {
-        return this == CURVE ? 48 : 1;
+        return this == LINE || this == SPEEDUP ? 1 : 48;
     }
 
     // where an item is after the given part of the way from the first end to the second
@@ -74,6 +96,13 @@ public enum TubeKind {
             case SPEEDUP -> new Point(0.5, 0.5, 1 - 4 * fraction);
             case CURVE -> new Point(-2 + CURVE_RADIUS * Math.cos(fraction * Math.PI / 2), 0.5,
                     CURVE_RADIUS * Math.sin(fraction * Math.PI / 2));
+            case S_CURVE -> new Point(0.5 + eased(fraction), 0.5, 1 - 4 * fraction);
+            case GAIN -> new Point(0.5, 0.5 + eased(fraction), 1 - 4 * fraction);
         };
+    }
+
+    // from 0 to 1 without a kink at either end, the way the tubes that move over by a block are bent
+    private static double eased(double fraction) {
+        return fraction * fraction * fraction * (fraction * (6 * fraction - 15) + 10);
     }
 }

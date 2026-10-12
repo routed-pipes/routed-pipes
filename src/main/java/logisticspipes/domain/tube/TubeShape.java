@@ -7,7 +7,8 @@ import java.util.OptionalInt;
 import logisticspipes.domain.routing.Side;
 
 // a tube of some kind turned to face a side, everything is counted from its main block
-public record TubeShape(TubeKind kind, Side facing) {
+// mirrored means east and west are swapped before it is turned
+public record TubeShape(TubeKind kind, Side facing, boolean mirrored) {
 
     // half the width of a tube
     private static final double RADIUS = 0.3125;
@@ -16,6 +17,10 @@ public record TubeShape(TubeKind kind, Side facing) {
         if (facing == Side.UP || facing == Side.DOWN) {
             throw new IllegalArgumentException("tubes only turn around the vertical axis: " + facing);
         }
+    }
+
+    public TubeShape(TubeKind kind, Side facing) {
+        this(kind, facing, false);
     }
 
     // quarter turns from north, seen from above
@@ -29,7 +34,7 @@ public record TubeShape(TubeKind kind, Side facing) {
     }
 
     private Offset placed(Offset base) {
-        Offset result = base;
+        Offset result = mirrored ? base.mirrored() : base;
         for (int turn = 0; turn < turns(); turn++) {
             result = result.turned();
         }
@@ -37,7 +42,7 @@ public record TubeShape(TubeKind kind, Side facing) {
     }
 
     private Side placed(Side base) {
-        Side result = base;
+        Side result = mirrored && (base == Side.EAST || base == Side.WEST) ? base.opposite() : base;
         for (int turn = 0; turn < turns(); turn++) {
             result = switch (result) {
                 case NORTH -> Side.EAST;
@@ -52,7 +57,7 @@ public record TubeShape(TubeKind kind, Side facing) {
 
     // turns around the middle of the main block
     private Point placed(Point base) {
-        double x = base.x() - 0.5;
+        double x = mirrored ? 0.5 - base.x() : base.x() - 0.5;
         double z = base.z() - 0.5;
         for (int turn = 0; turn < turns(); turn++) {
             double oldX = x;

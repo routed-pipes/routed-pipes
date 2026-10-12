@@ -8,6 +8,7 @@ import logisticspipes.domain.tube.TubeKind;
 import logisticspipes.domain.tube.TubePart;
 import logisticspipes.domain.tube.TubeShape;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -18,6 +19,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -26,6 +28,8 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 public class TubeBlock extends Block implements EntityBlock {
 
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
+    // only tubes that move over sideways come in two kinds
+    public static final BooleanProperty MIRRORED = BooleanProperty.create("mirrored");
 
     private final TubeKind kind;
     private final TubeServices services;
@@ -34,6 +38,7 @@ public class TubeBlock extends Block implements EntityBlock {
         super(properties);
         this.kind = kind;
         this.services = services;
+        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(MIRRORED, false));
     }
 
     public TubeKind kind() {
@@ -45,12 +50,12 @@ public class TubeBlock extends Block implements EntityBlock {
     }
 
     public TubeShape shape(BlockState state) {
-        return new TubeShape(kind, Directions.toDomain(state.getValue(FACING)));
+        return new TubeShape(kind, Directions.toDomain(state.getValue(FACING)), state.getValue(MIRRORED));
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING);
+        builder.add(FACING, MIRRORED);
     }
 
     // true when nothing is in the way of any block the tube would fill
@@ -78,7 +83,8 @@ public class TubeBlock extends Block implements EntityBlock {
         if (!fits(level, main, shape, allowed)) {
             return false;
         }
-        level.setBlock(main, defaultBlockState().setValue(FACING, Directions.toMinecraft(shape.facing())), Block.UPDATE_ALL);
+        level.setBlock(main, defaultBlockState().setValue(FACING, Directions.toMinecraft(shape.facing()))
+                .setValue(MIRRORED, shape.mirrored()), Block.UPDATE_ALL);
         for (TubePart part : shape.parts()) {
             BlockPos pos = Tubes.at(main, part.offset());
             if (!(level.getBlockState(pos).getBlock() instanceof TubePartBlock)) {

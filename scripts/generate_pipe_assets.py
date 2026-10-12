@@ -15,7 +15,7 @@ MODULES = ["module_item_sink", "module_extractor", "module_provider", "module_te
 # high speed tubes: the model of the original, the texture it is drawn with
 # and the quarter turns that make the model face north the way the game counts the blocks of the tube
 TUBES = {"line_tube": ("tube_line", "line_tube", 0), "speedup_tube": ("tube_speedup", "speedup_tube", 0),
-         "curve_tube": ("tube_turn", "tube", 2)}
+         "curve_tube": ("tube_turn", "tube", 2), "s_curve_tube": ("tube_gain", "tube", 0), "gain_tube": ("tube_gain", "tube", 0)}
 FACINGS = ["north", "east", "south", "west"]
 OPPOSITE = {"north": "south", "south": "north", "east": "west", "west": "east"}
 ASSETS = "src/main/resources/assets/logisticspipes/"
@@ -82,8 +82,10 @@ def corner_i(meshes, corner, axis):
     raise ValueError(f"no inner corner for {corner} axis {axis}")
 
 
-def write_part(path, vertices, coords, mesh_lists, material, icon=False):
-    """One obj file with the given meshes. The model brings its own back faces where they can be seen."""
+def write_part(path, vertices, coords, mesh_lists, material, icon=False, flip=False):
+    """One obj file with the given meshes. The model brings its own back faces where they can be seen.
+
+    Flip is for vertices that were mirrored, their faces would look the wrong way otherwise."""
     lines = ["mtllib pipe.mtl", "o part", f"usemtl {material}"]
     vertex_index, coord_index, faces_out = {}, {}, []
     for faces in mesh_lists:
@@ -100,6 +102,8 @@ def write_part(path, vertices, coords, mesh_lists, material, icon=False):
                 if key not in coord_index:
                     coord_index[key] = len(coord_index) + 1
                 corners.append((vertex_index[vertex], coord_index[key]))
+            if flip:
+                corners.reverse()
             # the loader takes triangles and quads only
             for start in range(1, len(corners) - 1, 2):
                 polygon = [corners[0]] + corners[start:start + 3]
@@ -206,12 +210,25 @@ def write_tubes(shared):
     for name, (model, texture, base) in TUBES.items():
         vertices, coords, meshes = read_model(f"scripts/source/{model}.obj")
         vertices = turned(vertices, base)
+        if name == "s_curve_tube":
+            # the gain tube laid on its side, what went up now goes east
+            vertices = [(y, 1 - x, z) for x, y, z in vertices]
         textures = {"frame": f"logisticspipes:block/{texture}", "particle": f"logisticspipes:block/{texture}"}
         parts = []
         for turns, facing in enumerate(FACINGS):
             write_part(folder + f"{name}_{facing}.obj", turned(vertices, turns), coords, meshes.values(), "frame")
             write(ASSETS + f"models/block/{name}_{facing}.json", part_model(f"{name}_{facing}", textures))
-            parts.append({"when": {"facing": facing}, "apply": {"model": f"logisticspipes:block/{name}_{facing}"}})
+            when = {"facing": facing}
+            if name == "s_curve_tube":
+                # and the one that goes west instead
+                mirrored = [(1 - x, y, z) for x, y, z in vertices]
+                write_part(folder + f"{name}_{facing}_mirrored.obj", turned(mirrored, turns), coords, meshes.values(), "frame",
+                           flip=True)
+                write(ASSETS + f"models/block/{name}_{facing}_mirrored.json", part_model(f"{name}_{facing}_mirrored", textures))
+                parts.append({"when": {"facing": facing, "mirrored": "true"},
+                              "apply": {"model": f"logisticspipes:block/{name}_{facing}_mirrored"}})
+                when = {"facing": facing, "mirrored": "false"}
+            parts.append({"when": when, "apply": {"model": f"logisticspipes:block/{name}_{facing}"}})
             if name == "speedup_tube":
                 parts += pipe_end(shared, facing)
         write(ASSETS + f"blockstates/{name}.json", {"multipart": parts})

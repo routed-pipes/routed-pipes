@@ -18,6 +18,52 @@ class TubePlacementTest {
         return new TubePlacement(new TubeShape(kind, facing), new Offset(x, 0, z));
     }
 
+    private static TubePlacement mirrored(Side facing, int x, int z) {
+        return new TubePlacement(new TubeShape(TubeKind.S_CURVE, facing, true), new Offset(x, 0, z));
+    }
+
+    // the eight ways of the original, by the way the tube leads and the side the player looks to
+    @Test
+    void anSCurveLeadsAwayFromThePlayerAndMovesOverToTheSideTheyLookAt() {
+        assertThat(place(TubeKind.S_CURVE, Side.SOUTH, Side.EAST)).isEqualTo(placed(TubeKind.S_CURVE, Side.NORTH, 0, 0));
+        assertThat(place(TubeKind.S_CURVE, Side.SOUTH, Side.WEST)).isEqualTo(mirrored(Side.NORTH, 0, 0));
+        assertThat(place(TubeKind.S_CURVE, Side.WEST, Side.SOUTH)).isEqualTo(placed(TubeKind.S_CURVE, Side.EAST, 0, 0));
+        assertThat(place(TubeKind.S_CURVE, Side.WEST, Side.NORTH)).isEqualTo(mirrored(Side.EAST, 0, 0));
+        assertThat(place(TubeKind.S_CURVE, Side.NORTH, Side.WEST)).isEqualTo(placed(TubeKind.S_CURVE, Side.NORTH, -1, 3));
+        assertThat(place(TubeKind.S_CURVE, Side.NORTH, Side.EAST)).isEqualTo(mirrored(Side.NORTH, 1, 3));
+        assertThat(place(TubeKind.S_CURVE, Side.EAST, Side.NORTH)).isEqualTo(placed(TubeKind.S_CURVE, Side.EAST, -3, -1));
+        assertThat(place(TubeKind.S_CURVE, Side.EAST, Side.SOUTH)).isEqualTo(mirrored(Side.EAST, -3, 1));
+    }
+
+    @Test
+    void theFarEndOfAnSCurveIsOneBlockOverToTheSideThePlayerLooksAt() {
+        for (Side from : new Side[] {Side.NORTH, Side.EAST, Side.SOUTH, Side.WEST}) {
+            for (Side looking : new Side[] {Side.NORTH, Side.EAST, Side.SOUTH, Side.WEST}) {
+                if (looking == from || looking == from.opposite()) {
+                    continue;
+                }
+                TubePlacement placement = place(TubeKind.S_CURVE, from, looking);
+                TubeShape shape = placement.shape();
+                Offset clicked = Offset.ZERO.minus(placement.main());
+
+                int near = shape.endAt(clicked, from).orElseThrow();
+                TubeEnd far = shape.end(1 - near);
+                assertThat(far.side()).isEqualTo(from.opposite());
+                assertThat(far.block().minus(clicked))
+                        .isEqualTo(Offset.of(looking).plus(Offset.of(from.opposite()).plus(Offset.of(from.opposite()))
+                                .plus(Offset.of(from.opposite()))));
+            }
+        }
+    }
+
+    @Test
+    void aGainTubeClimbsAwayFromThePlayer() {
+        assertThat(place(TubeKind.GAIN, Side.WEST, Side.NORTH)).isEqualTo(placed(TubeKind.GAIN, Side.EAST, 0, 0));
+        assertThat(place(TubeKind.GAIN, Side.SOUTH, Side.EAST)).isEqualTo(placed(TubeKind.GAIN, Side.NORTH, 0, 0));
+        assertThat(place(TubeKind.GAIN, Side.EAST, Side.SOUTH)).isEqualTo(placed(TubeKind.GAIN, Side.WEST, 0, 0));
+        assertThat(place(TubeKind.GAIN, Side.NORTH, Side.WEST)).isEqualTo(placed(TubeKind.GAIN, Side.SOUTH, 0, 0));
+    }
+
     @Test
     void aStraightTubeRunsAwayFromThePlayer() {
         assertThat(TubePlacement.of(TubeKind.SPEEDUP, 2, 0.3, 1, 0)).isEqualTo(placed(TubeKind.SPEEDUP, Side.EAST, 0, 0));

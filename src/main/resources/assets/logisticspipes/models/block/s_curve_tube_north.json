@@ -1,0 +1,11 @@
+{
+  "loader": "neoforge:obj",
+  "model": "logisticspipes:models/block/pipe/s_curve_tube_north.obj",
+  "flip_v": true,
+  "automatic_culling": false,
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "frame": "logisticspipes:block/tube",
+    "particle": "logisticspipes:block/tube"
+  }
+}

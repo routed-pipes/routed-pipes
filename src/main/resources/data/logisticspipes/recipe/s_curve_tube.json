@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "LL ",
+    " LL"
+  ],
+  "key": {
+    "L": {
+      "item": "logisticspipes:line_tube"
+    }
+  },
+  "result": {
+    "id": "logisticspipes:s_curve_tube",
+    "count": 1
+  }
+}

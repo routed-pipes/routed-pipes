@@ -11,20 +11,32 @@ public record TubePlacement(TubeShape shape, Offset main) {
 
     // dx and dz point from the player to the middle of the clicked block, lookX and lookZ are where the player looks
     // the clicked block is the near end of the tube, the rest lies away from the player
-    // a tube that bends does so to the side the player looks at
+    // a tube that bends or moves over does so to the side the player looks at
     public static TubePlacement of(TubeKind kind, double dx, double dz, double lookX, double lookZ) {
         Side away = away(dx, dz);
-        Side far = kind.bends() ? sideways(away, lookX, lookZ) : away;
-        for (Side facing : FACINGS) {
-            TubeShape shape = new TubeShape(kind, facing);
-            // tubes that bend can lie either way round, the others start with their first end
-            for (int near = 0; near < (kind.bends() ? 2 : 1); near++) {
-                if (shape.end(near).side() == away.opposite() && shape.end(1 - near).side() == far) {
-                    return new TubePlacement(shape, Offset.ZERO.minus(shape.end(near).block()));
+        Side aside = sideways(away, lookX, lookZ);
+        // a tube that moves over is only ever turned north or east, the same shapes the other way round start at the far end
+        for (Side facing : kind.shifts() ? FACINGS.subList(0, 2) : FACINGS) {
+            for (int mirrored = 0; mirrored < (kind.shifts() ? 2 : 1); mirrored++) {
+                TubeShape shape = new TubeShape(kind, facing, mirrored == 1);
+                for (int near = 0; near < (kind.oneWay() ? 1 : 2); near++) {
+                    if (leads(shape, near, away, aside)) {
+                        return new TubePlacement(shape, Offset.ZERO.minus(shape.end(near).block()));
+                    }
                 }
             }
         }
-        throw new IllegalStateException("no way to put down " + kind + " going " + away + " to " + far);
+        throw new IllegalStateException("no way to put down " + kind + " going " + away + " and " + aside);
+    }
+
+    // whether the tube, entered at the near end, leads away from the player and bends or moves over to the side asked for
+    private static boolean leads(TubeShape shape, int near, Side away, Side aside) {
+        TubeEnd from = shape.end(near);
+        TubeEnd to = shape.end(1 - near);
+        if (from.side() != away.opposite() || to.side() != (shape.kind().bends() ? aside : away)) {
+            return false;
+        }
+        return !shape.kind().shifts() || to.block().minus(from.block()).dot(Offset.of(aside)) > 0;
     }
 
     // the side the block is on as seen from the player

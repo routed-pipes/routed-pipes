@@ -19,6 +19,8 @@
     "logisticspipes:line_tube",
     "logisticspipes:speedup_tube",
     "logisticspipes:curve_tube",
+    "logisticspipes:s_curve_tube",
+    "logisticspipes:gain_tube",
     "logisticspipes:tube_part"
   ]
 }

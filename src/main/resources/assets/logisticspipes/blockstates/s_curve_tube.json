@@ -1,0 +1,76 @@
+{
+  "multipart": [
+    {
+      "when": {
+        "facing": "north",
+        "mirrored": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/s_curve_tube_north_mirrored"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "mirrored": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/s_curve_tube_north"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "mirrored": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/s_curve_tube_east_mirrored"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "mirrored": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/s_curve_tube_east"
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "mirrored": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/s_curve_tube_south_mirrored"
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "mirrored": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/s_curve_tube_south"
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "mirrored": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/s_curve_tube_west_mirrored"
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "mirrored": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/s_curve_tube_west"
+      }
+    }
+  ]
+}

@@ -20,6 +20,7 @@ class TubeShapeTest {
         for (TubeKind kind : TubeKind.values()) {
             for (Side facing : FACINGS) {
                 shapes.add(new TubeShape(kind, facing));
+                shapes.add(new TubeShape(kind, facing, true));
             }
         }
         return shapes;
@@ -133,6 +134,90 @@ class TubeShapeTest {
         assertThat(PartType.canShare(List.of(PartType.CURVE_OUT_A), PartType.NON_SHARE)).isFalse();
         // never more than two
         assertThat(PartType.canShare(List.of(PartType.CURVE_OUT_A, PartType.CURVE_INNER_A), PartType.CURVE_INNER_A)).isFalse();
+    }
+
+    @Test
+    void anSCurveTubeMovesOneBlockEastOnItsWayNorth() {
+        TubeShape curve = new TubeShape(TubeKind.S_CURVE, Side.NORTH);
+
+        assertThat(curve.parts()).containsExactly(
+                new TubePart(new Offset(0, 0, -1), PartType.S_CURVE_B), new TubePart(new Offset(0, 0, -2), PartType.S_CURVE_A),
+                new TubePart(new Offset(1, 0, -1), PartType.S_CURVE_A), new TubePart(new Offset(1, 0, -2), PartType.S_CURVE_B),
+                new TubePart(new Offset(1, 0, -3), PartType.NON_SHARE));
+        assertThat(curve.end(0)).isEqualTo(new TubeEnd(Offset.ZERO, Side.SOUTH));
+        assertThat(curve.end(1)).isEqualTo(new TubeEnd(new Offset(1, 0, -3), Side.NORTH));
+        assertThat(TubeKind.S_CURVE.length()).isEqualTo(240);
+        assertThat(TubeKind.S_CURVE.weight()).isEqualTo(4);
+    }
+
+    @Test
+    void anSCurveTubeLiesFourWays() {
+        // the far block as the original has it: mirrored, turned, and mirrored then turned
+        assertThat(new TubeShape(TubeKind.S_CURVE, Side.NORTH, true).end(1)).isEqualTo(new TubeEnd(new Offset(-1, 0, -3), Side.NORTH));
+        assertThat(new TubeShape(TubeKind.S_CURVE, Side.EAST).end(1)).isEqualTo(new TubeEnd(new Offset(3, 0, 1), Side.EAST));
+        assertThat(new TubeShape(TubeKind.S_CURVE, Side.EAST, true).end(1)).isEqualTo(new TubeEnd(new Offset(3, 0, -1), Side.EAST));
+        assertThat(offsets(new TubeShape(TubeKind.S_CURVE, Side.EAST, true))).containsExactly(new Offset(1, 0, 0),
+                new Offset(2, 0, 0), new Offset(1, 0, -1), new Offset(2, 0, -1), new Offset(3, 0, -1));
+    }
+
+    @Test
+    void aMirroredTubeSwapsEastAndWest() {
+        TubeShape curve = new TubeShape(TubeKind.S_CURVE, Side.NORTH, true);
+
+        assertSamePoint(curve.pointAt(1), new Point(-0.5, 0.5, -3));
+        // a curve tube mirrored turns right instead of left
+        assertThat(new TubeShape(TubeKind.CURVE, Side.NORTH, true).end(1)).isEqualTo(new TubeEnd(new Offset(2, 0, 2), Side.EAST));
+    }
+
+    @Test
+    void aGainTubeClimbsOneBlockOnItsWayNorth() {
+        TubeShape gain = new TubeShape(TubeKind.GAIN, Side.NORTH);
+
+        assertThat(gain.parts()).containsExactly(
+                new TubePart(new Offset(0, 0, -1), PartType.GAIN_B), new TubePart(new Offset(0, 0, -2), PartType.GAIN_A),
+                new TubePart(new Offset(0, 1, -1), PartType.GAIN_A), new TubePart(new Offset(0, 1, -2), PartType.GAIN_B),
+                new TubePart(new Offset(0, 1, -3), PartType.NON_SHARE));
+        assertThat(gain.end(0)).isEqualTo(new TubeEnd(Offset.ZERO, Side.SOUTH));
+        assertThat(gain.end(1)).isEqualTo(new TubeEnd(new Offset(0, 1, -3), Side.NORTH));
+        assertThat(new TubeShape(TubeKind.GAIN, Side.WEST).end(1)).isEqualTo(new TubeEnd(new Offset(-3, 1, 0), Side.WEST));
+        assertThat(new TubeShape(TubeKind.GAIN, Side.SOUTH).end(1)).isEqualTo(new TubeEnd(new Offset(0, 1, 3), Side.SOUTH));
+        assertThat(TubeKind.GAIN.length()).isEqualTo(240);
+        assertThat(TubeKind.GAIN.weight()).isEqualTo(4);
+    }
+
+    @Test
+    void tubesThatMoveOverStartAndEndStraightAndAreHalfWayAfterHalfTheirLength() {
+        TubeShape gain = new TubeShape(TubeKind.GAIN, Side.NORTH);
+        TubeShape curve = new TubeShape(TubeKind.S_CURVE, Side.NORTH);
+
+        assertSamePoint(gain.pointAt(0.5), new Point(0.5, 1, -1));
+        assertSamePoint(curve.pointAt(0.5), new Point(1, 0.5, -1));
+        // hardly any way up or over near the ends
+        assertThat(gain.pointAt(0.02).y()).isCloseTo(0.5, within(1e-4));
+        assertThat(gain.pointAt(0.98).y()).isCloseTo(1.5, within(1e-4));
+        assertThat(curve.pointAt(0.02).x()).isCloseTo(0.5, within(1e-4));
+        assertThat(curve.pointAt(0.98).x()).isCloseTo(1.5, within(1e-4));
+        // and steadily upwards in between
+        for (int step = 0; step < 50; step++) {
+            assertThat(gain.pointAt((step + 1) / 50.0).y()).isGreaterThan(gain.pointAt(step / 50.0).y());
+        }
+    }
+
+    @Test
+    void tubesSideBySideOrOnTopOfEachOtherShareBlocks() {
+        assertThat(PartType.canShare(List.of(PartType.S_CURVE_A), PartType.S_CURVE_B)).isTrue();
+        assertThat(PartType.canShare(List.of(PartType.S_CURVE_B), PartType.S_CURVE_A)).isTrue();
+        assertThat(PartType.canShare(List.of(PartType.S_CURVE_A), PartType.S_CURVE_A)).isTrue();
+        assertThat(PartType.canShare(List.of(PartType.S_CURVE_B), PartType.S_CURVE_B)).isFalse();
+        assertThat(PartType.canShare(List.of(PartType.CURVE_OUT_A), PartType.S_CURVE_A)).isTrue();
+        assertThat(PartType.canShare(List.of(PartType.S_CURVE_A), PartType.CURVE_OUT_B)).isTrue();
+        assertThat(PartType.canShare(List.of(PartType.CURVE_INNER_A), PartType.S_CURVE_A)).isFalse();
+        assertThat(PartType.canShare(List.of(PartType.CURVE_OUT_A), PartType.S_CURVE_B)).isFalse();
+        assertThat(PartType.canShare(List.of(PartType.GAIN_A), PartType.GAIN_B)).isTrue();
+        assertThat(PartType.canShare(List.of(PartType.GAIN_A), PartType.GAIN_A)).isTrue();
+        assertThat(PartType.canShare(List.of(PartType.GAIN_B), PartType.GAIN_B)).isFalse();
+        assertThat(PartType.canShare(List.of(PartType.GAIN_A), PartType.S_CURVE_A)).isFalse();
+        assertThat(PartType.canShare(List.of(PartType.GAIN_A, PartType.GAIN_B), PartType.GAIN_A)).isFalse();
     }
 
     @Test
