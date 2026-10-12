@@ -420,6 +420,10 @@ public final class LogisticsNetwork {
             return paired;
         }
         // a sink only takes the item if the network can pay for it
+        if (lostDestination) {
+            // waited long enough, whoever ordered it gets told and it is sorted like anything else
+            item.giveUp();
+        }
         Optional<Claim> claim = findDestination(at, item.batch(), item.origin(), true, ItemSink.DEFAULT_ROUTE_PRIORITY, now)
                 .filter(found -> usePower(at, found.energy()));
         if (claim.isEmpty()) {

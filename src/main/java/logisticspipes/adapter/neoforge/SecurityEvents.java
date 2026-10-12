@@ -39,10 +39,16 @@ final class SecurityEvents {
         level.sendBlockUpdated(pos, state, state, Block.UPDATE_ALL);
     }
 
-    // block breakers of other mods work through a pretend player that never clicks
+    // block breakers of other mods work through a pretend player that never clicks, and tools that break several
+    // blocks at once break the extra ones for the real player without a click on them
     private static void machineBreaks(BlockEvent.BreakEvent event) {
-        if (event.getPlayer() instanceof FakePlayer && event.getLevel().getBlockEntity(event.getPos()) instanceof PipeBlockEntity pipe
-                && !pipe.security().allowsAutomatedRemoval()) {
+        if (!(event.getLevel().getBlockEntity(event.getPos()) instanceof PipeBlockEntity pipe)) {
+            return;
+        }
+        boolean allowed = event.getPlayer() instanceof FakePlayer
+                ? pipe.security().allowsAutomatedRemoval()
+                : pipe.security().allows(event.getPlayer(), Permission.REMOVE_PIPES);
+        if (!allowed) {
             event.setCanceled(true);
         }
     }

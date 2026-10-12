@@ -3,6 +3,8 @@ package logisticspipes.adapter.minecraft.menu;
 import logisticspipes.adapter.minecraft.HudGlassesItem;
 import logisticspipes.domain.hud.HudCategory;
 import logisticspipes.domain.hud.HudSettings;
+import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -75,6 +77,14 @@ public class HudSettingsMenu extends AbstractContainerMenu {
                 @Override
                 public int getMaxStackSize() {
                     return 1;
+                }
+
+                // armour with curse of binding stays on, like in the player's own inventory
+                @Override
+                public boolean mayPickup(Player player) {
+                    ItemStack worn = getItem();
+                    return (worn.isEmpty() || player.isCreative()
+                            || !EnchantmentHelper.has(worn, EnchantmentEffectComponents.PREVENT_ARMOR_CHANGE)) && super.mayPickup(player);
                 }
             });
         }

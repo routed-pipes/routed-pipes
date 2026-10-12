@@ -8,6 +8,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.Set;
 
 import logisticspipes.adapter.minecraft.menu.FluidConfigMenu;
@@ -48,6 +49,9 @@ import net.minecraft.world.level.Level;
 // the fluid half of a fluid pipe: its tanks, the tanks around it and what the pipe does with them
 // fluid never flows from pipe to pipe, it is packed into a container that travels like any item
 public final class FluidPipe implements FluidNode {
+
+    // how many pipes fluid that did not fit is shared out to at most
+    private static final int MAX_REROUTES = 16;
 
     // slots of the pipe settings that list fluids
     public static final int FILTER_SLOTS = 9;
@@ -338,9 +342,11 @@ public final class FluidPipe implements FluidNode {
                 done++;
             }
         }
-        Item empty = stack.getItem().getCraftingRemainingItem();
-        if (done > 0 && empty != null) {
-            pipe.insert(new TravellingItem(McItemType.batchOf(new ItemStack(empty, done)), item.origin(), null));
+        // every emptied container goes on, also the ones of other mods that are no bucket
+        ItemStack empty = done > 0 ? services().storage().emptied(stack) : ItemStack.EMPTY;
+        for (int sent = 0; sent < done && !empty.isEmpty(); sent += empty.getMaxStackSize()) {
+            int count = Math.min(empty.getMaxStackSize(), done - sent);
+            pipe.insert(new TravellingItem(McItemType.batchOf(empty.copyWithCount(count)), item.origin(), null));
         }
         if (done < stack.getCount()) {
             pipe.insert(new TravellingItem(McItemType.batchOf(stack.copyWithCount(stack.getCount() - done)), item.origin(), null));
@@ -412,12 +418,31 @@ public final class FluidPipe implements FluidNode {
         FluidLogistics logistics = pipe.network().fluids();
         item.destination().ifPresent(destination -> logistics.lost(destination, packed.get()));
         if (pipe.kind() != null) {
-            // a routed pipe can still find it a new home, in a plain pipe it is gone
-            logistics.reroute(pipe.routerId(), packed.get(), pipe.getLevel().getGameTime())
-                    .ifPresent(shipment -> pipe.insert(packed(new FluidBatch(packed.get().type(), shipment.amount()),
-                            item.origin(), shipment.destination(), TransportMode.SORTED)));
+            // a routed pipe can still find it new homes, in a plain pipe it is gone
+            rerouted(pipe, packed.get(), shipment -> pipe.insert(packed(new FluidBatch(packed.get().type(), shipment.amount()),
+                    item.origin(), shipment.destination(), TransportMode.SORTED)));
         }
         return true;
+    }
+
+    // shares the fluid out between the pipes that take it, one after the other, what nobody takes is gone
+    private void rerouted(FluidBatch batch, Consumer<FluidLogistics.Shipment> sender) {
+        rerouted(pipe, batch, sender);
+    }
+
+    private static void rerouted(PipeBlockEntity pipe, FluidBatch batch, Consumer<FluidLogistics.Shipment> sender) {
+        FluidLogistics logistics = pipe.network().fluids();
+        int left = batch.amount();
+        // every round finds another pipe or ends, a sink once chosen expects its share and has less room
+        for (int round = 0; left > 0 && round < MAX_REROUTES; round++) {
+            Optional<FluidLogistics.Shipment> shipment = logistics.reroute(pipe.routerId(), new FluidBatch(batch.type(), left),
+                    pipe.getLevel().getGameTime());
+            if (shipment.isEmpty() || shipment.get().amount() <= 0) {
+                return;
+            }
+            sender.accept(shipment.get());
+            left -= shipment.get().amount();
+        }
     }
 
     // packed fluid in a pipe that breaks is gone, true if the item was that
@@ -435,8 +460,8 @@ public final class FluidPipe implements FluidNode {
         int left = tanks.unpack(batch, neighbours());
         logistics().arrived(pipe.routerId(), batch, left);
         if (left > 0) {
-            logistics().reroute(pipe.routerId(), new FluidBatch(batch.type(), left), level().getGameTime())
-                    .ifPresent(shipment -> send(new FluidBatch(batch.type(), shipment.amount()), origin, shipment.destination()));
+            rerouted(new FluidBatch(batch.type(), left), shipment -> send(new FluidBatch(batch.type(), shipment.amount()), origin,
+                    shipment.destination()));
         }
         pipe.setChanged();
     }

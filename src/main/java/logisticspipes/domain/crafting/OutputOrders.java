@@ -14,6 +14,10 @@ public final class OutputOrders {
 
     private final List<OutputOrder> orders = new ArrayList<>();
 
+    public void clear() {
+        orders.clear();
+    }
+
     public void add(OutputOrder order) {
         orders.add(order);
     }

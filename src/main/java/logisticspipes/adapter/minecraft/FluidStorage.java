@@ -20,5 +20,8 @@ public interface FluidStorage {
     // the fluid in an item like a bucket
     Optional<FluidBatch> contained(ItemStack stack);
 
+    // what is left of one such item once its fluid is poured out, like an empty bucket or an empty tank
+    ItemStack emptied(ItemStack full);
+
     Component name(FluidType type);
 }

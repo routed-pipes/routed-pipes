@@ -706,6 +706,17 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     }
 
     // no questions asked, a name a player types goes through satelliteSettings
+    // like typing it in the screen: a satellite only takes a name no other satellite in reach has, false if refused
+    public boolean pasteSatelliteName(String name) {
+        if (kind() == PipeKind.SATELLITE || kind() == PipeKind.FLUID_SATELLITE) {
+            if (SatelliteName.check(name, network().satelliteNames(routerId, kind())) != SatelliteName.Verdict.ACCEPTED) {
+                return false;
+            }
+        }
+        setSatelliteName(name);
+        return true;
+    }
+
     public void setSatelliteName(String name) {
         satelliteName = SatelliteName.clean(name);
         settingsChanged();
@@ -1223,7 +1234,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             return Optional.empty();
         }
         if (pipe().routed()) {
-            return network().chooseExit(routerId, item, level.getGameTime());
+            Optional<Side> exit = network().chooseExit(routerId, item, level.getGameTime());
+            item.takeGaveUp().ifPresent(destination -> lost(destination, item));
+            return exit;
         }
         Set<Side> connections = EnumSet.noneOf(Side.class);
         for (Direction side : Direction.values()) {
@@ -1233,6 +1246,16 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         }
         return UnroutedPipe.chooseExit(connections, item, router -> PipeTopology
                 .branchTowards(level, worldPosition, router).map(Directions::toDomain));
+    }
+
+    // an ordered item that will not reach its destination, packed fluid is told to the fluid side
+    private void lost(RouterId destination, TravellingItem item) {
+        if (item.batch().type().packedFluid()) {
+            FluidContainerItem.fluidIn(McItemType.stackOf(item.batch()))
+                    .ifPresent(packed -> network().fluids().lost(destination, packed));
+        } else {
+            network().itemLost(destination, item.batch(), level.getGameTime());
+        }
     }
 
     private void depart(Departure departure) {
@@ -1613,6 +1636,10 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         for (TravellingItem item : transport.clear()) {
             if (!FluidPipe.spilled(this, item)) {
                 Block.popResource(level, worldPosition, McItemType.stackOf(item.batch()));
+                // an ordered item lying on the ground has to be ordered again
+                if (item.mode() == TransportMode.REQUESTED && item.destination().filter(wanted -> !wanted.equals(routerId)).isPresent()) {
+                    network().itemLost(item.destination().get(), item.batch(), level.getGameTime());
+                }
             }
         }
     }
@@ -1755,9 +1782,6 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         if (firewall != null && tag.contains("Firewall")) {
             firewall.load(tag.getCompound("Firewall"), registries);
         }
-        if (tag.contains("Disconnected")) {
-            disconnected = tag.getInt("Disconnected");
-        }
         ListTag slotNames = tag.getList("SlotSatellites", Tag.TAG_STRING);
         int[] slotNumbers = tag.getIntArray("SlotSatellites");
         for (int slot = 0; slot < slotSatellites.length; slot++) {
@@ -1797,6 +1821,10 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         if (tag.contains("Upgrades")) {
             ContainerTags.load(upgrades, tag.getCompound("Upgrades"), registries);
         }
+        // after the upgrades, filling their slots one by one looks like the disconnection upgrade was taken out
+        if (tag.contains("Disconnected")) {
+            disconnected = tag.getInt("Disconnected");
+        }
         if (tag.contains("Power")) {
             power.load(tag.getInt("Power"));
         }
@@ -1809,6 +1837,10 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         }
         if (signs != null && tag.contains("Signs")) {
             signs.load(tag.getCompound("Signs"), registries);
+        }
+        if (tag.contains("Orders")) {
+            // loading into a pipe that is there, like a command does, replaces its orders
+            outputOrders.clear();
         }
         ListTag orders = tag.getList("Orders", Tag.TAG_COMPOUND);
         for (int index = 0; index < orders.size(); index++) {

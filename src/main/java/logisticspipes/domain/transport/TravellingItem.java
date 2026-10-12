@@ -16,6 +16,7 @@ public final class TravellingItem {
     private ItemBatch batch;
     // what was cut off this item because its destination only wants part of it, picked up by the pipe
     private ItemBatch cutOff;
+    private RouterId gaveUpOn;
     private final Side origin;
     private RouterId destination;
     // the router this item is passed to next, plain pipes need it at forks
@@ -98,9 +99,26 @@ public final class TravellingItem {
     // the destination takes only this many, the rest is cut off and stays behind as an item of its own
     public void keepOnly(int count) {
         if (count > 0 && count < batch.count()) {
-            cutOff = new ItemBatch(batch.type(), batch.count() - count);
+            // cut twice before the pipe picked up the first piece, both pieces stay
+            int cut = batch.count() - count + (cutOff == null ? 0 : cutOff.count());
+            cutOff = new ItemBatch(batch.type(), cut);
             batch = new ItemBatch(batch.type(), count);
         }
+    }
+
+    // an ordered item that stops going to its destination, the one waiting for it has to be told
+    public void giveUp() {
+        if (mode == TransportMode.REQUESTED && destination != null) {
+            gaveUpOn = destination;
+        }
+        clearDestination();
+    }
+
+    // empty unless the item gave up on an ordered destination since the last call
+    public Optional<RouterId> takeGaveUp() {
+        Optional<RouterId> result = Optional.ofNullable(gaveUpOn);
+        gaveUpOn = null;
+        return result;
     }
 
     // empty unless something was cut off since the last call

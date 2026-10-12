@@ -1,5 +1,6 @@
 package logisticspipes.adapter.neoforge;
 
+import net.minecraft.world.item.Item;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -91,6 +92,19 @@ public final class CapabilityFluidStorage implements FluidStorage {
     @Override
     public Optional<FluidBatch> contained(ItemStack stack) {
         return FluidUtil.getFluidContained(stack).flatMap(CapabilityFluidStorage::batchOf);
+    }
+
+    @Override
+    public ItemStack emptied(ItemStack full) {
+        ItemStack one = full.copyWithCount(1);
+        return FluidUtil.getFluidHandler(one).map(handler -> {
+            handler.drain(Integer.MAX_VALUE, IFluidHandler.FluidAction.EXECUTE);
+            return handler.getContainer();
+        }).orElseGet(() -> {
+            // no fluid handler on the item, the crafting remainder is the best guess
+            Item remainder = full.getItem().getCraftingRemainingItem();
+            return remainder == null ? ItemStack.EMPTY : new ItemStack(remainder);
+        });
     }
 
     @Override

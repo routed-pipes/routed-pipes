@@ -100,7 +100,8 @@ public class SettingsCopierItem extends Item {
         HolderLookup.Provider registries = pipe.getLevel().registryAccess();
         ContainerTags.load(pipe.config(), settings.getCompound("Config"), registries);
         pipe.setDefaultRoute(settings.getBoolean("DefaultRoute"));
-        pipe.setSatelliteName(settings.getString("Satellite"));
+        // a satellite name another satellite in reach already has is left out
+        pipe.pasteSatelliteName(settings.getString("Satellite"));
         pipe.setMode(settings.getInt("Mode"));
         pipe.setExclude(settings.getBoolean("Exclude"));
         if (pipe.kind() != PipeKind.CHASSIS) {

@@ -147,6 +147,10 @@ public class TubeBlockEntity extends BlockEntity {
     void dropContents() {
         for (TubeItem item : transport.clear()) {
             Block.popResource(level, worldPosition, McItemType.stackOf(item.batch()));
+            // an ordered item lying on the ground has to be ordered again
+            if (item.mode() == TransportMode.REQUESTED && item.destination().isPresent()) {
+                tube().services().networks().of(level).itemLost(item.destination().get(), item.batch(), level.getGameTime());
+            }
         }
     }
 
