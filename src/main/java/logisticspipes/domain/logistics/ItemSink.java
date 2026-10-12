@@ -33,4 +33,14 @@ public record ItemSink(Set<ItemType> filter, boolean defaultRoute) implements Si
     public int energy() {
         return 2;
     }
+
+    @Override
+    public Set<ItemType> wants() {
+        return filter;
+    }
+
+    @Override
+    public boolean takesUnlisted() {
+        return defaultRoute;
+    }
 }

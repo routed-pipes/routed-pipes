@@ -2,6 +2,7 @@ package logisticspipes.domain.logistics;
 
 import java.util.Map;
 import java.util.OptionalInt;
+import java.util.Set;
 
 import logisticspipes.domain.item.ItemType;
 
@@ -29,5 +30,10 @@ public record PassiveSupplier(Map<ItemType, Integer> targets) implements SinkRul
     @Override
     public int energy() {
         return 4;
+    }
+
+    @Override
+    public Set<ItemType> wants() {
+        return targets.keySet();
     }
 }

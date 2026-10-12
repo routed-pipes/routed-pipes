@@ -33,6 +33,9 @@ class LogisticsNetworkChassisTest {
     // a tick on which every kind of upkeep is due
     private static final long NOW = 120;
 
+    // the network was put together well before the tests start ticking it
+    private static final long BUILT = -100;
+
     private final LogisticsNetwork network = new LogisticsNetwork();
     private final FakeNode chassis = new FakeNode(PipeKind.CHASSIS);
     private final FakeNode store = new FakeNode(PipeKind.BASIC);
@@ -45,12 +48,13 @@ class LogisticsNetworkChassisTest {
     // chassis - store - request in a row
     private void connect() {
         chassis.sink = new ItemSink(Set.of(), false);
-        network.addRouter(CHASSIS, chassis, 0);
-        network.addRouter(STORE, store, 0);
-        network.addRouter(REQUEST, request, 0);
-        network.updateLinks(CHASSIS, List.of(new Link(STORE, Side.EAST, 1)), 0);
-        network.updateLinks(STORE, List.of(new Link(CHASSIS, Side.WEST, 1), new Link(REQUEST, Side.EAST, 1)), 0);
-        network.updateLinks(REQUEST, List.of(new Link(STORE, Side.WEST, 1)), 0);
+        network.sinksChanged(CHASSIS);
+        network.addRouter(CHASSIS, chassis, BUILT);
+        network.addRouter(STORE, store, BUILT);
+        network.addRouter(REQUEST, request, BUILT);
+        network.updateLinks(CHASSIS, List.of(new Link(STORE, Side.EAST, 1)), BUILT);
+        network.updateLinks(STORE, List.of(new Link(CHASSIS, Side.WEST, 1), new Link(REQUEST, Side.EAST, 1)), BUILT);
+        network.updateLinks(REQUEST, List.of(new Link(STORE, Side.WEST, 1)), BUILT);
     }
 
     @Test
@@ -83,6 +87,7 @@ class LogisticsNetworkChassisTest {
         chassis.stock("stone", 40).stock("dirt", 3);
         store.inventories.add(Side.UP);
         store.sink = new ItemSink(Set.of(item("dirt")), false);
+        network.sinksChanged(STORE);
 
         network.tick(CHASSIS, NOW);
 
@@ -94,6 +99,7 @@ class LogisticsNetworkChassisTest {
         connect();
         chassis.extractions.add(ExtractionMode.EXTRACTOR);
         chassis.sink = new ItemSink(Set.of(), true);
+        network.sinksChanged(CHASSIS);
         chassis.stock("stone", 40);
 
         network.tick(CHASSIS, NOW);
@@ -107,8 +113,24 @@ class LogisticsNetworkChassisTest {
         chassis.extractions.add(ExtractionMode.EXTRACTOR);
         chassis.stock("stone", 40);
         store.inventories.add(Side.UP);
+        network.updateLinks(CHASSIS, List.of(new Link(STORE, Side.EAST, 2)), NOW - 5);
 
-        network.tick(CHASSIS, 0);
+        network.tick(CHASSIS, NOW);
+        assertThat(chassis.shipments).isEmpty();
+
+        network.tick(CHASSIS, NOW + 20);
+        assertThat(chassis.shipments).hasSize(1);
+    }
+
+    @Test
+    void noUpkeepInTheTickTheNetworkChanges() {
+        connect();
+        chassis.extractions.add(ExtractionMode.EXTRACTOR);
+        chassis.stock("stone", 40);
+        store.inventories.add(Side.UP);
+        network.addRouter(router(7), new FakeNode(PipeKind.BASIC), NOW);
+
+        network.tick(CHASSIS, NOW);
 
         assertThat(chassis.shipments).isEmpty();
     }
@@ -142,6 +164,7 @@ class LogisticsNetworkChassisTest {
         connect();
         chassis.inventories.add(Side.UP);
         chassis.sink = new ItemSink(Set.of(item("stone")), false);
+        network.sinksChanged(CHASSIS);
         var stone = new logisticspipes.domain.transport.TravellingItem(batch("stone", 4), Side.UP, null);
         var dirt = new logisticspipes.domain.transport.TravellingItem(batch("dirt", 4), Side.UP, null);
 
@@ -156,6 +179,7 @@ class LogisticsNetworkChassisTest {
         chassis.stock("stone", 200);
         store.inventories.add(Side.UP);
         store.sink = new ItemSink(Set.of(item("stone")), false);
+        network.sinksChanged(STORE);
 
         network.tick(CHASSIS, NOW);
 
@@ -186,8 +210,10 @@ class LogisticsNetworkChassisTest {
         connect();
         store.inventories.add(Side.UP);
         store.sink = new ItemSink(Set.of(item("coal")), false);
+        network.sinksChanged(STORE);
         chassis.inventories.add(Side.UP);
         chassis.sink = new PassiveSupplier(Map.of(item("coal"), 16));
+        network.sinksChanged(CHASSIS);
 
         assertThat(network.chooseExit(STORE, new TravellingItem(batch("coal", 4), Side.DOWN, null), NOW)).contains(Side.WEST);
     }
@@ -232,8 +258,9 @@ class LogisticsNetworkChassisTest {
         FakeNode far = new FakeNode(PipeKind.CHASSIS);
         far.inventories.add(Side.UP);
         far.sink = new Terminus(Set.of(item("stone")));
-        network.addRouter(router(4), far, 0);
-        network.updateLinks(REQUEST, List.of(new Link(STORE, Side.WEST, 1), new Link(router(4), Side.EAST, 5)), 0);
+        network.sinksChanged(router(4));
+        network.addRouter(router(4), far, BUILT);
+        network.updateLinks(REQUEST, List.of(new Link(STORE, Side.WEST, 1), new Link(router(4), Side.EAST, 5)), BUILT);
         store.inventories.add(Side.UP);
 
         TravellingItem stone = new TravellingItem(batch("stone", 4), Side.DOWN, null);
@@ -248,6 +275,7 @@ class LogisticsNetworkChassisTest {
         connect();
         chassis.inventories.add(Side.UP);
         chassis.sink = new PassiveSupplier(Map.of(item("coal"), 16));
+        network.sinksChanged(CHASSIS);
         chassis.contents.put(item("coal"), 10);
 
         assertThat(network.chooseExit(STORE, new TravellingItem(batch("coal", 4), Side.UP, null), NOW)).contains(Side.WEST);
@@ -262,6 +290,7 @@ class LogisticsNetworkChassisTest {
         connect();
         chassis.inventories.add(Side.UP);
         chassis.sink = new PolymorphicItemSink();
+        network.sinksChanged(CHASSIS);
         chassis.contents.put(item("stone"), 1);
 
         assertThat(network.chooseExit(STORE, new TravellingItem(batch("stone", 4), Side.UP, null), NOW)).contains(Side.WEST);
@@ -294,6 +323,7 @@ class LogisticsNetworkChassisTest {
         chassis.stock("stone", 200);
         store.inventories.add(Side.UP);
         store.sink = new ItemSink(Set.of(item("stone")), false);
+        network.sinksChanged(STORE);
         int before = chassis.power;
 
         network.tick(CHASSIS, NOW + 1);

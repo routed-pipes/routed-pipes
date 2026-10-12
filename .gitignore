@@ -47,3 +47,6 @@ run-compat/
 
 ### Play pack ###
 run-pack/
+
+### Benchmark server ###
+run-benchmark/

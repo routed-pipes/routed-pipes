@@ -9,6 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Set;
 
 import logisticspipes.application.port.RouterNode;
@@ -21,6 +22,7 @@ import logisticspipes.domain.logistics.InventoryRef;
 import logisticspipes.domain.logistics.ItemSink;
 import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.domain.logistics.SinkBid;
+import logisticspipes.domain.logistics.SinkRule;
 import logisticspipes.domain.logistics.SinkOffer;
 import logisticspipes.domain.request.CraftJob;
 import logisticspipes.domain.request.Crafter;
@@ -62,23 +64,38 @@ public final class LogisticsNetwork {
     private final Map<RouterId, RouterNode> nodes = new HashMap<>();
     private final PendingDeliveries pending = new PendingDeliveries();
     private final Map<RouterId, Long> changedAt = new HashMap<>();
-    // newest change among a router and everything it can reach, worked out when asked and dropped on any change
-    private final Map<RouterId, Long> lastNearbyChange = new HashMap<>();
+    // newest change per group of connected routers, worked out when asked and dropped on any change
+    private final Map<Integer, Long> lastChangeOfComponent = new HashMap<>();
+    private long lastChangeAnywhere = Long.MIN_VALUE;
+    // which routers take which items, so that sorting an item does not have to ask every router of a large base
+    private final Map<RouterId, List<SinkRule>> sinkRules = new HashMap<>();
+    private final Map<ItemType, Set<RouterId>> sinksByItem = new HashMap<>();
+    private final Set<RouterId> sinksForAnything = new HashSet<>();
 
     public void addRouter(RouterId id, RouterNode node, long now) {
         nodes.put(id, node);
         routing.add(id);
+        sinksChanged(id);
         changed(id, now);
     }
 
     public void removeRouter(RouterId id, long now) {
         // everything that was connected to it has to find its way again
-        reachableFrom(id).forEach(neighbour -> changedAt.put(neighbour, now));
+        OptionalInt component = routing.component(id);
+        if (component.isPresent()) {
+            for (RouterId other : changedAt.keySet()) {
+                if (routing.component(other).equals(component)) {
+                    changedAt.put(other, now);
+                }
+            }
+        }
         nodes.remove(id);
         routing.remove(id);
         pending.forget(id);
         changedAt.remove(id);
-        lastNearbyChange.clear();
+        forgetSinks(id);
+        lastChangeOfComponent.clear();
+        lastChangeAnywhere = now;
     }
 
     public void updateLinks(RouterId id, List<Link> links, long now) {
@@ -89,26 +106,85 @@ public final class LogisticsNetwork {
 
     private void changed(RouterId id, long now) {
         changedAt.put(id, now);
-        lastNearbyChange.clear();
+        lastChangeOfComponent.clear();
+        lastChangeAnywhere = now;
     }
 
     // whether the routers this one is connected to are still finding each other
     // pipes being built or loaded somewhere else in the world do not count
     private boolean settling(RouterId at, long now) {
-        long last = lastNearbyChange.computeIfAbsent(at, id -> {
-            long latest = changedAt.getOrDefault(id, Long.MIN_VALUE / 2);
-            for (RouterId other : routing.routesFrom(id).keySet()) {
-                latest = Math.max(latest, changedAt.getOrDefault(other, Long.MIN_VALUE / 2));
+        if (now == lastChangeAnywhere) {
+            // when a large base loads, hundreds of routers register in one tick
+            // working out who is connected to whom after each of them would freeze the game, so everyone waits for the next tick
+            return true;
+        }
+        if (lastChangeOfComponent.isEmpty()) {
+            changedAt.forEach((id, when) -> routing.component(id).ifPresent(
+                    component -> lastChangeOfComponent.merge(component, when, Math::max)));
+        }
+        OptionalInt component = routing.component(at);
+        return component.isPresent() && now - lastChangeOfComponent.getOrDefault(component.getAsInt(), Long.MIN_VALUE / 2) < SETTLE_TICKS;
+    }
+
+    // has to be called whenever what a router takes in changes: its filters, modules or default route
+    public void sinksChanged(RouterId id) {
+        forgetSinks(id);
+        RouterNode node = nodes.get(id);
+        if (node == null) {
+            return;
+        }
+        List<SinkRule> rules = List.copyOf(node.sinkRules());
+        if (rules.isEmpty()) {
+            return;
+        }
+        sinkRules.put(id, rules);
+        for (SinkRule rule : rules) {
+            if (rule.takesUnlisted()) {
+                sinksForAnything.add(id);
             }
-            return latest;
-        });
-        return now - last < SETTLE_TICKS;
+            rule.wants().forEach(type -> sinksByItem.computeIfAbsent(type, key -> new HashSet<>()).add(id));
+        }
+    }
+
+    private void forgetSinks(RouterId id) {
+        List<SinkRule> rules = sinkRules.remove(id);
+        if (rules == null) {
+            return;
+        }
+        sinksForAnything.remove(id);
+        for (SinkRule rule : rules) {
+            for (ItemType type : rule.wants()) {
+                Set<RouterId> sinks = sinksByItem.get(type);
+                if (sinks != null) {
+                    sinks.remove(id);
+                    if (sinks.isEmpty()) {
+                        sinksByItem.remove(type);
+                    }
+                }
+            }
+        }
+    }
+
+    // what the router bids for an item, its keenest rule counts
+    private Optional<SinkBid> sinkBid(RouterId id, ItemType type) {
+        List<SinkRule> rules = sinkRules.get(id);
+        RouterNode node = nodes.get(id);
+        if (rules == null || node == null) {
+            return Optional.empty();
+        }
+        Map<ItemType, Integer> contents = rules.stream().anyMatch(SinkRule::needsContents) ? node.contents() : Map.of();
+        return rules.stream().flatMap(rule -> rule.bid(type, contents).stream()).max(Comparator.comparingInt(SinkBid::priority));
     }
 
     // side an item has to leave the router through, picks a new destination if the current one does not work out
     // empty means there is nowhere to go right now, the pipe asks again for a while before it gives up
     public Optional<Side> chooseExit(RouterId at, TravellingItem item, long now) {
         RouterNode node = nodes.get(at);
+        if (now == lastChangeAnywhere) {
+            // routes are worked out again next tick, see settling
+            item.stayPatient();
+            return Optional.empty();
+        }
         if (item.destination().filter(at::equals).isPresent()) {
             if (item.markArrived()) {
                 pending.arrived(at, item.batch().type(), item.batch().count());
@@ -167,16 +243,18 @@ public final class LogisticsNetwork {
         Set<InventoryRef> cameFrom = sourceInventories(at, origin, mayStay);
         List<SinkOffer> offers = new ArrayList<>();
         Map<RouterId, Integer> energy = new HashMap<>();
-        for (Map.Entry<RouterId, RouterNode> entry : nodes.entrySet()) {
-            Optional<SinkBid> bid = entry.getValue().sinkBid(batch.type());
+        Set<RouterId> candidates = new HashSet<>(sinksForAnything);
+        candidates.addAll(sinksByItem.getOrDefault(batch.type(), Set.of()));
+        for (RouterId candidate : candidates) {
+            Optional<SinkBid> bid = sinkBid(candidate, batch.type());
             if (bid.isEmpty() || bid.get().priority() < minPriority) {
                 continue;
             }
-            boolean here = entry.getKey().equals(at);
+            boolean here = candidate.equals(at);
             // a second pipe on the inventory the item came out of would only put it straight back
-            if (here ? mayStay : !sharesInventory(entry.getValue(), cameFrom)) {
-                offers.add(new SinkOffer(entry.getKey(), bid.get().priority()));
-                energy.put(entry.getKey(), bid.get().energy());
+            if (here ? mayStay : !sharesInventory(nodes.get(candidate), cameFrom)) {
+                offers.add(new SinkOffer(candidate, bid.get().priority()));
+                energy.put(candidate, bid.get().energy());
             }
         }
         // looking into inventories is the expensive part, so only the best candidates are asked, in order
@@ -307,7 +385,7 @@ public final class LogisticsNetwork {
     // extractors push items out, each at its own pace
     public void tick(RouterId id, long now) {
         RouterNode node = nodes.get(id);
-        if (node == null) {
+        if (node == null || now == lastChangeAnywhere) {
             return;
         }
         if (node.kind() == PipeKind.CRAFTING && now % CRAFT_INTERVAL == 0) {
@@ -365,13 +443,9 @@ public final class LogisticsNetwork {
         }
     }
 
+    // nearest first
     private List<RouterId> reachableFrom(RouterId requester) {
-        Map<RouterId, Route> routes = routing.routesFrom(requester);
-        return routes.values().stream()
-                .sorted(Comparator.comparingInt(Route::distance).thenComparing(route -> route.destination().value()))
-                .map(Route::destination)
-                .filter(nodes::containsKey)
-                .toList();
+        return routing.routesFrom(requester).byDistance();
     }
 
     // what can be ordered right now: the inventories of providers, and finished items in crafting inventories

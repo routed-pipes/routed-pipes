@@ -17,7 +17,6 @@ import logisticspipes.domain.logistics.ExtractionMode;
 import logisticspipes.domain.logistics.InventoryRef;
 import logisticspipes.domain.logistics.ItemSink;
 import logisticspipes.domain.logistics.PipeKind;
-import logisticspipes.domain.logistics.SinkBid;
 import logisticspipes.domain.logistics.SinkRule;
 import logisticspipes.domain.routing.RouterId;
 import logisticspipes.domain.routing.Side;
@@ -127,8 +126,8 @@ public final class FakeNode implements RouterNode {
     }
 
     @Override
-    public Optional<SinkBid> sinkBid(ItemType type) {
-        return kind == PipeKind.BASIC || kind == PipeKind.CHASSIS ? sink.bid(type, contents) : Optional.empty();
+    public List<SinkRule> sinkRules() {
+        return kind == PipeKind.BASIC || kind == PipeKind.CHASSIS ? List.of(sink) : List.of();
     }
 
     @Override

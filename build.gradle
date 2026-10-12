@@ -104,6 +104,18 @@ neoForge {
             programArguments.addAll '--width', '854', '--height', '480'
         }
 
+        // builds a large base on a server and measures tick times, started by scripts/benchmark.sh
+        benchmark {
+            server()
+            programArgument '--nogui'
+            gameDirectory = project.file('run-benchmark')
+            systemProperty 'logisticspipes.benchmark', project.file('build/benchmark/result.txt').absolutePath
+            systemProperty 'logisticspipes.benchmark.size', (project.findProperty('benchmarkSize') ?: '20x20x4')
+            if (project.hasProperty('benchmarkProfile')) {
+                jvmArguments.add "-XX:StartFlightRecording=filename=${project.file('build/benchmark/profile.jfr')},settings=profile"
+            }
+        }
+
         // a client to play in, with the mods of the compatibility run. Drop more mods into run-pack/mods
         clientPack {
             client()

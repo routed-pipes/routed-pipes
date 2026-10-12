@@ -206,6 +206,7 @@ class LogisticsNetworkTest {
         a.inventories.add(Side.DOWN);
         c.inventories.add(Side.UP);
         c.sink = new ItemSink(Set.of(batch("stone", 1).type()), false);
+        network.sinksChanged(C);
         TravellingItem item = itemFrom(Side.UP);
 
         assertThat(network.chooseExit(B, item, NOW)).contains(Side.EAST);
@@ -217,6 +218,7 @@ class LogisticsNetworkTest {
         line();
         c.inventories.add(Side.UP);
         c.sink = new ItemSink(Set.of(batch("dirt", 1).type()), false);
+        network.sinksChanged(C);
         TravellingItem item = itemFrom(Side.UP);
 
         assertThat(network.chooseExit(A, item, NOW)).isEmpty();
@@ -307,5 +309,18 @@ class LogisticsNetworkTest {
 
         assertThat(network.chooseExit(B, itemFrom(Side.UP), 96)).isEmpty();
         assertThat(network.chooseExit(B, itemFrom(Side.UP), 95 + LogisticsNetwork.SETTLE_TICKS)).contains(Side.WEST);
+    }
+
+    @Test
+    void nothingIsDecidedInTheTickTheNetworkChanges() {
+        line();
+        c.inventories.add(Side.UP);
+        network.addRouter(router(8), new FakeNode(PipeKind.BASIC), NOW);
+        TravellingItem ordered = new TravellingItem(batch("stone", 8), Side.WEST, C);
+        ordered.waitForExit();
+
+        assertThat(network.chooseExit(B, ordered, NOW)).isEmpty();
+        assertThat(ordered.waited()).isZero();
+        assertThat(network.chooseExit(B, ordered, NOW + 1)).contains(Side.EAST);
     }
 }

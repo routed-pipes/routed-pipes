@@ -113,6 +113,9 @@ public class LogisticsPipeBlock extends Block implements EntityBlock {
     protected BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor level,
             BlockPos pos, BlockPos neighborPos) {
         if (level instanceof Level world) {
+            if (world.getBlockEntity(pos) instanceof PipeBlockEntity pipe) {
+                pipe.neighbourChanged();
+            }
             return state.setValue(CONNECTED.get(direction), connectsTo(world, pos, direction));
         }
         return state;

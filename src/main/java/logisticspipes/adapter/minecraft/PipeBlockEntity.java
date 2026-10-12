@@ -1,7 +1,6 @@
 package logisticspipes.adapter.minecraft;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
@@ -28,7 +27,6 @@ import logisticspipes.domain.logistics.InventoryRef;
 import logisticspipes.domain.logistics.ItemSink;
 import logisticspipes.domain.logistics.ModuleKind;
 import logisticspipes.domain.logistics.PipeKind;
-import logisticspipes.domain.logistics.SinkBid;
 import logisticspipes.domain.logistics.SinkRule;
 import logisticspipes.domain.routing.RouterId;
 import logisticspipes.domain.routing.Side;
@@ -73,6 +71,8 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     // the largest chassis has this many
     public static final int MODULE_SLOTS = 8;
     public static final int UPGRADE_SLOTS = 4;
+    // capabilities of a neighbour can change without its block changing, so nothing about it is trusted for longer
+    private static final int SURROUNDINGS_MAX_AGE = 40;
     // every speed upgrade makes the pipe send items on this much faster, in percent
     private static final int SPEED_UPGRADE_PERCENT = 25;
 
@@ -94,7 +94,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             } else {
                 satelliteId = value;
             }
-            setChanged();
+            settingsChanged();
         }
 
         @Override
@@ -106,18 +106,48 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     private int satelliteId;
     private boolean defaultRoute;
     private boolean announced;
+    private LogisticsNetwork network;
     private Map<ItemType, Integer> contentsCache;
+    // worked out from modules and settings when first asked for, dropped when those change
+    private List<SinkRule> sinkRulesCache;
+    private List<ExtractionMode> extractionsCache;
+    // what is next to the pipe, looked up again after a neighbour changed and every couple of seconds anyway
+    private List<Direction> inventorySidesCache;
+    private List<BlockPos> junctionsCache;
+    private long surroundingsCachedAt;
     private long contentsCachedAt;
     private boolean linksDirty;
 
     public PipeBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
-        config.addListener(container -> setChanged());
-        modules.addListener(container -> setChanged());
+        config.addListener(container -> settingsChanged());
+        modules.addListener(container -> settingsChanged());
         upgrades.addListener(container -> {
             transport.setBoost(boost());
+            neighbourChanged();
             setChanged();
         });
+    }
+
+    // filters, modules or the default route changed: forget what was derived from them and tell the network
+    private void settingsChanged() {
+        sinkRulesCache = null;
+        extractionsCache = null;
+        if (announced && level != null && !level.isClientSide && pipe().routed()) {
+            network().sinksChanged(routerId);
+        }
+        setChanged();
+    }
+
+    // a block next to the pipe changed
+    void neighbourChanged() {
+        inventorySidesCache = null;
+        junctionsCache = null;
+        contentsCache = null;
+    }
+
+    private boolean surroundingsStale() {
+        return level.getGameTime() - surroundingsCachedAt >= SURROUNDINGS_MAX_AGE;
     }
 
     RouterId routerId() {
@@ -133,7 +163,10 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     }
 
     private LogisticsNetwork network() {
-        return pipe().services().networks().of(level);
+        if (network == null) {
+            network = pipe().services().networks().of(level);
+        }
+        return network;
     }
 
     private ItemStorage storage() {
@@ -312,7 +345,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             linksDirty = false;
             network().updateLinks(routerId, PipeTopology.discoverLinks(level, worldPosition), level.getGameTime());
         }
-        if (kind() == PipeKind.CRAFTING || kind() == PipeKind.SUPPLIER || kind() == PipeKind.CHASSIS) {
+        // a chassis that only takes items in has no upkeep
+        if (kind() == PipeKind.CRAFTING || kind() == PipeKind.SUPPLIER
+                || kind() == PipeKind.CHASSIS && !extractions().isEmpty()) {
             network().tick(routerId, level.getGameTime());
         }
         if (!transport.isEmpty()) {
@@ -393,18 +428,32 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
 
     // sides that touch an inventory
     private List<Direction> inventorySides() {
+        if (inventorySidesCache == null || surroundingsStale()) {
+            lookAround();
+        }
+        return inventorySidesCache;
+    }
+
+    private void lookAround() {
         List<Direction> sides = new ArrayList<>();
+        List<BlockPos> junctions = new ArrayList<>();
         for (Direction side : Direction.values()) {
             BlockPos target = worldPosition.relative(side);
             // never look into a chunk that is not loaded, that would load it
-            if (getBlockState().getValue(LogisticsPipeBlock.CONNECTED.get(side))
-                    && level.isLoaded(target)
+            if (!level.isLoaded(target)) {
+                continue;
+            }
+            if (level.getBlockEntity(target) instanceof PowerJunctionBlockEntity) {
+                junctions.add(target);
+            } else if (getBlockState().getValue(LogisticsPipeBlock.CONNECTED.get(side))
                     && !(level.getBlockState(target).getBlock() instanceof LogisticsPipeBlock)
                     && storage().exists(level, target, accessFace(side))) {
                 sides.add(side);
             }
         }
-        return sides;
+        inventorySidesCache = sides;
+        junctionsCache = junctions;
+        surroundingsCachedAt = level.getGameTime();
     }
 
     @Override
@@ -494,10 +543,12 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
 
     @Override
     public int drawPower(int amount, boolean simulate) {
+        if (junctionsCache == null || surroundingsStale()) {
+            lookAround();
+        }
         int drawn = 0;
-        for (Direction side : Direction.values()) {
-            BlockPos target = worldPosition.relative(side);
-            if (drawn < amount && level.isLoaded(target) && level.getBlockEntity(target) instanceof PowerJunctionBlockEntity junction) {
+        for (BlockPos target : junctionsCache) {
+            if (drawn < amount && level.getBlockEntity(target) instanceof PowerJunctionBlockEntity junction) {
                 drawn += junction.draw(amount - drawn, simulate);
             }
         }
@@ -506,7 +557,10 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
 
     @Override
     public List<ExtractionMode> extractions() {
-        return pluggedModules().stream().flatMap(stack -> ModuleItem.extractionOf(stack).stream()).distinct().toList();
+        if (extractionsCache == null) {
+            extractionsCache = pluggedModules().stream().flatMap(stack -> ModuleItem.extractionOf(stack).stream()).distinct().toList();
+        }
+        return extractionsCache;
     }
 
     // every speed upgrade doubles what an extractor moves
@@ -516,16 +570,17 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     }
 
     @Override
-    public Optional<SinkBid> sinkBid(ItemType type) {
-        if (kind() == PipeKind.BASIC) {
-            return new ItemSink(supplyTargets().keySet(), defaultRoute).bid(type, Map.of());
+    public List<SinkRule> sinkRules() {
+        if (sinkRulesCache == null) {
+            if (kind() == PipeKind.BASIC) {
+                ItemSink sink = new ItemSink(supplyTargets().keySet(), defaultRoute);
+                // a basic pipe with nothing listed and no default route takes nothing
+                sinkRulesCache = sink.filter().isEmpty() && !sink.defaultRoute() ? List.of() : List.of(sink);
+            } else {
+                sinkRulesCache = pluggedModules().stream().flatMap(stack -> ModuleItem.ruleOf(stack).stream()).toList();
+            }
         }
-        // a chassis wants an item as much as its keenest module does
-        List<SinkRule> rules = pluggedModules().stream().flatMap(stack -> ModuleItem.ruleOf(stack).stream()).toList();
-        Map<ItemType, Integer> contents = rules.stream().anyMatch(SinkRule::needsContents) ? contents() : Map.of();
-        return rules.stream()
-                .flatMap(rule -> rule.bid(type, contents).stream())
-                .max(Comparator.comparingInt(SinkBid::priority));
+        return sinkRulesCache;
     }
 
     @Override

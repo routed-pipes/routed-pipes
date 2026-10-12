@@ -213,8 +213,9 @@ public class ChassisGameTest {
         loaded.loadWithComponents(saved, helper.getLevel().registryAccess());
 
         helper.assertTrue(!loaded.extractions().isEmpty(), "extractor");
-        helper.assertTrue(loaded.sinkBid(McItemType.batchOf(new ItemStack(Items.DIAMOND)).type()).isPresent(), "sink filter");
-        helper.assertTrue(loaded.sinkBid(McItemType.batchOf(new ItemStack(Items.DIRT)).type()).isEmpty(), "nothing else");
+        helper.assertTrue(loaded.sinkRules().size() == 1 && loaded.sinkRules().get(0).wants()
+                .equals(java.util.Set.of(McItemType.batchOf(new ItemStack(Items.DIAMOND)).type())), "sink filter");
+        helper.assertTrue(!loaded.sinkRules().get(0).takesUnlisted(), "nothing else");
 
         // a command or a structure may carry only the modules
         CompoundTag onlyModules = new CompoundTag();

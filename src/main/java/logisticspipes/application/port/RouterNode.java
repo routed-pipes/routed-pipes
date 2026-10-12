@@ -12,7 +12,7 @@ import logisticspipes.domain.item.ItemType;
 import logisticspipes.domain.logistics.ExtractionMode;
 import logisticspipes.domain.logistics.InventoryRef;
 import logisticspipes.domain.logistics.PipeKind;
-import logisticspipes.domain.logistics.SinkBid;
+import logisticspipes.domain.logistics.SinkRule;
 import logisticspipes.domain.routing.RouterId;
 import logisticspipes.domain.routing.Side;
 
@@ -57,9 +57,10 @@ public interface RouterNode {
         return 1;
     }
 
-    // whether and how much the pipe wants an item nobody asked for, and what it charges for a stack
-    default Optional<SinkBid> sinkBid(ItemType type) {
-        return Optional.empty();
+    // how the pipe takes items nobody asked for, empty if it does not
+    // the network keeps an index of these, so it has to be told when they change, see LogisticsNetwork.sinksChanged
+    default List<SinkRule> sinkRules() {
+        return List.of();
     }
 
     // crafting pipes only

@@ -33,6 +33,9 @@ class LogisticsNetworkRequestTest {
     // long after the network was put together
     private static final long NOW = 100;
 
+    // the network was put together well before the tests start ticking it
+    private static final long BUILT = -100;
+
     private final LogisticsNetwork network = new LogisticsNetwork();
     private final FakeNode request = new FakeNode(PipeKind.REQUEST);
     private final FakeNode provider = new FakeNode(PipeKind.PROVIDER);
@@ -50,7 +53,7 @@ class LogisticsNetworkRequestTest {
         List<FakeNode> nodes = List.of(request, provider, crafting, satellite, supplier);
         supplier.inventories.add(Side.UP);
         for (int i = 0; i < ids.size(); i++) {
-            network.addRouter(ids.get(i), nodes.get(i), 0);
+            network.addRouter(ids.get(i), nodes.get(i), BUILT);
         }
         for (int i = 0; i < ids.size(); i++) {
             List<Link> links = new java.util.ArrayList<>();
@@ -60,7 +63,7 @@ class LogisticsNetworkRequestTest {
             if (i < ids.size() - 1) {
                 links.add(new Link(ids.get(i + 1), Side.EAST, 1));
             }
-            network.updateLinks(ids.get(i), links, 0);
+            network.updateLinks(ids.get(i), links, BUILT);
         }
     }
 
@@ -84,7 +87,7 @@ class LogisticsNetworkRequestTest {
     @Test
     void doesNotListStockOfUnreachableProviders() {
         connect();
-        network.addRouter(ISLAND, new FakeNode(PipeKind.PROVIDER).stock("gold", 5), 0);
+        network.addRouter(ISLAND, new FakeNode(PipeKind.PROVIDER).stock("gold", 5), BUILT);
 
         assertThat(network.available(REQUEST)).isEmpty();
     }
@@ -296,9 +299,9 @@ class LogisticsNetworkRequestTest {
         provider.inventoryRefs.put(Side.UP, new InventoryRef(7));
         FakeNode second = new FakeNode(PipeKind.PROVIDER).stock("log", 20);
         second.inventoryRefs.put(Side.UP, new InventoryRef(7));
-        network.addRouter(ISLAND, second, 0);
-        network.updateLinks(ISLAND, List.of(new Link(REQUEST, Side.EAST, 1)), 0);
-        network.updateLinks(REQUEST, List.of(new Link(PROVIDER, Side.EAST, 1), new Link(ISLAND, Side.WEST, 1)), 0);
+        network.addRouter(ISLAND, second, BUILT);
+        network.updateLinks(ISLAND, List.of(new Link(REQUEST, Side.EAST, 1)), BUILT);
+        network.updateLinks(REQUEST, List.of(new Link(PROVIDER, Side.EAST, 1), new Link(ISLAND, Side.WEST, 1)), BUILT);
 
         assertThat(network.available(REQUEST)).containsEntry(item("log"), 20);
         assertThat(network.request(REQUEST, batch("log", 30), 0).started()).isFalse();
@@ -352,9 +355,9 @@ class LogisticsNetworkRequestTest {
         crafting.recipe = new Recipe(List.of(batch("log", 1)), batch("planks", 4));
         FakeNode second = new FakeNode(PipeKind.CRAFTING);
         second.recipe = crafting.recipe;
-        network.addRouter(ISLAND, second, 0);
-        network.updateLinks(ISLAND, List.of(new Link(REQUEST, Side.EAST, 9)), 0);
-        network.updateLinks(REQUEST, List.of(new Link(PROVIDER, Side.EAST, 1), new Link(ISLAND, Side.WEST, 9)), 0);
+        network.addRouter(ISLAND, second, BUILT);
+        network.updateLinks(ISLAND, List.of(new Link(REQUEST, Side.EAST, 9)), BUILT);
+        network.updateLinks(REQUEST, List.of(new Link(PROVIDER, Side.EAST, 1), new Link(ISLAND, Side.WEST, 9)), BUILT);
 
         network.request(REQUEST, batch("planks", 8), 0);
         network.request(REQUEST, batch("planks", 4), 0);
@@ -464,7 +467,7 @@ class LogisticsNetworkRequestTest {
         connect();
         noPower();
         FakeNode island = new FakeNode(PipeKind.BASIC);
-        network.addRouter(ISLAND, island, 0);
+        network.addRouter(ISLAND, island, BUILT);
         provider.stock("log", 20);
 
         assertThat(network.request(REQUEST, batch("log", 8), 0).started()).isFalse();
@@ -537,8 +540,8 @@ class LogisticsNetworkRequestTest {
         FakeNode sink = new FakeNode(PipeKind.BASIC);
         sink.power = 0;
         sink.inventories.add(Side.UP);
-        network.addRouter(ISLAND, sink, 0);
-        network.updateLinks(REQUEST, List.of(new Link(PROVIDER, Side.EAST, 1), new Link(ISLAND, Side.WEST, 1)), 0);
+        network.addRouter(ISLAND, sink, BUILT);
+        network.updateLinks(REQUEST, List.of(new Link(PROVIDER, Side.EAST, 1), new Link(ISLAND, Side.WEST, 1)), BUILT);
         TravellingItem item = new TravellingItem(batch("log", 8), Side.DOWN, null);
 
         assertThat(network.chooseExit(REQUEST, item, NOW)).isEmpty();
@@ -598,7 +601,7 @@ class LogisticsNetworkRequestTest {
         request.power = 30;
         supplier.power = 50;
         FakeNode island = new FakeNode(PipeKind.BASIC);
-        network.addRouter(ISLAND, island, 0);
+        network.addRouter(ISLAND, island, BUILT);
 
         assertThat(network.status(REQUEST)).isEqualTo(new RouterStatus(4, 80));
         assertThat(network.status(ISLAND)).isEqualTo(new RouterStatus(0, 1_000_000));

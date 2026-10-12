@@ -24,6 +24,7 @@ import logisticspipes.adapter.minecraft.menu.CraftingTableMenu;
 import logisticspipes.adapter.minecraft.menu.MenuRequests;
 import logisticspipes.adapter.minecraft.menu.PipeConfigMenu;
 import logisticspipes.adapter.minecraft.menu.RequestMenu;
+import logisticspipes.adapter.neoforge.benchmark.Benchmark;
 import logisticspipes.domain.logistics.ModuleKind;
 import logisticspipes.domain.logistics.PipeKind;
 import net.minecraft.core.BlockPos;
@@ -174,6 +175,7 @@ public class LogisticsPipes {
         TABS.register(modEventBus);
         modEventBus.addListener(LogisticsPipes::registerCapabilities);
         modEventBus.addListener(LogisticsPipes::registerPayloads);
+        Benchmark.registerIfRequested();
     }
 
     public static LogisticsPipeBlock pipe(PipeKind kind) {

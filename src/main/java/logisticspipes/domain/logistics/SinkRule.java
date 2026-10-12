@@ -3,6 +3,7 @@ package logisticspipes.domain.logistics;
 import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
+import java.util.Set;
 
 import logisticspipes.domain.item.ItemType;
 
@@ -14,6 +15,14 @@ public interface SinkRule {
 
     // energy for taking in one stack
     int energy();
+
+    // the items this rule is about
+    Set<ItemType> wants();
+
+    // true if the rule may also take items it does not list, like a default route
+    default boolean takesUnlisted() {
+        return false;
+    }
 
     default Optional<SinkBid> bid(ItemType type, Map<ItemType, Integer> contents) {
         OptionalInt priority = priority(type, contents);

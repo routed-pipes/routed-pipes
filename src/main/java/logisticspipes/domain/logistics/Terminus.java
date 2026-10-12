@@ -24,4 +24,9 @@ public record Terminus(Set<ItemType> filter) implements SinkRule {
     public int energy() {
         return 4;
     }
+
+    @Override
+    public Set<ItemType> wants() {
+        return filter;
+    }
 }

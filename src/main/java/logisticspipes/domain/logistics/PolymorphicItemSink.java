@@ -2,6 +2,7 @@ package logisticspipes.domain.logistics;
 
 import java.util.Map;
 import java.util.OptionalInt;
+import java.util.Set;
 
 import logisticspipes.domain.item.ItemType;
 
@@ -21,5 +22,15 @@ public record PolymorphicItemSink() implements SinkRule {
     @Override
     public int energy() {
         return 6;
+    }
+
+    @Override
+    public Set<ItemType> wants() {
+        return Set.of();
+    }
+
+    @Override
+    public boolean takesUnlisted() {
+        return true;
     }
 }
