@@ -185,6 +185,7 @@ dependencies {
     compatMods 'maven.modrinth:guideme:hFpGwC6q'
     compatMods 'maven.modrinth:create:UjX6dr61'
     compatMods 'maven.modrinth:storagedrawers:px0CCB06'
+    compatMods 'maven.modrinth:createaddition:hsjVajlP'
 
     testImplementation platform('org.junit:junit-bom:5.11.4')
     testImplementation 'org.junit.jupiter:junit-jupiter'

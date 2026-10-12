@@ -87,6 +87,9 @@ public class CompatGameTest {
             tests.add(test("compat.ae2.stores_into_me_chest", CompatGameTest::ae2StoresIntoMeChest, 400));
             tests.add(test("compat.ae2.orders_from_stocking_interface", CompatGameTest::ae2OrdersFromStockingInterface, 600));
         }
+        if (has("createaddition:alternator")) {
+            tests.add(test("compat.createaddition.alternator_charges_junction", CompatGameTest::alternatorChargesJunction, 400));
+        }
         if (has("create:millstone")) {
             tests.add(test("compat.create.crafts_with_millstone", CompatGameTest::createCraftsWithMillstone, 2400));
         }
@@ -230,6 +233,28 @@ public class CompatGameTest {
         });
     }
 
+    private static BlockState facing(Block block, Direction direction) {
+        BlockState state = block.defaultBlockState();
+        for (Property<?> property : state.getProperties()) {
+            if (property instanceof DirectionProperty facing && facing.getPossibleValues().contains(direction)) {
+                state = state.setValue(facing, direction);
+            }
+        }
+        return state;
+    }
+
+    // a generator of another mod next to a junction has to fill it: creative motor, alternator, junction in a row
+    private static void alternatorChargesJunction(GameTestHelper helper) {
+        helper.setBlock(new BlockPos(0, 1, 1), facing(block("create:creative_motor"), Direction.EAST));
+        helper.setBlock(new BlockPos(1, 1, 1), facing(block("createaddition:alternator"), Direction.WEST));
+        PowerJunctionBlockEntity junction = GameTestPower.junction(helper, new BlockPos(2, 1, 1), 0);
+        PowerJunctionBlockEntity above = GameTestPower.junction(helper, new BlockPos(1, 2, 1), 0);
+
+        helper.succeedWhen(() -> helper.assertTrue(junction.stored() > 0 || above.stored() > 0,
+                "no energy arrived, alternator is " + helper.getBlockState(new BlockPos(1, 1, 1)) + " "
+                        + helper.getBlockEntity(new BlockPos(1, 1, 1)).saveWithoutMetadata(helper.getLevel().registryAccess())));
+    }
+
     // a crafting pipe beside a millstone turned by a creative motor: cobblestone in, gravel out
     private static void createCraftsWithMillstone(GameTestHelper helper) {
         PowerJunctionBlockEntity junction = GameTestPower.junction(helper, new BlockPos(0, 2, 2), PowerJunctionBlockEntity.CAPACITY);
@@ -245,13 +270,7 @@ public class CompatGameTest {
         PipeBlockEntity crafting = pipe(helper, PipeKind.CRAFTING, 3, 2);
         BlockPos millstone = new BlockPos(4, 2, 1);
         helper.setBlock(millstone, block("create:millstone"));
-        BlockState motor = block("create:creative_motor").defaultBlockState();
-        for (Property<?> property : motor.getProperties()) {
-            if (property instanceof DirectionProperty facing && facing.getPossibleValues().contains(Direction.UP)) {
-                motor = motor.setValue(facing, Direction.UP);
-            }
-        }
-        helper.setBlock(new BlockPos(4, 1, 1), motor);
+        helper.setBlock(new BlockPos(4, 1, 1), facing(block("create:creative_motor"), Direction.UP));
         crafting.config().setItem(0, new ItemStack(Items.COBBLESTONE, 1));
         crafting.config().setItem(PipeBlockEntity.OUTPUT_SLOT, new ItemStack(Items.GRAVEL, 1));
 
