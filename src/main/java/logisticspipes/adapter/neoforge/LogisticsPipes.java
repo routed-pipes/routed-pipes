@@ -21,6 +21,7 @@ import logisticspipes.adapter.minecraft.RemoteOrdererItem;
 import logisticspipes.adapter.minecraft.UpgradeItem;
 import logisticspipes.adapter.minecraft.menu.ChassisMenu;
 import logisticspipes.adapter.minecraft.menu.CraftingTableMenu;
+import logisticspipes.adapter.minecraft.menu.MarkerRequests;
 import logisticspipes.adapter.minecraft.menu.PipeConfigMenu;
 import logisticspipes.adapter.minecraft.menu.RequestMenu;
 import logisticspipes.domain.logistics.ModuleKind;
@@ -42,6 +43,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -170,6 +172,7 @@ public class LogisticsPipes {
         MENUS.register(modEventBus);
         TABS.register(modEventBus);
         modEventBus.addListener(LogisticsPipes::registerCapabilities);
+        modEventBus.addListener(LogisticsPipes::registerPayloads);
     }
 
     public static LogisticsPipeBlock pipe(PipeKind kind) {
@@ -191,6 +194,11 @@ public class LogisticsPipes {
 
     private static PipeBlockEntity newPipe(BlockPos pos, BlockState state) {
         return new PipeBlockEntity(PIPE_BLOCK_ENTITY.get(), pos, state);
+    }
+
+    private static void registerPayloads(RegisterPayloadHandlersEvent event) {
+        event.registrar("1").playToServer(SetMarkerPayload.TYPE, SetMarkerPayload.CODEC, (payload, context) ->
+                MarkerRequests.apply(context.player(), payload.containerId(), payload.slot(), payload.stack()));
     }
 
     private static void registerCapabilities(RegisterCapabilitiesEvent event) {

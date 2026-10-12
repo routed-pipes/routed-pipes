@@ -39,11 +39,17 @@ class HexagonalArchitectureTest {
     @ArchTest
     static final ArchRule clientCodeStaysInClientClasses = noClasses()
             .that().resideOutsideOfPackages("logisticspipes.adapter.minecraft.client..",
-                    "logisticspipes.adapter.neoforge.visualtest..")
+                    "logisticspipes.adapter.neoforge.visualtest..", "logisticspipes.adapter.jei..")
             .and().doNotHaveSimpleName("LogisticsPipesClient")
             .should().dependOnClassesThat()
             .resideInAnyPackage("net.minecraft.client..", "net.neoforged.neoforge.client..", "com.mojang.blaze3d..",
                     "logisticspipes.adapter.minecraft.client..", "logisticspipes.adapter.neoforge.visualtest..");
+
+    // recipe viewers are optional, nothing else may need their classes
+    @ArchTest
+    static final ArchRule recipeViewerStaysInItsOwnAdapter = noClasses()
+            .that().resideOutsideOfPackage("logisticspipes.adapter.jei..")
+            .should().dependOnClassesThat().resideInAnyPackage("mezz.jei..", "logisticspipes.adapter.jei..");
 
     @ArchTest
     static final ArchRule everythingLivesInALayer = classes()

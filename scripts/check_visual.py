@@ -5,7 +5,8 @@ from pathlib import Path
 
 from PIL import Image, ImageChops
 
-SHOTS = Path("build/visual-test/screenshots")
+SHOTS = Path(sys.argv[1] if len(sys.argv) > 1 else "build/visual-test") / "screenshots"
+LOG = Path(sys.argv[2]) if len(sys.argv) > 2 else None
 EXPECTED = ["pipes_overview", "pipes_close", "pipes_junction", "pipes_vertical", "crafting_table", "chassis",
             "gui_request", "gui_supplier", "gui_basic", "gui_crafting", "gui_satellite", "gui_chassis",
             "gui_module_item_sink", "gui_crafting_table", "gui_crafting_imported"]
@@ -50,6 +51,21 @@ def main():
         colours = dict((colour, count) for count, colour in load(name).getcolors(maxcolors=1 << 24))
         if colours.get(PANEL, 0) < 5000:
             problems.append(f"{name}: no window on the screen")
+    problems += log_problems()
+    return problems
+
+
+def log_problems():
+    """Errors of this mod in the client log, and with JEI installed the plugin has to have been picked up."""
+    if LOG is None or not LOG.exists():
+        return []
+    problems = []
+    text = LOG.read_text(errors="replace")
+    for line in text.splitlines():
+        if ("/ERROR]" in line or "Caught an error" in line) and "logisticspipes" in line.lower():
+            problems.append("log: " + line.strip()[:200])
+    if "jei" in text.lower() and "mezz.jei" in text and "logisticspipes:jei" not in text:
+        problems.append("log: JEI is installed but never mentions the logisticspipes plugin")
     return problems
 
 

@@ -4,6 +4,7 @@ import logisticspipes.adapter.minecraft.McItemType;
 import logisticspipes.adapter.minecraft.PipeBlockEntity;
 import logisticspipes.adapter.minecraft.PowerJunctionBlockEntity;
 import logisticspipes.adapter.minecraft.RemoteOrdererItem;
+import logisticspipes.adapter.minecraft.menu.MarkerRequests;
 import logisticspipes.adapter.minecraft.menu.PipeConfigMenu;
 import logisticspipes.adapter.minecraft.menu.RequestMenu;
 import logisticspipes.adapter.neoforge.LogisticsPipes;
@@ -388,6 +389,38 @@ public class RequestGameTest {
         PowerJunctionBlockEntity loaded = GameTestPower.junction(helper, new BlockPos(6, 1, 1), 0);
         loaded.loadWithComponents(saved, helper.getLevel().registryAccess());
         helper.assertTrue(loaded.stored() == PowerJunctionBlockEntity.CAPACITY, "stored energy survives save and load");
+        helper.succeed();
+    }
+
+    @GameTest(template = EMPTY)
+    public static void clientsCanSetMarkersOfTheMenuTheyHaveOpenAndNothingElse(GameTestHelper helper) {
+        GameTestPower.supply(helper);
+        PipeBlockEntity crafting = pipe(helper, PipeKind.CRAFTING, 0, 1);
+        TestPlayer player = TestPlayer.in(helper);
+        BlockPos pos = new BlockPos(0, 1, 1);
+        helper.getBlockState(pos).useWithoutItem(helper.getLevel(), player,
+                new BlockHitResult(Vec3.atCenterOf(helper.absolutePos(pos)), Direction.UP, helper.absolutePos(pos), false));
+        helper.assertTrue(player.containerMenu instanceof PipeConfigMenu, "settings should be open");
+        int id = player.containerMenu.containerId;
+
+        MarkerRequests.apply(player, id, 0, new ItemStack(Items.RAW_IRON, 2));
+        MarkerRequests.apply(player, id, PipeBlockEntity.OUTPUT_SLOT, new ItemStack(Items.IRON_INGOT, 2));
+        helper.assertTrue(crafting.recipe().isPresent(), "markers from the client set the recipe");
+
+        MarkerRequests.apply(player, id + 1, 1, new ItemStack(Items.DIAMOND));
+        MarkerRequests.apply(player, id, PipeBlockEntity.OUTPUT_SLOT + 1, new ItemStack(Items.DIAMOND));
+        MarkerRequests.apply(player, id, -1, new ItemStack(Items.DIAMOND));
+        helper.assertTrue(crafting.config().getItem(1).isEmpty(), "a wrong menu id is ignored");
+        helper.assertTrue(player.getInventory().isEmpty(), "slots that are not markers are never written");
+
+        MarkerRequests.apply(player, id, 2, new ItemStack(Items.COAL, 99));
+        helper.assertTrue(crafting.config().getItem(2).getCount() == 64, "counts are capped");
+        MarkerRequests.apply(player, id, 2, ItemStack.EMPTY);
+        helper.assertTrue(crafting.config().getItem(2).isEmpty(), "an empty stack clears the marker");
+
+        player.containerMenu = player.inventoryMenu;
+        MarkerRequests.apply(player, id, 3, new ItemStack(Items.DIAMOND));
+        helper.assertTrue(crafting.config().getItem(3).isEmpty(), "nothing happens once the menu is closed");
         helper.succeed();
     }
 }

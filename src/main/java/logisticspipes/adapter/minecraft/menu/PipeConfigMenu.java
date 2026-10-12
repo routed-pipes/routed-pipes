@@ -18,7 +18,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
 // settings of basic, supplier, crafting and satellite pipes: marker slots that only remember an item and a count
-public class PipeConfigMenu extends AbstractContainerMenu {
+public class PipeConfigMenu extends AbstractContainerMenu implements MarkerMenu {
 
     public static final int BUTTON_SATELLITE_DOWN = 0;
     public static final int BUTTON_SATELLITE_UP = 1;
@@ -68,6 +68,16 @@ public class PipeConfigMenu extends AbstractContainerMenu {
             addSlot(new Slot(inventory, column, 8 + column * 18, 142));
         }
         addDataSlots(data);
+    }
+
+    @Override
+    public int markerSlots() {
+        return markerSlots;
+    }
+
+    @Override
+    public void setMarker(int slot, ItemStack stack) {
+        slots.get(slot).set(stack);
     }
 
     public PipeKind kind() {

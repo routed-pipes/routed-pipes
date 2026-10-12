@@ -56,5 +56,20 @@
   "logisticspipes.side.east": "east",
   "block.logisticspipes.power_junction": "Logistics Power Junction",
   "logisticspipes.power_junction.stored": "%s / %s FE",
-  "logisticspipes.request.no_power": "Request failed, the network does not have enough power"
+  "logisticspipes.request.no_power": "Request failed, the network does not have enough power",
+  "block.logisticspipes.transport_pipe.description": "Plain pipe that connects routed pipes. Items pass through, forks are fine.",
+  "block.logisticspipes.basic_logistics_pipe.description": "Routed pipe that takes items nobody asked for into its inventory. List items to prefer them, switch the default route off to take only those.",
+  "block.logisticspipes.provider_pipe.description": "Makes the contents of its inventory available to requests.",
+  "block.logisticspipes.request_pipe.description": "Order items from the network here. They arrive in the inventory next to the pipe, or drop out if there is none.",
+  "block.logisticspipes.supplier_pipe.description": "Keeps its inventory stocked with the listed amounts by ordering what is missing.",
+  "block.logisticspipes.crafting_pipe.description": "Crafts its recipe on request with the machine or Logistics Crafting Table next to it. Ingredients are delivered to that inventory, or to a Satellite Pipe with the same number.",
+  "block.logisticspipes.satellite_pipe.description": "A second drop off point for the ingredients of a Crafting Pipe with the same satellite number.",
+  "block.logisticspipes.logistics_crafting_table.description": "Crafts the recipe in its grid from stored ingredients whenever a pipe takes out the result. Put a Crafting Pipe next to it and press Import in the pipe.",
+  "block.logisticspipes.power_junction.description": "Stores energy for the routed pipes next to it and their whole network. Filling requests, crafting and extracting cost energy, sorting is free.",
+  "block.logisticspipes.chassis_pipe_mk1.description": "Routed pipe that does what the modules plugged into it do. Holds 1 module.",
+  "block.logisticspipes.chassis_pipe_mk2.description": "Routed pipe that does what the modules plugged into it do. Holds 2 modules.",
+  "block.logisticspipes.chassis_pipe_mk3.description": "Routed pipe that does what the modules plugged into it do. Holds 3 modules.",
+  "block.logisticspipes.chassis_pipe_mk4.description": "Routed pipe that does what the modules plugged into it do. Holds 4 modules.",
+  "block.logisticspipes.chassis_pipe_mk5.description": "Routed pipe that does what the modules plugged into it do. Holds 8 modules.",
+  "logisticspipes.jei.recipe_does_not_fit": "A crafting pipe takes up to nine different items"
 }

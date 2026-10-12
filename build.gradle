@@ -28,6 +28,14 @@ sourceSets.main.resources {
 
 repositories {
     mavenCentral()
+    exclusiveContent {
+        forRepository {
+            maven { url = 'https://maven.blamejared.com' }
+        }
+        filter {
+            includeGroup 'mezz.jei'
+        }
+    }
     // other mods for the compatibility test run, never compiled against
     exclusiveContent {
         forRepository {
@@ -84,6 +92,14 @@ neoForge {
             client()
             gameDirectory = project.file('run-visual')
             systemProperty 'logisticspipes.visualTest', project.file('build/visual-test').absolutePath
+            programArguments.addAll '--width', '854', '--height', '480'
+        }
+
+        // the scripted client with the other mods installed, started by scripts/visual-test.sh compat
+        visualTestCompat {
+            client()
+            gameDirectory = project.file('run-compat')
+            systemProperty 'logisticspipes.visualTest', project.file('build/visual-test-compat').absolutePath
             programArguments.addAll '--width', '854', '--height', '480'
         }
 
@@ -146,8 +162,11 @@ configurations {
 }
 
 dependencies {
+    // optional at runtime, the plugin class is only ever loaded by JEI itself
+    compileOnly "mezz.jei:jei-1.21.1-common-api:${jei_version}"
+
     // pinned by modrinth version id
-    compatMods 'maven.modrinth:jei:ufHUqt9b'
+    compatMods "mezz.jei:jei-1.21.1-neoforge:${jei_version}"
     compatMods 'maven.modrinth:jade:eYz2YBGT'
     compatMods 'maven.modrinth:mekanism:5KzzycBT'
     compatMods 'maven.modrinth:sophisticated-storage:f7c8aEld'
@@ -226,6 +245,7 @@ tasks.named('check').configure {
 // a fresh game directory starts with the accessibility screen, which reads itself out loud
 def quietOptions = tasks.register('quietClientOptions') {
     def targets = [(file('run/options.txt')): 'onboardAccessibility:false\nnarrator:0\n',
+                   (file('run-compat/options.txt')): 'onboardAccessibility:false\nnarrator:0\nsoundCategory_master:0.0\n',
                    (file('run-visual/options.txt')): 'onboardAccessibility:false\nnarrator:0\nsoundCategory_master:0.0\n']
     doLast {
         targets.each { options, content ->
@@ -236,7 +256,7 @@ def quietOptions = tasks.register('quietClientOptions') {
         }
     }
 }
-tasks.matching { it.name in ['runClient', 'runVisualTest'] }.configureEach {
+tasks.matching { it.name in ['runClient', 'runVisualTest', 'runVisualTestCompat'] }.configureEach {
     dependsOn quietOptions
 }
 
@@ -245,6 +265,6 @@ def copyCompatMods = tasks.register('copyCompatMods', Sync) {
     from configurations.compatMods
     into 'run-compat/mods'
 }
-tasks.matching { it.name == 'runGameTestServerCompat' }.configureEach {
+tasks.matching { it.name in ['runGameTestServerCompat', 'runVisualTestCompat'] }.configureEach {
     dependsOn copyCompatMods
 }

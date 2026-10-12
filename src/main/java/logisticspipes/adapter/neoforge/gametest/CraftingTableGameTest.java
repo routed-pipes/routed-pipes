@@ -4,6 +4,7 @@ import logisticspipes.adapter.minecraft.CraftingTableBlockEntity;
 import logisticspipes.adapter.minecraft.McItemType;
 import logisticspipes.adapter.minecraft.PipeBlockEntity;
 import logisticspipes.adapter.minecraft.menu.CraftingTableMenu;
+import logisticspipes.adapter.minecraft.menu.MarkerRequests;
 import logisticspipes.adapter.neoforge.LogisticsPipes;
 import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.application.RequestOutcome;
@@ -258,5 +259,23 @@ public class CraftingTableGameTest {
             assertCount(helper, chest, Items.STICK, 8, "delivered");
             assertCount(helper, logs, Items.OAK_LOG, 15, "one log is enough");
         });
+    }
+
+    @GameTest(template = EMPTY)
+    public static void markersFromTheClientFillTheRecipeGridOneItemEach(GameTestHelper helper) {
+        GameTestPower.supply(helper);
+        CraftingTableBlockEntity table = table(helper, 0, 1);
+        TestPlayer player = TestPlayer.in(helper);
+        player.containerMenu = new CraftingTableMenu(LogisticsPipes.CRAFTING_TABLE_MENU.get(), 7, player.getInventory(), table);
+
+        MarkerRequests.apply(player, 7, 0, new ItemStack(Items.OAK_PLANKS, 30));
+        MarkerRequests.apply(player, 7, 3, new ItemStack(Items.OAK_PLANKS, 30));
+        MarkerRequests.apply(player, 7, 9, new ItemStack(Items.DIAMOND));
+        MarkerRequests.apply(player, 7, 10, new ItemStack(Items.DIAMOND));
+
+        assertStack(helper, table.pattern().getItem(0), Items.OAK_PLANKS, 1, "grid marker");
+        assertStack(helper, table.result(), Items.STICK, 4, "recipe");
+        helper.assertTrue(table.storage().isEmpty(), "the preview and the storage cannot be set from the client");
+        helper.succeed();
     }
 }

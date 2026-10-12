@@ -1,6 +1,7 @@
 package logisticspipes.adapter.neoforge;
 
 import logisticspipes.adapter.minecraft.client.ChassisScreen;
+import logisticspipes.adapter.minecraft.client.ClientMarkers;
 import logisticspipes.adapter.minecraft.client.CraftingTableScreen;
 import logisticspipes.adapter.minecraft.client.PipeConfigScreen;
 import logisticspipes.adapter.minecraft.client.PipeItemRenderer;
@@ -11,6 +12,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 // never loaded on dedicated servers
 @Mod(value = LogisticsPipes.MODID, dist = Dist.CLIENT)
@@ -19,6 +21,8 @@ public class LogisticsPipesClient {
     public LogisticsPipesClient(IEventBus modEventBus) {
         modEventBus.addListener(LogisticsPipesClient::registerScreens);
         modEventBus.addListener(LogisticsPipesClient::registerRenderers);
+        ClientMarkers.setSender((containerId, slot, stack) ->
+                PacketDistributor.sendToServer(new SetMarkerPayload(containerId, slot, stack)));
         VisualTest.registerIfRequested();
     }
 

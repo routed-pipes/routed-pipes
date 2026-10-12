@@ -12,7 +12,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
 // recipe grid of markers, a preview of the result and the ingredient storage
-public class CraftingTableMenu extends AbstractContainerMenu {
+public class CraftingTableMenu extends AbstractContainerMenu implements MarkerMenu {
 
     private static final int PATTERN_END = CraftingTableBlockEntity.PATTERN_SLOTS;
     private static final int RESULT_SLOT = PATTERN_END;
@@ -51,6 +51,17 @@ public class CraftingTableMenu extends AbstractContainerMenu {
         for (int column = 0; column < 9; column++) {
             addSlot(new Slot(inventory, column, 8 + column * 18, 192));
         }
+    }
+
+    @Override
+    public int markerSlots() {
+        return PATTERN_END;
+    }
+
+    // the grid only knows which item, never how many
+    @Override
+    public void setMarker(int slot, ItemStack stack) {
+        slots.get(slot).set(stack.copyWithCount(stack.isEmpty() ? 0 : 1));
     }
 
     @Override

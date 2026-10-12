@@ -1,17 +1,38 @@
 package logisticspipes.adapter.minecraft.client;
 
 import logisticspipes.adapter.minecraft.menu.CraftingTableMenu;
+import logisticspipes.adapter.minecraft.menu.MarkerMenu;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 
-public class CraftingTableScreen extends AbstractContainerScreen<CraftingTableMenu> {
+public class CraftingTableScreen extends AbstractContainerScreen<CraftingTableMenu> implements MarkerScreen {
 
     public CraftingTableScreen(CraftingTableMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
         imageHeight = 216;
         inventoryLabelY = imageHeight - 94;
+    }
+
+    @Override
+    public int left() {
+        return leftPos;
+    }
+
+    @Override
+    public int top() {
+        return topPos;
+    }
+
+    @Override
+    public MarkerMenu markers() {
+        return menu;
+    }
+
+    @Override
+    public int containerId() {
+        return menu.containerId;
     }
 
     @Override

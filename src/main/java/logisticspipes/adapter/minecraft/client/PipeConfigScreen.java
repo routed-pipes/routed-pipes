@@ -1,5 +1,6 @@
 package logisticspipes.adapter.minecraft.client;
 
+import logisticspipes.adapter.minecraft.menu.MarkerMenu;
 import logisticspipes.adapter.minecraft.menu.PipeConfigMenu;
 import logisticspipes.domain.logistics.PipeKind;
 import net.minecraft.client.gui.GuiGraphics;
@@ -8,7 +9,7 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 
-public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> {
+public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> implements MarkerScreen {
 
     private static final int TEXT = 0x404040;
 
@@ -40,7 +41,7 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> {
         }
         if (menu.kind() == PipeKind.CRAFTING) {
             addRenderableWidget(Button.builder(Component.translatable("logisticspipes.gui.import"),
-                    button -> press(PipeConfigMenu.BUTTON_IMPORT_RECIPE)).bounds(leftPos + 87, topPos + 25, 34, 14).build());
+                    button -> press(PipeConfigMenu.BUTTON_IMPORT_RECIPE)).bounds(leftPos + 85, topPos + 25, 38, 14).build());
         }
         if (!hasSatelliteControls()) {
             return;
@@ -66,6 +67,26 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> {
 
     private void press(int button) {
         minecraft.gameMode.handleInventoryButtonClick(menu.containerId, button);
+    }
+
+    @Override
+    public int left() {
+        return leftPos;
+    }
+
+    @Override
+    public int top() {
+        return topPos;
+    }
+
+    @Override
+    public MarkerMenu markers() {
+        return menu;
+    }
+
+    @Override
+    public int containerId() {
+        return menu.containerId;
     }
 
     @Override
