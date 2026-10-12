@@ -16,6 +16,7 @@ import logisticspipes.adapter.minecraft.McItemType;
 import logisticspipes.adapter.minecraft.ModuleItem;
 import logisticspipes.adapter.minecraft.PipeBlockEntity;
 import logisticspipes.adapter.minecraft.PowerJunctionBlockEntity;
+import logisticspipes.adapter.minecraft.client.RecipeViewerCheck;
 import logisticspipes.adapter.neoforge.LogisticsPipes;
 import logisticspipes.domain.logistics.ModuleKind;
 import net.minecraft.client.Minecraft;
@@ -214,6 +215,8 @@ public final class VisualTest {
             command("setblock 0 -58 17 logisticspipes:logistics_crafting_table");
             command("setblock 1 -59 2 logisticspipes:power_junction");
             command("setblock 0 -59 1 logisticspipes:transport_pipe");
+            command("setblock 0 -59 21 logisticspipes:logistics_crafting_table");
+            command("setblock 0 -59 23 logisticspipes:crafting_pipe");
             command("setblock 0 -59 0 logisticspipes:chassis_pipe_mk5");
             command("setblock 0 -58 0 chest");
         });
@@ -287,6 +290,8 @@ public final class VisualTest {
         screenShot("gui_crafting_table", TABLE, "2.5 -60 17.5 90 0");
         screenShot("gui_crafting_imported", TABLE_PIPE, "2.5 -60 17.5 90 0");
 
+        recipeViewerCheck();
+
         // left under way on purpose: the client quits while these are in the pipes and in the furnace
         step(3, () -> onServer(server -> {
             PipeBlockEntity request = pipe(server, REQUEST);
@@ -294,6 +299,41 @@ public final class VisualTest {
                     && request.request(McItemType.batchOf(new ItemStack(Items.IRON_INGOT, 2))).started();
             LOGGER.info("orders before restart {}", ordered ? "placed" : "REFUSED");
         }));
+    }
+
+    // with a recipe viewer installed: let it fill an empty crafting table and an empty crafting pipe,
+    // then look on the server whether the recipes arrived
+    private void recipeViewerCheck() {
+        BlockPos table = new BlockPos(0, -59, 21);
+        BlockPos craftingPipe = new BlockPos(0, -59, 23);
+        String[] problem = {null};
+        for (BlockPos target : new BlockPos[] {table, craftingPipe}) {
+            step(10, () -> command("tp @p 2.5 -60 " + (target.getZ() + 0.5) + " 90 0"));
+            step(15, () -> onServer(server -> {
+                ServerLevel level = server.overworld();
+                level.getBlockState(target).useWithoutItem(level, server.getPlayerList().getPlayers().get(0),
+                        new BlockHitResult(Vec3.atCenterOf(target), Direction.UP, target, false));
+            }));
+            step(15, () -> RecipeViewerCheck.run(minecraft.screen).filter(text -> !text.isEmpty()).ifPresent(text -> problem[0] = text));
+            step(5, () -> onServer(server -> server.getPlayerList().getPlayers().get(0).closeContainer()));
+        }
+        step(5, () -> {
+            if (RecipeViewerCheck.run(null).isEmpty()) {
+                return;
+            }
+            onServer(server -> {
+                ItemStack crafted = ((CraftingTableBlockEntity) server.overworld().getBlockEntity(table)).result();
+                PipeBlockEntity pipe = pipe(server, craftingPipe);
+                boolean smelting = pipe.config().getItem(0).is(Items.RAW_IRON) && pipe.config().getItem(PipeBlockEntity.OUTPUT_SLOT).is(Items.IRON_INGOT);
+                boolean dragged = pipe.config().getItem(2).is(Items.DIAMOND);
+                if (problem[0] == null && crafted.is(Items.STICK) && smelting && dragged) {
+                    LOGGER.info("recipe viewer check passed");
+                } else {
+                    LOGGER.error("recipe viewer check failed: {} table makes {}, pipe recipe set {}, dragged marker set {}",
+                            problem[0] == null ? "" : problem[0] + ",", crafted, smelting, dragged);
+                }
+            });
+        });
     }
 
     private void step(int waitAfter, Runnable action) {

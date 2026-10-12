@@ -64,8 +64,12 @@ def log_problems():
     for line in text.splitlines():
         if ("/ERROR]" in line or "Caught an error" in line) and "logisticspipes" in line.lower():
             problems.append("log: " + line.strip()[:200])
-    if "jei" in text.lower() and "mezz.jei" in text and "logisticspipes:jei" not in text:
-        problems.append("log: JEI is installed but never mentions the logisticspipes plugin")
+    if "mezz.jei" in text:
+        if "logisticspipes:jei" not in text:
+            problems.append("log: JEI is installed but never mentions the logisticspipes plugin")
+        if "recipe viewer check passed" not in text:
+            failed = [line.strip()[-220:] for line in text.splitlines() if "recipe viewer check failed" in line]
+            problems.append("log: " + (failed[0] if failed else "the recipe viewer check never ran"))
     return problems
 
 

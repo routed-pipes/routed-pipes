@@ -9,18 +9,21 @@ import logisticspipes.adapter.minecraft.client.ClientMenuLink;
 import logisticspipes.adapter.minecraft.client.CraftingTableScreen;
 import logisticspipes.adapter.minecraft.client.MarkerScreen;
 import logisticspipes.adapter.minecraft.client.PipeConfigScreen;
+import logisticspipes.adapter.minecraft.client.RecipeViewerCheck;
 import logisticspipes.adapter.minecraft.menu.CraftingTableMenu;
 import logisticspipes.adapter.minecraft.menu.PipeConfigMenu;
 import logisticspipes.domain.logistics.PipeKind;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.RecipeTypes;
+import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.handlers.IGhostIngredientHandler;
 import mezz.jei.api.gui.ingredient.IRecipeSlotView;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.ingredients.ITypedIngredient;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
+import mezz.jei.api.recipe.category.IRecipeCategory;
 import mezz.jei.api.recipe.transfer.IRecipeTransferError;
 import mezz.jei.api.recipe.transfer.IRecipeTransferHandler;
 import mezz.jei.api.recipe.transfer.IRecipeTransferHandlerHelper;
@@ -29,18 +32,24 @@ import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.registration.IRecipeTransferRegistration;
+import mezz.jei.api.runtime.IJeiRuntime;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 
 // only loaded when JEI is installed: drag items onto marker slots, move recipes into tables and crafting pipes,
@@ -62,7 +71,7 @@ public class LogisticsPipesJeiPlugin implements IModPlugin {
         public <I> List<Target<I>> getTargetsTyped(T screen, ITypedIngredient<I> ingredient, boolean doStart) {
             Optional<ItemStack> dragged = ingredient.getItemStack();
             List<Target<I>> targets = new ArrayList<>();
-            if (dragged.isEmpty() || !(screen.markers() instanceof net.minecraft.world.inventory.AbstractContainerMenu menu)) {
+            if (dragged.isEmpty() || !(screen.markers() instanceof AbstractContainerMenu menu)) {
                 return targets;
             }
             for (int index = 0; index < screen.markers().markerSlots(); index++) {
@@ -209,5 +218,69 @@ public class LogisticsPipesJeiPlugin implements IModPlugin {
                 registration.addItemStackInfo(new ItemStack(item), Component.translatable(key));
             }
         }
+    }
+
+    @Override
+    public void onRuntimeAvailable(IJeiRuntime runtime) {
+        if (System.getProperty(RecipeViewerCheck.ENABLED_PROPERTY) != null) {
+            RecipeViewerCheck.setDriver(screen -> {
+                try {
+                    return drive(runtime, screen);
+                } catch (RuntimeException e) {
+                    return e.toString();
+                }
+            });
+        }
+    }
+
+    // does through JEI what a player does: the plus button on a recipe, and for crafting pipes also a drag onto a slot
+    private static String drive(IJeiRuntime runtime, Screen screen) {
+        if (!(screen instanceof AbstractContainerScreen<?> containerScreen)) {
+            return "not a container screen";
+        }
+        AbstractContainerMenu menu = containerScreen.getMenu();
+        Player player = Minecraft.getInstance().player;
+        if (menu instanceof CraftingTableMenu) {
+            return transfer(runtime, menu, player, RecipeTypes.CRAFTING, "minecraft:stick");
+        }
+        String problem = transfer(runtime, menu, player, RecipeTypes.SMELTING, "minecraft:iron_ingot_from_smelting_raw_iron");
+        if (!problem.isEmpty()) {
+            return problem;
+        }
+        return dragOnto(runtime, screen, new ItemStack(Items.DIAMOND), 2);
+    }
+
+    private static <C extends AbstractContainerMenu, R extends Recipe<?>> String transfer(IJeiRuntime runtime, C menu, Player player,
+            RecipeType<RecipeHolder<R>> type, String recipeId) {
+        Optional<RecipeHolder<R>> recipe = runtime.getRecipeManager().createRecipeLookup(type).get()
+                .filter(holder -> holder.id().toString().equals(recipeId)).findFirst();
+        if (recipe.isEmpty()) {
+            return "JEI does not know the recipe " + recipeId;
+        }
+        IRecipeCategory<RecipeHolder<R>> category = runtime.getRecipeManager().getRecipeCategory(type);
+        Optional<IRecipeTransferHandler<C, RecipeHolder<R>>> handler = runtime.getRecipeTransferManager().getRecipeTransferHandler(menu, category);
+        if (handler.isEmpty()) {
+            return "JEI found no transfer handler for " + menu.getClass().getSimpleName();
+        }
+        IRecipeSlotsView slots = runtime.getRecipeManager()
+                .createRecipeLayoutDrawableOrShowError(category, recipe.get(), runtime.getJeiHelpers().getFocusFactory().getEmptyFocusGroup())
+                .getRecipeSlotsView();
+        IRecipeTransferError error = handler.get().transferRecipe(menu, recipe.get(), slots, player, false, true);
+        return error == null ? "" : "transfer refused: " + error.getType();
+    }
+
+    private static <T extends Screen> String dragOnto(IJeiRuntime runtime, T screen, ItemStack stack, int target) {
+        Optional<IGhostIngredientHandler<T>> handler = runtime.getScreenHelper().getGhostIngredientHandler(screen);
+        Optional<ITypedIngredient<ItemStack>> dragged = runtime.getIngredientManager().createTypedIngredient(VanillaTypes.ITEM_STACK, stack);
+        if (handler.isEmpty() || dragged.isEmpty()) {
+            return "JEI found no drag handler for " + screen.getClass().getSimpleName();
+        }
+        List<IGhostIngredientHandler.Target<ItemStack>> targets = handler.get().getTargetsTyped(screen, dragged.get(), true);
+        if (targets.size() <= target) {
+            return "only " + targets.size() + " drag targets";
+        }
+        targets.get(target).accept(stack);
+        handler.get().onComplete();
+        return "";
     }
 }
