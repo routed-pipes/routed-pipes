@@ -101,6 +101,13 @@ public class RequestMenu extends AbstractContainerMenu implements TextMenu {
         return stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getInt(COUNT_TAG);
     }
 
+    // one of the item with the amount to show written on it, see listedCount
+    public static ItemStack listed(ItemType type, int count) {
+        ItemStack stack = McItemType.stackOf(new ItemBatch(type, 1));
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.putInt(COUNT_TAG, count));
+        return stack;
+    }
+
     private void refresh() {
         List<Map.Entry<ItemType, Integer>> entries = new ArrayList<>(pipe.available().entrySet());
         entries.removeIf(entry -> !matchesSearch(entry.getKey()));
@@ -118,9 +125,7 @@ public class RequestMenu extends AbstractContainerMenu implements TextMenu {
             }
             ItemType type = entries.get(index).getKey();
             int count = entries.get(index).getValue();
-            ItemStack stack = McItemType.stackOf(new ItemBatch(type, 1));
-            CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.putInt(COUNT_TAG, count));
-            listing.setItem(slot, stack);
+            listing.setItem(slot, listed(type, count));
             shown.add(type);
         }
         listed = shown;

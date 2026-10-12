@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import logisticspipes.domain.logistics.PipeKind;
+import logisticspipes.domain.security.Permission;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
@@ -53,7 +54,8 @@ public class RemoteOrdererItem extends Item {
         if (!(level.getBlockEntity(pos) instanceof PipeBlockEntity pipe) || pipe.kind() != PipeKind.REQUEST) {
             return InteractionResult.PASS;
         }
-        if (!level.isClientSide) {
+        if (!level.isClientSide && (context.getPlayer() == null
+                || pipe.security().allows(context.getPlayer(), Permission.ACTIVE_REQUESTING))) {
             CustomData.update(DataComponents.CUSTOM_DATA, context.getItemInHand(), tag -> {
                 CompoundTag link = new CompoundTag();
                 link.putInt("X", pos.getX());
@@ -89,7 +91,9 @@ public class RemoteOrdererItem extends Item {
             player.displayClientMessage(Component.translatable("logisticspipes.remote_orderer.other_dimension"), true);
         } else if (level.isLoaded(link.get().pos()) && level.getBlockEntity(link.get().pos()) instanceof PipeBlockEntity pipe
                 && pipe.kind() == PipeKind.REQUEST) {
-            pipe.openRequestScreen(player, true);
+            if (pipe.security().allows(player, Permission.ACTIVE_REQUESTING)) {
+                pipe.openRequestScreen(player, true);
+            }
         } else {
             player.displayClientMessage(Component.translatable("logisticspipes.remote_orderer.pipe_missing"), true);
         }

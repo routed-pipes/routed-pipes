@@ -9,12 +9,14 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.PriorityQueue;
 import java.util.Set;
+import java.util.UUID;
 
 import logisticspipes.domain.routing.Link;
 import logisticspipes.domain.routing.RouterId;
 import logisticspipes.domain.tube.TubeEnd;
 import logisticspipes.domain.tube.TubeKind;
 import logisticspipes.domain.tube.TubeShape;
+import logisticspipes.domain.security.PipeLock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
@@ -37,15 +39,30 @@ final class PipeTopology {
     static List<Link> discoverLinks(Level level, BlockPos routerPos) {
         List<Link> links = new ArrayList<>();
         BlockState state = level.getBlockState(routerPos);
+        Optional<UUID> station = level.getBlockEntity(routerPos) instanceof PipeBlockEntity self
+                ? self.security().station() : Optional.empty();
         for (Direction direction : Direction.values()) {
             // a side can be cut off from the pipe next to it
             if (state.getBlock() instanceof LogisticsPipeBlock && !state.getValue(LogisticsPipeBlock.CONNECTED.get(direction))) {
                 continue;
             }
-            explore(level, routerPos, direction, false).forEach((router, distance) ->
-                    links.add(new Link(router.routerId(), Directions.toDomain(direction), distance)));
+            explore(level, routerPos, direction, false).forEach((router, distance) -> {
+                // pipes locked to different security stations are not connected
+                if (PipeLock.connects(station, router.security().station())) {
+                    links.add(new Link(router.routerId(), Directions.toDomain(direction), distance));
+                }
+            });
         }
         return links;
+    }
+
+    // the routed pipes at the other end of the plain pipes on every side
+    static Set<PipeBlockEntity> neighbours(Level level, BlockPos routerPos) {
+        Set<PipeBlockEntity> routers = new HashSet<>();
+        for (Direction direction : Direction.values()) {
+            routers.addAll(explore(level, routerPos, direction, false).keySet());
+        }
+        return routers;
     }
 
     // call when a pipe appeared or vanished at pos

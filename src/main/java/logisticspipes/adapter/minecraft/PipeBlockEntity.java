@@ -43,6 +43,8 @@ import logisticspipes.domain.logistics.Supply;
 import logisticspipes.domain.logistics.SupplyMode;
 import logisticspipes.domain.routing.RouterId;
 import logisticspipes.domain.routing.Side;
+import logisticspipes.domain.security.Permission;
+import logisticspipes.domain.statistics.PipeStatistics;
 import logisticspipes.domain.transport.Departure;
 import logisticspipes.domain.transport.PipeTransport;
 import logisticspipes.domain.transport.TransportMode;
@@ -67,7 +69,6 @@ import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerData;
-import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.ChestBlock;
@@ -103,6 +104,8 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     // two slots for every module slot of a chassis, in the order of the modules
     private final SimpleContainer moduleUpgrades = new SimpleContainer(MODULE_SLOTS * UPGRADES_PER_MODULE);
     private final OutputOrders outputOrders = new OutputOrders();
+    private final PipeStatistics statistics = new PipeStatistics();
+    private final PipeSecurity security = new PipeSecurity(this);
     private final ContainerData data = new ContainerData() {
         @Override
         public int get(int index) {
@@ -244,6 +247,16 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
 
     void markLinksDirty() {
         linksDirty = true;
+        security.linksChanged();
+    }
+
+    public PipeSecurity security() {
+        return security;
+    }
+
+    // takes energy from the network of this pipe, all of it or nothing
+    public boolean usePower(int amount) {
+        return pipe().routed() && network().usePower(routerId, amount);
     }
 
     private LogisticsPipeBlock pipe() {
@@ -336,12 +349,20 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         return false;
     }
 
+    public Container upgrades() {
+        return upgrades;
+    }
+
+    // what the pipe controller opens
     MenuProvider upgradeMenuProvider() {
-        ContainerData pipeKind = new SimpleContainerData(1);
-        pipeKind.set(0, kind().ordinal());
         return new SimpleMenuProvider((id, inventory, player) -> new UpgradeMenu(pipe().services().upgradeMenu().get(), id,
-                inventory, upgrades, pipeKind, user -> Container.stillValidBlockEntity(this, user)),
-                Component.translatable("logisticspipes.gui.upgrades"));
+                inventory, this, security.access(player, Permission.UPGRADE_PIPES).allowed(),
+                user -> Container.stillValidBlockEntity(this, user)), getBlockState().getBlock().getName());
+    }
+
+    // where the routed pipe with this id is, empty while it is not loaded
+    public Optional<BlockPos> positionOf(RouterId id) {
+        return network().node(id) instanceof PipeBlockEntity pipe ? Optional.of(pipe.getBlockPos()) : Optional.empty();
     }
 
     // takes all upgrades out again
@@ -544,6 +565,16 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
 
     public Map<ItemType, Integer> available() {
         return network().available(routerId);
+    }
+
+    // what the network holds for the taking, the inventory of this pipe included
+    public Map<ItemType, Integer> amounts() {
+        return network().amounts(routerId);
+    }
+
+    // what the crafters of the network still have to make
+    public Map<ItemType, Integer> craftingBacklog() {
+        return network().craftingBacklog(routerId);
     }
 
     public RequestOutcome request(ItemBatch wanted) {
@@ -784,6 +815,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             }
             PipeTopology.markRoutersDirty(level, worldPosition);
         }
+        security.tick();
         if (linksDirty && pipe().routed()) {
             linksDirty = false;
             network().updateLinks(routerId, PipeTopology.discoverLinks(level, worldPosition), level.getGameTime());
@@ -1098,6 +1130,11 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     }
 
     @Override
+    public PipeStatistics statistics() {
+        return statistics;
+    }
+
+    @Override
     public int satelliteId() {
         return satelliteId;
     }
@@ -1188,6 +1225,8 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         if (fluids != null) {
             tag.put("Fluids", fluids.save(registries));
         }
+        tag.putLongArray("Statistics", StatisticsTags.save(statistics));
+        tag.put("Security", security.save(registries));
     }
 
     @Override
@@ -1236,6 +1275,10 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         }
         if (tag.contains("Upgrades")) {
             ContainerTags.load(upgrades, tag.getCompound("Upgrades"), registries);
+        }
+        StatisticsTags.load(statistics, tag.getLongArray("Statistics"));
+        if (tag.contains("Security")) {
+            security.load(tag.getCompound("Security"), registries);
         }
         if (fluids != null && tag.contains("Fluids")) {
             fluids.load(tag.getCompound("Fluids"), registries);

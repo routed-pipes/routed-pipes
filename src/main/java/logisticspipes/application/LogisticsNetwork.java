@@ -42,6 +42,7 @@ import logisticspipes.domain.routing.RouteTable;
 import logisticspipes.domain.routing.RouterId;
 import logisticspipes.domain.routing.RoutingNetwork;
 import logisticspipes.domain.routing.Side;
+import logisticspipes.domain.statistics.PipeStatistics;
 import logisticspipes.domain.transport.TransportMode;
 import logisticspipes.domain.transport.TravellingItem;
 
@@ -95,7 +96,8 @@ public final class LogisticsNetwork {
         return fluids;
     }
 
-    RouterNode node(RouterId id) {
+    // null for a router that is not there
+    public RouterNode node(RouterId id) {
         return nodes.get(id);
     }
 
@@ -244,6 +246,30 @@ public final class LogisticsNetwork {
     // side an item has to leave the router through, picks a new destination if the current one does not work out
     // empty means there is nowhere to go right now, the pipe asks again for a while before it gives up
     public Optional<Side> chooseExit(RouterId at, TravellingItem item, long now) {
+        Optional<Side> exit = exitFor(at, item, now);
+        RouterNode node = nodes.get(at);
+        if (node != null) {
+            count(at, node, item, exit.isPresent());
+        }
+        return exit;
+    }
+
+    // an item that found its exit goes into the statistics of the pipe: delivered here, taken out of the inventory
+    // of this pipe, or just passing through
+    private static void count(RouterId at, RouterNode node, TravellingItem item, boolean leaves) {
+        int items = item.batch().count();
+        if (item.destination().filter(at::equals).isPresent()) {
+            // an order for a pipe without an inventory drops out here, that is an arrival too
+            if ((leaves || item.abandoned()) && item.markReceived()) {
+                node.statistics().count(PipeStatistics.Kind.RECEIVED, items);
+            }
+        } else if (leaves) {
+            boolean ownInventory = node.inventories().containsKey(item.origin());
+            node.statistics().count(ownInventory ? PipeStatistics.Kind.SENT : PipeStatistics.Kind.RELAYED, items);
+        }
+    }
+
+    private Optional<Side> exitFor(RouterId at, TravellingItem item, long now) {
         RouterNode node = nodes.get(at);
         if (now == lastChangeAnywhere || !mayRouteFrom(at, now)) {
             // routes are worked out again next tick, see settling
@@ -434,6 +460,28 @@ public final class LogisticsNetwork {
         return available;
     }
 
+    // how many of each item the network of the router holds for the taking, its own inventory included
+    public Map<ItemType, Integer> amounts(RouterId at) {
+        Map<ItemType, Integer> amounts = new LinkedHashMap<>();
+        for (Stock stock : stockFor(at, true)) {
+            stock.items().forEach((type, count) -> amounts.merge(type, count, Integer::sum));
+        }
+        return amounts;
+    }
+
+    // what the crafters in the network of the router still owe, by item
+    public Map<ItemType, Integer> craftingBacklog(RouterId at) {
+        Map<ItemType, Integer> backlog = new LinkedHashMap<>();
+        List<RouterId> routers = new ArrayList<>(reachableFrom(at));
+        if (nodes.containsKey(at)) {
+            routers.add(0, at);
+        }
+        for (RouterId id : routers) {
+            nodes.get(id).outputOrders().owedByType().forEach((type, count) -> backlog.merge(type, count, Integer::sum));
+        }
+        return backlog;
+    }
+
     // plans the request and starts it right away if nothing is missing and there is power to move the items
     public RequestOutcome request(RouterId requester, ItemBatch wanted, long now) {
         return request(requester, wanted, now, 0, false);
@@ -497,7 +545,7 @@ public final class LogisticsNetwork {
     }
 
     // takes energy from the junctions of the network the router is in, all of it or nothing
-    boolean usePower(RouterId at, int amount) {
+    public boolean usePower(RouterId at, int amount) {
         List<RouterNode> sources = new ArrayList<>();
         if (nodes.containsKey(at)) {
             sources.add(nodes.get(at));
@@ -661,13 +709,21 @@ public final class LogisticsNetwork {
     // what can be ordered right now: the inventories of providers, and finished items in crafting inventories
     // that are not owed to anyone
     private List<Stock> stockFor(RouterId requester) {
+        return stockFor(requester, false);
+    }
+
+    // with ownToo what is at the requester itself counts as well, for looking at the network and not ordering from it
+    private List<Stock> stockFor(RouterId requester, boolean ownToo) {
         List<Stock> stock = new ArrayList<>();
         // an inventory with two providers on it counts once, and never the requester's own
         Set<InventoryRef> counted = new HashSet<>();
-        if (nodes.containsKey(requester)) {
+        List<RouterId> routers = new ArrayList<>(reachableFrom(requester));
+        if (nodes.containsKey(requester) && ownToo) {
+            routers.add(0, requester);
+        } else if (nodes.containsKey(requester)) {
             counted.addAll(nodes.get(requester).inventories().values());
         }
-        for (RouterId id : reachableFrom(requester)) {
+        for (RouterId id : routers) {
             RouterNode node = nodes.get(id);
             if (node.provides()) {
                 if (!sharesInventory(node, counted) && passes(requester, id, FirewallRule::blockProviding)) {

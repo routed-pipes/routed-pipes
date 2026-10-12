@@ -1,0 +1,14 @@
+package logisticspipes.adapter.minecraft;
+
+import java.util.function.Supplier;
+
+import logisticspipes.adapter.minecraft.menu.SecurityStationMenu;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+
+// what the security station needs from the loader
+public record SecurityStationServices(
+        Supplier<BlockEntityType<SecurityStationBlockEntity>> blockEntityType,
+        Supplier<MenuType<SecurityStationMenu>> menu,
+        Supplier<SecurityCardItem> card) {
+}

@@ -27,6 +27,7 @@ import logisticspipes.domain.logistics.Supply;
 import logisticspipes.domain.logistics.SupplyMode;
 import logisticspipes.domain.routing.RouterId;
 import logisticspipes.domain.routing.Side;
+import logisticspipes.domain.statistics.PipeStatistics;
 import logisticspipes.domain.transport.TransportMode;
 
 // a routed pipe with a pretend inventory that takes everything
@@ -45,6 +46,7 @@ public final class FakeNode implements RouterNode {
     public final List<Shipment> shipments = new ArrayList<>();
     public final Map<ItemType, Integer> supplyTargets = new LinkedHashMap<>();
     public final OutputOrders outputOrders = new OutputOrders();
+    public final PipeStatistics statistics = new PipeStatistics();
     public Recipe recipe;
     // set by tests about pipes with several recipes or stocks, like a chassis with modules
     public List<CraftingSetup> crafts;
@@ -206,6 +208,11 @@ public final class FakeNode implements RouterNode {
     @Override
     public OutputOrders outputOrders() {
         return outputOrders;
+    }
+
+    @Override
+    public PipeStatistics statistics() {
+        return statistics;
     }
 
     @Override

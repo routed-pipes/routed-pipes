@@ -20,6 +20,7 @@ import logisticspipes.domain.logistics.Supply;
 import logisticspipes.domain.logistics.SupplyMode;
 import logisticspipes.domain.routing.RouterId;
 import logisticspipes.domain.routing.Side;
+import logisticspipes.domain.statistics.PipeStatistics;
 import logisticspipes.domain.transport.TransportMode;
 
 // what the network needs to know about a routed pipe and the world around it
@@ -124,6 +125,11 @@ public interface RouterNode {
     // crafting pipes only, outlives the network so the pipe has to keep it
     default OutputOrders outputOrders() {
         return new OutputOrders();
+    }
+
+    // counts of the items that went through this pipe, kept by the pipe because part of them is saved with it
+    default PipeStatistics statistics() {
+        return new PipeStatistics();
     }
 
     // own id for satellites, the chosen satellite for crafting pipes, 0 for none

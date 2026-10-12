@@ -31,6 +31,13 @@ import logisticspipes.adapter.minecraft.TubeBlockItem;
 import logisticspipes.adapter.minecraft.TubePartBlock;
 import logisticspipes.adapter.minecraft.TubePartBlockEntity;
 import logisticspipes.adapter.minecraft.TubeServices;
+import logisticspipes.adapter.minecraft.SecurityCardItem;
+import logisticspipes.adapter.minecraft.SecurityStationBlock;
+import logisticspipes.adapter.minecraft.SecurityStationBlockEntity;
+import logisticspipes.adapter.minecraft.SecurityStationServices;
+import logisticspipes.adapter.minecraft.StatisticsTableBlock;
+import logisticspipes.adapter.minecraft.StatisticsTableBlockEntity;
+import logisticspipes.adapter.minecraft.StatisticsTableServices;
 import logisticspipes.adapter.minecraft.UpgradeItem;
 import logisticspipes.adapter.minecraft.menu.ChassisMenu;
 import logisticspipes.adapter.minecraft.menu.FirewallMenu;
@@ -42,6 +49,8 @@ import logisticspipes.adapter.minecraft.menu.NamesMenu;
 import logisticspipes.adapter.minecraft.menu.PipeConfigMenu;
 import logisticspipes.adapter.minecraft.menu.RequestMenu;
 import logisticspipes.adapter.minecraft.menu.RequestTableMenu;
+import logisticspipes.adapter.minecraft.menu.SecurityStationMenu;
+import logisticspipes.adapter.minecraft.menu.StatisticsTableMenu;
 import logisticspipes.adapter.minecraft.menu.UpgradeMenu;
 import logisticspipes.adapter.neoforge.benchmark.Benchmark;
 import logisticspipes.adapter.neoforge.gametest.TestTank;
@@ -278,9 +287,38 @@ public class LogisticsPipes {
                             TUBE_PART.get())
                     .build(null));
 
+    public static final Supplier<MenuType<SecurityStationMenu>> SECURITY_STATION_MENU = MENUS.register("security_station",
+            () -> new MenuType<>((id, inventory) -> new SecurityStationMenu(LogisticsPipes.SECURITY_STATION_MENU.get(), id, inventory),
+                    FeatureFlags.DEFAULT_FLAGS));
+    public static final DeferredItem<SecurityCardItem> SECURITY_CARD = ITEMS.register("security_card",
+            () -> new SecurityCardItem(new Item.Properties()));
+    public static final DeferredBlock<SecurityStationBlock> SECURITY_STATION = BLOCKS.register("security_station",
+            () -> new SecurityStationBlock(BlockBehaviour.Properties.of().strength(2.5f).sound(SoundType.METAL),
+                    new SecurityStationServices(() -> LogisticsPipes.SECURITY_STATION_BLOCK_ENTITY.get(), SECURITY_STATION_MENU,
+                            SECURITY_CARD)));
+    public static final Supplier<BlockEntityType<SecurityStationBlockEntity>> SECURITY_STATION_BLOCK_ENTITY =
+            BLOCK_ENTITIES.register("security_station", () -> BlockEntityType.Builder
+                    .of((pos, state) -> new SecurityStationBlockEntity(LogisticsPipes.SECURITY_STATION_BLOCK_ENTITY.get(), pos, state),
+                            SECURITY_STATION.get())
+                    .build(null));
+
+    public static final Supplier<MenuType<StatisticsTableMenu>> STATISTICS_TABLE_MENU = MENUS.register("statistics_table",
+            () -> new MenuType<>((id, inventory) -> new StatisticsTableMenu(LogisticsPipes.STATISTICS_TABLE_MENU.get(), id),
+                    FeatureFlags.DEFAULT_FLAGS));
+    public static final DeferredBlock<StatisticsTableBlock> STATISTICS_TABLE = BLOCKS.register("statistics_table",
+            () -> new StatisticsTableBlock(BlockBehaviour.Properties.of().strength(2.5f).sound(SoundType.METAL),
+                    new StatisticsTableServices(() -> LogisticsPipes.STATISTICS_TABLE_BLOCK_ENTITY.get(), STATISTICS_TABLE_MENU)));
+    public static final Supplier<BlockEntityType<StatisticsTableBlockEntity>> STATISTICS_TABLE_BLOCK_ENTITY =
+            BLOCK_ENTITIES.register("statistics_table", () -> BlockEntityType.Builder
+                    .of((pos, state) -> new StatisticsTableBlockEntity(LogisticsPipes.STATISTICS_TABLE_BLOCK_ENTITY.get(), pos, state),
+                            STATISTICS_TABLE.get())
+                    .build(null));
+
     static {
         ITEMS.registerSimpleBlockItem(CRAFTING_TABLE);
         ITEMS.registerSimpleBlockItem(POWER_JUNCTION);
+        ITEMS.registerSimpleBlockItem(SECURITY_STATION);
+        ITEMS.registerSimpleBlockItem(STATISTICS_TABLE);
     }
 
     static {
@@ -302,6 +340,7 @@ public class LogisticsPipes {
         modEventBus.addListener(LogisticsPipes::registerCapabilities);
         modEventBus.addListener(LogisticsPipes::registerPayloads);
         NeoForge.EVENT_BUS.addListener(LogisticsPipes::buildCreativeTabs);
+        SecurityEvents.register();
         Benchmark.registerIfRequested();
     }
 

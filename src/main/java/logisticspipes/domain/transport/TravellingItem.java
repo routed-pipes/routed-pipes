@@ -28,6 +28,7 @@ public final class TravellingItem {
     private int speed;
     private boolean decided;
     private boolean arrived;
+    private boolean received;
     private boolean abandoned;
     private int waited;
     // the tick this item last moved in, so being handed to the next pipe does not let it move twice in one tick
@@ -180,6 +181,13 @@ public final class TravellingItem {
         return first;
     }
 
+    // true the first time only, so the statistics of the pipe it was delivered to count it once
+    public boolean markReceived() {
+        boolean first = !received;
+        received = true;
+        return first;
+    }
+
     // ticks this item has been waiting in the pipe for an exit
     public int waited() {
         return waited;
@@ -208,6 +216,7 @@ public final class TravellingItem {
         long restId = batch.equals(rest) ? id : ThreadLocalRandom.current().nextLong();
         TravellingItem again = new TravellingItem(restId, rest, origin, destination, mode);
         again.arrived = arrived;
+        again.received = received;
         again.speed = speed;
         return again;
     }

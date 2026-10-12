@@ -307,6 +307,16 @@ public final class VisualTest {
         screenShot("gui_provider", new BlockPos(0, -59, 11), "2.5 -60 11.5 90 0");
         screenShot("gui_request_table", new BlockPos(-1, -59, 2), "2.5 -60 2.5 90 0");
         screenShot("gui_firewall", new BlockPos(-1, -59, 6), "2.5 -60 6.5 90 0");
+        step(5, () -> command("item replace entity @p weapon.mainhand with logisticspipes:pipe_controller"));
+        step(15, () -> onServer(server -> {
+            ServerPlayer player = server.getPlayerList().getPlayers().get(0);
+            BlockPos pos = new BlockPos(0, -59, 13);
+            server.overworld().getBlockState(pos).useItemOn(player.getMainHandItem(), server.overworld(), player, InteractionHand.MAIN_HAND,
+                    new net.minecraft.world.phys.BlockHitResult(net.minecraft.world.phys.Vec3.atCenterOf(pos), net.minecraft.core.Direction.UP, pos, false));
+        }));
+        step(5, () -> shot("gui_controller"));
+        step(5, () -> onServer(server -> server.getPlayerList().getPlayers().get(0).closeContainer()));
+        step(5, () -> command("item replace entity @p weapon.mainhand with air"));
         screenShot("gui_crafting", CRAFTING, "2.5 -60 12.5 90 0");
         screenShot("gui_satellite", SATELLITE, "2.5 -60 12.5 90 0");
         screenShot("gui_chassis", CHASSIS, "2.5 -60 0.5 90 0");

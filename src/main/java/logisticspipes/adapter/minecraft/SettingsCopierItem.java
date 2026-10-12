@@ -8,6 +8,7 @@ import logisticspipes.domain.logistics.ModuleKind;
 import logisticspipes.domain.logistics.ModuleMatch;
 import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.domain.logistics.Shortened;
+import logisticspipes.domain.security.Permission;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
@@ -49,7 +50,8 @@ public class SettingsCopierItem extends Item {
         if (!(level.getBlockEntity(context.getClickedPos()) instanceof PipeBlockEntity pipe) || pipe.kind() == null) {
             return InteractionResult.PASS;
         }
-        if (!level.isClientSide) {
+        if (!level.isClientSide && (context.getPlayer() == null
+                || pipe.security().allows(context.getPlayer(), Permission.CONFIGURE_SETTINGS))) {
             Component done = context.isSecondaryUseActive() ? copy(context.getItemInHand(), pipe) : paste(context.getItemInHand(), pipe);
             if (context.getPlayer() != null) {
                 context.getPlayer().displayClientMessage(done, true);

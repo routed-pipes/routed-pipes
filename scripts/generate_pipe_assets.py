@@ -266,13 +266,13 @@ def main():
     write_tubes(shared)
     upgrades = ["sneaky", "speed", "module_upgrade", "action_speed", "item_extraction", "item_stack_extraction",
                 "crafting_byproduct", "crafting_cleanup", "disconnection"]
-    for module in MODULES + ["remote_orderer", "pipe_controller", "settings_copier"] + ["upgrade_" + upgrade for upgrade in upgrades]:
+    for module in MODULES + ["remote_orderer", "pipe_controller", "settings_copier", "security_card"] + ["upgrade_" + upgrade for upgrade in upgrades]:
         write(ASSETS + f"models/item/{module}.json",
               {"parent": "minecraft:item/generated", "textures": {"layer0": f"logisticspipes:item/{module}"}})
     # the window of the container is tinted with the colour of the fluid in it
     write(ASSETS + "models/item/fluid_container.json", {"parent": "minecraft:item/generated", "textures": {
         "layer0": "logisticspipes:item/fluid_container", "layer1": "logisticspipes:item/fluid_container_window"}})
-    cubes = ["logistics_crafting_table", "power_junction"]
+    cubes = ["logistics_crafting_table", "power_junction", "security_station", "statistics_table"]
     for cube in cubes:
         write(ASSETS + f"models/block/{cube}.json", {"parent": "minecraft:block/cube_bottom_top", "textures": {
             "top": f"logisticspipes:block/{cube}_top", "side": f"logisticspipes:block/{cube}_side",

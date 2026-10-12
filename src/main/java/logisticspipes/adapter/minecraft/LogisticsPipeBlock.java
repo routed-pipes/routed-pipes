@@ -4,6 +4,7 @@ import java.util.Map;
 
 import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.domain.logistics.UpgradeKind;
+import logisticspipes.domain.security.Permission;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
@@ -77,8 +78,16 @@ public class LogisticsPipeBlock extends Block implements EntityBlock {
             return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
         }
         if (kind != null && stack.getItem() instanceof PipeControllerItem) {
-            if (!level.isClientSide && level.getBlockEntity(pos) instanceof PipeBlockEntity pipe) {
+            if (!level.isClientSide && level.getBlockEntity(pos) instanceof PipeBlockEntity pipe
+                    && pipe.security().allows(player, Permission.CHECK_NETWORK)) {
                 player.openMenu(pipe.upgradeMenuProvider());
+            }
+            return ItemInteractionResult.sidedSuccess(level.isClientSide);
+        }
+        if (kind != null && stack.getItem() instanceof SecurityCardItem) {
+            // a card locks the pipe to its station
+            if (!level.isClientSide && level.getBlockEntity(pos) instanceof PipeBlockEntity pipe) {
+                pipe.security().insert(player.hasInfiniteMaterials() ? stack.copy() : stack);
             }
             return ItemInteractionResult.sidedSuccess(level.isClientSide);
         }
@@ -87,12 +96,14 @@ public class LogisticsPipeBlock extends Block implements EntityBlock {
         }
         if (upgrade.kind() == UpgradeKind.DISCONNECTION) {
             // the first one goes in, after that every click cuts off or reconnects the side that was clicked
-            if (!level.isClientSide && level.getBlockEntity(pos) instanceof PipeBlockEntity pipe) {
+            if (!level.isClientSide && level.getBlockEntity(pos) instanceof PipeBlockEntity pipe
+                    && pipe.security().allows(player, Permission.UPGRADE_PIPES)) {
                 pipe.toggleDisconnected(player.hasInfiniteMaterials() ? stack.copy() : stack, hit.getDirection());
             }
             return ItemInteractionResult.sidedSuccess(level.isClientSide);
         }
-        if (!level.isClientSide && level.getBlockEntity(pos) instanceof PipeBlockEntity pipe) {
+        if (!level.isClientSide && level.getBlockEntity(pos) instanceof PipeBlockEntity pipe
+                && pipe.security().allows(player, Permission.UPGRADE_PIPES)) {
             // creative players keep their stack
             pipe.installUpgrade(player.hasInfiniteMaterials() ? stack.copy() : stack);
         }
@@ -103,7 +114,8 @@ public class LogisticsPipeBlock extends Block implements EntityBlock {
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         if (kind != null && player.isShiftKeyDown()) {
             // sneaking with an empty hand takes the upgrades out
-            if (!level.isClientSide && level.getBlockEntity(pos) instanceof PipeBlockEntity pipe) {
+            if (!level.isClientSide && level.getBlockEntity(pos) instanceof PipeBlockEntity pipe
+                    && pipe.security().allows(player, Permission.UPGRADE_PIPES)) {
                 pipe.removeUpgrades().forEach(upgrade -> popResource(level, pos, upgrade));
             }
             return InteractionResult.sidedSuccess(level.isClientSide);
@@ -112,7 +124,9 @@ public class LogisticsPipeBlock extends Block implements EntityBlock {
             return InteractionResult.PASS;
         }
         // some fluid pipes have nothing to set up
-        if (!level.isClientSide && level.getBlockEntity(pos) instanceof PipeBlockEntity pipe && pipe.menuProvider() != null) {
+        if (!level.isClientSide && level.getBlockEntity(pos) instanceof PipeBlockEntity pipe && pipe.menuProvider() != null
+                && pipe.security().allows(player,
+                kind == PipeKind.REQUEST ? Permission.ACTIVE_REQUESTING : Permission.CONFIGURE_SETTINGS)) {
             player.openMenu(pipe.menuProvider());
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
