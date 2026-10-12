@@ -180,9 +180,10 @@ public class ChassisGameTest {
         player.getInventory().setItem(1, new ItemStack(Items.DIAMOND, 3));
         player.getInventory().setItem(2, module(ModuleKind.PROVIDER));
         player.getInventory().setItem(3, module(ModuleKind.ITEM_SINK));
-        SimpleContainerData slots = new SimpleContainerData(1);
+        SimpleContainerData slots = new SimpleContainerData(ChassisMenu.DATA_COUNT);
         slots.set(0, 2);
-        ChassisMenu menu = new ChassisMenu(LogisticsPipes.CHASSIS_MENU.get(), 1, player.getInventory(), pipe.modules(), slots, user -> true);
+        ChassisMenu menu = new ChassisMenu(LogisticsPipes.CHASSIS_MENU.get(), 1, player.getInventory(), pipe.modules(), slots, user -> true,
+                () -> { });
         int hotbar = menu.slots.size() - 9;
 
         menu.quickMoveStack(player, hotbar);
@@ -424,6 +425,33 @@ public class ChassisGameTest {
         helper.runAfterDelay(120, () -> {
             assertCount(helper, target, Items.COAL, 8);
             assertCount(helper, rest, Items.COAL, 12);
+            helper.succeed();
+        });
+    }
+
+    // a chassis between two chests works on one of them, and on the other one after it is turned
+    @GameTest(template = EMPTY, timeoutTicks = 300)
+    public static void chassisWorksOnTheInventoryItPointsAt(GameTestHelper helper) {
+        GameTestPower.supply(helper);
+        PipeBlockEntity chassis = chassis(helper, 1, 1, module(ModuleKind.EXTRACTOR));
+        BlockPos above = chest(helper, 1, new ItemStack(Items.COAL, 16));
+        BlockPos below = new BlockPos(1, 0, 1);
+        helper.setBlock(below, Blocks.CHEST);
+        Container lower = helper.getBlockEntity(below);
+        lower.setItem(0, new ItemStack(Items.IRON_INGOT, 16));
+        pipe(helper, PipeKind.BASIC, 2);
+        BlockPos target = chest(helper, 2);
+
+        helper.runAfterDelay(60, () -> {
+            helper.assertTrue(chassis.pointed().orElseThrow() == net.minecraft.core.Direction.DOWN, "points down first");
+            assertCount(helper, target, Items.IRON_INGOT, 16);
+            assertCount(helper, target, Items.COAL, 0);
+            chassis.pointAtNext();
+        });
+        helper.runAfterDelay(120, () -> {
+            helper.assertTrue(chassis.pointed().orElseThrow() == net.minecraft.core.Direction.UP, "points up after the turn");
+            assertCount(helper, above, Items.COAL, 0);
+            assertCount(helper, target, Items.COAL, 16);
             helper.succeed();
         });
     }

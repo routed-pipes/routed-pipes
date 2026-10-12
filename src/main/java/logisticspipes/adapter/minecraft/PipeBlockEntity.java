@@ -53,7 +53,6 @@ import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerData;
-import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.ChestBlock;
@@ -105,6 +104,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     };
     private RouterId routerId = new RouterId(UUID.randomUUID());
     private int satelliteId;
+    // the one inventory a chassis works on, null until it finds one
+    private Direction pointed;
+    private List<Direction> pointableCache = List.of();
     private boolean defaultRoute;
     private boolean announced;
     private LogisticsNetwork network;
@@ -249,6 +251,21 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         return pluggedModules().stream().anyMatch(stack -> ((ModuleItem) stack.getItem()).kind() == wanted);
     }
 
+    // empty while the chassis has no inventory next to it
+    public Optional<Direction> pointed() {
+        return inventorySides().isEmpty() || kind() != PipeKind.CHASSIS ? Optional.empty() : Optional.of(pointed);
+    }
+
+    // turns a chassis to the next inventory around it
+    public void pointAtNext() {
+        if (pointed().isEmpty()) {
+            return;
+        }
+        pointed = pointableCache.get((pointableCache.indexOf(pointed) + 1) % pointableCache.size());
+        neighbourChanged();
+        settingsChanged();
+    }
+
     public void setSatelliteId(int id) {
         data.set(PipeConfigMenu.DATA_SATELLITE, id);
     }
@@ -297,10 +314,23 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             return requestScreen(false);
         }
         if (kind() == PipeKind.CHASSIS) {
-            ContainerData slots = new SimpleContainerData(1);
-            slots.set(0, pipe().moduleSlots());
+            ContainerData chassis = new ContainerData() {
+                @Override
+                public int get(int index) {
+                    return index == ChassisMenu.DATA_SLOTS ? pipe().moduleSlots() : pointed().map(Direction::get3DDataValue).orElse(-1);
+                }
+
+                @Override
+                public void set(int index, int value) {
+                }
+
+                @Override
+                public int getCount() {
+                    return ChassisMenu.DATA_COUNT;
+                }
+            };
             return new SimpleMenuProvider((id, inventory, player) -> new ChassisMenu(services.chassisMenu().get(), id,
-                    inventory, modules, slots, user -> Container.stillValidBlockEntity(this, user)), title);
+                    inventory, modules, chassis, user -> Container.stillValidBlockEntity(this, user), this::pointAtNext), title);
         }
         return new SimpleMenuProvider((id, inventory, player) -> new PipeConfigMenu(services.configMenu(kind()), id,
                 inventory, kind(), config, data, user -> Container.stillValidBlockEntity(this, user), this::importRecipe), title);
@@ -451,6 +481,15 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
                     && storage().exists(level, target, accessFace(side))) {
                 sides.add(side);
             }
+        }
+        pointableCache = sides;
+        if (kind() == PipeKind.CHASSIS && !sides.isEmpty()) {
+            // a chassis works on one inventory only, the first one it finds unless it was turned
+            if (pointed == null || !sides.contains(pointed)) {
+                pointed = sides.get(0);
+                setChanged();
+            }
+            sides = List.of(pointed);
         }
         inventorySidesCache = sides;
         junctionsCache = junctions;
@@ -669,6 +708,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         tag.put("Items", TransportTags.save(transport, registries));
         tag.putInt("Satellite", satelliteId);
         tag.putBoolean("DefaultRoute", defaultRoute);
+        if (pointed != null) {
+            tag.putInt("Pointed", pointed.get3DDataValue());
+        }
         tag.put("Config", ContainerTags.save(config, registries));
         tag.put("Modules", ContainerTags.save(modules, registries));
         tag.put("Upgrades", ContainerTags.save(upgrades, registries));
@@ -697,6 +739,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         }
         if (tag.contains("DefaultRoute")) {
             defaultRoute = tag.getBoolean("DefaultRoute");
+        }
+        if (tag.contains("Pointed")) {
+            pointed = Direction.from3DDataValue(tag.getInt("Pointed"));
         }
         if (tag.contains("Config")) {
             ContainerTags.load(config, tag.getCompound("Config"), registries);

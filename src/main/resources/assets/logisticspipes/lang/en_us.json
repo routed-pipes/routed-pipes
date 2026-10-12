@@ -17,6 +17,8 @@
   "logisticspipes.gui.import": "Import",
   "logisticspipes.gui.default_route.on": "Default: yes",
   "logisticspipes.gui.default_route.off": "Default: no",
+  "logisticspipes.gui.pointed": "Inventory: %s",
+  "logisticspipes.gui.pointed.none": "No inventory",
   "block.logisticspipes.chassis_pipe_mk1": "Logistics Chassis Mk1",
   "block.logisticspipes.chassis_pipe_mk2": "Logistics Chassis Mk2",
   "block.logisticspipes.chassis_pipe_mk3": "Logistics Chassis Mk3",

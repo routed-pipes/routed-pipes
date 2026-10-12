@@ -35,21 +35,28 @@ public class ChassisMenu extends AbstractContainerMenu {
 
         @Override
         public boolean isActive() {
-            return getContainerSlot() < slotCount.get(0);
+            return getContainerSlot() < slotCount.get(DATA_SLOTS);
         }
     }
 
+    public static final int BUTTON_TURN = 0;
+    public static final int DATA_SLOTS = 0;
+    public static final int DATA_POINTED = 1;
+    public static final int DATA_COUNT = 2;
+
     private final ContainerData slotCount;
     private final Predicate<Player> usable;
+    private final Runnable turn;
 
     // client side
     public ChassisMenu(MenuType<?> type, int id, Inventory inventory) {
-        this(type, id, inventory, new SimpleContainer(PipeBlockEntity.MODULE_SLOTS), new SimpleContainerData(1), player -> true);
+        this(type, id, inventory, new SimpleContainer(PipeBlockEntity.MODULE_SLOTS), new SimpleContainerData(DATA_COUNT), player -> true, () -> { });
     }
 
     public ChassisMenu(MenuType<?> type, int id, Inventory inventory, Container modules, ContainerData slotCount,
-            Predicate<Player> usable) {
+            Predicate<Player> usable, Runnable turn) {
         super(type, id);
+        this.turn = turn;
         this.slotCount = slotCount;
         this.usable = usable;
         for (int slot = 0; slot < PipeBlockEntity.MODULE_SLOTS; slot++) {
@@ -76,7 +83,7 @@ public class ChassisMenu extends AbstractContainerMenu {
         ItemStack original = stack.copy();
         boolean moved = index < PipeBlockEntity.MODULE_SLOTS
                 ? moveItemStackTo(stack, PipeBlockEntity.MODULE_SLOTS, slots.size(), true)
-                : moveItemStackTo(stack, 0, slotCount.get(0), false);
+                : moveItemStackTo(stack, 0, slotCount.get(DATA_SLOTS), false);
         if (!moved) {
             return ItemStack.EMPTY;
         }
@@ -86,6 +93,20 @@ public class ChassisMenu extends AbstractContainerMenu {
             slot.setChanged();
         }
         return original;
+    }
+
+    // which side the inventory is on that the modules work with, -1 for none
+    public int pointed() {
+        return slotCount.get(DATA_POINTED);
+    }
+
+    @Override
+    public boolean clickMenuButton(Player player, int id) {
+        if (id != BUTTON_TURN) {
+            return false;
+        }
+        turn.run();
+        return true;
     }
 
     @Override
