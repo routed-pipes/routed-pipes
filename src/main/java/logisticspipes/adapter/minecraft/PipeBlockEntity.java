@@ -585,12 +585,20 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             routerId = new RouterId(tag.getUUID("Router"));
         }
         TransportTags.load(transport, tag.getList("Items", Tag.TAG_COMPOUND), registries);
-        // updates for clients carry only the items, everything else stays as it is
-        if (tag.contains("Config")) {
+        // updates for clients carry only the items, and commands may set any part alone, so every part is optional
+        if (tag.contains("Satellite")) {
             satelliteId = tag.getInt("Satellite");
-            defaultRoute = !tag.contains("DefaultRoute") || tag.getBoolean("DefaultRoute");
+        }
+        if (tag.contains("DefaultRoute")) {
+            defaultRoute = tag.getBoolean("DefaultRoute");
+        }
+        if (tag.contains("Config")) {
             ContainerTags.load(config, tag.getCompound("Config"), registries);
+        }
+        if (tag.contains("Modules")) {
             ContainerTags.load(modules, tag.getCompound("Modules"), registries);
+        }
+        if (tag.contains("Upgrades")) {
             ContainerTags.load(upgrades, tag.getCompound("Upgrades"), registries);
         }
         ListTag orders = tag.getList("Orders", Tag.TAG_COMPOUND);

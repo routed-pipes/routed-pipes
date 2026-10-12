@@ -211,6 +211,13 @@ public class ChassisGameTest {
         helper.assertTrue(!loaded.extractions().isEmpty(), "extractor");
         helper.assertTrue(loaded.sinkPriority(McItemType.batchOf(new ItemStack(Items.DIAMOND)).type()).isPresent(), "sink filter");
         helper.assertTrue(loaded.sinkPriority(McItemType.batchOf(new ItemStack(Items.DIRT)).type()).isEmpty(), "nothing else");
+
+        // a command or a structure may carry only the modules
+        CompoundTag onlyModules = new CompoundTag();
+        onlyModules.put("Modules", saved.getCompound("Modules"));
+        PipeBlockEntity partial = chassis(helper, 2, 6);
+        partial.loadWithComponents(onlyModules, helper.getLevel().registryAccess());
+        helper.assertTrue(!partial.extractions().isEmpty(), "modules load without the other settings");
         helper.succeed();
     }
 
