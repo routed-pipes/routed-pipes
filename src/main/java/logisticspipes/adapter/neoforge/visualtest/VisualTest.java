@@ -298,6 +298,18 @@ public final class VisualTest {
         }));
         step(2, () -> shot("gui_module_item_sink"));
         step(5, () -> onServer(server -> server.getPlayerList().getPlayers().get(0).closeContainer()));
+        step(5, () -> command("item replace entity @p weapon.mainhand with logisticspipes:module_tag_item_sink"));
+        step(15, () -> onServer(server -> {
+            ServerPlayer player = server.getPlayerList().getPlayers().get(0);
+            ItemStack module = player.getMainHandItem();
+            ModuleItem.setNames(module, java.util.List.of("minecraft:logs", "c:ingots"));
+            module.use(server.overworld(), player, InteractionHand.MAIN_HAND);
+            if (player.containerMenu instanceof logisticspipes.adapter.minecraft.menu.NamesMenu menu) {
+                menu.setMarker(0, new ItemStack(Items.OAK_PLANKS));
+            }
+        }));
+        step(5, () -> shot("gui_module_names"));
+        step(5, () -> onServer(server -> server.getPlayerList().getPlayers().get(0).closeContainer()));
         screenShot("gui_crafting_table", TABLE, "2.5 -60 17.5 90 0");
         screenShot("gui_crafting_imported", TABLE_PIPE, "2.5 -60 17.5 90 0");
 

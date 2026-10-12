@@ -9,7 +9,7 @@ import logisticspipes.domain.crafting.OutputOrders;
 import logisticspipes.domain.crafting.Recipe;
 import logisticspipes.domain.item.ItemBatch;
 import logisticspipes.domain.item.ItemType;
-import logisticspipes.domain.logistics.ExtractionMode;
+import logisticspipes.domain.logistics.Extraction;
 import logisticspipes.domain.logistics.InventoryRef;
 import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.domain.logistics.SinkRule;
@@ -74,7 +74,7 @@ public interface RouterNode {
     }
 
     // the ways the pipe pushes the contents of its inventory to other pipes
-    default List<ExtractionMode> extractions() {
+    default List<Extraction> extractions() {
         return List.of();
     }
 

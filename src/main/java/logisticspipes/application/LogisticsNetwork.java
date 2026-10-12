@@ -17,6 +17,7 @@ import logisticspipes.domain.crafting.OutputOrder;
 import logisticspipes.domain.item.ItemBatch;
 import logisticspipes.domain.item.ItemType;
 import logisticspipes.domain.logistics.DestinationSelector;
+import logisticspipes.domain.logistics.Extraction;
 import logisticspipes.domain.logistics.ExtractionMode;
 import logisticspipes.domain.logistics.InventoryRef;
 import logisticspipes.domain.logistics.ItemSink;
@@ -459,19 +460,23 @@ public final class LogisticsNetwork {
             });
         }
         if (!settling(id, now)) {
-            for (ExtractionMode mode : node.extractions()) {
-                if (now % mode.interval() == 0) {
-                    extract(id, node, mode, now);
+            for (Extraction extraction : node.extractions()) {
+                if (now % extraction.mode().interval() == 0) {
+                    extract(id, node, extraction, now);
                 }
             }
         }
     }
 
     // sends off the first kind of item in the inventory that some other router wants and the network can pay for
-    private void extract(RouterId id, RouterNode node, ExtractionMode mode, long now) {
+    private void extract(RouterId id, RouterNode node, Extraction extraction, long now) {
+        ExtractionMode mode = extraction.mode();
         int minPriority = mode.usesDefaultRoutes() ? ItemSink.DEFAULT_ROUTE_PRIORITY : ItemSink.DEFAULT_ROUTE_PRIORITY + 1;
         int amount = mode.amount() * node.extractionBoost();
         for (Map.Entry<ItemType, Integer> stock : node.contents().entrySet()) {
+            if (!extraction.takes(stock.getKey())) {
+                continue;
+            }
             ItemBatch batch = new ItemBatch(stock.getKey(), Math.min(stock.getValue(), amount));
             Optional<Claim> claim = findDestination(id, batch, null, false, minPriority, now);
             if (claim.isPresent()) {

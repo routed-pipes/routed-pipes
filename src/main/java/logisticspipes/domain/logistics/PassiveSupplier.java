@@ -10,7 +10,7 @@ import logisticspipes.domain.item.ItemType;
 // a stock that is running low matters more than a general item sink, so this ranks highest
 public record PassiveSupplier(Map<ItemType, Integer> targets) implements SinkRule {
 
-    public static final int PRIORITY = 3;
+    public static final int PRIORITY = 60;
 
     public PassiveSupplier {
         targets = Map.copyOf(targets);

@@ -22,17 +22,20 @@ import logisticspipes.adapter.minecraft.UpgradeItem;
 import logisticspipes.adapter.minecraft.menu.ChassisMenu;
 import logisticspipes.adapter.minecraft.menu.CraftingTableMenu;
 import logisticspipes.adapter.minecraft.menu.MenuRequests;
+import logisticspipes.adapter.minecraft.menu.NamesMenu;
 import logisticspipes.adapter.minecraft.menu.PipeConfigMenu;
 import logisticspipes.adapter.minecraft.menu.RequestMenu;
 import logisticspipes.adapter.neoforge.benchmark.Benchmark;
 import logisticspipes.domain.logistics.ModuleKind;
 import logisticspipes.domain.logistics.PipeKind;
+import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
@@ -43,18 +46,22 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
+import org.slf4j.Logger;
 
 // composition root, the only place that knows every layer
 @Mod(LogisticsPipes.MODID)
 public class LogisticsPipes {
 
     public static final String MODID = "logisticspipes";
+    private static final Logger LOGGER = LogUtils.getLogger();
 
     private static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(MODID);
     private static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MODID);
@@ -78,6 +85,10 @@ public class LogisticsPipes {
 
     public static final Supplier<MenuType<CraftingTableMenu>> CRAFTING_TABLE_MENU = MENUS.register("crafting_table",
             () -> new MenuType<>((id, inventory) -> new CraftingTableMenu(LogisticsPipes.CRAFTING_TABLE_MENU.get(), id, inventory),
+                    FeatureFlags.DEFAULT_FLAGS));
+
+    public static final Supplier<MenuType<NamesMenu>> NAMES_MENU = MENUS.register("names",
+            () -> new MenuType<>((id, inventory) -> new NamesMenu(LogisticsPipes.NAMES_MENU.get(), id, inventory),
                     FeatureFlags.DEFAULT_FLAGS));
 
     public static final Supplier<MenuType<ChassisMenu>> CHASSIS_MENU = MENUS.register("chassis",
@@ -115,7 +126,8 @@ public class LogisticsPipes {
         for (ModuleKind kind : ModuleKind.values()) {
             MODULES.put(kind, ITEMS.register("module_" + kind.name().toLowerCase(Locale.ROOT),
                     () -> new ModuleItem(new Item.Properties(), kind, ModuleItem.settingsLayoutFor(kind).orElse(null),
-                            ModuleItem.settingsLayoutFor(kind).map(CONFIG_MENUS::get).orElse(null))));
+                            ModuleItem.settingsLayoutFor(kind).map(CONFIG_MENUS::get).orElse(null),
+                            ModuleItem.listsNames(kind) ? NAMES_MENU : null)));
         }
     }
 
@@ -176,6 +188,7 @@ public class LogisticsPipes {
         TABS.register(modEventBus);
         modEventBus.addListener(LogisticsPipes::registerCapabilities);
         modEventBus.addListener(LogisticsPipes::registerPayloads);
+        NeoForge.EVENT_BUS.addListener(LogisticsPipes::buildCreativeTabs);
         Benchmark.registerIfRequested();
     }
 
@@ -198,6 +211,16 @@ public class LogisticsPipes {
 
     private static PipeBlockEntity newPipe(BlockPos pos, BlockState state) {
         return new PipeBlockEntity(PIPE_BLOCK_ENTITY.get(), pos, state);
+    }
+
+    // the sink for creative tabs asks the tabs what they hold, and on a server nobody else fills them
+    private static void buildCreativeTabs(ServerStartedEvent event) {
+        try {
+            CreativeModeTabs.tryRebuildTabContents(event.getServer().getWorldData().enabledFeatures(), false,
+                    event.getServer().registryAccess());
+        } catch (RuntimeException e) {
+            LOGGER.warn("Could not fill the creative tabs, the creative tab sink will take nothing", e);
+        }
     }
 
     private static void registerPayloads(RegisterPayloadHandlersEvent event) {

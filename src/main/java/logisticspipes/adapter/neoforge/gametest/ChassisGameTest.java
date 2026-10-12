@@ -455,4 +455,127 @@ public class ChassisGameTest {
             helper.succeed();
         });
     }
+
+    // sends one stack into a line of three chassis and says which chest it has to end up in
+    private static void sinkTest(GameTestHelper helper, ItemStack sent, ItemStack module, boolean taken) {
+        GameTestPower.supply(helper);
+        PipeBlockEntity source = pipe(helper, PipeKind.BASIC, 0);
+        source.setDefaultRoute(false);
+        chassis(helper, 1, 1, module);
+        BlockPos special = chest(helper, 1);
+        pipe(helper, PipeKind.BASIC, 2);
+        BlockPos fallback = chest(helper, 2);
+        helper.runAfterDelay(15, () -> source.accept(sent.copy(), net.minecraft.core.Direction.DOWN));
+        helper.runAfterDelay(100, () -> {
+            assertCount(helper, taken ? special : fallback, sent.getItem(), sent.getCount());
+            assertCount(helper, taken ? fallback : special, sent.getItem(), 0);
+            helper.succeed();
+        });
+    }
+
+    private static ItemStack named(ModuleKind kind, String... names) {
+        ItemStack module = module(kind);
+        ModuleItem.setNames(module, List.of(names));
+        return module;
+    }
+
+    @GameTest(template = EMPTY, timeoutTicks = 300)
+    public static void modSinkTakesItemsOfItsMod(GameTestHelper helper) {
+        sinkTest(helper, new ItemStack(LogisticsPipes.TRANSPORT_PIPE.get(), 4), named(ModuleKind.MOD_ITEM_SINK, LogisticsPipes.MODID), true);
+    }
+
+    @GameTest(template = EMPTY, timeoutTicks = 300)
+    public static void modSinkLeavesOtherModsAlone(GameTestHelper helper) {
+        sinkTest(helper, new ItemStack(Items.COAL, 4), named(ModuleKind.MOD_ITEM_SINK, LogisticsPipes.MODID), false);
+    }
+
+    @GameTest(template = EMPTY, timeoutTicks = 300)
+    public static void tagSinkTakesItemsWithItsTag(GameTestHelper helper) {
+        sinkTest(helper, new ItemStack(Items.BIRCH_PLANKS, 4), named(ModuleKind.TAG_ITEM_SINK, "minecraft:planks"), true);
+    }
+
+    @GameTest(template = EMPTY, timeoutTicks = 300)
+    public static void tagSinkLeavesOtherItemsAlone(GameTestHelper helper) {
+        sinkTest(helper, new ItemStack(Items.COBBLESTONE, 4), named(ModuleKind.TAG_ITEM_SINK, "minecraft:planks"), false);
+    }
+
+    @GameTest(template = EMPTY, timeoutTicks = 300)
+    public static void creativeTabSinkTakesItemsOfItsTab(GameTestHelper helper) {
+        sinkTest(helper, new ItemStack(Items.DIAMOND_SWORD), named(ModuleKind.CREATIVE_TAB_ITEM_SINK, "minecraft:combat"), true);
+    }
+
+    @GameTest(template = EMPTY, timeoutTicks = 300)
+    public static void creativeTabSinkLeavesOtherTabsAlone(GameTestHelper helper) {
+        sinkTest(helper, new ItemStack(Items.COBBLESTONE, 4), named(ModuleKind.CREATIVE_TAB_ITEM_SINK, "minecraft:combat"), false);
+    }
+
+    private static ItemStack enchanted(GameTestHelper helper, Item item) {
+        ItemStack stack = new ItemStack(item);
+        stack.enchant(helper.getLevel().registryAccess().registryOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT)
+                .getHolderOrThrow(net.minecraft.world.item.enchantment.Enchantments.UNBREAKING), 1);
+        return stack;
+    }
+
+    @GameTest(template = EMPTY, timeoutTicks = 300)
+    public static void enchantmentSinkTakesEnchantedItems(GameTestHelper helper) {
+        sinkTest(helper, enchanted(helper, Items.IRON_PICKAXE), module(ModuleKind.ENCHANTMENT_SINK), true);
+    }
+
+    @GameTest(template = EMPTY, timeoutTicks = 300)
+    public static void enchantmentSinkLeavesPlainItemsAlone(GameTestHelper helper) {
+        sinkTest(helper, new ItemStack(Items.IRON_PICKAXE), module(ModuleKind.ENCHANTMENT_SINK), false);
+    }
+
+    @GameTest(template = EMPTY, timeoutTicks = 300)
+    public static void enchantmentSinkMk2TakesOnlyListedItems(GameTestHelper helper) {
+        ItemStack module = module(ModuleKind.ENCHANTMENT_SINK_MK2);
+        ModuleItem.configureSink(module, List.of(new ItemStack(Items.IRON_PICKAXE)), false);
+        sinkTest(helper, enchanted(helper, Items.IRON_PICKAXE), module, true);
+    }
+
+    @GameTest(template = EMPTY, timeoutTicks = 300)
+    public static void enchantmentSinkMk2LeavesOtherEnchantedItemsAlone(GameTestHelper helper) {
+        ItemStack module = module(ModuleKind.ENCHANTMENT_SINK_MK2);
+        ModuleItem.configureSink(module, List.of(new ItemStack(Items.IRON_PICKAXE)), false);
+        sinkTest(helper, enchanted(helper, Items.IRON_SWORD), module, false);
+    }
+
+    // only the listed coal leaves, the iron stays
+    @GameTest(template = EMPTY, timeoutTicks = 300)
+    public static void advancedExtractorTakesOnlyListedItems(GameTestHelper helper) {
+        GameTestPower.supply(helper);
+        ItemStack extractor = module(ModuleKind.ADVANCED_EXTRACTOR);
+        ModuleItem.configureFilter(extractor, List.of(new ItemStack(Items.COAL)), false);
+        chassis(helper, 1, 0, extractor);
+        BlockPos source = chest(helper, 0, new ItemStack(Items.COAL, 16), new ItemStack(Items.IRON_INGOT, 16));
+        pipe(helper, PipeKind.BASIC, 1);
+        BlockPos target = chest(helper, 1);
+
+        helper.runAfterDelay(100, () -> {
+            assertCount(helper, target, Items.COAL, 16);
+            assertCount(helper, source, Items.IRON_INGOT, 16);
+            helper.succeed();
+        });
+    }
+
+    // names are added and removed the way the screen asks for it
+    @GameTest(template = EMPTY)
+    public static void namesMenuEditsTheListOnTheModule(GameTestHelper helper) {
+        Player player = TestPlayer.in(helper);
+        ItemStack module = module(ModuleKind.TAG_ITEM_SINK);
+        player.getInventory().setItem(0, module);
+        logisticspipes.adapter.minecraft.menu.NamesMenu menu = new logisticspipes.adapter.minecraft.menu.NamesMenu(
+                LogisticsPipes.NAMES_MENU.get(), 1, player.getInventory(), module, user -> true, () -> { });
+        player.containerMenu = menu;
+
+        logisticspipes.adapter.minecraft.menu.MenuRequests.applyText(player, 1, logisticspipes.adapter.minecraft.menu.NamesMenu.FIELD_ADD, "minecraft:planks");
+        logisticspipes.adapter.minecraft.menu.MenuRequests.applyText(player, 1, logisticspipes.adapter.minecraft.menu.NamesMenu.FIELD_ADD, "minecraft:planks");
+        logisticspipes.adapter.minecraft.menu.MenuRequests.applyText(player, 1, logisticspipes.adapter.minecraft.menu.NamesMenu.FIELD_ADD, "minecraft:logs");
+        helper.assertTrue(ModuleItem.namesOf(module).equals(List.of("minecraft:planks", "minecraft:logs")), "two names, no doubles");
+        logisticspipes.adapter.minecraft.menu.MenuRequests.applyText(player, 1, logisticspipes.adapter.minecraft.menu.NamesMenu.FIELD_REMOVE, "minecraft:planks");
+        helper.assertTrue(ModuleItem.namesOf(module).equals(List.of("minecraft:logs")), "one removed");
+        helper.assertTrue(logisticspipes.adapter.minecraft.ItemTraits.tags(new ItemStack(Items.OAK_PLANKS)).contains("minecraft:planks"),
+                "planks offer their tag");
+        helper.succeed();
+    }
 }

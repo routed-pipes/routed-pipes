@@ -22,7 +22,7 @@ import logisticspipes.domain.crafting.OutputOrders;
 import logisticspipes.domain.crafting.Recipe;
 import logisticspipes.domain.item.ItemBatch;
 import logisticspipes.domain.item.ItemType;
-import logisticspipes.domain.logistics.ExtractionMode;
+import logisticspipes.domain.logistics.Extraction;
 import logisticspipes.domain.logistics.InventoryRef;
 import logisticspipes.domain.logistics.ItemSink;
 import logisticspipes.domain.logistics.ModuleKind;
@@ -125,7 +125,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     private Map<ItemType, Integer> contentsCache;
     // worked out from modules and settings when first asked for, dropped when those change
     private List<SinkRule> sinkRulesCache;
-    private List<ExtractionMode> extractionsCache;
+    private List<Extraction> extractionsCache;
     // what is next to the pipe, looked up again after a neighbour changed and every couple of seconds anyway
     private List<Direction> inventorySidesCache;
     private List<BlockPos> junctionsCache;
@@ -689,7 +689,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     }
 
     @Override
-    public List<ExtractionMode> extractions() {
+    public List<Extraction> extractions() {
         if (extractionsCache == null) {
             extractionsCache = pluggedModules().stream().flatMap(stack -> ModuleItem.extractionOf(stack).stream()).distinct().toList();
         }

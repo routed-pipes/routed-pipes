@@ -441,4 +441,19 @@ class LogisticsNetworkChassisTest {
         network.chooseExit(STORE, third, NOW);
         assertThat(third.destination()).isNotEqualTo(Optional.of(CHASSIS));
     }
+
+    @Test
+    void advancedExtractorSkipsWhatItsListKeepsBack() {
+        connect();
+        chassis.extractions.add(ExtractionMode.EXTRACTOR);
+        chassis.extractionList = Set.of(item("stone"));
+        chassis.extractionExcludes = false;
+        chassis.stock("coal", 8);
+        chassis.stock("stone", 8);
+        store.inventories.add(Side.UP);
+
+        network.tick(CHASSIS, NOW);
+
+        assertThat(chassis.shipments).containsExactly(new Shipment(batch("stone", 8), STORE));
+    }
 }

@@ -9,7 +9,7 @@ import logisticspipes.domain.item.ItemType;
 // overflow for listed items: wanted more than a default route, less than any item sink
 public record Terminus(Set<ItemType> filter) implements SinkRule {
 
-    public static final int PRIORITY = 1;
+    public static final int PRIORITY = 40;
 
     public Terminus {
         filter = Set.copyOf(filter);

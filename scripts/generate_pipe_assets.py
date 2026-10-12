@@ -9,7 +9,8 @@ import os
 PIPES = ["transport_pipe", "basic_logistics_pipe", "provider_pipe", "request_pipe", "supplier_pipe",
          "crafting_pipe", "satellite_pipe"] + [f"chassis_pipe_mk{tier}" for tier in range(1, 6)]
 MODULES = ["module_item_sink", "module_extractor", "module_provider", "module_terminus", "module_passive_supplier",
-           "module_polymorphic_item_sink", "module_quick_sort"]
+           "module_polymorphic_item_sink", "module_quick_sort", "module_advanced_extractor", "module_mod_item_sink",
+           "module_tag_item_sink", "module_creative_tab_item_sink", "module_enchantment_sink", "module_enchantment_sink_mk2"]
 ASSETS = "src/main/resources/assets/logisticspipes/"
 DATA = "src/main/resources/data/logisticspipes/"
 

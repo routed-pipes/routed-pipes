@@ -3,6 +3,7 @@ package logisticspipes.adapter.neoforge;
 import logisticspipes.adapter.minecraft.client.ChassisScreen;
 import logisticspipes.adapter.minecraft.client.ClientMenuLink;
 import logisticspipes.adapter.minecraft.client.CraftingTableScreen;
+import logisticspipes.adapter.minecraft.client.NamesScreen;
 import logisticspipes.adapter.minecraft.client.PipeConfigScreen;
 import logisticspipes.adapter.minecraft.client.PipeItemRenderer;
 import logisticspipes.adapter.minecraft.client.RequestScreen;
@@ -43,6 +44,7 @@ public class LogisticsPipesClient {
         LogisticsPipes.CONFIG_MENUS.values().forEach(menu -> event.register(menu.get(), PipeConfigScreen::new));
         event.register(LogisticsPipes.CRAFTING_TABLE_MENU.get(), CraftingTableScreen::new);
         event.register(LogisticsPipes.CHASSIS_MENU.get(), ChassisScreen::new);
+        event.register(LogisticsPipes.NAMES_MENU.get(), NamesScreen::new);
     }
 
     private static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {

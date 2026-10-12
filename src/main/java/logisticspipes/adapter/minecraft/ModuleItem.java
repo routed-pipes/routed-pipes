@@ -1,14 +1,19 @@
 package logisticspipes.adapter.minecraft;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Supplier;
 
+import logisticspipes.adapter.minecraft.menu.NamesMenu;
 import logisticspipes.adapter.minecraft.menu.PipeConfigMenu;
 import logisticspipes.domain.item.ItemType;
+import logisticspipes.domain.logistics.EnchantmentSink;
+import logisticspipes.domain.logistics.Extraction;
 import logisticspipes.domain.logistics.ExtractionMode;
 import logisticspipes.domain.logistics.ItemSink;
 import logisticspipes.domain.logistics.ModuleKind;
@@ -19,9 +24,13 @@ import logisticspipes.domain.logistics.ProviderMode;
 import logisticspipes.domain.logistics.ProviderSettings;
 import logisticspipes.domain.logistics.SinkRule;
 import logisticspipes.domain.logistics.Terminus;
+import logisticspipes.domain.logistics.TraitSink;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -44,18 +53,21 @@ public class ModuleItem extends Item {
     private static final String DEFAULT_ROUTE_TAG = "LogisticsPipesDefaultRoute";
     private static final String MODE_TAG = "LogisticsPipesMode";
     private static final String EXCLUDE_TAG = "LogisticsPipesExclude";
+    private static final String NAMES_TAG = "LogisticsPipesNames";
 
     private final ModuleKind kind;
     private final PipeKind settingsLayout;
     private final Supplier<MenuType<PipeConfigMenu>> settingsMenu;
+    private final Supplier<MenuType<NamesMenu>> namesMenu;
 
     // modules without settings get no layout and no menu
     public ModuleItem(Properties properties, ModuleKind kind, PipeKind settingsLayout,
-            Supplier<MenuType<PipeConfigMenu>> settingsMenu) {
+            Supplier<MenuType<PipeConfigMenu>> settingsMenu, Supplier<MenuType<NamesMenu>> namesMenu) {
         super(properties.stacksTo(1));
         this.kind = kind;
         this.settingsLayout = settingsLayout;
         this.settingsMenu = settingsMenu;
+        this.namesMenu = namesMenu;
     }
 
     public ModuleKind kind() {
@@ -66,10 +78,14 @@ public class ModuleItem extends Item {
     public static Optional<PipeKind> settingsLayoutFor(ModuleKind kind) {
         return switch (kind) {
             case ITEM_SINK -> Optional.of(PipeKind.BASIC);
-            case TERMINUS, PASSIVE_SUPPLIER -> Optional.of(PipeKind.SUPPLIER);
-            case PROVIDER -> Optional.of(PipeKind.PROVIDER);
+            case TERMINUS, PASSIVE_SUPPLIER, ENCHANTMENT_SINK_MK2 -> Optional.of(PipeKind.SUPPLIER);
+            case PROVIDER, ADVANCED_EXTRACTOR -> Optional.of(PipeKind.PROVIDER);
             default -> Optional.empty();
         };
+    }
+
+    public static boolean listsNames(ModuleKind kind) {
+        return kind == ModuleKind.MOD_ITEM_SINK || kind == ModuleKind.TAG_ITEM_SINK || kind == ModuleKind.CREATIVE_TAB_ITEM_SINK;
     }
 
     // what an item sink module takes
@@ -87,17 +103,24 @@ public class ModuleItem extends Item {
             case TERMINUS -> Optional.of(new Terminus(filterTypes(module).keySet()));
             case PASSIVE_SUPPLIER -> Optional.of(new PassiveSupplier(filterTypes(module)));
             case POLYMORPHIC_ITEM_SINK -> Optional.of(new PolymorphicItemSink());
+            case MOD_ITEM_SINK -> Optional.of(new TraitSink(TraitSink.Trait.MOD, Set.copyOf(namesOf(module))));
+            case TAG_ITEM_SINK -> Optional.of(new TraitSink(TraitSink.Trait.TAG, Set.copyOf(namesOf(module))));
+            case CREATIVE_TAB_ITEM_SINK -> Optional.of(new TraitSink(TraitSink.Trait.GROUP, Set.copyOf(namesOf(module))));
+            case ENCHANTMENT_SINK -> Optional.of(EnchantmentSink.any());
+            case ENCHANTMENT_SINK_MK2 -> Optional.of(EnchantmentSink.of(plainTypes(module)));
             default -> Optional.empty();
         };
     }
 
-    public static Optional<ExtractionMode> extractionOf(ItemStack module) {
+    public static Optional<Extraction> extractionOf(ItemStack module) {
         if (!(module.getItem() instanceof ModuleItem item)) {
             return Optional.empty();
         }
         return switch (item.kind) {
-            case EXTRACTOR -> Optional.of(ExtractionMode.EXTRACTOR);
-            case QUICK_SORT -> Optional.of(ExtractionMode.QUICK_SORT);
+            case EXTRACTOR -> Optional.of(Extraction.of(ExtractionMode.EXTRACTOR));
+            case QUICK_SORT -> Optional.of(Extraction.of(ExtractionMode.QUICK_SORT));
+            case ADVANCED_EXTRACTOR -> Optional.of(new Extraction(ExtractionMode.EXTRACTOR, plainTypes(module),
+                    intOf(module, EXCLUDE_TAG) != 0));
             default -> Optional.empty();
         };
     }
@@ -111,6 +134,33 @@ public class ModuleItem extends Item {
             }
         }
         return types;
+    }
+
+    // the listed items whatever their damage or data
+    private static Set<ItemType> plainTypes(ItemStack module) {
+        Set<ItemType> types = new HashSet<>();
+        filterTypes(module).keySet().forEach(type -> types.add(type.plain()));
+        return types;
+    }
+
+    public static List<String> namesOf(ItemStack module) {
+        List<String> names = new ArrayList<>();
+        ListTag list = module.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getList(NAMES_TAG, Tag.TAG_STRING);
+        for (int index = 0; index < list.size(); index++) {
+            names.add(list.getString(index));
+        }
+        return names;
+    }
+
+    public static void setNames(ItemStack module, List<String> names) {
+        ListTag list = new ListTag();
+        names.forEach(name -> list.add(StringTag.valueOf(name)));
+        CustomData.update(DataComponents.CUSTOM_DATA, module, tag -> tag.put(NAMES_TAG, list));
+    }
+
+    public static void configureFilter(ItemStack module, List<ItemStack> filter, boolean exclude) {
+        configureSink(module, filter, false);
+        CustomData.update(DataComponents.CUSTOM_DATA, module, tag -> tag.putInt(EXCLUDE_TAG, exclude ? 1 : 0));
     }
 
     public static NonNullList<ItemStack> filterOf(ItemStack module) {
@@ -160,6 +210,14 @@ public class ModuleItem extends Item {
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack module = player.getItemInHand(hand);
+        if (namesMenu != null) {
+            if (!level.isClientSide) {
+                player.openMenu(new SimpleMenuProvider((id, inventory, user) -> new NamesMenu(namesMenu.get(), id, inventory,
+                        module, holder -> !module.isEmpty() && holder.getInventory().contains(module), () -> { }),
+                        module.getHoverName()));
+            }
+            return InteractionResultHolder.sidedSuccess(module, level.isClientSide);
+        }
         if (settingsLayout == null) {
             return InteractionResultHolder.pass(module);
         }

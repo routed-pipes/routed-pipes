@@ -13,6 +13,7 @@ import logisticspipes.domain.crafting.OutputOrders;
 import logisticspipes.domain.crafting.Recipe;
 import logisticspipes.domain.item.ItemBatch;
 import logisticspipes.domain.item.ItemType;
+import logisticspipes.domain.logistics.Extraction;
 import logisticspipes.domain.logistics.ExtractionMode;
 import logisticspipes.domain.logistics.InventoryRef;
 import logisticspipes.domain.logistics.ItemSink;
@@ -55,6 +56,9 @@ public final class FakeNode implements RouterNode {
     public SupplyMode supplyMode = SupplyMode.BULK50;
     public int roomLeft = Integer.MAX_VALUE;
     public final List<ExtractionMode> extractions = new ArrayList<>();
+    // extractors take everything unless a test lists items
+    public Set<ItemType> extractionList = Set.of();
+    public boolean extractionExcludes = true;
     private final PipeKind kind;
 
     public FakeNode(PipeKind kind) {
@@ -144,8 +148,8 @@ public final class FakeNode implements RouterNode {
     }
 
     @Override
-    public List<ExtractionMode> extractions() {
-        return extractions;
+    public List<Extraction> extractions() {
+        return extractions.stream().map(mode -> new Extraction(mode, extractionList, extractionExcludes)).toList();
     }
 
     @Override

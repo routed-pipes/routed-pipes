@@ -15,5 +15,17 @@ public enum ModuleKind {
     // takes more of what its inventory already holds
     POLYMORPHIC_ITEM_SINK,
     // moves whole stacks to pipes that asked for the item by name
-    QUICK_SORT
+    QUICK_SORT,
+    // an extractor that only touches the listed items, or all but those
+    ADVANCED_EXTRACTOR,
+    // takes every item of the listed mods
+    MOD_ITEM_SINK,
+    // takes every item with one of the listed tags
+    TAG_ITEM_SINK,
+    // takes every item of the listed creative tabs
+    CREATIVE_TAB_ITEM_SINK,
+    // takes anything enchanted
+    ENCHANTMENT_SINK,
+    // takes enchanted versions of the listed items
+    ENCHANTMENT_SINK_MK2
 }
