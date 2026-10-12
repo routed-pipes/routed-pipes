@@ -15,7 +15,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
@@ -218,7 +217,7 @@ public class ChassisGameTest {
     @GameTest(template = EMPTY)
     public static void itemSinkModuleIsSetUpInTheHand(GameTestHelper helper) {
         GameTestPower.supply(helper);
-        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        TestPlayer player = TestPlayer.in(helper);
         ItemStack held = module(ModuleKind.ITEM_SINK);
         player.setItemInHand(InteractionHand.MAIN_HAND, held);
 
@@ -237,21 +236,19 @@ public class ChassisGameTest {
 
         player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
         helper.assertTrue(!menu.stillValid(player), "settings close when the module is gone");
-        player.discard();
         helper.succeed();
     }
 
     @GameTest(template = EMPTY)
     public static void otherModulesHaveNoSettings(GameTestHelper helper) {
         GameTestPower.supply(helper);
-        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        TestPlayer player = TestPlayer.in(helper);
         ItemStack held = module(ModuleKind.EXTRACTOR);
         player.setItemInHand(InteractionHand.MAIN_HAND, held);
 
         held.use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
 
         helper.assertTrue(player.containerMenu == player.inventoryMenu, "nothing should open");
-        player.discard();
         helper.succeed();
     }
 
@@ -344,14 +341,13 @@ public class ChassisGameTest {
     public static void modulesWithListsHaveSettingsAndTheOthersDoNot(GameTestHelper helper) {
         GameTestPower.supply(helper);
         for (ModuleKind kind : ModuleKind.values()) {
-            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+            TestPlayer player = TestPlayer.in(helper);
             ItemStack held = module(kind);
             player.setItemInHand(InteractionHand.MAIN_HAND, held);
             held.use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
             boolean opened = player.containerMenu instanceof PipeConfigMenu;
             boolean expected = ModuleItem.settingsLayoutFor(kind).isPresent();
             helper.assertTrue(opened == expected, kind + " settings screen: expected " + expected);
-            player.discard();
         }
         helper.succeed();
     }

@@ -41,3 +41,6 @@ repo/
 
 ### Visual test client ###
 run-visual/
+
+### Compatibility test run ###
+run-compat/

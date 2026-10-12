@@ -28,6 +28,21 @@ sourceSets.main.resources {
 
 repositories {
     mavenCentral()
+    // other mods for the compatibility test run, never compiled against
+    exclusiveContent {
+        forRepository {
+            maven { url = 'https://api.modrinth.com/maven' }
+        }
+        filter {
+            includeGroup 'maven.modrinth'
+        }
+    }
+}
+
+configurations {
+    compatMods {
+        transitive = false
+    }
 }
 
 base {
@@ -70,6 +85,13 @@ neoForge {
             gameDirectory = project.file('run-visual')
             systemProperty 'logisticspipes.visualTest', project.file('build/visual-test').absolutePath
             programArguments.addAll '--width', '854', '--height', '480'
+        }
+
+        // the same in-game tests with a set of popular mods installed, plus tests against their blocks
+        gameTestServerCompat {
+            type = "gameTestServer"
+            gameDirectory = project.file('run-compat')
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
 
         // This run config launches GameTestServer and runs all registered gametests, then exits.
@@ -124,6 +146,17 @@ configurations {
 }
 
 dependencies {
+    // pinned by modrinth version id
+    compatMods 'maven.modrinth:jei:ufHUqt9b'
+    compatMods 'maven.modrinth:jade:eYz2YBGT'
+    compatMods 'maven.modrinth:mekanism:5KzzycBT'
+    compatMods 'maven.modrinth:sophisticated-storage:f7c8aEld'
+    compatMods 'maven.modrinth:sophisticated-core:p09oohxN'
+    compatMods 'maven.modrinth:ae2:KDnFUmMm'
+    compatMods 'maven.modrinth:guideme:hFpGwC6q'
+    compatMods 'maven.modrinth:create:UjX6dr61'
+    compatMods 'maven.modrinth:storagedrawers:px0CCB06'
+
     testImplementation platform('org.junit:junit-bom:5.11.4')
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.assertj:assertj-core:3.27.3'
@@ -205,4 +238,13 @@ def quietOptions = tasks.register('quietClientOptions') {
 }
 tasks.matching { it.name in ['runClient', 'runVisualTest'] }.configureEach {
     dependsOn quietOptions
+}
+
+// the compatibility run loads the other mods from its own mods folder
+def copyCompatMods = tasks.register('copyCompatMods', Sync) {
+    from configurations.compatMods
+    into 'run-compat/mods'
+}
+tasks.matching { it.name == 'runGameTestServerCompat' }.configureEach {
+    dependsOn copyCompatMods
 }

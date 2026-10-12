@@ -10,13 +10,11 @@ import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
@@ -89,7 +87,7 @@ public class UpgradeGameTest {
     @GameTest(template = EMPTY)
     public static void sneakyUpgradeTurnsWhenUsedInTheHand(GameTestHelper helper) {
         GameTestPower.supply(helper);
-        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        TestPlayer player = TestPlayer.in(helper);
         ItemStack sneaky = upgrade(UpgradeItem.Kind.SNEAKY, 1);
         player.setItemInHand(InteractionHand.MAIN_HAND, sneaky);
         helper.assertTrue(UpgradeItem.sideOf(sneaky) == Direction.UP, "a fresh upgrade points up");
@@ -100,7 +98,6 @@ public class UpgradeGameTest {
             sneaky.use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
         }
         helper.assertTrue(UpgradeItem.sideOf(sneaky) == Direction.UP, "six uses go all the way round");
-        player.discard();
         helper.succeed();
     }
 
@@ -109,8 +106,7 @@ public class UpgradeGameTest {
         GameTestPower.supply(helper);
         PipeBlockEntity basic = pipe(helper, PipeKind.BASIC, 0);
         BlockPos relative = new BlockPos(0, 1, 1);
-        ServerPlayer player = helper.makeMockServerPlayerInLevel();
-        player.setGameMode(GameType.SURVIVAL);
+        TestPlayer player = TestPlayer.in(helper);
         ItemStack held = upgrade(UpgradeItem.Kind.SPEED, 6);
         player.setItemInHand(InteractionHand.MAIN_HAND, held);
 
@@ -125,7 +121,6 @@ public class UpgradeGameTest {
         helper.assertTrue(basic.removeUpgrades().isEmpty(), "sneaking takes everything out");
         helper.assertItemEntityCountIs(LogisticsPipes.UPGRADES.get(UpgradeItem.Kind.SPEED).get(), relative, 2,
                 PipeBlockEntity.UPGRADE_SLOTS);
-        player.discard();
         helper.succeed();
     }
 

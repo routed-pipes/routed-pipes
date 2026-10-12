@@ -16,7 +16,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
@@ -300,7 +299,7 @@ public class RequestGameTest {
         BlockPos target = chest(helper, 0, 2);
         pipe(helper, PipeKind.PROVIDER, 1, 1);
         chest(helper, 1, 2, new ItemStack(Items.DIAMOND, 9));
-        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        TestPlayer player = TestPlayer.in(helper);
         player.setPos(player.getX() + 500, player.getY(), player.getZ());
         ItemStack orderer = new ItemStack(LogisticsPipes.REMOTE_ORDERER.get());
         player.setItemInHand(InteractionHand.MAIN_HAND, orderer);
@@ -325,7 +324,6 @@ public class RequestGameTest {
 
         helper.succeedWhen(() -> {
             assertCount(helper, target, Items.DIAMOND, 1);
-            player.discard();
         });
     }
 
@@ -334,7 +332,7 @@ public class RequestGameTest {
         GameTestPower.supply(helper);
         pipe(helper, PipeKind.PROVIDER, 0, 1);
         pipe(helper, PipeKind.REQUEST, 2, 1);
-        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        TestPlayer player = TestPlayer.in(helper);
         ItemStack orderer = new ItemStack(LogisticsPipes.REMOTE_ORDERER.get());
         player.setItemInHand(InteractionHand.MAIN_HAND, orderer);
 
@@ -349,7 +347,6 @@ public class RequestGameTest {
         helper.setBlock(new BlockPos(2, 1, 1), Blocks.AIR);
         orderer.use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
         helper.assertTrue(player.containerMenu == player.inventoryMenu, "a removed pipe cannot be opened");
-        player.discard();
         helper.succeed();
     }
 
