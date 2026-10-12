@@ -455,7 +455,7 @@ public final class LogisticsNetwork {
         }
         if (!settling(id, now)) {
             for (Extraction extraction : node.extractions()) {
-                if (now % extraction.mode().interval() == 0) {
+                if (now % extraction.interval() == 0) {
                     extract(id, node, extraction, now);
                 }
             }
@@ -475,23 +475,29 @@ public final class LogisticsNetwork {
         });
     }
 
-    // sends off the first kind of item in the inventory that some other router wants and the network can pay for
+    // sends off the first kinds of items in the inventory that some other router wants and the network can pay for
     private void extract(RouterId id, RouterNode node, Extraction extraction, long now) {
         ExtractionMode mode = extraction.mode();
         int minPriority = mode.usesDefaultRoutes() ? ItemSink.DEFAULT_ROUTE_PRIORITY : ItemSink.DEFAULT_ROUTE_PRIORITY + 1;
-        int amount = mode.amount() * node.extractionBoost();
+        int itemsLeft = extraction.amount();
+        int stacksLeft = extraction.stacks();
         for (Map.Entry<ItemType, Integer> stock : node.contents().entrySet()) {
             if (!extraction.takes(stock.getKey())) {
                 continue;
             }
-            ItemBatch batch = new ItemBatch(stock.getKey(), Math.min(stock.getValue(), amount));
+            ItemBatch batch = new ItemBatch(stock.getKey(), Math.min(stock.getValue(), itemsLeft));
             Optional<Claim> claim = findDestination(id, batch, null, false, minPriority, now);
-            if (claim.isPresent()) {
-                int count = claim.get().maxItems() > 0 ? Math.min(batch.count(), claim.get().maxItems()) : batch.count();
-                if (usePower(id, claim.get().energy() + mode.energyFor(count))) {
-                    int sent = node.send(batch.type(), count, claim.get().router(), TransportMode.SORTED);
-                    expectCapped(claim.get(), new ItemBatch(batch.type(), sent), now);
-                }
+            if (claim.isEmpty()) {
+                continue;
+            }
+            int count = claim.get().maxItems() > 0 ? Math.min(batch.count(), claim.get().maxItems()) : batch.count();
+            if (!usePower(id, claim.get().energy() + extraction.energyFor(count))) {
+                return;
+            }
+            int sent = node.send(batch.type(), count, claim.get().router(), TransportMode.SORTED);
+            expectCapped(claim.get(), new ItemBatch(batch.type(), sent), now);
+            itemsLeft -= sent;
+            if (--stacksLeft == 0 || itemsLeft <= 0) {
                 return;
             }
         }

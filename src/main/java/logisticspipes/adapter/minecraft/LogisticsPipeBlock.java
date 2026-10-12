@@ -71,6 +71,12 @@ public class LogisticsPipeBlock extends Block implements EntityBlock {
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
             InteractionHand hand, BlockHitResult hit) {
+        if (kind != null && stack.getItem() instanceof PipeControllerItem) {
+            if (!level.isClientSide && level.getBlockEntity(pos) instanceof PipeBlockEntity pipe) {
+                player.openMenu(pipe.upgradeMenuProvider());
+            }
+            return ItemInteractionResult.sidedSuccess(level.isClientSide);
+        }
         if (kind == null || !(stack.getItem() instanceof UpgradeItem)) {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }

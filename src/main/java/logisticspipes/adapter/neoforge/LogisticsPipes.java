@@ -1,5 +1,6 @@
 package logisticspipes.adapter.neoforge;
 
+import logisticspipes.domain.logistics.UpgradeKind;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.Locale;
@@ -14,6 +15,7 @@ import logisticspipes.adapter.minecraft.LevelNetworks;
 import logisticspipes.adapter.minecraft.LogisticsPipeBlock;
 import logisticspipes.adapter.minecraft.ModuleItem;
 import logisticspipes.adapter.minecraft.PipeBlockEntity;
+import logisticspipes.adapter.minecraft.PipeControllerItem;
 import logisticspipes.adapter.minecraft.PipeServices;
 import logisticspipes.adapter.minecraft.PowerJunctionBlock;
 import logisticspipes.adapter.minecraft.PowerJunctionBlockEntity;
@@ -25,6 +27,7 @@ import logisticspipes.adapter.minecraft.menu.MenuRequests;
 import logisticspipes.adapter.minecraft.menu.NamesMenu;
 import logisticspipes.adapter.minecraft.menu.PipeConfigMenu;
 import logisticspipes.adapter.minecraft.menu.RequestMenu;
+import logisticspipes.adapter.minecraft.menu.UpgradeMenu;
 import logisticspipes.adapter.neoforge.benchmark.Benchmark;
 import logisticspipes.domain.logistics.ModuleKind;
 import logisticspipes.domain.logistics.PipeKind;
@@ -91,12 +94,16 @@ public class LogisticsPipes {
             () -> new MenuType<>((id, inventory) -> new NamesMenu(LogisticsPipes.NAMES_MENU.get(), id, inventory),
                     FeatureFlags.DEFAULT_FLAGS));
 
+    public static final Supplier<MenuType<UpgradeMenu>> UPGRADE_MENU = MENUS.register("upgrades",
+            () -> new MenuType<>((id, inventory) -> new UpgradeMenu(LogisticsPipes.UPGRADE_MENU.get(), id, inventory),
+                    FeatureFlags.DEFAULT_FLAGS));
+
     public static final Supplier<MenuType<ChassisMenu>> CHASSIS_MENU = MENUS.register("chassis",
             () -> new MenuType<>((id, inventory) -> new ChassisMenu(LogisticsPipes.CHASSIS_MENU.get(), id, inventory),
                     FeatureFlags.DEFAULT_FLAGS));
 
     private static final PipeServices SERVICES = new PipeServices(() -> LogisticsPipes.PIPE_BLOCK_ENTITY.get(),
-            new CapabilityItemStorage(), new LevelNetworks(), REQUEST_MENU, CHASSIS_MENU, CONFIG_MENUS);
+            new CapabilityItemStorage(), new LevelNetworks(), REQUEST_MENU, CHASSIS_MENU, UPGRADE_MENU, CONFIG_MENUS);
 
     public static final DeferredBlock<LogisticsPipeBlock> TRANSPORT_PIPE = pipe("transport_pipe", null, 0);
     public static final Map<PipeKind, DeferredBlock<LogisticsPipeBlock>> LOGISTICS_PIPES = new EnumMap<>(PipeKind.class);
@@ -131,14 +138,17 @@ public class LogisticsPipes {
         }
     }
 
-    public static final Map<UpgradeItem.Kind, DeferredItem<UpgradeItem>> UPGRADES = new EnumMap<>(UpgradeItem.Kind.class);
+    public static final Map<UpgradeKind, DeferredItem<UpgradeItem>> UPGRADES = new EnumMap<>(UpgradeKind.class);
 
     static {
-        for (UpgradeItem.Kind kind : UpgradeItem.Kind.values()) {
+        for (UpgradeKind kind : UpgradeKind.values()) {
             UPGRADES.put(kind, ITEMS.register("upgrade_" + kind.name().toLowerCase(Locale.ROOT),
                     () -> new UpgradeItem(new Item.Properties(), kind)));
         }
     }
+
+    public static final DeferredItem<PipeControllerItem> PIPE_CONTROLLER = ITEMS.register("pipe_controller",
+            () -> new PipeControllerItem(new Item.Properties()));
 
     public static final DeferredItem<RemoteOrdererItem> REMOTE_ORDERER = ITEMS.register("remote_orderer",
             () -> new RemoteOrdererItem(new Item.Properties()));

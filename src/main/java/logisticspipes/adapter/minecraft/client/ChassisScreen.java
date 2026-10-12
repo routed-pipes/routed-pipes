@@ -20,6 +20,8 @@ public class ChassisScreen extends AbstractContainerScreen<ChassisMenu> {
 
     public ChassisScreen(ChassisMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
+        imageHeight = ChassisMenu.INVENTORY_TOP + 82;
+        inventoryLabelY = imageHeight - 94;
     }
 
     @Override

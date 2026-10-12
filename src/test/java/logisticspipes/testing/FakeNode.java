@@ -50,7 +50,10 @@ public final class FakeNode implements RouterNode {
     public SinkRule sink = new ItemSink(Set.of(), true);
     public int satelliteId;
     public TransportMode lastMode;
-    public int extractionBoost = 1;
+    // upgrades of the extractors
+    public int actionSpeed;
+    public int itemExtraction;
+    public int stackExtraction;
     // how often the network looked into the inventories of this pipe
     public int probes;
     // energy in junctions next to this pipe, plenty unless a test says otherwise
@@ -154,12 +157,8 @@ public final class FakeNode implements RouterNode {
 
     @Override
     public List<Extraction> extractions() {
-        return extractions.stream().map(mode -> new Extraction(mode, extractionList, extractionExcludes)).toList();
-    }
-
-    @Override
-    public int extractionBoost() {
-        return extractionBoost;
+        return extractions.stream().map(mode -> new Extraction(mode, extractionList, extractionExcludes)
+                .with(actionSpeed, itemExtraction, stackExtraction)).toList();
     }
 
     @Override

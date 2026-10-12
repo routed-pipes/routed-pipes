@@ -1,5 +1,6 @@
 package logisticspipes.adapter.neoforge.benchmark;
 
+import logisticspipes.domain.logistics.UpgradeKind;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -35,7 +36,6 @@ import net.minecraft.world.phys.AABB;
 // crafting tables, request pipes that are sent orders, and supplier pipes whose chests keep being emptied
 public final class BenchmarkBase {
 
-    private static final int EXTRACTOR_SPEED_UPGRADES = 2;
     private static final int WORKSHOP_STATIONS = 8;
 
     // what the workshop can be asked for, how many at a time
@@ -168,10 +168,7 @@ public final class BenchmarkBase {
         for (int input = 1; input <= inputs; input++) {
             transport(at(-2 * input + 1, 0, 0));
             PipeBlockEntity extractor = chassis(at(-2 * input, 0, 0), new ItemStack(LogisticsPipes.MODULES.get(ModuleKind.EXTRACTOR).get()));
-            ItemStack upgrades = new ItemStack(LogisticsPipes.UPGRADES.get(UpgradeItem.Kind.SPEED).get(), EXTRACTOR_SPEED_UPGRADES);
-            for (int upgrade = 0; upgrade < EXTRACTOR_SPEED_UPGRADES; upgrade++) {
-                extractor.installUpgrade(upgrades);
-            }
+            extractor.moduleUpgrades().setItem(0, new ItemStack(LogisticsPipes.UPGRADES.get(UpgradeKind.ITEM_STACK_EXTRACTION).get()));
             inputChests.add(chestAbove(at(-2 * input, 0, 0)));
         }
         // the trunk, a routed pipe wherever a row branches off

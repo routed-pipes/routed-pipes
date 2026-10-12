@@ -1,5 +1,6 @@
 package logisticspipes.adapter.minecraft;
 
+import logisticspipes.domain.logistics.UpgradeKind;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.EnumSet;
@@ -12,6 +13,7 @@ import java.util.UUID;
 
 import logisticspipes.adapter.minecraft.menu.ChassisMenu;
 import logisticspipes.adapter.minecraft.menu.PipeConfigMenu;
+import logisticspipes.adapter.minecraft.menu.UpgradeMenu;
 import logisticspipes.adapter.minecraft.menu.RequestMenu;
 import logisticspipes.application.LogisticsNetwork;
 import logisticspipes.application.RequestOutcome;
@@ -58,6 +60,7 @@ import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.ChestBlock;
@@ -75,7 +78,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     public static final int SATELLITE_ROW = 6;
     // the largest chassis has this many
     public static final int MODULE_SLOTS = 8;
-    public static final int UPGRADE_SLOTS = 4;
+    public static final int UPGRADE_SLOTS = 9;
+    public static final int UPGRADE_STACK = 16;
+    public static final int UPGRADES_PER_MODULE = 2;
     // capabilities of a neighbour can change without its block changing, so nothing about it is trusted for longer
     private static final int SURROUNDINGS_MAX_AGE = 40;
     // every speed upgrade makes the pipe send items on this much faster, in percent
@@ -85,6 +90,8 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     private final SimpleContainer config = new SimpleContainer(CONFIG_SLOTS);
     private final SimpleContainer modules = new SimpleContainer(MODULE_SLOTS);
     private final SimpleContainer upgrades = new SimpleContainer(UPGRADE_SLOTS);
+    // two slots for every module slot of a chassis, in the order of the modules
+    private final SimpleContainer moduleUpgrades = new SimpleContainer(MODULE_SLOTS * UPGRADES_PER_MODULE);
     private final OutputOrders outputOrders = new OutputOrders();
     private final ContainerData data = new ContainerData() {
         @Override
@@ -152,6 +159,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             neighbourChanged();
             setChanged();
         });
+        moduleUpgrades.addListener(container -> settingsChanged());
     }
 
     // filters, modules or the default route changed: forget what was derived from them and tell the network
@@ -211,18 +219,37 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         return modules;
     }
 
-    // puts one upgrade from the stack into the pipe, false when there is no room
+    public Container moduleUpgrades() {
+        return moduleUpgrades;
+    }
+
+    // puts one upgrade from the stack into the pipe, false when it does not fit this pipe or there is no room
     public boolean installUpgrade(ItemStack stack) {
-        if (!pipe().routed() || !(stack.getItem() instanceof UpgradeItem)) {
+        if (!pipe().routed() || !(stack.getItem() instanceof UpgradeItem upgrade) || !upgrade.kind().fitsPipe(kind())) {
             return false;
         }
         for (int slot = 0; slot < UPGRADE_SLOTS; slot++) {
-            if (upgrades.getItem(slot).isEmpty()) {
+            ItemStack present = upgrades.getItem(slot);
+            if (present.isEmpty()) {
                 upgrades.setItem(slot, stack.split(1));
+                return true;
+            }
+            if (ItemStack.isSameItemSameComponents(present, stack) && present.getCount() < UPGRADE_STACK) {
+                stack.shrink(1);
+                present.grow(1);
+                upgrades.setChanged();
                 return true;
             }
         }
         return false;
+    }
+
+    MenuProvider upgradeMenuProvider() {
+        ContainerData pipeKind = new SimpleContainerData(1);
+        pipeKind.set(0, kind().ordinal());
+        return new SimpleMenuProvider((id, inventory, player) -> new UpgradeMenu(pipe().services().upgradeMenu().get(), id,
+                inventory, upgrades, pipeKind, user -> Container.stillValidBlockEntity(this, user)),
+                Component.translatable("logisticspipes.gui.upgrades"));
     }
 
     // takes all upgrades out again
@@ -230,14 +257,23 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         return upgrades.removeAllItems();
     }
 
-    private int upgradeCount(UpgradeItem.Kind kind) {
+    private static int count(Container container, int from, int to, UpgradeKind kind) {
         int count = 0;
-        for (int slot = 0; slot < UPGRADE_SLOTS; slot++) {
-            if (upgrades.getItem(slot).getItem() instanceof UpgradeItem upgrade && upgrade.kind() == kind) {
-                count++;
+        for (int slot = from; slot < to; slot++) {
+            if (container.getItem(slot).getItem() instanceof UpgradeItem upgrade && upgrade.kind() == kind) {
+                count += container.getItem(slot).getCount();
             }
         }
-        return count;
+        return Math.min(count, kind.most());
+    }
+
+    private int upgradeCount(UpgradeKind kind) {
+        return count(upgrades, 0, UPGRADE_SLOTS, kind);
+    }
+
+    // upgrades in the two slots of a module
+    private int moduleUpgradeCount(int moduleSlot, UpgradeKind kind) {
+        return count(moduleUpgrades, moduleSlot * UPGRADES_PER_MODULE, (moduleSlot + 1) * UPGRADES_PER_MODULE, kind);
     }
 
     // how fast this pipe sends items on, in percent of their normal speed, plain pipes do not change it
@@ -245,14 +281,14 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         if (!pipe().routed()) {
             return null;
         }
-        return 100 + SPEED_UPGRADE_PERCENT * upgradeCount(UpgradeItem.Kind.SPEED);
+        return 100 + SPEED_UPGRADE_PERCENT * upgradeCount(UpgradeKind.SPEED);
     }
 
     // the face of an inventory this pipe uses when the inventory is on the given side of the pipe
     private Direction accessFace(Direction side) {
         for (int slot = 0; slot < UPGRADE_SLOTS; slot++) {
             ItemStack stack = upgrades.getItem(slot);
-            if (stack.getItem() instanceof UpgradeItem upgrade && upgrade.kind() == UpgradeItem.Kind.SNEAKY) {
+            if (stack.getItem() instanceof UpgradeItem upgrade && upgrade.kind() == UpgradeKind.SNEAKY) {
                 return UpgradeItem.sideOf(stack);
             }
         }
@@ -418,7 +454,11 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             ContainerData chassis = new ContainerData() {
                 @Override
                 public int get(int index) {
-                    return index == ChassisMenu.DATA_SLOTS ? pipe().moduleSlots() : pointed().map(Direction::get3DDataValue).orElse(-1);
+                    return switch (index) {
+                        case ChassisMenu.DATA_SLOTS -> pipe().moduleSlots();
+                        case ChassisMenu.DATA_MODULE_UPGRADES -> upgradeCount(UpgradeKind.MODULE_UPGRADE);
+                        default -> pointed().map(Direction::get3DDataValue).orElse(-1);
+                    };
                 }
 
                 @Override
@@ -431,7 +471,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
                 }
             };
             return new SimpleMenuProvider((id, inventory, player) -> new ChassisMenu(services.chassisMenu().get(), id,
-                    inventory, modules, chassis, user -> Container.stillValidBlockEntity(this, user), this::pointAtNext,
+                    inventory, modules, moduleUpgrades, chassis, user -> Container.stillValidBlockEntity(this, user), this::pointAtNext,
                     this::openModuleSettings), title);
         }
         return new SimpleMenuProvider((id, inventory, player) -> new PipeConfigMenu(services.configMenu(kind()), id,
@@ -741,15 +781,16 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     @Override
     public List<Extraction> extractions() {
         if (extractionsCache == null) {
-            extractionsCache = pluggedModules().stream().flatMap(stack -> ModuleItem.extractionOf(stack).stream()).distinct().toList();
+            List<Extraction> extractions = new ArrayList<>();
+            for (int slot = 0; slot < pipe().moduleSlots(); slot++) {
+                int module = slot;
+                ModuleItem.extractionOf(modules.getItem(slot)).ifPresent(extraction -> extractions.add(extraction.with(
+                        moduleUpgradeCount(module, UpgradeKind.ACTION_SPEED), moduleUpgradeCount(module, UpgradeKind.ITEM_EXTRACTION),
+                        moduleUpgradeCount(module, UpgradeKind.ITEM_STACK_EXTRACTION))));
+            }
+            extractionsCache = extractions.stream().distinct().toList();
         }
         return extractionsCache;
-    }
-
-    // every speed upgrade doubles what an extractor moves
-    @Override
-    public int extractionBoost() {
-        return 1 << upgradeCount(UpgradeItem.Kind.SPEED);
     }
 
     @Override
@@ -818,6 +859,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     void dropContents() {
         Containers.dropContents(level, worldPosition, modules);
         Containers.dropContents(level, worldPosition, upgrades);
+        Containers.dropContents(level, worldPosition, moduleUpgrades);
         for (TravellingItem item : transport.clear()) {
             Block.popResource(level, worldPosition, McItemType.stackOf(item.batch()));
         }
@@ -860,6 +902,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         tag.put("Config", ContainerTags.save(config, registries));
         tag.put("Modules", ContainerTags.save(modules, registries));
         tag.put("Upgrades", ContainerTags.save(upgrades, registries));
+        tag.put("ModuleUpgrades", ContainerTags.save(moduleUpgrades, registries));
         ListTag orders = new ListTag();
         for (OutputOrder order : outputOrders.all()) {
             CompoundTag entry = new CompoundTag();
@@ -903,6 +946,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         }
         if (tag.contains("Modules")) {
             ContainerTags.load(modules, tag.getCompound("Modules"), registries);
+        }
+        if (tag.contains("ModuleUpgrades")) {
+            ContainerTags.load(moduleUpgrades, tag.getCompound("ModuleUpgrades"), registries);
         }
         if (tag.contains("Upgrades")) {
             ContainerTags.load(upgrades, tag.getCompound("Upgrades"), registries);

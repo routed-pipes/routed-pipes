@@ -5,6 +5,7 @@ import java.util.function.Predicate;
 
 import logisticspipes.adapter.minecraft.ModuleItem;
 import logisticspipes.adapter.minecraft.PipeBlockEntity;
+import logisticspipes.adapter.minecraft.UpgradeItem;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -45,7 +46,38 @@ public class ChassisMenu extends AbstractContainerMenu {
     public static final int BUTTON_SETTINGS = 10;
     public static final int DATA_SLOTS = 0;
     public static final int DATA_POINTED = 1;
-    public static final int DATA_COUNT = 2;
+    // not 0 while the chassis has the upgrade that gives modules their own upgrade slots
+    public static final int DATA_MODULE_UPGRADES = 2;
+    public static final int DATA_COUNT = 3;
+    public static final int INVENTORY_TOP = 124;
+    private static final int UPGRADE_SLOTS = PipeBlockEntity.MODULE_SLOTS * PipeBlockEntity.UPGRADES_PER_MODULE;
+
+    private final class ModuleUpgradeSlot extends Slot {
+        private ModuleUpgradeSlot(Container container, int slot, int x, int y) {
+            super(container, slot, x, y);
+        }
+
+        private ItemStack module() {
+            return slots.get(getContainerSlot() / PipeBlockEntity.UPGRADES_PER_MODULE).getItem();
+        }
+
+        @Override
+        public boolean mayPlace(ItemStack stack) {
+            return isActive() && stack.getItem() instanceof UpgradeItem upgrade && module().getItem() instanceof ModuleItem module
+                    && upgrade.kind().fitsModule(module.kind());
+        }
+
+        @Override
+        public int getMaxStackSize() {
+            return PipeBlockEntity.UPGRADE_STACK;
+        }
+
+        @Override
+        public boolean isActive() {
+            return slotCount.get(DATA_MODULE_UPGRADES) != 0
+                    && getContainerSlot() / PipeBlockEntity.UPGRADES_PER_MODULE < slotCount.get(DATA_SLOTS);
+        }
+    }
 
     private final ContainerData slotCount;
     private final Predicate<Player> usable;
@@ -54,11 +86,13 @@ public class ChassisMenu extends AbstractContainerMenu {
 
     // client side
     public ChassisMenu(MenuType<?> type, int id, Inventory inventory) {
-        this(type, id, inventory, new SimpleContainer(PipeBlockEntity.MODULE_SLOTS), new SimpleContainerData(DATA_COUNT), player -> true, () -> { },
+        this(type, id, inventory, new SimpleContainer(PipeBlockEntity.MODULE_SLOTS), new SimpleContainer(UPGRADE_SLOTS),
+                new SimpleContainerData(DATA_COUNT), player -> true, () -> { },
                 (player, slot) -> { });
     }
 
-    public ChassisMenu(MenuType<?> type, int id, Inventory inventory, Container modules, ContainerData slotCount,
+    public ChassisMenu(MenuType<?> type, int id, Inventory inventory, Container modules, Container moduleUpgrades,
+            ContainerData slotCount,
             Predicate<Player> usable, Runnable turn, BiConsumer<Player, Integer> openSettings) {
         super(type, id);
         this.turn = turn;
@@ -68,13 +102,17 @@ public class ChassisMenu extends AbstractContainerMenu {
         for (int slot = 0; slot < PipeBlockEntity.MODULE_SLOTS; slot++) {
             addSlot(new ModuleSlot(modules, slot, 17 + slot * 18, 35));
         }
+        for (int slot = 0; slot < UPGRADE_SLOTS; slot++) {
+            int module = slot / PipeBlockEntity.UPGRADES_PER_MODULE;
+            addSlot(new ModuleUpgradeSlot(moduleUpgrades, slot, 17 + module * 18, 70 + slot % PipeBlockEntity.UPGRADES_PER_MODULE * 18));
+        }
         for (int row = 0; row < 3; row++) {
             for (int column = 0; column < 9; column++) {
-                addSlot(new Slot(inventory, 9 + row * 9 + column, 8 + column * 18, 84 + row * 18));
+                addSlot(new Slot(inventory, 9 + row * 9 + column, 8 + column * 18, INVENTORY_TOP + row * 18));
             }
         }
         for (int column = 0; column < 9; column++) {
-            addSlot(new Slot(inventory, column, 8 + column * 18, 142));
+            addSlot(new Slot(inventory, column, 8 + column * 18, INVENTORY_TOP + 58));
         }
         addDataSlots(slotCount);
     }
@@ -87,8 +125,9 @@ public class ChassisMenu extends AbstractContainerMenu {
         }
         ItemStack stack = slot.getItem();
         ItemStack original = stack.copy();
-        boolean moved = index < PipeBlockEntity.MODULE_SLOTS
-                ? moveItemStackTo(stack, PipeBlockEntity.MODULE_SLOTS, slots.size(), true)
+        int own = PipeBlockEntity.MODULE_SLOTS + UPGRADE_SLOTS;
+        boolean moved = index < own
+                ? moveItemStackTo(stack, own, slots.size(), true)
                 : moveItemStackTo(stack, 0, slotCount.get(DATA_SLOTS), false);
         if (!moved) {
             return ItemStack.EMPTY;

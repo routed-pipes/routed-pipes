@@ -193,7 +193,8 @@ def main():
             **{f"plate_{side}": part_model(f"plate_{side}", {"icon": icon}) for side in SIDES}},
             "textures": {"particle": "logisticspipes:block/pipe_frame"}})
         write(ASSETS + f"blockstates/{name}.json", blockstate(name, shared))
-    for module in MODULES + ["remote_orderer", "upgrade_sneaky", "upgrade_speed"]:
+    upgrades = ["sneaky", "speed", "module_upgrade", "action_speed", "item_extraction", "item_stack_extraction"]
+    for module in MODULES + ["remote_orderer", "pipe_controller"] + ["upgrade_" + upgrade for upgrade in upgrades]:
         write(ASSETS + f"models/item/{module}.json",
               {"parent": "minecraft:item/generated", "textures": {"layer0": f"logisticspipes:item/{module}"}})
     cubes = ["logistics_crafting_table", "power_junction"]

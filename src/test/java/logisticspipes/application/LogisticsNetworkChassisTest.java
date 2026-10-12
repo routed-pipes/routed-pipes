@@ -337,16 +337,46 @@ class LogisticsNetworkChassisTest {
     }
 
     @Test
-    void speedUpgradesMultiplyWhatAnExtractorMoves() {
+    void itemExtractionUpgradesAddToWhatAnExtractorMoves() {
         connect();
         chassis.extractions.add(ExtractionMode.EXTRACTOR);
-        chassis.extractionBoost = 4;
+        chassis.itemExtraction = 3;
         chassis.stock("stone", 200);
         store.inventories.add(Side.UP);
 
         network.tick(CHASSIS, NOW);
 
         assertThat(chassis.shipments).containsExactly(new Shipment(batch("stone", 64), STORE));
+    }
+
+    @Test
+    void stackExtractionUpgradesMoveMoreKindsOfItemsAtATime() {
+        connect();
+        chassis.extractions.add(ExtractionMode.EXTRACTOR);
+        chassis.stackExtraction = 1;
+        chassis.stock("stone", 64);
+        chassis.stock("coal", 64);
+        chassis.stock("iron", 64);
+        store.inventories.add(Side.UP);
+
+        network.tick(CHASSIS, NOW);
+
+        assertThat(chassis.shipments).containsExactly(new Shipment(batch("stone", 64), STORE), new Shipment(batch("coal", 16), STORE));
+    }
+
+    @Test
+    void actionSpeedUpgradesMakeAnExtractorWorkMoreOften() {
+        connect();
+        chassis.extractions.add(ExtractionMode.EXTRACTOR);
+        chassis.actionSpeed = 2;
+        chassis.stock("stone", 200);
+        store.inventories.add(Side.UP);
+
+        for (long tick = NOW; tick < NOW + 20; tick++) {
+            network.tick(CHASSIS, tick);
+        }
+
+        assertThat(chassis.shipments).hasSize(4);
     }
 
     @Test

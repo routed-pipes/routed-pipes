@@ -93,11 +93,6 @@ public interface RouterNode {
         return List.of();
     }
 
-    // multiplies what an extraction round moves, from upgrades
-    default int extractionBoost() {
-        return 1;
-    }
-
     // how the pipe takes items nobody asked for, empty if it does not
     // the network keeps an index of these, so it has to be told when they change, see LogisticsNetwork.sinksChanged
     default List<SinkRule> sinkRules() {

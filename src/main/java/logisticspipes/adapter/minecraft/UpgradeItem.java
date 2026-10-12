@@ -2,6 +2,7 @@ package logisticspipes.adapter.minecraft;
 
 import java.util.List;
 
+import logisticspipes.domain.logistics.UpgradeKind;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
@@ -15,26 +16,19 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 
-// goes into a routed pipe by using it on the pipe, sneak and use the pipe with an empty hand to get it back
+// goes into a routed pipe by using it on the pipe or through the pipe controller
 public class UpgradeItem extends Item {
-
-    public enum Kind {
-        // the pipe reaches into inventories through another face than the one it touches
-        SNEAKY,
-        // items leaving the pipe travel faster until the next routed pipe
-        SPEED
-    }
 
     private static final String SIDE_TAG = "LogisticsPipesSide";
 
-    private final Kind kind;
+    private final UpgradeKind kind;
 
-    public UpgradeItem(Properties properties, Kind kind) {
+    public UpgradeItem(Properties properties, UpgradeKind kind) {
         super(properties);
         this.kind = kind;
     }
 
-    public Kind kind() {
+    public UpgradeKind kind() {
         return kind;
     }
 
@@ -53,7 +47,7 @@ public class UpgradeItem extends Item {
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack upgrade = player.getItemInHand(hand);
-        if (kind != Kind.SNEAKY) {
+        if (kind != UpgradeKind.SNEAKY) {
             return InteractionResultHolder.pass(upgrade);
         }
         if (!level.isClientSide) {
@@ -71,7 +65,7 @@ public class UpgradeItem extends Item {
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         tooltip.add(Component.translatable(getDescriptionId() + ".description").withStyle(ChatFormatting.GRAY));
-        if (kind == Kind.SNEAKY) {
+        if (kind == UpgradeKind.SNEAKY) {
             tooltip.add(sideText(sideOf(stack)).copy().withStyle(ChatFormatting.DARK_GRAY));
         }
     }
