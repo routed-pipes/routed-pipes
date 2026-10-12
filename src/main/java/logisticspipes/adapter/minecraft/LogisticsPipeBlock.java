@@ -151,7 +151,11 @@ public class LogisticsPipeBlock extends Block implements EntityBlock {
         if (level.getBlockState(neighbour).getBlock() instanceof LogisticsPipeBlock) {
             return true;
         }
-        return routed() && services.storage().exists(level, neighbour, direction.getOpposite());
+        if (!routed()) {
+            return false;
+        }
+        return level.getBlockState(neighbour).getBlock() instanceof PowerJunctionBlock
+                || services.storage().exists(level, neighbour, direction.getOpposite());
     }
 
     @Override

@@ -11,7 +11,6 @@ import logisticspipes.domain.crafting.OutputOrder;
 import logisticspipes.domain.crafting.Recipe;
 import logisticspipes.domain.item.ItemType;
 import logisticspipes.domain.logistics.PipeKind;
-import logisticspipes.domain.request.RequestPlan;
 import logisticspipes.domain.routing.Link;
 import logisticspipes.domain.routing.RouterId;
 import logisticspipes.domain.routing.Side;
@@ -93,9 +92,9 @@ class LogisticsNetworkRequestTest {
         connect();
         provider.stock("log", 20);
 
-        RequestPlan plan = network.request(REQUEST, batch("log", 8), 0);
+        RequestOutcome plan = network.request(REQUEST, batch("log", 8), 0);
 
-        assertThat(plan.complete()).isTrue();
+        assertThat(plan.started()).isTrue();
         assertThat(provider.shipments).containsExactly(new Shipment(batch("log", 8), REQUEST));
         assertThat(provider.contents).containsEntry(item("log"), 12);
     }
@@ -105,7 +104,7 @@ class LogisticsNetworkRequestTest {
         connect();
         provider.stock("log", 5);
 
-        RequestPlan plan = network.request(REQUEST, batch("log", 8), 0);
+        RequestOutcome plan = network.request(REQUEST, batch("log", 8), 0);
 
         assertThat(plan.missing()).containsOnly(Map.entry(item("log"), 3));
         assertThat(provider.shipments).isEmpty();
@@ -117,9 +116,9 @@ class LogisticsNetworkRequestTest {
         provider.stock("log", 20);
         crafting.recipe = new Recipe(List.of(batch("log", 1)), batch("planks", 4));
 
-        RequestPlan plan = network.request(REQUEST, batch("planks", 8), 0);
+        RequestOutcome plan = network.request(REQUEST, batch("planks", 8), 0);
 
-        assertThat(plan.complete()).isTrue();
+        assertThat(plan.started()).isTrue();
         assertThat(provider.shipments).containsExactly(new Shipment(batch("log", 2), CRAFTING));
         assertThat(crafting.outputOrders.all()).containsExactly(new OutputOrder(REQUEST, batch("planks", 8)));
     }
@@ -166,7 +165,7 @@ class LogisticsNetworkRequestTest {
         crafting.satelliteId = 7;
 
         assertThat(network.available(REQUEST)).containsOnlyKeys(item("ore"));
-        assertThat(network.request(REQUEST, batch("ingot", 3), 0).complete()).isFalse();
+        assertThat(network.request(REQUEST, batch("ingot", 3), 0).started()).isFalse();
     }
 
     @Test
@@ -269,5 +268,136 @@ class LogisticsNetworkRequestTest {
         network.tick(SUPPLIER, 0);
 
         assertThat(provider.shipments).isEmpty();
+    }
+
+    private void noPower() {
+        for (FakeNode node : List.of(request, provider, crafting, satellite, supplier)) {
+            node.power = 0;
+        }
+    }
+
+    @Test
+    void requestPaysForEveryItemItMoves() {
+        connect();
+        noPower();
+        crafting.power = 500;
+        provider.stock("log", 20);
+
+        assertThat(network.request(REQUEST, batch("log", 8), 0).started()).isTrue();
+
+        assertThat(crafting.power).isEqualTo(500 - 8 * LogisticsNetwork.ENERGY_PER_ITEM);
+    }
+
+    @Test
+    void requestWithoutEnoughPowerMovesNothingAndTakesNoEnergy() {
+        connect();
+        noPower();
+        provider.power = 8 * LogisticsNetwork.ENERGY_PER_ITEM - 1;
+        provider.stock("log", 20);
+
+        RequestOutcome outcome = network.request(REQUEST, batch("log", 8), 0);
+
+        assertThat(outcome.started()).isFalse();
+        assertThat(outcome.powered()).isFalse();
+        assertThat(outcome.missing()).isEmpty();
+        assertThat(provider.shipments).isEmpty();
+        assertThat(provider.power).isEqualTo(8 * LogisticsNetwork.ENERGY_PER_ITEM - 1);
+    }
+
+    @Test
+    void powerIsPooledAcrossTheJunctionsOfTheNetwork() {
+        connect();
+        noPower();
+        request.power = 30;
+        supplier.power = 50;
+        provider.stock("log", 20);
+
+        assertThat(network.request(REQUEST, batch("log", 8), 0).started()).isTrue();
+
+        assertThat(request.power + supplier.power).isZero();
+    }
+
+    @Test
+    void junctionsOfUnreachableRoutersDoNotHelp() {
+        connect();
+        noPower();
+        FakeNode island = new FakeNode(PipeKind.BASIC);
+        network.addRouter(ISLAND, island, 0);
+        provider.stock("log", 20);
+
+        assertThat(network.request(REQUEST, batch("log", 8), 0).started()).isFalse();
+        assertThat(island.power).isEqualTo(1_000_000);
+    }
+
+    @Test
+    void missingItemsAreReportedEvenWithoutPower() {
+        connect();
+        noPower();
+
+        RequestOutcome outcome = network.request(REQUEST, batch("log", 8), 0);
+
+        assertThat(outcome.powered()).isTrue();
+        assertThat(outcome.missing()).containsOnlyKeys(item("log"));
+    }
+
+    @Test
+    void craftingPipePaysOnlyForOutputThatIsReady() {
+        connect();
+        provider.stock("log", 20);
+        crafting.recipe = new Recipe(List.of(batch("log", 1)), batch("planks", 4));
+        network.request(REQUEST, batch("planks", 8), 0);
+        noPower();
+        crafting.power = 100;
+
+        network.tick(CRAFTING, 20);
+        assertThat(crafting.power).isEqualTo(100);
+
+        crafting.stock("planks", 3);
+        network.tick(CRAFTING, 40);
+        assertThat(crafting.shipments).containsExactly(new Shipment(batch("planks", 3), REQUEST));
+        assertThat(crafting.power).isEqualTo(100 - 3 * LogisticsNetwork.ENERGY_PER_ITEM);
+    }
+
+    @Test
+    void craftingPipeKeepsOutputWhenThereIsNoPower() {
+        connect();
+        provider.stock("log", 20);
+        crafting.recipe = new Recipe(List.of(batch("log", 1)), batch("planks", 4));
+        network.request(REQUEST, batch("planks", 8), 0);
+        noPower();
+        crafting.stock("planks", 8);
+
+        network.tick(CRAFTING, 40);
+
+        assertThat(crafting.shipments).isEmpty();
+        assertThat(crafting.outputOrders.all()).hasSize(1);
+    }
+
+    @Test
+    void supplierWaitsForPower() {
+        connect();
+        noPower();
+        provider.stock("coal", 64);
+        supplier.supplyTargets.put(item("coal"), 16);
+
+        network.tick(SUPPLIER, 0);
+        assertThat(provider.shipments).isEmpty();
+
+        request.power = 1000;
+        network.tick(SUPPLIER, 20);
+        assertThat(provider.shipments).containsExactly(new Shipment(batch("coal", 16), SUPPLIER));
+    }
+
+    @Test
+    void passingItemsAlongCostsNothing() {
+        connect();
+        noPower();
+        FakeNode sink = new FakeNode(PipeKind.BASIC);
+        sink.power = 0;
+        sink.inventories.add(Side.UP);
+        network.addRouter(ISLAND, sink, 0);
+        network.updateLinks(REQUEST, List.of(new Link(PROVIDER, Side.EAST, 1), new Link(ISLAND, Side.WEST, 1)), 0);
+
+        assertThat(network.chooseExit(REQUEST, new TravellingItem(batch("log", 8), Side.DOWN, null), NOW)).contains(Side.WEST);
     }
 }

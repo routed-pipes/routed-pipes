@@ -36,6 +36,11 @@ public interface RouterNode {
         return kind() == PipeKind.PROVIDER;
     }
 
+    // takes energy from power junctions next to the pipe, returns how much it got
+    default int drawPower(int amount, boolean simulate) {
+        return 0;
+    }
+
     // the ways the pipe pushes the contents of its inventory to other pipes
     default List<ExtractionMode> extractions() {
         return List.of();

@@ -41,6 +41,8 @@ public final class LogisticsNetwork {
     static final long CRAFT_TIMEOUT = 24000;
     // how long after a change to the network no new destinations are handed out
     static final long SETTLE_TICKS = 10;
+    // moving an item on purpose costs energy, sorting what passes by is free
+    public static final int ENERGY_PER_ITEM = 10;
 
     private final RoutingNetwork routing = new RoutingNetwork();
     private final Map<RouterId, RouterNode> nodes = new HashMap<>();
@@ -146,13 +148,42 @@ public final class LogisticsNetwork {
         return available;
     }
 
-    // plans the request and, if nothing is missing, starts it right away
-    public RequestPlan request(RouterId requester, ItemBatch wanted, long now) {
+    // plans the request and starts it right away if nothing is missing and there is power to move the items
+    public RequestOutcome request(RouterId requester, ItemBatch wanted, long now) {
         RequestPlan plan = new RequestPlanner(stockFor(requester), craftersFor(requester)).plan(requester, wanted);
-        if (plan.complete()) {
-            execute(plan, now);
+        if (!plan.complete()) {
+            return new RequestOutcome(plan, true);
         }
-        return plan;
+        int items = plan.provisions().stream().mapToInt(provision -> provision.batch().count()).sum();
+        if (!usePower(requester, items * ENERGY_PER_ITEM)) {
+            return new RequestOutcome(plan, false);
+        }
+        execute(plan, now);
+        return new RequestOutcome(plan, true);
+    }
+
+    // takes energy from the junctions of the network the router is in, all of it or nothing
+    private boolean usePower(RouterId at, int amount) {
+        List<RouterNode> sources = new ArrayList<>();
+        if (nodes.containsKey(at)) {
+            sources.add(nodes.get(at));
+        }
+        reachableFrom(at).forEach(id -> sources.add(nodes.get(id)));
+        int available = 0;
+        for (RouterNode source : sources) {
+            available += source.drawPower(amount - available, true);
+            if (available >= amount) {
+                break;
+            }
+        }
+        if (available < amount) {
+            return false;
+        }
+        int left = amount;
+        for (RouterNode source : sources) {
+            left -= source.drawPower(left, false);
+        }
+        return true;
     }
 
     private void execute(RequestPlan plan, long now) {
@@ -182,7 +213,14 @@ public final class LogisticsNetwork {
             return;
         }
         if (node.kind() == PipeKind.CRAFTING) {
-            node.outputOrders().ship(order -> node.send(order.batch().type(), order.batch().count(), order.destination()));
+            node.outputOrders().ship(order -> {
+                // only pay for what is really there to send
+                int ready = Math.min(order.batch().count(), node.contents().getOrDefault(order.batch().type(), 0));
+                if (ready == 0 || !usePower(id, ready * ENERGY_PER_ITEM)) {
+                    return 0;
+                }
+                return node.send(order.batch().type(), ready, order.destination());
+            });
         } else if (node.kind() == PipeKind.SUPPLIER) {
             Map<ItemType, Integer> contents = node.contents();
             node.supplyTargets().forEach((type, wanted) -> {
@@ -204,7 +242,9 @@ public final class LogisticsNetwork {
             ItemBatch batch = new ItemBatch(stock.getKey(), Math.min(stock.getValue(), mode.amount()));
             Optional<RouterId> destination = findDestination(id, batch, null, false, minPriority);
             if (destination.isPresent()) {
-                node.send(batch.type(), batch.count(), destination.get());
+                if (usePower(id, batch.count() * ENERGY_PER_ITEM)) {
+                    node.send(batch.type(), batch.count(), destination.get());
+                }
                 return;
             }
         }
@@ -212,12 +252,12 @@ public final class LogisticsNetwork {
 
     // like request, but settles for whatever part of the amount is in stock
     private void requestUpTo(RouterId requester, ItemType type, int count, long now) {
-        RequestPlan plan = request(requester, new ItemBatch(type, count), now);
-        if (plan.complete()) {
+        RequestOutcome outcome = request(requester, new ItemBatch(type, count), now);
+        if (outcome.plan().complete()) {
             return;
         }
-        int obtainable = count - plan.missing().getOrDefault(type, count);
-        if (obtainable > 0 && plan.missing().size() == 1) {
+        int obtainable = count - outcome.missing().getOrDefault(type, count);
+        if (obtainable > 0 && outcome.missing().size() == 1) {
             request(requester, new ItemBatch(type, obtainable), now);
         }
     }

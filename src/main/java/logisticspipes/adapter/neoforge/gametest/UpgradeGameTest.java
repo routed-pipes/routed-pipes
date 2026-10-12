@@ -62,6 +62,7 @@ public class UpgradeGameTest {
 
     @GameTest(template = EMPTY)
     public static void withoutSneakyUpgradeThePipeUsesTheFaceItTouches(GameTestHelper helper) {
+        GameTestPower.supply(helper);
         PipeBlockEntity provider = providerBesideFurnace(helper);
 
         helper.runAfterDelay(3, () -> {
@@ -72,6 +73,7 @@ public class UpgradeGameTest {
 
     @GameTest(template = EMPTY)
     public static void sneakyUpgradeReachesThroughAnotherFace(GameTestHelper helper) {
+        GameTestPower.supply(helper);
         PipeBlockEntity provider = providerBesideFurnace(helper);
         ItemStack sneaky = upgrade(UpgradeItem.Kind.SNEAKY, 1);
         UpgradeItem.setSide(sneaky, Direction.DOWN);
@@ -86,6 +88,7 @@ public class UpgradeGameTest {
 
     @GameTest(template = EMPTY)
     public static void sneakyUpgradeTurnsWhenUsedInTheHand(GameTestHelper helper) {
+        GameTestPower.supply(helper);
         ServerPlayer player = helper.makeMockServerPlayerInLevel();
         ItemStack sneaky = upgrade(UpgradeItem.Kind.SNEAKY, 1);
         player.setItemInHand(InteractionHand.MAIN_HAND, sneaky);
@@ -103,6 +106,7 @@ public class UpgradeGameTest {
 
     @GameTest(template = EMPTY)
     public static void upgradesGoInByClickingAndComeOutBySneaking(GameTestHelper helper) {
+        GameTestPower.supply(helper);
         PipeBlockEntity basic = pipe(helper, PipeKind.BASIC, 0);
         BlockPos relative = new BlockPos(0, 1, 1);
         ServerPlayer player = helper.makeMockServerPlayerInLevel();
@@ -127,6 +131,7 @@ public class UpgradeGameTest {
 
     @GameTest(template = EMPTY)
     public static void plainPipesTakeNoUpgrades(GameTestHelper helper) {
+        GameTestPower.supply(helper);
         BlockPos relative = new BlockPos(0, 1, 1);
         helper.setBlock(relative, LogisticsPipes.TRANSPORT_PIPE.get());
         PipeBlockEntity transport = helper.getBlockEntity(relative);
@@ -158,6 +163,7 @@ public class UpgradeGameTest {
     // eight pipes at ten ticks each take about eighty ticks
     @GameTest(template = EMPTY, timeoutTicks = 200)
     public static void withoutSpeedUpgradeTheRunTakesItsTime(GameTestHelper helper) {
+        GameTestPower.supply(helper);
         BlockPos chest = longRun(helper, 0);
 
         helper.runAfterDelay(15 + 50, () -> helper.assertContainerEmpty(chest));
@@ -169,6 +175,7 @@ public class UpgradeGameTest {
 
     @GameTest(template = EMPTY, timeoutTicks = 200)
     public static void speedUpgradesCarryItemsFasterThroughTheWholeRun(GameTestHelper helper) {
+        GameTestPower.supply(helper);
         BlockPos chest = longRun(helper, 3);
 
         helper.runAfterDelay(15 + 50, () -> {
@@ -179,6 +186,7 @@ public class UpgradeGameTest {
 
     @GameTest(template = EMPTY)
     public static void installedUpgradesSurviveSaveAndLoad(GameTestHelper helper) {
+        GameTestPower.supply(helper);
         PipeBlockEntity original = providerBesideFurnace(helper);
         ItemStack sneaky = upgrade(UpgradeItem.Kind.SNEAKY, 1);
         UpgradeItem.setSide(sneaky, Direction.DOWN);

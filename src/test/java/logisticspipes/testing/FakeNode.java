@@ -36,6 +36,8 @@ public final class FakeNode implements RouterNode {
     // basic pipes take everything by default, like a fresh one in the game
     public SinkRule sink = new ItemSink(Set.of(), true);
     public int satelliteId;
+    // energy in junctions next to this pipe, plenty unless a test says otherwise
+    public int power = 1_000_000;
     public boolean provides;
     public final List<ExtractionMode> extractions = new ArrayList<>();
     private final PipeKind kind;
@@ -78,6 +80,15 @@ public final class FakeNode implements RouterNode {
             shipments.add(new Shipment(new ItemBatch(type, sent), destination));
         }
         return sent;
+    }
+
+    @Override
+    public int drawPower(int amount, boolean simulate) {
+        int drawn = Math.min(amount, power);
+        if (!simulate) {
+            power -= drawn;
+        }
+        return drawn;
     }
 
     @Override

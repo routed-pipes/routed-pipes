@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "logisticspipes:block/power_junction_top",
+    "side": "logisticspipes:block/power_junction_side",
+    "bottom": "logisticspipes:block/power_junction_bottom"
+  }
+}

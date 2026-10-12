@@ -10,7 +10,7 @@ import logisticspipes.adapter.minecraft.McItemType;
 import logisticspipes.adapter.minecraft.PipeBlockEntity;
 import logisticspipes.domain.item.ItemBatch;
 import logisticspipes.domain.item.ItemType;
-import logisticspipes.domain.request.RequestPlan;
+import logisticspipes.application.RequestOutcome;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -166,13 +166,16 @@ public class RequestMenu extends AbstractContainerMenu {
         if (selected == null) {
             return;
         }
-        RequestPlan plan = pipe.request(new ItemBatch(selected, data.get(DATA_AMOUNT)));
-        if (plan.complete()) {
+        RequestOutcome outcome = pipe.request(new ItemBatch(selected, data.get(DATA_AMOUNT)));
+        if (outcome.started()) {
             player.displayClientMessage(Component.translatable("logisticspipes.request.started",
                     data.get(DATA_AMOUNT), name(selected)), false);
+        } else if (!outcome.powered()) {
+            player.displayClientMessage(Component.translatable("logisticspipes.request.no_power")
+                    .withStyle(ChatFormatting.RED), false);
         } else {
             MutableComponent missing = Component.empty();
-            plan.missing().forEach((type, count) -> missing.append("\n").append(
+            outcome.missing().forEach((type, count) -> missing.append("\n").append(
                     Component.translatable("logisticspipes.request.missing_entry", count, name(type))));
             player.displayClientMessage(Component.translatable("logisticspipes.request.missing")
                     .withStyle(ChatFormatting.RED).append(missing), false);

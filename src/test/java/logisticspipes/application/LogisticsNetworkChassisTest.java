@@ -131,7 +131,7 @@ class LogisticsNetworkChassisTest {
         chassis.provides = true;
 
         assertThat(network.available(REQUEST)).containsOnly(Map.entry(item("stone"), 40));
-        assertThat(network.request(REQUEST, batch("stone", 5), NOW).complete()).isTrue();
+        assertThat(network.request(REQUEST, batch("stone", 5), NOW).started()).isTrue();
         assertThat(chassis.shipments).containsExactly(new Shipment(batch("stone", 5), REQUEST));
     }
 
@@ -220,5 +220,24 @@ class LogisticsNetworkChassisTest {
 
         assertThat(network.chooseExit(STORE, new TravellingItem(batch("stone", 4), Side.UP, null), NOW)).contains(Side.WEST);
         assertThat(network.chooseExit(STORE, new TravellingItem(batch("dirt", 4), Side.UP, null), NOW)).isEmpty();
+    }
+
+    @Test
+    void extractorNeedsPower() {
+        connect();
+        chassis.extractions.add(ExtractionMode.EXTRACTOR);
+        chassis.stock("stone", 40);
+        store.inventories.add(Side.UP);
+        chassis.power = 0;
+        store.power = 0;
+        request.power = 0;
+
+        network.tick(CHASSIS, NOW);
+        assertThat(chassis.shipments).isEmpty();
+
+        store.power = ExtractionMode.EXTRACTOR.amount() * LogisticsNetwork.ENERGY_PER_ITEM;
+        network.tick(CHASSIS, NOW + 20);
+        assertThat(chassis.shipments).hasSize(1);
+        assertThat(store.power).isZero();
     }
 }

@@ -2,13 +2,15 @@ package logisticspipes.adapter.neoforge.gametest;
 
 import logisticspipes.adapter.minecraft.McItemType;
 import logisticspipes.adapter.minecraft.PipeBlockEntity;
+import logisticspipes.adapter.minecraft.PowerJunctionBlockEntity;
 import logisticspipes.adapter.minecraft.RemoteOrdererItem;
 import logisticspipes.adapter.minecraft.menu.PipeConfigMenu;
 import logisticspipes.adapter.minecraft.menu.RequestMenu;
 import logisticspipes.adapter.neoforge.LogisticsPipes;
 import logisticspipes.domain.item.ItemBatch;
 import logisticspipes.domain.logistics.PipeKind;
-import logisticspipes.domain.request.RequestPlan;
+import logisticspipes.application.LogisticsNetwork;
+import logisticspipes.application.RequestOutcome;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
@@ -28,6 +30,8 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.energy.IEnergyStorage;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
@@ -71,6 +75,7 @@ public class RequestGameTest {
 
     @GameTest(template = EMPTY, timeoutTicks = 200)
     public static void requestDeliversFromProvider(GameTestHelper helper) {
+        GameTestPower.supply(helper);
         PipeBlockEntity request = pipe(helper, PipeKind.REQUEST, 0, 1);
         BlockPos target = chest(helper, 0, 2);
         transport(helper, 1, 1);
@@ -79,8 +84,8 @@ public class RequestGameTest {
         BlockPos source = chest(helper, 3, 2, new ItemStack(Items.COBBLESTONE, 64));
 
         helper.runAfterDelay(SETTLE, () -> {
-            RequestPlan plan = request.request(batch(Items.COBBLESTONE, 10));
-            helper.assertTrue(plan.complete(), "request should be possible");
+            RequestOutcome plan = request.request(batch(Items.COBBLESTONE, 10));
+            helper.assertTrue(plan.started(), "request should be possible");
         });
 
         helper.succeedWhen(() -> {
@@ -91,6 +96,7 @@ public class RequestGameTest {
 
     @GameTest(template = EMPTY, timeoutTicks = 200)
     public static void requestSplitsLargeOrdersIntoStacks(GameTestHelper helper) {
+        GameTestPower.supply(helper);
         PipeBlockEntity request = pipe(helper, PipeKind.REQUEST, 0, 1);
         BlockPos target = chest(helper, 0, 2);
         pipe(helper, PipeKind.PROVIDER, 1, 1);
@@ -104,14 +110,15 @@ public class RequestGameTest {
 
     @GameTest(template = EMPTY, timeoutTicks = 200)
     public static void failedRequestMovesNothing(GameTestHelper helper) {
+        GameTestPower.supply(helper);
         PipeBlockEntity request = pipe(helper, PipeKind.REQUEST, 0, 1);
         BlockPos target = chest(helper, 0, 2);
         pipe(helper, PipeKind.PROVIDER, 1, 1);
         BlockPos source = chest(helper, 1, 2, new ItemStack(Items.COBBLESTONE, 5));
 
         helper.runAfterDelay(SETTLE, () -> {
-            RequestPlan plan = request.request(batch(Items.COBBLESTONE, 10));
-            helper.assertTrue(!plan.complete(), "request should fail");
+            RequestOutcome plan = request.request(batch(Items.COBBLESTONE, 10));
+            helper.assertTrue(!plan.started(), "request should fail");
         });
 
         helper.runAfterDelay(60, () -> {
@@ -123,6 +130,7 @@ public class RequestGameTest {
 
     @GameTest(template = EMPTY, timeoutTicks = 200)
     public static void requestedItemPopsOutWithoutChest(GameTestHelper helper) {
+        GameTestPower.supply(helper);
         PipeBlockEntity request = pipe(helper, PipeKind.REQUEST, 0, 1);
         pipe(helper, PipeKind.PROVIDER, 1, 1);
         chest(helper, 1, 2, new ItemStack(Items.COBBLESTONE, 64));
@@ -135,6 +143,7 @@ public class RequestGameTest {
     // one provider feeding two request pipes behind a fork of plain pipes
     @GameTest(template = EMPTY, timeoutTicks = 300)
     public static void forkInTransportPipesLeadsToTheRightRouter(GameTestHelper helper) {
+        GameTestPower.supply(helper);
         pipe(helper, PipeKind.PROVIDER, 1, 1);
         chest(helper, 1, 2, new ItemStack(Items.COBBLESTONE, 64), new ItemStack(Items.DIAMOND, 8));
         transport(helper, 2, 1);
@@ -146,8 +155,8 @@ public class RequestGameTest {
         BlockPos topChest = chest(helper, 3, 3);
 
         helper.runAfterDelay(SETTLE, () -> {
-            helper.assertTrue(east.request(batch(Items.COBBLESTONE, 10)).complete(), "east request");
-            helper.assertTrue(top.request(batch(Items.DIAMOND, 3)).complete(), "top request");
+            helper.assertTrue(east.request(batch(Items.COBBLESTONE, 10)).started(), "east request");
+            helper.assertTrue(top.request(batch(Items.DIAMOND, 3)).started(), "top request");
         });
 
         helper.runAfterDelay(150, () -> {
@@ -161,6 +170,7 @@ public class RequestGameTest {
 
     @GameTest(template = EMPTY, timeoutTicks = 300)
     public static void supplierKeepsChestStocked(GameTestHelper helper) {
+        GameTestPower.supply(helper);
         PipeBlockEntity supplier = pipe(helper, PipeKind.SUPPLIER, 0, 1);
         BlockPos target = chest(helper, 0, 2);
         supplier.config().setItem(0, new ItemStack(Items.COAL, 16));
@@ -178,6 +188,7 @@ public class RequestGameTest {
     // furnace in the middle: satellite on top feeds ore, crafting pipe below collects ingots
     @GameTest(template = EMPTY, timeoutTicks = 800)
     public static void craftsThroughFurnaceWithSatellite(GameTestHelper helper) {
+        GameTestPower.supply(helper);
         PipeBlockEntity request = pipe(helper, PipeKind.REQUEST, 0, 1);
         BlockPos target = chest(helper, 0, 2);
         transport(helper, 1, 1);
@@ -201,8 +212,8 @@ public class RequestGameTest {
 
         helper.runAfterDelay(SETTLE, () -> {
             helper.assertTrue(request.available().containsKey(batch(Items.IRON_INGOT, 1).type()), "ingots should be craftable");
-            RequestPlan plan = request.request(batch(Items.IRON_INGOT, 2));
-            helper.assertTrue(plan.complete(), "crafting request should be possible, missing " + plan.missing());
+            RequestOutcome plan = request.request(batch(Items.IRON_INGOT, 2));
+            helper.assertTrue(plan.started(), "crafting request should be possible, missing " + plan.missing());
         });
 
         helper.succeedWhen(() -> assertCount(helper, target, Items.IRON_INGOT, 2));
@@ -210,6 +221,7 @@ public class RequestGameTest {
 
     @GameTest(template = EMPTY, timeoutTicks = 200)
     public static void requestMenuOrdersTheSelectedItem(GameTestHelper helper) {
+        GameTestPower.supply(helper);
         PipeBlockEntity request = pipe(helper, PipeKind.REQUEST, 0, 1);
         BlockPos target = chest(helper, 0, 2);
         pipe(helper, PipeKind.PROVIDER, 1, 1);
@@ -237,6 +249,7 @@ public class RequestGameTest {
 
     @GameTest(template = EMPTY)
     public static void settingsMenuMarksItemsWithoutTakingThem(GameTestHelper helper) {
+        GameTestPower.supply(helper);
         PipeBlockEntity supplier = pipe(helper, PipeKind.SUPPLIER, 0, 1);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         PipeConfigMenu menu = new PipeConfigMenu(LogisticsPipes.CONFIG_MENUS.get(PipeKind.SUPPLIER).get(), 1, player.getInventory(),
@@ -262,6 +275,7 @@ public class RequestGameTest {
 
     @GameTest(template = EMPTY)
     public static void pipeStateSurvivesSaveAndLoad(GameTestHelper helper) {
+        GameTestPower.supply(helper);
         PipeBlockEntity original = pipe(helper, PipeKind.CRAFTING, 0, 1);
         original.config().setItem(0, new ItemStack(Items.RAW_IRON, 2));
         original.config().setItem(PipeBlockEntity.OUTPUT_SLOT, new ItemStack(Items.IRON_INGOT, 1));
@@ -281,6 +295,7 @@ public class RequestGameTest {
 
     @GameTest(template = EMPTY, timeoutTicks = 200)
     public static void remoteOrdererOpensItsLinkedRequestPipeFromAfar(GameTestHelper helper) {
+        GameTestPower.supply(helper);
         PipeBlockEntity request = pipe(helper, PipeKind.REQUEST, 0, 1);
         BlockPos target = chest(helper, 0, 2);
         pipe(helper, PipeKind.PROVIDER, 1, 1);
@@ -316,6 +331,7 @@ public class RequestGameTest {
 
     @GameTest(template = EMPTY)
     public static void remoteOrdererDoesNotLinkToOtherPipesOrOpenRemovedOnes(GameTestHelper helper) {
+        GameTestPower.supply(helper);
         pipe(helper, PipeKind.PROVIDER, 0, 1);
         pipe(helper, PipeKind.REQUEST, 2, 1);
         ServerPlayer player = helper.makeMockServerPlayerInLevel();
@@ -334,6 +350,47 @@ public class RequestGameTest {
         orderer.use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
         helper.assertTrue(player.containerMenu == player.inventoryMenu, "a removed pipe cannot be opened");
         player.discard();
+        helper.succeed();
+    }
+
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void requestNeedsPowerAndUsesItUp(GameTestHelper helper) {
+        PipeBlockEntity request = pipe(helper, PipeKind.REQUEST, 3, 1);
+        BlockPos target = chest(helper, 3, 2);
+        pipe(helper, PipeKind.PROVIDER, 4, 1);
+        chest(helper, 4, 2, new ItemStack(Items.COBBLESTONE, 64));
+        int cost = 10 * LogisticsNetwork.ENERGY_PER_ITEM;
+        PowerJunctionBlockEntity junction = GameTestPower.junction(helper, new BlockPos(4, 1, 2), cost - 1);
+
+        helper.runAfterDelay(SETTLE, () -> {
+            RequestOutcome refused = request.request(batch(Items.COBBLESTONE, 10));
+            helper.assertTrue(!refused.started() && !refused.powered(), "one unit short should refuse the request");
+            helper.assertTrue(junction.stored() == cost - 1, "a refused request must not use energy");
+
+            junction.receive(1, false);
+            helper.assertTrue(request.request(batch(Items.COBBLESTONE, 10)).started(), "exactly enough should do");
+            helper.assertTrue(junction.stored() == 0, "the request should use up the energy");
+        });
+
+        helper.succeedWhen(() -> assertCount(helper, target, Items.COBBLESTONE, 10));
+    }
+
+    @GameTest(template = EMPTY)
+    public static void junctionTakesEnergyFromOtherBlocksButGivesNoneBack(GameTestHelper helper) {
+        PowerJunctionBlockEntity junction = GameTestPower.junction(helper, new BlockPos(4, 1, 1), 0);
+        IEnergyStorage energy = helper.getLevel().getCapability(Capabilities.EnergyStorage.BLOCK,
+                helper.absolutePos(new BlockPos(4, 1, 1)), Direction.UP);
+        helper.assertTrue(energy != null && energy.canReceive() && !energy.canExtract(), "junction should accept energy only");
+
+        helper.assertTrue(energy.receiveEnergy(500, true) == 500 && junction.stored() == 0, "simulating stores nothing");
+        helper.assertTrue(energy.receiveEnergy(500, false) == 500 && energy.getEnergyStored() == 500, "energy goes in");
+        helper.assertTrue(energy.extractEnergy(100, false) == 0 && junction.stored() == 500, "nothing comes out");
+        helper.assertTrue(energy.receiveEnergy(Integer.MAX_VALUE, false) == PowerJunctionBlockEntity.CAPACITY - 500, "it fills up to its capacity");
+
+        CompoundTag saved = junction.saveWithoutMetadata(helper.getLevel().registryAccess());
+        PowerJunctionBlockEntity loaded = GameTestPower.junction(helper, new BlockPos(6, 1, 1), 0);
+        loaded.loadWithComponents(saved, helper.getLevel().registryAccess());
+        helper.assertTrue(loaded.stored() == PowerJunctionBlockEntity.CAPACITY, "stored energy survives save and load");
         helper.succeed();
     }
 }

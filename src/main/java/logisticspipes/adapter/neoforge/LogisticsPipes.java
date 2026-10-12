@@ -15,6 +15,8 @@ import logisticspipes.adapter.minecraft.LogisticsPipeBlock;
 import logisticspipes.adapter.minecraft.ModuleItem;
 import logisticspipes.adapter.minecraft.PipeBlockEntity;
 import logisticspipes.adapter.minecraft.PipeServices;
+import logisticspipes.adapter.minecraft.PowerJunctionBlock;
+import logisticspipes.adapter.minecraft.PowerJunctionBlockEntity;
 import logisticspipes.adapter.minecraft.RemoteOrdererItem;
 import logisticspipes.adapter.minecraft.UpgradeItem;
 import logisticspipes.adapter.minecraft.menu.ChassisMenu;
@@ -139,8 +141,18 @@ public class LogisticsPipes {
                             CRAFTING_TABLE.get())
                     .build(null));
 
+    public static final DeferredBlock<PowerJunctionBlock> POWER_JUNCTION = BLOCKS.register("power_junction",
+            () -> new PowerJunctionBlock(BlockBehaviour.Properties.of().strength(2.5f).sound(SoundType.METAL),
+                    () -> LogisticsPipes.POWER_JUNCTION_BLOCK_ENTITY.get()));
+    public static final Supplier<BlockEntityType<PowerJunctionBlockEntity>> POWER_JUNCTION_BLOCK_ENTITY =
+            BLOCK_ENTITIES.register("power_junction", () -> BlockEntityType.Builder
+                    .of((pos, state) -> new PowerJunctionBlockEntity(LogisticsPipes.POWER_JUNCTION_BLOCK_ENTITY.get(), pos, state),
+                            POWER_JUNCTION.get())
+                    .build(null));
+
     static {
         ITEMS.registerSimpleBlockItem(CRAFTING_TABLE);
+        ITEMS.registerSimpleBlockItem(POWER_JUNCTION);
     }
 
     static {
@@ -186,5 +198,7 @@ public class LogisticsPipes {
                 (pipe, side) -> side == null ? null : new PipeItemHandler(pipe, side));
         event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, CRAFTING_TABLE_BLOCK_ENTITY.get(),
                 (table, side) -> new CraftingTableItemHandler(table));
+        event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, POWER_JUNCTION_BLOCK_ENTITY.get(),
+                (junction, side) -> new PowerJunctionEnergy(junction));
     }
 }

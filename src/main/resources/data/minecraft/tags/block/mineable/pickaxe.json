@@ -12,6 +12,7 @@
     "logisticspipes:chassis_pipe_mk3",
     "logisticspipes:chassis_pipe_mk4",
     "logisticspipes:chassis_pipe_mk5",
-    "logisticspipes:logistics_crafting_table"
+    "logisticspipes:logistics_crafting_table",
+    "logisticspipes:power_junction"
   ]
 }

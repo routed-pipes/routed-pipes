@@ -14,6 +14,7 @@ import logisticspipes.adapter.minecraft.menu.ChassisMenu;
 import logisticspipes.adapter.minecraft.menu.PipeConfigMenu;
 import logisticspipes.adapter.minecraft.menu.RequestMenu;
 import logisticspipes.application.LogisticsNetwork;
+import logisticspipes.application.RequestOutcome;
 import logisticspipes.application.port.RouterNode;
 import logisticspipes.domain.crafting.OutputOrder;
 import logisticspipes.domain.crafting.OutputOrders;
@@ -25,7 +26,6 @@ import logisticspipes.domain.logistics.ItemSink;
 import logisticspipes.domain.logistics.ModuleKind;
 import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.domain.logistics.SinkRule;
-import logisticspipes.domain.request.RequestPlan;
 import logisticspipes.domain.routing.RouterId;
 import logisticspipes.domain.routing.Side;
 import logisticspipes.domain.transport.Departure;
@@ -221,7 +221,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         return network().available(routerId);
     }
 
-    public RequestPlan request(ItemBatch wanted) {
+    public RequestOutcome request(ItemBatch wanted) {
         return network().request(routerId, wanted, level.getGameTime());
     }
 
@@ -428,6 +428,17 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     @Override
     public boolean provides() {
         return kind() == PipeKind.PROVIDER || hasModule(ModuleKind.PROVIDER);
+    }
+
+    @Override
+    public int drawPower(int amount, boolean simulate) {
+        int drawn = 0;
+        for (Direction side : Direction.values()) {
+            if (drawn < amount && level.getBlockEntity(worldPosition.relative(side)) instanceof PowerJunctionBlockEntity junction) {
+                drawn += junction.draw(amount - drawn, simulate);
+            }
+        }
+        return drawn;
     }
 
     @Override

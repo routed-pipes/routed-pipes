@@ -76,18 +76,19 @@ def main():
     for module in MODULES + ["remote_orderer", "upgrade_sneaky", "upgrade_speed"]:
         write(ASSETS + f"models/item/{module}.json",
               {"parent": "minecraft:item/generated", "textures": {"layer0": f"logisticspipes:item/{module}"}})
-    table = "logistics_crafting_table"
-    write(ASSETS + f"models/block/{table}.json", {"parent": "minecraft:block/cube_bottom_top", "textures": {
-        "top": f"logisticspipes:block/{table}_top", "side": f"logisticspipes:block/{table}_side",
-        "bottom": f"logisticspipes:block/{table}_bottom"}})
-    write(ASSETS + f"models/item/{table}.json", {"parent": f"logisticspipes:block/{table}"})
-    write(ASSETS + f"blockstates/{table}.json", {"variants": {"": {"model": f"logisticspipes:block/{table}"}}})
-    for name in PIPES + [table]:
+    cubes = ["logistics_crafting_table", "power_junction"]
+    for cube in cubes:
+        write(ASSETS + f"models/block/{cube}.json", {"parent": "minecraft:block/cube_bottom_top", "textures": {
+            "top": f"logisticspipes:block/{cube}_top", "side": f"logisticspipes:block/{cube}_side",
+            "bottom": f"logisticspipes:block/{cube}_bottom"}})
+        write(ASSETS + f"models/item/{cube}.json", {"parent": f"logisticspipes:block/{cube}"})
+        write(ASSETS + f"blockstates/{cube}.json", {"variants": {"": {"model": f"logisticspipes:block/{cube}"}}})
+    for name in PIPES + cubes:
         write(DATA + f"loot_table/blocks/{name}.json", {"type": "minecraft:block", "pools": [{
             "rolls": 1, "entries": [{"type": "minecraft:item", "name": f"logisticspipes:{name}"}],
             "conditions": [{"condition": "minecraft:survives_explosion"}]}]})
     write("src/main/resources/data/minecraft/tags/block/mineable/pickaxe.json",
-          {"values": [f"logisticspipes:{name}" for name in PIPES + [table]]})
+          {"values": [f"logisticspipes:{name}" for name in PIPES + cubes]})
 
 
 if __name__ == "__main__":

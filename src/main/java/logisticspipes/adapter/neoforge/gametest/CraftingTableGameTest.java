@@ -6,7 +6,7 @@ import logisticspipes.adapter.minecraft.PipeBlockEntity;
 import logisticspipes.adapter.minecraft.menu.CraftingTableMenu;
 import logisticspipes.adapter.neoforge.LogisticsPipes;
 import logisticspipes.domain.logistics.PipeKind;
-import logisticspipes.domain.request.RequestPlan;
+import logisticspipes.application.RequestOutcome;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
@@ -72,6 +72,7 @@ public class CraftingTableGameTest {
 
     @GameTest(template = EMPTY)
     public static void knowsTheResultOfItsRecipeGrid(GameTestHelper helper) {
+        GameTestPower.supply(helper);
         CraftingTableBlockEntity table = table(helper, 0, 1, Items.OAK_LOG);
 
         assertStack(helper, table.result(), Items.OAK_PLANKS, 4, "result");
@@ -84,6 +85,7 @@ public class CraftingTableGameTest {
 
     @GameTest(template = EMPTY)
     public static void craftsOnlyWhenTheResultIsTaken(GameTestHelper helper) {
+        GameTestPower.supply(helper);
         CraftingTableBlockEntity table = table(helper, 0, 1, Items.OAK_LOG);
         table.storage().setItem(0, new ItemStack(Items.OAK_LOG, 3));
 
@@ -103,6 +105,7 @@ public class CraftingTableGameTest {
 
     @GameTest(template = EMPTY)
     public static void usesShapedRecipesAndEveryGridSlot(GameTestHelper helper) {
+        GameTestPower.supply(helper);
         CraftingTableBlockEntity table = table(helper, 0, 1, Items.OAK_PLANKS, null, null, Items.OAK_PLANKS);
         table.storage().setItem(0, new ItemStack(Items.OAK_PLANKS, 5));
 
@@ -114,6 +117,7 @@ public class CraftingTableGameTest {
 
     @GameTest(template = EMPTY)
     public static void keepsWhatARecipeLeavesBehind(GameTestHelper helper) {
+        GameTestPower.supply(helper);
         CraftingTableBlockEntity table = table(helper, 0, 1, Items.HONEY_BOTTLE);
         table.storage().setItem(0, new ItemStack(Items.HONEY_BOTTLE, 1));
 
@@ -124,6 +128,7 @@ public class CraftingTableGameTest {
 
     @GameTest(template = EMPTY)
     public static void otherBlocksInsertIngredientsAndExtractOnlyResults(GameTestHelper helper) {
+        GameTestPower.supply(helper);
         CraftingTableBlockEntity table = table(helper, 0, 1, Items.OAK_LOG);
         IItemHandler handler = helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK,
                 helper.absolutePos(new BlockPos(0, 1, 1)), Direction.DOWN);
@@ -145,6 +150,7 @@ public class CraftingTableGameTest {
 
     @GameTest(template = EMPTY)
     public static void menuSetsTheRecipeGridWithMarkers(GameTestHelper helper) {
+        GameTestPower.supply(helper);
         CraftingTableBlockEntity table = table(helper, 0, 1);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         CraftingTableMenu menu = new CraftingTableMenu(LogisticsPipes.CRAFTING_TABLE_MENU.get(), 1, player.getInventory(), table);
@@ -167,6 +173,7 @@ public class CraftingTableGameTest {
 
     @GameTest(template = EMPTY)
     public static void shiftClickMovesItemsBetweenPlayerAndStorage(GameTestHelper helper) {
+        GameTestPower.supply(helper);
         CraftingTableBlockEntity table = table(helper, 0, 1);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.getInventory().setItem(0, new ItemStack(Items.OAK_LOG, 10));
@@ -185,6 +192,7 @@ public class CraftingTableGameTest {
 
     @GameTest(template = EMPTY)
     public static void tableStateSurvivesSaveAndLoad(GameTestHelper helper) {
+        GameTestPower.supply(helper);
         CraftingTableBlockEntity original = table(helper, 0, 1, Items.OAK_LOG);
         original.storage().setItem(3, new ItemStack(Items.OAK_LOG, 7));
         original.takeResult(2, false);
@@ -201,6 +209,7 @@ public class CraftingTableGameTest {
 
     @GameTest(template = EMPTY, timeoutTicks = 300)
     public static void craftingPipeImportsTheRecipeAndCraftsOnRequest(GameTestHelper helper) {
+        GameTestPower.supply(helper);
         PipeBlockEntity request = pipe(helper, PipeKind.REQUEST, 0);
         BlockPos target = chest(helper, 0);
         pipe(helper, PipeKind.PROVIDER, 1);
@@ -212,8 +221,8 @@ public class CraftingTableGameTest {
         helper.assertTrue(crafting.recipe().isPresent(), "recipe should be imported from the table");
 
         helper.runAfterDelay(SETTLE, () -> {
-            RequestPlan plan = request.request(McItemType.batchOf(new ItemStack(Items.OAK_PLANKS, 10)));
-            helper.assertTrue(plan.complete(), "planks should be craftable, missing " + plan.missing());
+            RequestOutcome plan = request.request(McItemType.batchOf(new ItemStack(Items.OAK_PLANKS, 10)));
+            helper.assertTrue(plan.started(), "planks should be craftable, missing " + plan.missing());
         });
 
         helper.succeedWhen(() -> {
@@ -226,6 +235,7 @@ public class CraftingTableGameTest {
     // sticks need planks, planks need logs, each step on its own table
     @GameTest(template = EMPTY, timeoutTicks = 400)
     public static void craftsIngredientsOnAnotherTableFirst(GameTestHelper helper) {
+        GameTestPower.supply(helper);
         PipeBlockEntity request = pipe(helper, PipeKind.REQUEST, 0);
         BlockPos target = chest(helper, 0);
         pipe(helper, PipeKind.PROVIDER, 1);
@@ -238,8 +248,8 @@ public class CraftingTableGameTest {
         sticks.importRecipe();
 
         helper.runAfterDelay(SETTLE, () -> {
-            RequestPlan plan = request.request(McItemType.batchOf(new ItemStack(Items.STICK, 8)));
-            helper.assertTrue(plan.complete(), "sticks should be craftable, missing " + plan.missing());
+            RequestOutcome plan = request.request(McItemType.batchOf(new ItemStack(Items.STICK, 8)));
+            helper.assertTrue(plan.started(), "sticks should be craftable, missing " + plan.missing());
         });
 
         helper.succeedWhen(() -> {

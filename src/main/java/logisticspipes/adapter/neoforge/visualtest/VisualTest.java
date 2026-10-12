@@ -15,6 +15,7 @@ import logisticspipes.adapter.minecraft.CraftingTableBlockEntity;
 import logisticspipes.adapter.minecraft.McItemType;
 import logisticspipes.adapter.minecraft.ModuleItem;
 import logisticspipes.adapter.minecraft.PipeBlockEntity;
+import logisticspipes.adapter.minecraft.PowerJunctionBlockEntity;
 import logisticspipes.adapter.neoforge.LogisticsPipes;
 import logisticspipes.domain.logistics.ModuleKind;
 import net.minecraft.client.Minecraft;
@@ -170,6 +171,7 @@ public final class VisualTest {
             command("fill 0 -59 14 0 -59 16 logisticspipes:transport_pipe");
             command("setblock 0 -59 17 logisticspipes:crafting_pipe");
             command("setblock 0 -58 17 logisticspipes:logistics_crafting_table");
+            command("setblock 1 -59 2 logisticspipes:power_junction");
             command("setblock 0 -59 1 logisticspipes:transport_pipe");
             command("setblock 0 -59 0 logisticspipes:chassis_pipe_mk5");
             command("setblock 0 -58 0 chest");
@@ -185,6 +187,8 @@ public final class VisualTest {
             table.pattern().setItem(3, new ItemStack(Items.OAK_PLANKS));
             table.storage().setItem(0, new ItemStack(Items.OAK_PLANKS, 20));
             pipe(server, TABLE_PIPE).importRecipe();
+            ((PowerJunctionBlockEntity) server.overworld().getBlockEntity(new BlockPos(1, -59, 2)))
+                    .receive(PowerJunctionBlockEntity.CAPACITY, false);
             PipeBlockEntity chassis = pipe(server, CHASSIS);
             chassis.modules().setItem(0, new ItemStack(LogisticsPipes.MODULES.get(ModuleKind.ITEM_SINK).get()));
             chassis.modules().setItem(1, new ItemStack(LogisticsPipes.MODULES.get(ModuleKind.EXTRACTOR).get()));

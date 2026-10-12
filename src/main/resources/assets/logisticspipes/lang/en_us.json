@@ -53,5 +53,8 @@
   "logisticspipes.side.north": "north",
   "logisticspipes.side.south": "south",
   "logisticspipes.side.west": "west",
-  "logisticspipes.side.east": "east"
+  "logisticspipes.side.east": "east",
+  "block.logisticspipes.power_junction": "Logistics Power Junction",
+  "logisticspipes.power_junction.stored": "%s / %s FE",
+  "logisticspipes.request.no_power": "Request failed, the network does not have enough power"
 }
