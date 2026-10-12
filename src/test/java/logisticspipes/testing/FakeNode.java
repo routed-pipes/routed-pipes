@@ -11,6 +11,7 @@ import java.util.UUID;
 
 import logisticspipes.application.port.FluidNode;
 import logisticspipes.application.port.PowerNode;
+import logisticspipes.application.port.PowerSource;
 import logisticspipes.application.port.RouterNode;
 import logisticspipes.domain.crafting.Cleanup;
 import logisticspipes.domain.crafting.CraftingSetup;
@@ -73,6 +74,8 @@ public final class FakeNode implements RouterNode {
     public int looks;
     // energy in junctions next to this pipe, plenty unless a test says otherwise
     public int power = 1_000_000;
+    // set by tests where pipes share one energy store, like two pipes on one junction
+    public PowerSource sharedPower;
     public boolean provides;
     // empty means the provider hands out all it has
     public Map<ItemType, Integer> provided;
@@ -176,6 +179,11 @@ public final class FakeNode implements RouterNode {
     @Override
     public SupplyMode supplyMode() {
         return supplyMode;
+    }
+
+    @Override
+    public List<PowerSource> powerSources() {
+        return sharedPower == null ? RouterNode.super.powerSources() : List.of(sharedPower);
     }
 
     @Override

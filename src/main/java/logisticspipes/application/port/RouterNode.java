@@ -109,6 +109,22 @@ public interface RouterNode {
     }
 
     // takes energy from power junctions next to the pipe, returns how much it got
+    // the energy stores next to the pipe, the network asks each store once even when several pipes touch it
+    default List<PowerSource> powerSources() {
+        RouterNode node = this;
+        return List.of(new PowerSource() {
+            @Override
+            public Object key() {
+                return node;
+            }
+
+            @Override
+            public int draw(int amount, boolean simulate) {
+                return node.drawPower(amount, simulate);
+            }
+        });
+    }
+
     default int drawPower(int amount, boolean simulate) {
         return 0;
     }

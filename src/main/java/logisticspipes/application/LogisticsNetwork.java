@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Predicate;
 
+import logisticspipes.application.port.PowerSource;
 import logisticspipes.application.port.RouterNode;
 import logisticspipes.domain.crafting.Cleanup;
 import logisticspipes.domain.crafting.CraftingSetup;
@@ -766,24 +767,19 @@ public final class LogisticsNetwork {
 
     public RouterStatus status(RouterId id) {
         List<RouterId> reachable = reachableFrom(id);
-        long energy = nodes.containsKey(id) ? nodes.get(id).drawPower(Integer.MAX_VALUE, true) : 0;
-        for (RouterId other : reachable) {
-            energy += nodes.get(other).drawPower(Integer.MAX_VALUE, true);
+        long energy = 0;
+        for (PowerSource source : powerSourcesFor(id)) {
+            energy += source.draw(Integer.MAX_VALUE, true);
         }
         return new RouterStatus(reachable.size(), (int) Math.min(energy, Integer.MAX_VALUE));
     }
 
     // takes energy from the junctions of the network the router is in, all of it or nothing
     public boolean usePower(RouterId at, int amount) {
-        List<RouterNode> sources = new ArrayList<>();
-        if (nodes.containsKey(at)) {
-            sources.add(nodes.get(at));
-        }
-        reachableFrom(at).stream().filter(id -> wired(at, id) && passes(at, id, FirewallRule::blockPower))
-                .forEach(id -> sources.add(nodes.get(id)));
+        List<PowerSource> sources = powerSourcesFor(at);
         int available = 0;
-        for (RouterNode source : sources) {
-            available += source.drawPower(amount - available, true);
+        for (PowerSource source : sources) {
+            available += source.draw(amount - available, true);
             if (available >= amount) {
                 break;
             }
@@ -792,10 +788,29 @@ public final class LogisticsNetwork {
             return false;
         }
         int left = amount;
-        for (RouterNode source : sources) {
-            left -= source.drawPower(left, false);
+        for (PowerSource source : sources) {
+            if (left > 0) {
+                left -= source.draw(left, false);
+            }
         }
-        return true;
+        return left <= 0;
+    }
+
+    // every energy store the router may draw from, each once however many routers touch it
+    private List<PowerSource> powerSourcesFor(RouterId at) {
+        List<RouterNode> routers = new ArrayList<>();
+        if (nodes.containsKey(at)) {
+            routers.add(nodes.get(at));
+        }
+        reachableFrom(at).stream().filter(id -> wired(at, id) && passes(at, id, FirewallRule::blockPower))
+                .forEach(id -> routers.add(nodes.get(id)));
+        Map<Object, PowerSource> sources = new LinkedHashMap<>();
+        for (RouterNode router : routers) {
+            for (PowerSource source : router.powerSources()) {
+                sources.putIfAbsent(source.key(), source);
+            }
+        }
+        return List.copyOf(sources.values());
     }
 
     // whether the router could use any energy right now, for the look of its pipe

@@ -27,6 +27,7 @@ import logisticspipes.application.RequestOutcome;
 import logisticspipes.application.RouterStatus;
 import logisticspipes.application.port.FluidNode;
 import logisticspipes.application.port.PowerNode;
+import logisticspipes.application.port.PowerSource;
 import logisticspipes.application.port.RouterNode;
 import logisticspipes.domain.crafting.Cleanup;
 import logisticspipes.domain.crafting.CraftingSetup;
@@ -1432,6 +1433,30 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     @Override
     public boolean provides() {
         return kind() == PipeKind.PROVIDER || hasModule(ModuleKind.PROVIDER);
+    }
+
+    @Override
+    public List<PowerSource> powerSources() {
+        if (junctionsCache == null || surroundingsStale()) {
+            lookAround();
+        }
+        List<PowerSource> sources = new ArrayList<>();
+        for (BlockPos target : junctionsCache) {
+            long key = target.asLong();
+            sources.add(new PowerSource() {
+                @Override
+                public Object key() {
+                    return key;
+                }
+
+                @Override
+                public int draw(int amount, boolean simulate) {
+                    return level.getBlockEntity(target) instanceof PowerJunctionBlockEntity junction
+                            ? junction.draw(amount, simulate) : 0;
+                }
+            });
+        }
+        return sources;
     }
 
     @Override
