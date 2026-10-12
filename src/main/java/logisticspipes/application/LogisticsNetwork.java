@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Predicate;
 
 import logisticspipes.application.port.RouterNode;
@@ -36,6 +37,7 @@ import logisticspipes.domain.request.Provision;
 import logisticspipes.domain.request.RequestPlan;
 import logisticspipes.domain.request.RequestPlanner;
 import logisticspipes.domain.request.Stock;
+import logisticspipes.domain.routing.ConnectorLinks;
 import logisticspipes.domain.routing.Link;
 import logisticspipes.domain.routing.Route;
 import logisticspipes.domain.routing.RouteTable;
@@ -61,6 +63,7 @@ public final class LogisticsNetwork {
     public static final int ENERGY_PER_PROVIDED_ITEM = 2;
     public static final int ENERGY_PER_CRAFTED_ITEM = 20;
     public static final int ENERGY_PER_SUPPLY_ORDER = 20;
+    public static final int ENERGY_PER_SYSTEM_ENTRY = 10;
     // ticks between rounds of shipping crafted items and of suppliers checking their stock
     static final int CRAFT_INTERVAL = 5;
     static final int SUPPLY_INTERVAL = 20;
@@ -78,6 +81,9 @@ public final class LogisticsNetwork {
     private final Map<RouterId, List<Link>> links = new HashMap<>();
     private final Set<RouterId> firewalls = new HashSet<>();
     private RoutingNetwork open;
+    // for inventory system connectors: who is on which channel, and the network as it is without their links
+    private final ConnectorLinks connectors = new ConnectorLinks();
+    private RoutingNetwork wired;
     private final Map<RouterId, RouterNode> nodes = new HashMap<>();
     private final PendingDeliveries pending = new PendingDeliveries();
     private final Map<RouterId, Long> changedAt = new HashMap<>();
@@ -136,6 +142,8 @@ public final class LogisticsNetwork {
         links.remove(id);
         firewalls.remove(id);
         open = null;
+        wired = null;
+        relink(connectors.remove(id), now);
         pending.forget(id);
         fluids.forget(id);
         subSystemPower.forget(id);
@@ -148,9 +156,57 @@ public final class LogisticsNetwork {
     public void updateLinks(RouterId id, List<Link> links, long now) {
         this.links.put(id, List.copyOf(links));
         open = null;
-        if (routing.setLinks(id, links)) {
+        wired = null;
+        if (routing.setLinks(id, withConnectors(id, links))) {
             changed(id, now);
         }
+    }
+
+    // a connector joined or left a channel, or the inventory beside it or its resistance changed
+    // channel is null for one that is on none, inventory for one that touches none
+    public void setConnector(RouterId id, UUID channel, Side inventory, int resistance, long now) {
+        relink(connectors.set(id, channel, inventory, resistance), now);
+    }
+
+    public ConnectorLinks.State connectorState(RouterId id) {
+        return connectors.state(id);
+    }
+
+    // whether what the first connector puts into the inventory on that side is picked up by the second
+    public boolean connectorsLinked(RouterId from, Side exit, RouterId to) {
+        return connectors.linked(from, exit, to);
+    }
+
+    private List<Link> withConnectors(RouterId id, List<Link> pipes) {
+        List<Link> viaChannel = connectors.linksOf(id);
+        if (viaChannel.isEmpty()) {
+            return pipes;
+        }
+        List<Link> all = new ArrayList<>(pipes);
+        all.addAll(viaChannel);
+        return all;
+    }
+
+    // works out the links of connectors again after something about their channel changed
+    private void relink(Set<RouterId> touched, long now) {
+        for (RouterId id : touched) {
+            if (nodes.containsKey(id)) {
+                updateLinks(id, links.getOrDefault(id, List.of()), now);
+            }
+        }
+    }
+
+    // power does not cross the inventory between two connectors, so this asks for a way through pipes alone
+    private boolean wired(RouterId from, RouterId to) {
+        if (connectors.isEmpty()) {
+            return true;
+        }
+        if (wired == null) {
+            wired = new RoutingNetwork();
+            nodes.keySet().forEach(wired::add);
+            links.forEach(wired::setLinks);
+        }
+        return wired.component(from).equals(wired.component(to));
     }
 
     private void changed(RouterId id, long now) {
@@ -321,6 +377,10 @@ public final class LogisticsNetwork {
             // the destination may just be in a chunk that is loading
             return Optional.empty();
         }
+        Optional<Side> paired = throughEntrance(at, node, item);
+        if (paired.isPresent()) {
+            return paired;
+        }
         // a sink only takes the item if the network can pay for it
         Optional<Claim> claim = findDestination(at, item.batch(), item.origin(), true, ItemSink.DEFAULT_ROUTE_PRIORITY, now)
                 .filter(found -> usePower(at, found.energy()));
@@ -333,6 +393,27 @@ public final class LogisticsNetwork {
         expectCapped(claim.get(), item.batch(), now);
         item.routeTo(claim.get().router());
         return exitTowards(at, claim.get().router(), item);
+    }
+
+    // a system entrance sends what has no destination to the nearest destination pipe with the same frequency card
+    // empty when this is no entrance, no such pipe can be reached or there is no power to send the item
+    private Optional<Side> throughEntrance(RouterId at, RouterNode node, TravellingItem item) {
+        ItemType type = item.batch().type();
+        if (node == null || node.kind() != PipeKind.SYSTEM_ENTRANCE || node.frequency().isEmpty() || type.packedFluid()) {
+            return Optional.empty();
+        }
+        for (RouterId id : reachableFrom(at)) {
+            RouterNode other = nodes.get(id);
+            if (other.kind() == PipeKind.SYSTEM_DESTINATION && other.frequency().equals(node.frequency())
+                    && passes(at, id, rule -> rule.stopsOrdered(type))) {
+                if (!usePower(at, ENERGY_PER_SYSTEM_ENTRY)) {
+                    return Optional.empty();
+                }
+                item.orderTo(id);
+                return exitTowards(at, id, item);
+            }
+        }
+        return Optional.empty();
     }
 
     private Optional<Side> exitTowards(RouterId at, RouterId destination, TravellingItem item) {
@@ -358,7 +439,7 @@ public final class LogisticsNetwork {
         if (open == null) {
             open = new RoutingNetwork();
             nodes.keySet().forEach(open::add);
-            links.forEach((id, own) -> open.setLinks(id, firewalls.contains(id) ? List.of() : own));
+            links.forEach((id, own) -> open.setLinks(id, firewalls.contains(id) ? List.of() : withConnectors(id, own)));
         }
         return open;
     }
@@ -561,7 +642,8 @@ public final class LogisticsNetwork {
         if (nodes.containsKey(at)) {
             sources.add(nodes.get(at));
         }
-        reachableFrom(at).stream().filter(id -> passes(at, id, FirewallRule::blockPower)).forEach(id -> sources.add(nodes.get(id)));
+        reachableFrom(at).stream().filter(id -> wired(at, id) && passes(at, id, FirewallRule::blockPower))
+                .forEach(id -> sources.add(nodes.get(id)));
         int available = 0;
         for (RouterNode source : sources) {
             available += source.drawPower(amount - available, true);

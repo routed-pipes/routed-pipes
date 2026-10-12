@@ -1,0 +1,11 @@
+{
+  "loader": "neoforge:obj",
+  "model": "logisticspipes:models/block/pipe/plate_south.obj",
+  "flip_v": true,
+  "automatic_culling": false,
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "icon": "logisticspipes:block/inventory_system_connector_pipe_mismatched_icon",
+    "particle": "logisticspipes:block/inventory_system_connector_pipe_mismatched_icon"
+  }
+}

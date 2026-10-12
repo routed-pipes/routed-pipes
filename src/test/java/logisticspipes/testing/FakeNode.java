@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 import logisticspipes.application.port.FluidNode;
 import logisticspipes.application.port.PowerNode;
@@ -79,6 +80,8 @@ public final class FakeNode implements RouterNode {
     public FluidNode fluid;
     // set by tests about power providers
     public PowerNode subSystemPower;
+    // the frequency card of a system entrance or destination pipe
+    public UUID frequency;
     private final PipeKind kind;
 
     public FakeNode(PipeKind kind) {
@@ -94,6 +97,11 @@ public final class FakeNode implements RouterNode {
     @Override
     public PipeKind kind() {
         return kind;
+    }
+
+    @Override
+    public Optional<UUID> frequency() {
+        return Optional.ofNullable(frequency);
     }
 
     @Override

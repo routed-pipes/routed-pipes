@@ -8,7 +8,11 @@ import os
 
 PIPES = ["transport_pipe", "basic_logistics_pipe", "provider_pipe", "request_pipe", "request_pipe_mk2", "supplier_pipe",
          "crafting_pipe", "satellite_pipe", "firewall_pipe"] + [f"chassis_pipe_mk{tier}" for tier in range(1, 6)] + [
-             "fluid_basic_pipe", "fluid_insertion_pipe", "fluid_extractor_pipe", "fluid_provider_pipe", "fluid_terminus_pipe", "fluid_request_pipe", "fluid_satellite_pipe", "fluid_supplier_pipe", "fluid_container_supplier_pipe"]
+             "fluid_basic_pipe", "fluid_insertion_pipe", "fluid_extractor_pipe", "fluid_provider_pipe", "fluid_terminus_pipe", "fluid_request_pipe", "fluid_satellite_pipe", "fluid_supplier_pipe", "fluid_container_supplier_pipe",
+             "system_entrance_pipe", "system_destination_pipe"]
+# shows on its sides whether it has found the other connectors of its channel, one symbol per state of the block
+CONNECTOR = "inventory_system_connector_pipe"
+LINKS = ["disconnected", "mismatched", "connected"]
 MODULES = ["module_item_sink", "module_extractor", "module_provider", "module_terminus", "module_passive_supplier",
            "module_polymorphic_item_sink", "module_quick_sort", "module_advanced_extractor", "module_mod_item_sink",
            "module_tag_item_sink", "module_creative_tab_item_sink", "module_enchantment_sink", "module_enchantment_sink_mk2",
@@ -181,6 +185,16 @@ def blockstate(name, shared):
     return {"multipart": parts}
 
 
+def connector_blockstate(shared):
+    parts = list(shared)
+    for side in SIDES:
+        parts.append({"when": {side: "true"}, "apply": {"model": f"logisticspipes:block/{CONNECTOR}_side_{side}"}})
+        for link in LINKS:
+            parts.append({"when": {side: "false", "link": link},
+                          "apply": {"model": f"logisticspipes:block/{CONNECTOR}_plate_{link}_{side}"}})
+    return {"multipart": parts}
+
+
 def turned(vertices, turns):
     """Quarter turns around the middle of the main block, seen from above north goes to east."""
     for _ in range(turns):
@@ -263,11 +277,25 @@ def main():
             **{f"plate_{side}": part_model(f"plate_{side}", {"icon": icon}) for side in SIDES}},
             "textures": {"particle": "logisticspipes:block/pipe_frame"}})
         write(ASSETS + f"blockstates/{name}.json", blockstate(name, shared))
+    routed = "logisticspipes:block/pipe_frame_routed"
+    for side in SIDES:
+        write(ASSETS + f"models/block/{CONNECTOR}_side_{side}.json", part_model(f"side_{side}", {"frame": routed, "particle": routed}))
+        for link in LINKS:
+            icon = f"logisticspipes:block/{CONNECTOR}_{link}_icon"
+            write(ASSETS + f"models/block/{CONNECTOR}_plate_{link}_{side}.json",
+                  part_model(f"plate_{side}", {"icon": icon, "particle": icon}))
+    # in the hand it looks connected
+    icon = f"logisticspipes:block/{CONNECTOR}_connected_icon"
+    write(ASSETS + f"models/item/{CONNECTOR}.json", {"parent": "minecraft:block/block", "loader": "neoforge:composite", "children": {
+        "frame": part_model("item_frame", {"frame": "logisticspipes:block/pipe_frame"}),
+        **{f"plate_{side}": part_model(f"plate_{side}", {"icon": icon}) for side in SIDES}},
+        "textures": {"particle": "logisticspipes:block/pipe_frame"}})
+    write(ASSETS + f"blockstates/{CONNECTOR}.json", connector_blockstate(shared))
     write_tubes(shared)
     upgrades = ["sneaky", "speed", "module_upgrade", "action_speed", "item_extraction", "item_stack_extraction",
                 "crafting_byproduct", "crafting_cleanup", "disconnection", "advanced_satellite", "power_supplier_rf",
                 "power_transportation"]
-    for module in MODULES + ["remote_orderer", "pipe_controller", "settings_copier", "security_card", "disk"] + ["upgrade_" + upgrade for upgrade in upgrades]:
+    for module in MODULES + ["remote_orderer", "pipe_controller", "settings_copier", "security_card", "disk", "frequency_card"] + ["upgrade_" + upgrade for upgrade in upgrades]:
         write(ASSETS + f"models/item/{module}.json",
               {"parent": "minecraft:item/generated", "textures": {"layer0": f"logisticspipes:item/{module}"}})
     # the window of the container is tinted with the colour of the fluid in it
@@ -288,12 +316,12 @@ def main():
     write(ASSETS + f"models/item/{table}.json", {"parent": f"logisticspipes:block/{table}"})
     write(ASSETS + f"blockstates/{table}.json", {"multipart": [{"apply": {"model": f"logisticspipes:block/{table}"}}]})
     cubes.append(table)
-    for name in PIPES + cubes + list(TUBES):
+    for name in PIPES + [CONNECTOR] + cubes + list(TUBES):
         write(DATA + f"loot_table/blocks/{name}.json", {"type": "minecraft:block", "pools": [{
             "rolls": 1, "entries": [{"type": "minecraft:item", "name": f"logisticspipes:{name}"}],
             "conditions": [{"condition": "minecraft:survives_explosion"}]}]})
     write("src/main/resources/data/minecraft/tags/block/mineable/pickaxe.json",
-          {"values": [f"logisticspipes:{name}" for name in PIPES + cubes + list(TUBES) + ["tube_part"]]})
+          {"values": [f"logisticspipes:{name}" for name in PIPES + [CONNECTOR] + cubes + list(TUBES) + ["tube_part"]]})
 
 
 if __name__ == "__main__":

@@ -3,8 +3,10 @@ package logisticspipes.adapter.minecraft;
 import java.util.Map;
 import java.util.function.Supplier;
 
+import logisticspipes.adapter.minecraft.menu.ChannelMenu;
 import logisticspipes.adapter.minecraft.menu.ChassisMenu;
 import logisticspipes.adapter.minecraft.menu.FirewallMenu;
+import logisticspipes.adapter.minecraft.menu.FrequencyCardMenu;
 import logisticspipes.adapter.minecraft.menu.PipeConfigMenu;
 import logisticspipes.adapter.minecraft.menu.RequestMenu;
 import logisticspipes.adapter.minecraft.menu.RequestTableMenu;
@@ -26,7 +28,9 @@ public record PipeServices(
         Map<PipeKind, Supplier<MenuType<PipeConfigMenu>>> configMenus,
         FluidServices fluids,
         DiskMenus diskMenus,
-        EnergyAccess energy) {
+        EnergyAccess energy,
+        Supplier<MenuType<ChannelMenu>> connectorMenu,
+        Supplier<MenuType<FrequencyCardMenu>> frequencyCardMenu) {
 
     public boolean hasSettings(PipeKind kind) {
         return configMenus.containsKey(kind);

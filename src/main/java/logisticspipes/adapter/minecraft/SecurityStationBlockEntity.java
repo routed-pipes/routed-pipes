@@ -2,12 +2,14 @@ package logisticspipes.adapter.minecraft;
 
 import java.util.UUID;
 
+import logisticspipes.adapter.minecraft.menu.ChannelMenu;
 import logisticspipes.adapter.minecraft.menu.SecurityStationMenu;
 import logisticspipes.domain.security.SecuritySettings;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.Container;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.SimpleContainer;
@@ -92,6 +94,13 @@ public class SecurityStationBlockEntity extends BlockEntity {
     MenuProvider menuProvider() {
         return new SimpleMenuProvider((containerId, inventory, player) -> new SecurityStationMenu(block().services().menu().get(),
                 containerId, inventory, this), getBlockState().getBlock().getName());
+    }
+
+    // the channels of the world, new ones can be secured with this station
+    public MenuProvider channelMenuProvider() {
+        return new SimpleMenuProvider((containerId, inventory, player) -> new ChannelMenu(block().services().channelMenu().get(),
+                containerId, inventory, null, id, user -> Container.stillValidBlockEntity(this, user)),
+                Component.translatable("logisticspipes.channel.title"));
     }
 
     @Override

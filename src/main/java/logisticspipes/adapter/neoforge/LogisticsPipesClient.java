@@ -3,12 +3,14 @@ package logisticspipes.adapter.neoforge;
 import java.util.List;
 
 import logisticspipes.adapter.minecraft.FluidContents;
+import logisticspipes.adapter.minecraft.client.ChannelScreen;
 import logisticspipes.adapter.minecraft.client.ChassisScreen;
 import logisticspipes.adapter.minecraft.client.ClientMenuLink;
 import logisticspipes.adapter.minecraft.client.CraftingTableScreen;
 import logisticspipes.adapter.minecraft.client.DiskScreen;
 import logisticspipes.adapter.minecraft.client.FirewallScreen;
 import logisticspipes.adapter.minecraft.client.FluidConfigScreen;
+import logisticspipes.adapter.minecraft.client.FrequencyCardScreen;
 import logisticspipes.adapter.minecraft.client.FluidRequestScreen;
 import logisticspipes.adapter.minecraft.client.MacroEditScreen;
 import logisticspipes.adapter.minecraft.client.NamesScreen;
@@ -82,6 +84,9 @@ public class LogisticsPipesClient {
         event.register(LogisticsPipes.NAMES_MENU.get(), NamesScreen::new);
         event.register(LogisticsPipes.REQUEST_TABLE_MENU.get(), RequestTableScreen::new);
         event.register(LogisticsPipes.FIREWALL_MENU.get(), FirewallScreen::new);
+        event.register(LogisticsPipes.CONNECTOR_MENU.get(), ChannelScreen::new);
+        event.register(LogisticsPipes.CHANNEL_MENU.get(), ChannelScreen::new);
+        event.register(LogisticsPipes.FREQUENCY_CARD_MENU.get(), FrequencyCardScreen::new);
         event.register(LogisticsPipes.UPGRADE_MENU.get(), UpgradeScreen::new);
         event.register(LogisticsPipes.SECURITY_STATION_MENU.get(), SecurityStationScreen::new);
         event.register(LogisticsPipes.STATISTICS_TABLE_MENU.get(), StatisticsTableScreen::new);

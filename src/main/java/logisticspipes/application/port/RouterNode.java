@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 import logisticspipes.domain.crafting.Cleanup;
 import logisticspipes.domain.crafting.CraftingSetup;
@@ -140,6 +141,11 @@ public interface RouterNode {
     // supplier pipes only, how many of each item the inventory should hold
     default Map<ItemType, Integer> supplyTargets() {
         return Map.of();
+    }
+
+    // system entrance and destination pipes: the id on their frequency card, the same on both pairs them
+    default Optional<UUID> frequency() {
+        return Optional.empty();
     }
 
     // fluid pipes only

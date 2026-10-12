@@ -1,0 +1,1004 @@
+{
+  "multipart": [
+    {
+      "when": {
+        "up": "false",
+        "north": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/edge_up_north"
+      }
+    },
+    {
+      "when": {
+        "up": "false",
+        "south": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/edge_up_south"
+      }
+    },
+    {
+      "when": {
+        "up": "false",
+        "east": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/edge_up_east"
+      }
+    },
+    {
+      "when": {
+        "up": "false",
+        "west": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/edge_up_west"
+      }
+    },
+    {
+      "when": {
+        "down": "false",
+        "north": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/edge_down_north"
+      }
+    },
+    {
+      "when": {
+        "down": "false",
+        "south": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/edge_down_south"
+      }
+    },
+    {
+      "when": {
+        "down": "false",
+        "east": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/edge_down_east"
+      }
+    },
+    {
+      "when": {
+        "down": "false",
+        "west": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/edge_down_west"
+      }
+    },
+    {
+      "when": {
+        "north": "false",
+        "west": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/edge_north_west"
+      }
+    },
+    {
+      "when": {
+        "north": "false",
+        "east": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/edge_north_east"
+      }
+    },
+    {
+      "when": {
+        "south": "false",
+        "east": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/edge_south_east"
+      }
+    },
+    {
+      "when": {
+        "south": "false",
+        "west": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/edge_south_west"
+      }
+    },
+    {
+      "when": {
+        "up": "false",
+        "north": "false",
+        "west": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_up_north_west"
+      }
+    },
+    {
+      "when": {
+        "up": "true",
+        "north": "true",
+        "west": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_all_up_north_west"
+      }
+    },
+    {
+      "when": {
+        "up": "true",
+        "north": "false",
+        "west": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_up_north_west_up"
+      }
+    },
+    {
+      "when": {
+        "up": "false",
+        "north": "true",
+        "west": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_up_north_west_up"
+      }
+    },
+    {
+      "when": {
+        "north": "true",
+        "up": "false",
+        "west": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_up_north_west_north"
+      }
+    },
+    {
+      "when": {
+        "north": "false",
+        "up": "true",
+        "west": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_up_north_west_north"
+      }
+    },
+    {
+      "when": {
+        "west": "true",
+        "up": "false",
+        "north": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_up_north_west_west"
+      }
+    },
+    {
+      "when": {
+        "west": "false",
+        "up": "true",
+        "north": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_up_north_west_west"
+      }
+    },
+    {
+      "when": {
+        "up": "false",
+        "north": "false",
+        "east": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_up_north_east"
+      }
+    },
+    {
+      "when": {
+        "up": "true",
+        "north": "true",
+        "east": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_all_up_north_east"
+      }
+    },
+    {
+      "when": {
+        "up": "true",
+        "north": "false",
+        "east": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_up_north_east_up"
+      }
+    },
+    {
+      "when": {
+        "up": "false",
+        "north": "true",
+        "east": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_up_north_east_up"
+      }
+    },
+    {
+      "when": {
+        "north": "true",
+        "up": "false",
+        "east": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_up_north_east_north"
+      }
+    },
+    {
+      "when": {
+        "north": "false",
+        "up": "true",
+        "east": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_up_north_east_north"
+      }
+    },
+    {
+      "when": {
+        "east": "true",
+        "up": "false",
+        "north": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_up_north_east_east"
+      }
+    },
+    {
+      "when": {
+        "east": "false",
+        "up": "true",
+        "north": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_up_north_east_east"
+      }
+    },
+    {
+      "when": {
+        "up": "false",
+        "south": "false",
+        "west": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_up_south_west"
+      }
+    },
+    {
+      "when": {
+        "up": "true",
+        "south": "true",
+        "west": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_all_up_south_west"
+      }
+    },
+    {
+      "when": {
+        "up": "true",
+        "south": "false",
+        "west": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_up_south_west_up"
+      }
+    },
+    {
+      "when": {
+        "up": "false",
+        "south": "true",
+        "west": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_up_south_west_up"
+      }
+    },
+    {
+      "when": {
+        "south": "true",
+        "up": "false",
+        "west": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_up_south_west_south"
+      }
+    },
+    {
+      "when": {
+        "south": "false",
+        "up": "true",
+        "west": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_up_south_west_south"
+      }
+    },
+    {
+      "when": {
+        "west": "true",
+        "up": "false",
+        "south": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_up_south_west_west"
+      }
+    },
+    {
+      "when": {
+        "west": "false",
+        "up": "true",
+        "south": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_up_south_west_west"
+      }
+    },
+    {
+      "when": {
+        "up": "false",
+        "south": "false",
+        "east": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_up_south_east"
+      }
+    },
+    {
+      "when": {
+        "up": "true",
+        "south": "true",
+        "east": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_all_up_south_east"
+      }
+    },
+    {
+      "when": {
+        "up": "true",
+        "south": "false",
+        "east": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_up_south_east_up"
+      }
+    },
+    {
+      "when": {
+        "up": "false",
+        "south": "true",
+        "east": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_up_south_east_up"
+      }
+    },
+    {
+      "when": {
+        "south": "true",
+        "up": "false",
+        "east": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_up_south_east_south"
+      }
+    },
+    {
+      "when": {
+        "south": "false",
+        "up": "true",
+        "east": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_up_south_east_south"
+      }
+    },
+    {
+      "when": {
+        "east": "true",
+        "up": "false",
+        "south": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_up_south_east_east"
+      }
+    },
+    {
+      "when": {
+        "east": "false",
+        "up": "true",
+        "south": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_up_south_east_east"
+      }
+    },
+    {
+      "when": {
+        "down": "false",
+        "north": "false",
+        "west": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_down_north_west"
+      }
+    },
+    {
+      "when": {
+        "down": "true",
+        "north": "true",
+        "west": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_all_down_north_west"
+      }
+    },
+    {
+      "when": {
+        "down": "true",
+        "north": "false",
+        "west": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_down_north_west_down"
+      }
+    },
+    {
+      "when": {
+        "down": "false",
+        "north": "true",
+        "west": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_down_north_west_down"
+      }
+    },
+    {
+      "when": {
+        "north": "true",
+        "down": "false",
+        "west": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_down_north_west_north"
+      }
+    },
+    {
+      "when": {
+        "north": "false",
+        "down": "true",
+        "west": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_down_north_west_north"
+      }
+    },
+    {
+      "when": {
+        "west": "true",
+        "down": "false",
+        "north": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_down_north_west_west"
+      }
+    },
+    {
+      "when": {
+        "west": "false",
+        "down": "true",
+        "north": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_down_north_west_west"
+      }
+    },
+    {
+      "when": {
+        "down": "false",
+        "north": "false",
+        "east": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_down_north_east"
+      }
+    },
+    {
+      "when": {
+        "down": "true",
+        "north": "true",
+        "east": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_all_down_north_east"
+      }
+    },
+    {
+      "when": {
+        "down": "true",
+        "north": "false",
+        "east": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_down_north_east_down"
+      }
+    },
+    {
+      "when": {
+        "down": "false",
+        "north": "true",
+        "east": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_down_north_east_down"
+      }
+    },
+    {
+      "when": {
+        "north": "true",
+        "down": "false",
+        "east": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_down_north_east_north"
+      }
+    },
+    {
+      "when": {
+        "north": "false",
+        "down": "true",
+        "east": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_down_north_east_north"
+      }
+    },
+    {
+      "when": {
+        "east": "true",
+        "down": "false",
+        "north": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_down_north_east_east"
+      }
+    },
+    {
+      "when": {
+        "east": "false",
+        "down": "true",
+        "north": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_down_north_east_east"
+      }
+    },
+    {
+      "when": {
+        "down": "false",
+        "south": "false",
+        "west": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_down_south_west"
+      }
+    },
+    {
+      "when": {
+        "down": "true",
+        "south": "true",
+        "west": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_all_down_south_west"
+      }
+    },
+    {
+      "when": {
+        "down": "true",
+        "south": "false",
+        "west": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_down_south_west_down"
+      }
+    },
+    {
+      "when": {
+        "down": "false",
+        "south": "true",
+        "west": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_down_south_west_down"
+      }
+    },
+    {
+      "when": {
+        "south": "true",
+        "down": "false",
+        "west": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_down_south_west_south"
+      }
+    },
+    {
+      "when": {
+        "south": "false",
+        "down": "true",
+        "west": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_down_south_west_south"
+      }
+    },
+    {
+      "when": {
+        "west": "true",
+        "down": "false",
+        "south": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_down_south_west_west"
+      }
+    },
+    {
+      "when": {
+        "west": "false",
+        "down": "true",
+        "south": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_down_south_west_west"
+      }
+    },
+    {
+      "when": {
+        "down": "false",
+        "south": "false",
+        "east": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_down_south_east"
+      }
+    },
+    {
+      "when": {
+        "down": "true",
+        "south": "true",
+        "east": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_all_down_south_east"
+      }
+    },
+    {
+      "when": {
+        "down": "true",
+        "south": "false",
+        "east": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_down_south_east_down"
+      }
+    },
+    {
+      "when": {
+        "down": "false",
+        "south": "true",
+        "east": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_down_south_east_down"
+      }
+    },
+    {
+      "when": {
+        "south": "true",
+        "down": "false",
+        "east": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_down_south_east_south"
+      }
+    },
+    {
+      "when": {
+        "south": "false",
+        "down": "true",
+        "east": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_down_south_east_south"
+      }
+    },
+    {
+      "when": {
+        "east": "true",
+        "down": "false",
+        "south": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/spacer_down_south_east_east"
+      }
+    },
+    {
+      "when": {
+        "east": "false",
+        "down": "true",
+        "south": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/corner_inner_down_south_east_east"
+      }
+    },
+    {
+      "when": {
+        "north": "false",
+        "south": "false",
+        "east": "false",
+        "west": "false",
+        "up": "true",
+        "down": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/support_down_e_s"
+      }
+    },
+    {
+      "when": {
+        "north": "false",
+        "south": "false",
+        "east": "false",
+        "west": "false",
+        "up": "true",
+        "down": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/support_down_w_s"
+      }
+    },
+    {
+      "when": {
+        "north": "false",
+        "south": "false",
+        "east": "false",
+        "west": "false",
+        "up": "true",
+        "down": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/support_down_n_s"
+      }
+    },
+    {
+      "when": {
+        "north": "false",
+        "south": "false",
+        "east": "false",
+        "west": "false",
+        "up": "true",
+        "down": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/support_down_s_s"
+      }
+    },
+    {
+      "when": {
+        "north": "true",
+        "south": "true",
+        "east": "false",
+        "west": "false",
+        "up": "false",
+        "down": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/support_north_e_u"
+      }
+    },
+    {
+      "when": {
+        "north": "true",
+        "south": "true",
+        "east": "false",
+        "west": "false",
+        "up": "false",
+        "down": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/support_north_w_u"
+      }
+    },
+    {
+      "when": {
+        "north": "true",
+        "south": "true",
+        "east": "false",
+        "west": "false",
+        "up": "false",
+        "down": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/support_north_u_s"
+      }
+    },
+    {
+      "when": {
+        "north": "true",
+        "south": "true",
+        "east": "false",
+        "west": "false",
+        "up": "false",
+        "down": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/support_north_d_s"
+      }
+    },
+    {
+      "when": {
+        "north": "false",
+        "south": "false",
+        "east": "true",
+        "west": "true",
+        "up": "false",
+        "down": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/support_west_u_u"
+      }
+    },
+    {
+      "when": {
+        "north": "false",
+        "south": "false",
+        "east": "true",
+        "west": "true",
+        "up": "false",
+        "down": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/support_west_d_u"
+      }
+    },
+    {
+      "when": {
+        "north": "false",
+        "south": "false",
+        "east": "true",
+        "west": "true",
+        "up": "false",
+        "down": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/support_west_n_u"
+      }
+    },
+    {
+      "when": {
+        "north": "false",
+        "south": "false",
+        "east": "true",
+        "west": "true",
+        "up": "false",
+        "down": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/pipe/support_west_s_u"
+      }
+    },
+    {
+      "when": {
+        "north": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/system_destination_pipe_side_north"
+      }
+    },
+    {
+      "when": {
+        "north": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/system_destination_pipe_plate_north"
+      }
+    },
+    {
+      "when": {
+        "south": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/system_destination_pipe_side_south"
+      }
+    },
+    {
+      "when": {
+        "south": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/system_destination_pipe_plate_south"
+      }
+    },
+    {
+      "when": {
+        "east": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/system_destination_pipe_side_east"
+      }
+    },
+    {
+      "when": {
+        "east": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/system_destination_pipe_plate_east"
+      }
+    },
+    {
+      "when": {
+        "west": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/system_destination_pipe_side_west"
+      }
+    },
+    {
+      "when": {
+        "west": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/system_destination_pipe_plate_west"
+      }
+    },
+    {
+      "when": {
+        "up": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/system_destination_pipe_side_up"
+      }
+    },
+    {
+      "when": {
+        "up": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/system_destination_pipe_plate_up"
+      }
+    },
+    {
+      "when": {
+        "down": "true"
+      },
+      "apply": {
+        "model": "logisticspipes:block/system_destination_pipe_side_down"
+      }
+    },
+    {
+      "when": {
+        "down": "false"
+      },
+      "apply": {
+        "model": "logisticspipes:block/system_destination_pipe_plate_down"
+      }
+    }
+  ]
+}

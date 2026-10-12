@@ -39,7 +39,13 @@ public enum PipeKind {
     // keeps the tank next to it stocked by ordering full buckets and emptying them
     FLUID_CONTAINER_SUPPLIER,
     // a request pipe that keeps a disk with macros
-    REQUEST_MK2;
+    REQUEST_MK2,
+    // joins its network to the ones of the other connectors on its channel through the inventory next to it
+    INVENTORY_SYSTEM_CONNECTOR,
+    // sends what comes in without a destination to the destination pipe with the same frequency card
+    SYSTEM_ENTRANCE,
+    // takes what the entrance pipes with its frequency card send
+    SYSTEM_DESTINATION;
 
     // the pipes players order items at
     public boolean requestPipe() {

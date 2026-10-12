@@ -59,6 +59,9 @@ public class SecurityStationScreen extends AbstractContainerScreen<SecurityStati
                 .bounds(leftPos + 8, topPos + 106, 20, 18).build());
         station(Button.builder(Component.literal("+"), button -> press(SecurityStationMenu.BUTTON_ADD_CARD))
                 .bounds(leftPos + 30, topPos + 106, 20, 18).build());
+        station(Button.builder(Component.translatable("logisticspipes.channel.title"),
+                button -> minecraft.gameMode.handleInventoryButtonClick(menu.containerId, SecurityStationMenu.BUTTON_CHANNELS))
+                .bounds(leftPos + 88, topPos + 106, 80, 18).build());
         players(Button.builder(Component.literal("<"), button -> press(SecurityStationMenu.BUTTON_PREVIOUS_PAGE))
                 .bounds(leftPos + 110, topPos + 27, 12, 12).build());
         players(Button.builder(Component.literal(">"), button -> press(SecurityStationMenu.BUTTON_NEXT_PAGE))

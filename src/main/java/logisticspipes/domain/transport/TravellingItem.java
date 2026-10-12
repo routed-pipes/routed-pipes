@@ -128,6 +128,12 @@ public final class TravellingItem {
         mode = TransportMode.SORTED;
     }
 
+    // sent to a pipe that takes it whatever it is, it waits there for room like an ordered item
+    public void orderTo(RouterId router) {
+        destination = Objects.requireNonNull(router);
+        mode = TransportMode.REQUESTED;
+    }
+
     public void clearDestination() {
         destination = null;
         mode = TransportMode.UNCLAIMED;

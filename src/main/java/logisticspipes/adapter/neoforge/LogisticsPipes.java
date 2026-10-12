@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import logisticspipes.adapter.minecraft.ConnectorPipeBlock;
 import logisticspipes.adapter.minecraft.CraftingTableBlock;
 import logisticspipes.adapter.minecraft.CraftingTableBlockEntity;
 import logisticspipes.adapter.minecraft.CraftingTableServices;
@@ -15,6 +16,7 @@ import logisticspipes.adapter.minecraft.DiskContents;
 import logisticspipes.adapter.minecraft.DiskItem;
 import logisticspipes.adapter.minecraft.DiskMenus;
 import logisticspipes.adapter.minecraft.FluidContainerItem;
+import logisticspipes.adapter.minecraft.FrequencyCardItem;
 import logisticspipes.adapter.minecraft.FluidContents;
 import logisticspipes.adapter.minecraft.FluidServices;
 import logisticspipes.adapter.minecraft.LevelNetworks;
@@ -44,10 +46,12 @@ import logisticspipes.adapter.minecraft.StatisticsTableBlock;
 import logisticspipes.adapter.minecraft.StatisticsTableBlockEntity;
 import logisticspipes.adapter.minecraft.StatisticsTableServices;
 import logisticspipes.adapter.minecraft.UpgradeItem;
+import logisticspipes.adapter.minecraft.menu.ChannelMenu;
 import logisticspipes.adapter.minecraft.menu.ChassisMenu;
 import logisticspipes.adapter.minecraft.menu.DiskMenu;
 import logisticspipes.adapter.minecraft.menu.FirewallMenu;
 import logisticspipes.adapter.minecraft.menu.MacroEditMenu;
+import logisticspipes.adapter.minecraft.menu.FrequencyCardMenu;
 import logisticspipes.adapter.minecraft.menu.CraftingTableMenu;
 import logisticspipes.adapter.minecraft.menu.FluidConfigMenu;
 import logisticspipes.adapter.minecraft.menu.FluidRequestMenu;
@@ -174,10 +178,22 @@ public class LogisticsPipes {
                     FeatureFlags.DEFAULT_FLAGS));
     private static final DiskMenus DISK_MENUS = new DiskMenus(DISK_MENU, MACRO_EDIT_MENU);
 
+    // the channels of inventory system connectors, as a connector shows them and as a security station does
+    public static final Supplier<MenuType<ChannelMenu>> CONNECTOR_MENU = MENUS.register("connector",
+            () -> new MenuType<>((id, inventory) -> new ChannelMenu(LogisticsPipes.CONNECTOR_MENU.get(), id, inventory, true),
+                    FeatureFlags.DEFAULT_FLAGS));
+    public static final Supplier<MenuType<ChannelMenu>> CHANNEL_MENU = MENUS.register("channels",
+            () -> new MenuType<>((id, inventory) -> new ChannelMenu(LogisticsPipes.CHANNEL_MENU.get(), id, inventory, false),
+                    FeatureFlags.DEFAULT_FLAGS));
+
+    public static final Supplier<MenuType<FrequencyCardMenu>> FREQUENCY_CARD_MENU = MENUS.register("frequency_card",
+            () -> new MenuType<>((id, inventory) -> new FrequencyCardMenu(LogisticsPipes.FREQUENCY_CARD_MENU.get(), id, inventory),
+                    FeatureFlags.DEFAULT_FLAGS));
+
     private static final PipeServices SERVICES = new PipeServices(() -> LogisticsPipes.PIPE_BLOCK_ENTITY.get(),
             new CapabilityItemStorage(), new LevelNetworks(), REQUEST_MENU, CHASSIS_MENU, UPGRADE_MENU, FIREWALL_MENU,
             REQUEST_TABLE_MENU, CONFIG_MENUS, FLUIDS, DISK_MENUS,
-            new CapabilityEnergyAccess());
+            new CapabilityEnergyAccess(), CONNECTOR_MENU, FREQUENCY_CARD_MENU);
 
     public static final DeferredBlock<LogisticsPipeBlock> TRANSPORT_PIPE = pipe("transport_pipe", null, 0);
     public static final Map<PipeKind, DeferredBlock<LogisticsPipeBlock>> LOGISTICS_PIPES = new EnumMap<>(PipeKind.class);
@@ -205,6 +221,12 @@ public class LogisticsPipes {
         LOGISTICS_PIPES.put(PipeKind.FLUID_SUPPLIER, pipe("fluid_supplier_pipe", PipeKind.FLUID_SUPPLIER, 0));
         LOGISTICS_PIPES.put(PipeKind.FLUID_CONTAINER_SUPPLIER,
                 pipe("fluid_container_supplier_pipe", PipeKind.FLUID_CONTAINER_SUPPLIER, 0));
+        DeferredBlock<LogisticsPipeBlock> connector = BLOCKS.register("inventory_system_connector_pipe",
+                () -> new ConnectorPipeBlock(pipeProperties(), SERVICES));
+        ITEMS.registerSimpleBlockItem(connector);
+        LOGISTICS_PIPES.put(PipeKind.INVENTORY_SYSTEM_CONNECTOR, connector);
+        LOGISTICS_PIPES.put(PipeKind.SYSTEM_ENTRANCE, pipe("system_entrance_pipe", PipeKind.SYSTEM_ENTRANCE, 0));
+        LOGISTICS_PIPES.put(PipeKind.SYSTEM_DESTINATION, pipe("system_destination_pipe", PipeKind.SYSTEM_DESTINATION, 0));
     }
 
     // chassis mk1 to mk5 by number of module slots
@@ -239,6 +261,9 @@ public class LogisticsPipes {
 
     public static final DeferredItem<PipeControllerItem> PIPE_CONTROLLER = ITEMS.register("pipe_controller",
             () -> new PipeControllerItem(new Item.Properties()));
+
+    public static final DeferredItem<FrequencyCardItem> FREQUENCY_CARD = ITEMS.register("frequency_card",
+            () -> new FrequencyCardItem(new Item.Properties()));
 
     public static final DeferredItem<RemoteOrdererItem> REMOTE_ORDERER = ITEMS.register("remote_orderer",
             () -> new RemoteOrdererItem(new Item.Properties()));
@@ -329,7 +354,7 @@ public class LogisticsPipes {
     public static final DeferredBlock<SecurityStationBlock> SECURITY_STATION = BLOCKS.register("security_station",
             () -> new SecurityStationBlock(BlockBehaviour.Properties.of().strength(2.5f).sound(SoundType.METAL),
                     new SecurityStationServices(() -> LogisticsPipes.SECURITY_STATION_BLOCK_ENTITY.get(), SECURITY_STATION_MENU,
-                            SECURITY_CARD)));
+                            SECURITY_CARD, CHANNEL_MENU)));
     public static final Supplier<BlockEntityType<SecurityStationBlockEntity>> SECURITY_STATION_BLOCK_ENTITY =
             BLOCK_ENTITIES.register("security_station", () -> BlockEntityType.Builder
                     .of((pos, state) -> new SecurityStationBlockEntity(LogisticsPipes.SECURITY_STATION_BLOCK_ENTITY.get(), pos, state),
@@ -388,6 +413,10 @@ public class LogisticsPipes {
                 BlockBehaviour.Properties.of().strength(0.5f).sound(SoundType.GLASS).noOcclusion(), kind, moduleSlots, SERVICES));
         ITEMS.registerSimpleBlockItem(block);
         return block;
+    }
+
+    private static BlockBehaviour.Properties pipeProperties() {
+        return BlockBehaviour.Properties.of().strength(0.5f).sound(SoundType.GLASS).noOcclusion();
     }
 
     private static BlockBehaviour.Properties tubeProperties() {

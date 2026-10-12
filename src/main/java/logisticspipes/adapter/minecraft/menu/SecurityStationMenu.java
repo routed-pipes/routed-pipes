@@ -40,6 +40,8 @@ public class SecurityStationMenu extends AbstractContainerMenu implements TextMe
     public static final int BUTTON_NEXT_PAGE = 7;
     // plus the number of the permission, switches it for the selected player
     public static final int BUTTON_PERMISSION = 8;
+    // opens the channels of the world
+    public static final int BUTTON_CHANNELS = 100;
     public static final int TEXT_ADD_PLAYER = 0;
     public static final int PLAYERS_PER_PAGE = 9;
     public static final int CARD_SLOT = 0;
@@ -231,6 +233,12 @@ public class SecurityStationMenu extends AbstractContainerMenu implements TextMe
     public boolean clickMenuButton(Player player, int button) {
         if (button >= 0 && button < Tab.values().length) {
             data.set(DATA_TAB, button);
+            return true;
+        }
+        if (button == BUTTON_CHANNELS) {
+            if (station != null) {
+                player.openMenu(station.channelMenuProvider());
+            }
             return true;
         }
         if (button < BUTTON_AUTHORIZED || button >= BUTTON_PERMISSION + Permission.values().length) {

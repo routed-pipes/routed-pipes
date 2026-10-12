@@ -55,7 +55,8 @@ for bits in itertools.product(['true','false'],repeat=6):
     state=dict(zip(SIDES,bits))
     byplane={}
     for w,n,F in parts:
-        if all(state[k]==v for k,v in w.items()):
+        # other properties only swap textures, their first value stands for all
+        if all(state.setdefault(k, v)==v for k,v in w.items()):
             for f in F:
                 pl=plane(f)
                 if pl: byplane.setdefault(pl,[]).append((n,f))

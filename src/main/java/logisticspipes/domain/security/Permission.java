@@ -11,5 +11,7 @@ public enum Permission {
     // look at a pipe with the pipe controller
     CHECK_NETWORK,
     // break a pipe
-    REMOVE_PIPES
+    REMOVE_PIPES,
+    // use the channels this station secures, has nothing to do with locked pipes
+    ACCESS_ROUTING_CHANNELS
 }

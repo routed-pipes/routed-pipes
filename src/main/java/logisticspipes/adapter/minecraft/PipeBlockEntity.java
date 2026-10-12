@@ -14,6 +14,7 @@ import java.util.UUID;
 
 import logisticspipes.adapter.minecraft.menu.ChassisMenu;
 import logisticspipes.adapter.minecraft.menu.FirewallMenu;
+import logisticspipes.adapter.minecraft.menu.FrequencyCardMenu;
 import logisticspipes.adapter.minecraft.menu.PipeConfigMenu;
 import logisticspipes.adapter.minecraft.menu.RequestTableMenu;
 import logisticspipes.adapter.minecraft.menu.UpgradeMenu;
@@ -165,6 +166,10 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     private RequestTable table;
     // only pipes that take a disk have this
     private DiskDrive drive;
+    // only an inventory system connector has these
+    private SystemConnector connector;
+    // only system entrance and destination pipes have this
+    private FrequencySlot frequency;
     private boolean announced;
     private LogisticsNetwork network;
     private Map<ItemType, Integer> contentsCache;
@@ -195,6 +200,12 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         }
         if (kind() == PipeKind.REQUEST_MK2 || kind() == PipeKind.REQUEST_TABLE) {
             drive = new DiskDrive(this);
+        }
+        if (kind() == PipeKind.INVENTORY_SYSTEM_CONNECTOR) {
+            connector = new SystemConnector(this);
+        }
+        if (kind() == PipeKind.SYSTEM_ENTRANCE || kind() == PipeKind.SYSTEM_DESTINATION) {
+            frequency = new FrequencySlot(this::setChanged);
         }
         // a crafter that cleans up keeps what is on its list unless told otherwise
         exclude = kind() == PipeKind.CRAFTING;
@@ -427,7 +438,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     }
 
     // the face of an inventory this pipe uses when the inventory is on the given side of the pipe
-    private Direction accessFace(Direction side) {
+    Direction accessFace(Direction side) {
         for (int slot = 0; slot < UPGRADE_SLOTS; slot++) {
             ItemStack stack = upgrades.getItem(slot);
             if (stack.getItem() instanceof UpgradeItem upgrade && upgrade.kind() == UpgradeKind.SNEAKY) {
@@ -681,6 +692,13 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
                     user -> Container.stillValidBlockEntity(this, user),
                     actions), title);
         }
+        if (connector != null) {
+            return connector.menuProvider();
+        }
+        if (frequency != null) {
+            return new SimpleMenuProvider((id, inventory, player) -> new FrequencyCardMenu(services.frequencyCardMenu().get(), id,
+                    inventory, frequency.card(), user -> Container.stillValidBlockEntity(this, user)), title);
+        }
         if (kind() == PipeKind.FIREWALL) {
             return new SimpleMenuProvider((id, inventory, player) -> new FirewallMenu(services.firewallMenu().get(), id, inventory,
                     firewall.list(), firewall.data(), user -> Container.stillValidBlockEntity(this, user)), title);
@@ -751,6 +769,19 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
 
     public FirewallSettings firewallSettings() {
         return firewall;
+    }
+
+    public SystemConnector connector() {
+        return connector;
+    }
+
+    public FrequencySlot frequencySlot() {
+        return frequency;
+    }
+
+    @Override
+    public Optional<UUID> frequency() {
+        return frequency == null ? Optional.empty() : frequency.frequency();
     }
 
     @Override
@@ -892,6 +923,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         if (table != null) {
             table.tick();
         }
+        if (connector != null) {
+            connector.tick();
+        }
         if (needsUpkeep()) {
             network().tick(routerId, level.getGameTime());
         }
@@ -967,6 +1001,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             level.sendBlockUpdated(target, neighbour.getBlockState(), neighbour.getBlockState(), Block.UPDATE_CLIENTS);
             return;
         }
+        if (connector != null && connector.handsOver(item, side)) {
+            return;
+        }
         ItemStack rest = storage().exists(level, target, accessFace(side))
                 ? storage().insert(level, target, accessFace(side), stack, false)
                 : stack;
@@ -998,7 +1035,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     }
 
     // sides that touch an inventory
-    private List<Direction> inventorySides() {
+    List<Direction> inventorySides() {
         if (inventorySidesCache == null || surroundingsStale()) {
             lookAround();
         }
@@ -1233,6 +1270,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         if (drive != null) {
             Containers.dropContents(level, worldPosition, drive.slot());
         }
+        if (frequency != null) {
+            Containers.dropContents(level, worldPosition, frequency.card());
+        }
         for (TravellingItem item : transport.clear()) {
             if (!FluidPipe.spilled(this, item)) {
                 Block.popResource(level, worldPosition, McItemType.stackOf(item.batch()));
@@ -1280,6 +1320,12 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         }
         if (drive != null) {
             tag.put("Disk", ContainerTags.save(drive.slot(), registries));
+        }
+        if (connector != null) {
+            tag.put("Connector", connector.save(registries));
+        }
+        if (frequency != null) {
+            tag.put("Frequency", frequency.save(registries));
         }
         tag.putBoolean("Exclude", exclude);
         if (pointed != null) {
@@ -1333,6 +1379,12 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         }
         if (drive != null && tag.contains("Disk")) {
             ContainerTags.load(drive.slot(), tag.getCompound("Disk"), registries);
+        }
+        if (frequency != null && tag.contains("Frequency")) {
+            frequency.load(tag.getCompound("Frequency"), registries);
+        }
+        if (connector != null && tag.contains("Connector")) {
+            connector.load(tag.getCompound("Connector"), registries);
         }
         if (firewall != null && tag.contains("Firewall")) {
             firewall.load(tag.getCompound("Firewall"), registries);
