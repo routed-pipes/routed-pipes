@@ -37,7 +37,14 @@ public enum PipeKind {
     // keeps the tank next to it stocked with a fluid
     FLUID_SUPPLIER,
     // keeps the tank next to it stocked by ordering full buckets and emptying them
-    FLUID_CONTAINER_SUPPLIER;
+    FLUID_CONTAINER_SUPPLIER,
+    // a request pipe that keeps a disk with macros
+    REQUEST_MK2;
+
+    // the pipes players order items at
+    public boolean requestPipe() {
+        return this == REQUEST || this == REQUEST_MK2;
+    }
 
     // fluid pipes have tanks of their own and work on the tanks next to them
     public boolean fluid() {

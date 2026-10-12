@@ -91,6 +91,16 @@ public class LogisticsPipeBlock extends Block implements EntityBlock {
             }
             return ItemInteractionResult.sidedSuccess(level.isClientSide);
         }
+        if (kind != null && stack.getItem() instanceof DiskItem) {
+            // a disk goes into a pipe that has room for one, otherwise the pipe opens as usual
+            // only the server knows which, the client asks it either way
+            if (!level.isClientSide && level.getBlockEntity(pos) instanceof PipeBlockEntity pipe && pipe.diskDrive() != null
+                    && pipe.security().allows(player, openPermission())
+                    && pipe.diskDrive().insert(player.hasInfiniteMaterials() ? stack.copy() : stack)) {
+                return ItemInteractionResult.SUCCESS;
+            }
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        }
         if (kind == null || !(stack.getItem() instanceof UpgradeItem upgrade)) {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
@@ -125,11 +135,14 @@ public class LogisticsPipeBlock extends Block implements EntityBlock {
         }
         // some fluid pipes have nothing to set up
         if (!level.isClientSide && level.getBlockEntity(pos) instanceof PipeBlockEntity pipe && pipe.menuProvider() != null
-                && pipe.security().allows(player,
-                kind == PipeKind.REQUEST ? Permission.ACTIVE_REQUESTING : Permission.CONFIGURE_SETTINGS)) {
+                && pipe.security().allows(player, openPermission())) {
             player.openMenu(pipe.menuProvider());
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
+    }
+
+    private Permission openPermission() {
+        return kind.requestPipe() ? Permission.ACTIVE_REQUESTING : Permission.CONFIGURE_SETTINGS;
     }
 
     @Override

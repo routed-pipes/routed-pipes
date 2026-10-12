@@ -162,6 +162,8 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     private FirewallSettings firewall;
     // only a request table has these
     private RequestTable table;
+    // only pipes that take a disk have this
+    private DiskDrive drive;
     private boolean announced;
     private LogisticsNetwork network;
     private Map<ItemType, Integer> contentsCache;
@@ -188,6 +190,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         }
         if (kind() == PipeKind.REQUEST_TABLE) {
             table = new RequestTable(this);
+        }
+        if (kind() == PipeKind.REQUEST_MK2 || kind() == PipeKind.REQUEST_TABLE) {
+            drive = new DiskDrive(this);
         }
         // a crafter that cleans up keeps what is on its list unless told otherwise
         exclude = kind() == PipeKind.CRAFTING;
@@ -266,6 +271,10 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
 
     private LogisticsPipeBlock pipe() {
         return (LogisticsPipeBlock) getBlockState().getBlock();
+    }
+
+    PipeServices services() {
+        return pipe().services();
     }
 
     LogisticsNetwork network() {
@@ -591,6 +600,16 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         return network().requestShortfall(routerId, needed, have, level.getGameTime(), simulate);
     }
 
+    // several items in one go, all of them or nothing
+    public RequestOutcome requestList(List<ItemBatch> wanted) {
+        return network().requestList(routerId, wanted, level.getGameTime());
+    }
+
+    // null unless this pipe takes a disk
+    public DiskDrive diskDrive() {
+        return drive;
+    }
+
     // remote means the player does not have to stand next to the pipe
     public void openRequestScreen(Player player, boolean remote) {
         player.openMenu(requestScreen(remote));
@@ -598,7 +617,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
 
     private MenuProvider requestScreen(boolean remote) {
         return new SimpleMenuProvider((id, inventory, player) -> new RequestMenu(pipe().services().requestMenu().get(), id,
-                this, user -> !isRemoved() && (remote || Container.stillValidBlockEntity(this, user))),
+                this, user -> !isRemoved() && (remote || Container.stillValidBlockEntity(this, user)),
+                // the disk is only at hand when standing at the pipe
+                remote || kind() != PipeKind.REQUEST_MK2 ? null : drive),
                 getBlockState().getBlock().getName());
     }
 
@@ -608,7 +629,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         if (fluids != null) {
             return fluids.menuProvider();
         }
-        if (kind() == PipeKind.REQUEST) {
+        if (kind().requestPipe()) {
             return requestScreen(false);
         }
         if (kind() == PipeKind.REQUEST_TABLE) {
@@ -632,9 +653,17 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
                 public void openList(Player player) {
                     openRequestScreen(player, false);
                 }
+
+                @Override
+                public void openDisk(Player player) {
+                    if (drive.holdsDisk()) {
+                        drive.open(player);
+                    }
+                }
             };
             return new SimpleMenuProvider((id, inventory, player) -> new RequestTableMenu(services.requestTableMenu().get(), id,
-                    inventory, table.grid(), table.buffer(), table.sort(), user -> Container.stillValidBlockEntity(this, user),
+                    inventory, table.grid(), table.buffer(), table.sort(), drive.slot(),
+                    user -> Container.stillValidBlockEntity(this, user),
                     actions), title);
         }
         if (kind() == PipeKind.FIREWALL) {
@@ -691,7 +720,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         return true;
     }
 
-    private void tellWhatIsMissing(Player player, RequestOutcome outcome) {
+    void tellWhatIsMissing(Player player, RequestOutcome outcome) {
         if (outcome.started()) {
             return;
         }
@@ -1182,6 +1211,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         if (table != null) {
             table.drops().forEach(stack -> Block.popResource(level, worldPosition, stack));
         }
+        if (drive != null) {
+            Containers.dropContents(level, worldPosition, drive.slot());
+        }
         for (TravellingItem item : transport.clear()) {
             if (!FluidPipe.spilled(this, item)) {
                 Block.popResource(level, worldPosition, McItemType.stackOf(item.batch()));
@@ -1226,6 +1258,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         }
         if (table != null) {
             tag.put("Table", table.save(registries));
+        }
+        if (drive != null) {
+            tag.put("Disk", ContainerTags.save(drive.slot(), registries));
         }
         tag.putBoolean("Exclude", exclude);
         if (pointed != null) {
@@ -1273,6 +1308,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         }
         if (table != null && tag.contains("Table")) {
             table.load(tag.getCompound("Table"), registries);
+        }
+        if (drive != null && tag.contains("Disk")) {
+            ContainerTags.load(drive.slot(), tag.getCompound("Disk"), registries);
         }
         if (firewall != null && tag.contains("Firewall")) {
             firewall.load(tag.getCompound("Firewall"), registries);

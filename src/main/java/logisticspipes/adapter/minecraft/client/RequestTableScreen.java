@@ -13,6 +13,8 @@ public class RequestTableScreen extends AbstractContainerScreen<RequestTableMenu
 
     private static final int TEXT = 0x404040;
 
+    private Button disk;
+
     public RequestTableScreen(RequestTableMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
         imageHeight = 228;
@@ -37,6 +39,17 @@ public class RequestTableScreen extends AbstractContainerScreen<RequestTableMenu
         addRenderableWidget(Button.builder(Component.translatable("logisticspipes.gui.request_table.list"),
                 pressed -> minecraft.gameMode.handleInventoryButtonClick(menu.containerId, RequestTableMenu.BUTTON_LIST))
                 .bounds(leftPos + 142, topPos + 50, 28, 14).build());
+        // the macros on the disk in the slot beside it
+        disk = addRenderableWidget(Button.builder(Component.translatable("logisticspipes.gui.disk"),
+                pressed -> minecraft.gameMode.handleInventoryButtonClick(menu.containerId, RequestTableMenu.BUTTON_DISK))
+                .bounds(leftPos + 62, topPos + 57, 28, 14).build());
+        disk.active = menu.holdsDisk();
+    }
+
+    @Override
+    protected void containerTick() {
+        super.containerTick();
+        disk.active = menu.holdsDisk();
     }
 
     @Override

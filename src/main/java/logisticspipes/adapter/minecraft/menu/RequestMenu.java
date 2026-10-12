@@ -7,6 +7,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.function.Predicate;
 
+import logisticspipes.adapter.minecraft.DiskDrive;
 import logisticspipes.adapter.minecraft.McItemType;
 import logisticspipes.adapter.minecraft.PipeBlockEntity;
 import logisticspipes.domain.item.ItemBatch;
@@ -40,6 +41,9 @@ public class RequestMenu extends AbstractContainerMenu implements TextMenu {
     public static final int BUTTON_REQUEST = 6;
     public static final int BUTTON_PREVIOUS_PAGE = 7;
     public static final int BUTTON_NEXT_PAGE = 8;
+    public static final int BUTTON_DISK = 9;
+    // shows the disk of a pipe that takes one, a click on it throws the disk out
+    public static final int DISK_SLOT = PAGE_SIZE;
     public static final int MAX_AMOUNT = 9999;
     public static final int TEXT_SEARCH = 0;
     // listed stacks carry their network wide amount in here, the stack count is always 1
@@ -50,10 +54,13 @@ public class RequestMenu extends AbstractContainerMenu implements TextMenu {
     private static final int DATA_AMOUNT = 1;
     private static final int DATA_PAGE = 2;
     private static final int DATA_PAGES = 3;
+    private static final int DATA_TAKES_DISK = 4;
 
     private final Container listing = new SimpleContainer(PAGE_SIZE);
-    private final ContainerData data = new SimpleContainerData(4);
+    private final ContainerData data = new SimpleContainerData(5);
     private final PipeBlockEntity pipe;
+    // null unless the pipe takes a disk
+    private final DiskDrive drive;
     private final Predicate<Player> usable;
     private List<ItemType> listed = List.of();
     private ItemType selected;
@@ -66,15 +73,22 @@ public class RequestMenu extends AbstractContainerMenu implements TextMenu {
     }
 
     public RequestMenu(MenuType<?> type, int id, PipeBlockEntity pipe, Predicate<Player> usable) {
+        this(type, id, pipe, usable, null);
+    }
+
+    public RequestMenu(MenuType<?> type, int id, PipeBlockEntity pipe, Predicate<Player> usable, DiskDrive drive) {
         super(type, id);
         this.pipe = pipe;
         this.usable = usable;
+        this.drive = drive;
         for (int slot = 0; slot < PAGE_SIZE; slot++) {
             addSlot(new MarkerSlot(listing, slot, 8 + slot % COLUMNS * 18, 18 + slot / COLUMNS * 18));
         }
+        addSlot(new MarkerSlot(drive == null ? new SimpleContainer(1) : drive.slot(), 0, 152, 162, this::takesDisk));
         data.set(DATA_SELECTED, -1);
         data.set(DATA_AMOUNT, 1);
         data.set(DATA_PAGES, 1);
+        data.set(DATA_TAKES_DISK, drive == null ? 0 : 1);
         addDataSlots(data);
         if (pipe != null) {
             refresh();
@@ -95,6 +109,19 @@ public class RequestMenu extends AbstractContainerMenu implements TextMenu {
 
     public int pages() {
         return data.get(DATA_PAGES);
+    }
+
+    public boolean takesDisk() {
+        return data.get(DATA_TAKES_DISK) != 0;
+    }
+
+    public boolean holdsDisk() {
+        return takesDisk() && slots.get(DISK_SLOT).hasItem();
+    }
+
+    // null if nothing is selected
+    protected ItemType selected() {
+        return selected;
     }
 
     public static int listedCount(ItemStack stack) {
@@ -163,6 +190,12 @@ public class RequestMenu extends AbstractContainerMenu implements TextMenu {
     // clicking a listed item selects it, nothing is ever picked up
     @Override
     public void clicked(int slotId, int button, ClickType clickType, Player player) {
+        if (slotId == DISK_SLOT) {
+            if (drive != null && clickType == ClickType.PICKUP) {
+                drive.eject();
+            }
+            return;
+        }
         if (slotId < 0 || slotId >= PAGE_SIZE) {
             super.clicked(slotId, button, clickType, player);
             return;
@@ -185,13 +218,15 @@ public class RequestMenu extends AbstractContainerMenu implements TextMenu {
         } else if (id == BUTTON_PREVIOUS_PAGE || id == BUTTON_NEXT_PAGE) {
             data.set(DATA_PAGE, data.get(DATA_PAGE) + (id == BUTTON_NEXT_PAGE ? 1 : -1));
             refresh();
+        } else if (id == BUTTON_DISK && drive != null && drive.holdsDisk()) {
+            drive.open(player);
         } else {
             return false;
         }
         return true;
     }
 
-    private void request(Player player) {
+    protected void request(Player player) {
         if (selected == null) {
             return;
         }

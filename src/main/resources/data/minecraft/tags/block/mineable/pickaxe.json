@@ -4,6 +4,7 @@
     "logisticspipes:basic_logistics_pipe",
     "logisticspipes:provider_pipe",
     "logisticspipes:request_pipe",
+    "logisticspipes:request_pipe_mk2",
     "logisticspipes:supplier_pipe",
     "logisticspipes:crafting_pipe",
     "logisticspipes:satellite_pipe",

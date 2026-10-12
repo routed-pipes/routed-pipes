@@ -24,7 +24,8 @@ public record PipeServices(
         Supplier<MenuType<FirewallMenu>> firewallMenu,
         Supplier<MenuType<RequestTableMenu>> requestTableMenu,
         Map<PipeKind, Supplier<MenuType<PipeConfigMenu>>> configMenus,
-        FluidServices fluids) {
+        FluidServices fluids,
+        DiskMenus diskMenus) {
 
     public boolean hasSettings(PipeKind kind) {
         return configMenus.containsKey(kind);

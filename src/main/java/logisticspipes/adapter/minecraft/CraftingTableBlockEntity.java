@@ -125,7 +125,7 @@ public class CraftingTableBlockEntity extends BlockEntity {
         for (Direction side : Direction.values()) {
             BlockPos target = worldPosition.relative(side);
             if (level.isLoaded(target) && level.getBlockEntity(target) instanceof PipeBlockEntity pipe
-                    && (pipe.kind() == PipeKind.CRAFTING || pipe.kind() == PipeKind.REQUEST)
+                    && (pipe.kind() == PipeKind.CRAFTING || pipe.kind().requestPipe())
                     && pipe.inventories().containsValue(self)) {
                 return Optional.of(pipe);
             }

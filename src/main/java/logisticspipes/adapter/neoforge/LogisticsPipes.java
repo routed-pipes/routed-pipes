@@ -11,6 +11,9 @@ import java.util.stream.Stream;
 import logisticspipes.adapter.minecraft.CraftingTableBlock;
 import logisticspipes.adapter.minecraft.CraftingTableBlockEntity;
 import logisticspipes.adapter.minecraft.CraftingTableServices;
+import logisticspipes.adapter.minecraft.DiskContents;
+import logisticspipes.adapter.minecraft.DiskItem;
+import logisticspipes.adapter.minecraft.DiskMenus;
 import logisticspipes.adapter.minecraft.FluidContainerItem;
 import logisticspipes.adapter.minecraft.FluidContents;
 import logisticspipes.adapter.minecraft.FluidServices;
@@ -40,7 +43,9 @@ import logisticspipes.adapter.minecraft.StatisticsTableBlockEntity;
 import logisticspipes.adapter.minecraft.StatisticsTableServices;
 import logisticspipes.adapter.minecraft.UpgradeItem;
 import logisticspipes.adapter.minecraft.menu.ChassisMenu;
+import logisticspipes.adapter.minecraft.menu.DiskMenu;
 import logisticspipes.adapter.minecraft.menu.FirewallMenu;
+import logisticspipes.adapter.minecraft.menu.MacroEditMenu;
 import logisticspipes.adapter.minecraft.menu.CraftingTableMenu;
 import logisticspipes.adapter.minecraft.menu.FluidConfigMenu;
 import logisticspipes.adapter.minecraft.menu.FluidRequestMenu;
@@ -158,9 +163,17 @@ public class LogisticsPipes {
     private static final FluidServices FLUIDS = new FluidServices(new CapabilityFluidStorage(), FLUID_CONFIG_MENUS,
             FLUID_REQUEST_MENU);
 
+    public static final Supplier<MenuType<DiskMenu>> DISK_MENU = MENUS.register("disk",
+            () -> new MenuType<>((id, inventory) -> new DiskMenu(LogisticsPipes.DISK_MENU.get(), id),
+                    FeatureFlags.DEFAULT_FLAGS));
+    public static final Supplier<MenuType<MacroEditMenu>> MACRO_EDIT_MENU = MENUS.register("macro_edit",
+            () -> new MenuType<>((id, inventory) -> new MacroEditMenu(LogisticsPipes.MACRO_EDIT_MENU.get(), id),
+                    FeatureFlags.DEFAULT_FLAGS));
+    private static final DiskMenus DISK_MENUS = new DiskMenus(DISK_MENU, MACRO_EDIT_MENU);
+
     private static final PipeServices SERVICES = new PipeServices(() -> LogisticsPipes.PIPE_BLOCK_ENTITY.get(),
             new CapabilityItemStorage(), new LevelNetworks(), REQUEST_MENU, CHASSIS_MENU, UPGRADE_MENU, FIREWALL_MENU,
-            REQUEST_TABLE_MENU, CONFIG_MENUS, FLUIDS);
+            REQUEST_TABLE_MENU, CONFIG_MENUS, FLUIDS, DISK_MENUS);
 
     public static final DeferredBlock<LogisticsPipeBlock> TRANSPORT_PIPE = pipe("transport_pipe", null, 0);
     public static final Map<PipeKind, DeferredBlock<LogisticsPipeBlock>> LOGISTICS_PIPES = new EnumMap<>(PipeKind.class);
@@ -169,6 +182,7 @@ public class LogisticsPipes {
         LOGISTICS_PIPES.put(PipeKind.BASIC, pipe("basic_logistics_pipe", PipeKind.BASIC, 0));
         LOGISTICS_PIPES.put(PipeKind.PROVIDER, pipe("provider_pipe", PipeKind.PROVIDER, 0));
         LOGISTICS_PIPES.put(PipeKind.REQUEST, pipe("request_pipe", PipeKind.REQUEST, 0));
+        LOGISTICS_PIPES.put(PipeKind.REQUEST_MK2, pipe("request_pipe_mk2", PipeKind.REQUEST_MK2, 0));
         LOGISTICS_PIPES.put(PipeKind.SUPPLIER, pipe("supplier_pipe", PipeKind.SUPPLIER, 0));
         LOGISTICS_PIPES.put(PipeKind.CRAFTING, pipe("crafting_pipe", PipeKind.CRAFTING, 0));
         LOGISTICS_PIPES.put(PipeKind.SATELLITE, pipe("satellite_pipe", PipeKind.SATELLITE, 0));
@@ -231,6 +245,13 @@ public class LogisticsPipes {
     // never in a player's hands, so it is in no creative tab and has no recipe
     public static final DeferredItem<FluidContainerItem> FLUID_CONTAINER = ITEMS.register("fluid_container",
             () -> new FluidContainerItem(new Item.Properties(), FLUIDS.storage()));
+
+    public static final DeferredItem<DiskItem> DISK = ITEMS.register("disk",
+            () -> new DiskItem(new Item.Properties().stacksTo(1)));
+
+    static {
+        DATA_COMPONENTS.register("disk", () -> DiskContents.TYPE);
+    }
 
     static {
         DATA_COMPONENTS.register("fluid", () -> FluidContents.TYPE);

@@ -11,7 +11,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import org.lwjgl.glfw.GLFW;
 
-public class RequestScreen extends AbstractContainerScreen<RequestMenu> {
+public class RequestScreen<M extends RequestMenu> extends AbstractContainerScreen<M> {
 
     private static final int TEXT = 0x404040;
     private static final int SELECTION = 0xFF55CC55;
@@ -19,8 +19,10 @@ public class RequestScreen extends AbstractContainerScreen<RequestMenu> {
     private static final int[] STEP_WIDTH = {22, 22, 18, 18, 22, 26};
 
     private EditBox search;
+    private Button request;
+    private Button disk;
 
-    public RequestScreen(RequestMenu menu, Inventory inventory, Component title) {
+    public RequestScreen(M menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
         imageHeight = 186;
     }
@@ -45,21 +47,41 @@ public class RequestScreen extends AbstractContainerScreen<RequestMenu> {
             addRenderableWidget(Button.builder(Component.literal(amount > 0 ? "+" + amount : Integer.toString(amount)),
                     button -> press(id)).bounds(leftPos + STEP_X[step], topPos + 142, STEP_WIDTH[step], 16).build());
         }
-        addRenderableWidget(Button.builder(Component.translatable("logisticspipes.gui.request"),
+        request = addRenderableWidget(Button.builder(requestLabel(),
                 button -> press(RequestMenu.BUTTON_REQUEST)).bounds(leftPos + 8, topPos + 162, 160, 16).build());
+        disk = addRenderableWidget(Button.builder(Component.translatable("logisticspipes.gui.disk"),
+                button -> press(RequestMenu.BUTTON_DISK)).bounds(leftPos + 112, topPos + 162, 36, 16).build());
+        makeRoomForDisk();
     }
 
-    // typing in the search must not trigger hotkeys like closing the screen with the inventory key
+    protected Component requestLabel() {
+        return Component.translatable("logisticspipes.gui.request");
+    }
+
+    // a pipe that takes a disk shows it in the corner, with a button for what is on it
+    private void makeRoomForDisk() {
+        request.setWidth(menu.takesDisk() ? 100 : 160);
+        disk.visible = menu.takesDisk();
+        disk.active = menu.holdsDisk();
+    }
+
+    @Override
+    protected void containerTick() {
+        super.containerTick();
+        makeRoomForDisk();
+    }
+
+    // typing in a text field must not trigger hotkeys like closing the screen with the inventory key
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (search.isFocused() && keyCode != GLFW.GLFW_KEY_ESCAPE) {
-            search.keyPressed(keyCode, scanCode, modifiers);
+        if (getFocused() instanceof EditBox box && box.isFocused() && keyCode != GLFW.GLFW_KEY_ESCAPE) {
+            box.keyPressed(keyCode, scanCode, modifiers);
             return true;
         }
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
-    private void press(int button) {
+    protected void press(int button) {
         minecraft.gameMode.handleInventoryButtonClick(menu.containerId, button);
     }
 
@@ -67,18 +89,18 @@ public class RequestScreen extends AbstractContainerScreen<RequestMenu> {
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         super.render(graphics, mouseX, mouseY, partialTick);
         for (Slot slot : menu.slots) {
-            if (slot.hasItem()) {
-                drawCount(graphics, slot);
+            if (slot.index < RequestMenu.PAGE_SIZE && slot.hasItem()) {
+                drawCount(graphics, leftPos + slot.x, topPos + slot.y, RequestMenu.listedCount(slot.getItem()));
             }
         }
         renderTooltip(graphics, mouseX, mouseY);
     }
 
     // small text in the slot corner, the real stack count is always 1
-    private void drawCount(GuiGraphics graphics, Slot slot) {
-        String text = format(RequestMenu.listedCount(slot.getItem()));
+    protected void drawCount(GuiGraphics graphics, int x, int y, int count) {
+        String text = format(count);
         graphics.pose().pushPose();
-        graphics.pose().translate(leftPos + slot.x + 16 - font.width(text) * 0.5f, topPos + slot.y + 11, 300);
+        graphics.pose().translate(x + 16 - font.width(text) * 0.5f, y + 11, 300);
         graphics.pose().scale(0.5f, 0.5f, 1);
         graphics.drawString(font, text, 0, 0, 0xFFFFFF, true);
         graphics.pose().popPose();

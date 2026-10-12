@@ -501,6 +501,11 @@ public final class LogisticsNetwork {
         return request(requester, wanted, now, 0, false, simulate);
     }
 
+    // orders several items in one go, all of them or nothing
+    public RequestOutcome requestList(RouterId requester, List<ItemBatch> wanted, long now) {
+        return request(requester, wanted, now, 0, false, false);
+    }
+
     private RequestOutcome request(RouterId requester, ItemBatch wanted, long now, int extraEnergy, boolean partial) {
         return request(requester, List.of(wanted), now, extraEnergy, partial, false);
     }

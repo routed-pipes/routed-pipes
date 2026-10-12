@@ -51,7 +51,7 @@ public class RemoteOrdererItem extends Item {
     public InteractionResult useOn(UseOnContext context) {
         Level level = context.getLevel();
         BlockPos pos = context.getClickedPos();
-        if (!(level.getBlockEntity(pos) instanceof PipeBlockEntity pipe) || pipe.kind() != PipeKind.REQUEST) {
+        if (!(level.getBlockEntity(pos) instanceof PipeBlockEntity pipe) || !pipe.kind().requestPipe()) {
             return InteractionResult.PASS;
         }
         if (!level.isClientSide && (context.getPlayer() == null
@@ -90,7 +90,7 @@ public class RemoteOrdererItem extends Item {
         } else if (!link.get().dimension().equals(level.dimension().location().toString())) {
             player.displayClientMessage(Component.translatable("logisticspipes.remote_orderer.other_dimension"), true);
         } else if (level.isLoaded(link.get().pos()) && level.getBlockEntity(link.get().pos()) instanceof PipeBlockEntity pipe
-                && pipe.kind() == PipeKind.REQUEST) {
+                && pipe.kind().requestPipe()) {
             if (pipe.security().allows(player, Permission.ACTIVE_REQUESTING)) {
                 pipe.openRequestScreen(player, true);
             }

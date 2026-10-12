@@ -25,6 +25,8 @@ public class RequestTableMenu extends AbstractContainerMenu implements MarkerMen
         void order(Player player, int crafts, boolean missingOnly);
 
         void openList(Player player);
+
+        void openDisk(Player player);
     }
 
     public static final int BUTTON_CLEAR = 0;
@@ -33,9 +35,12 @@ public class RequestTableMenu extends AbstractContainerMenu implements MarkerMen
     public static final int BUTTON_ORDER_TEN = 3;
     public static final int BUTTON_ORDER_STACK = 4;
     public static final int BUTTON_LIST = 5;
+    public static final int BUTTON_DISK = 6;
     public static final int RESULT_SLOT = RequestTable.GRID_SLOTS;
     private static final int FIRST_BUFFER_SLOT = RESULT_SLOT + 1;
     private static final int FIRST_PLAYER_SLOT = FIRST_BUFFER_SLOT + RequestTable.BUFFER_SLOTS + 1;
+    // added last so that the slots before it keep their numbers
+    public static final int DISK_SLOT = FIRST_PLAYER_SLOT + 36;
 
     private final Container preview = new SimpleContainer(1);
     private final Predicate<Player> usable;
@@ -44,11 +49,11 @@ public class RequestTableMenu extends AbstractContainerMenu implements MarkerMen
     // client side
     public RequestTableMenu(MenuType<?> type, int id, Inventory inventory) {
         this(type, id, inventory, new SimpleContainer(RequestTable.GRID_SLOTS), new SimpleContainer(RequestTable.BUFFER_SLOTS),
-                new SimpleContainer(1), player -> true, null);
+                new SimpleContainer(1), new SimpleContainer(1), player -> true, null);
     }
 
     public RequestTableMenu(MenuType<?> type, int id, Inventory inventory, Container grid, Container buffer, Container sort,
-            Predicate<Player> usable, Actions actions) {
+            Container disk, Predicate<Player> usable, Actions actions) {
         super(type, id);
         this.usable = usable;
         this.actions = actions;
@@ -68,6 +73,11 @@ public class RequestTableMenu extends AbstractContainerMenu implements MarkerMen
         for (int column = 0; column < 9; column++) {
             addSlot(new Slot(inventory, column, 8 + column * 18, 204));
         }
+        addSlot(new DiskSlot(disk, 0, 92, 56));
+    }
+
+    public boolean holdsDisk() {
+        return slots.get(DISK_SLOT).hasItem();
     }
 
     // the result is worked out on the server and shown through a slot
@@ -121,6 +131,7 @@ public class RequestTableMenu extends AbstractContainerMenu implements MarkerMen
             case BUTTON_ORDER_TEN -> actions.order(player, 10, false);
             case BUTTON_ORDER_STACK -> actions.order(player, 64, false);
             case BUTTON_LIST -> actions.openList(player);
+            case BUTTON_DISK -> actions.openDisk(player);
             default -> {
                 return false;
             }
@@ -136,8 +147,8 @@ public class RequestTableMenu extends AbstractContainerMenu implements MarkerMen
         }
         ItemStack stack = slot.getItem();
         ItemStack original = stack.copy();
-        boolean moved = index < FIRST_PLAYER_SLOT
-                ? moveItemStackTo(stack, FIRST_PLAYER_SLOT, slots.size(), true)
+        boolean moved = index < FIRST_PLAYER_SLOT || index == DISK_SLOT
+                ? moveItemStackTo(stack, FIRST_PLAYER_SLOT, DISK_SLOT, true)
                 : moveItemStackTo(stack, FIRST_BUFFER_SLOT, FIRST_BUFFER_SLOT + RequestTable.BUFFER_SLOTS, false);
         if (!moved) {
             return ItemStack.EMPTY;

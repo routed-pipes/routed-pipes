@@ -6,9 +6,11 @@ import logisticspipes.adapter.minecraft.FluidContents;
 import logisticspipes.adapter.minecraft.client.ChassisScreen;
 import logisticspipes.adapter.minecraft.client.ClientMenuLink;
 import logisticspipes.adapter.minecraft.client.CraftingTableScreen;
+import logisticspipes.adapter.minecraft.client.DiskScreen;
 import logisticspipes.adapter.minecraft.client.FirewallScreen;
 import logisticspipes.adapter.minecraft.client.FluidConfigScreen;
 import logisticspipes.adapter.minecraft.client.FluidRequestScreen;
+import logisticspipes.adapter.minecraft.client.MacroEditScreen;
 import logisticspipes.adapter.minecraft.client.NamesScreen;
 import logisticspipes.adapter.minecraft.client.PipeConfigScreen;
 import logisticspipes.adapter.minecraft.client.PipeItemRenderer;
@@ -19,6 +21,7 @@ import logisticspipes.adapter.minecraft.client.TubeItemRenderer;
 import logisticspipes.adapter.minecraft.client.SecurityStationScreen;
 import logisticspipes.adapter.minecraft.client.StatisticsTableScreen;
 import logisticspipes.adapter.minecraft.client.UpgradeScreen;
+import logisticspipes.adapter.minecraft.menu.RequestMenu;
 import logisticspipes.adapter.neoforge.visualtest.ClientBenchmark;
 import logisticspipes.adapter.neoforge.visualtest.VisualTest;
 import net.minecraft.world.item.ItemStack;
@@ -70,7 +73,9 @@ public class LogisticsPipesClient {
     }
 
     private static void registerScreens(RegisterMenuScreensEvent event) {
-        event.register(LogisticsPipes.REQUEST_MENU.get(), RequestScreen::new);
+        event.register(LogisticsPipes.REQUEST_MENU.get(), RequestScreen<RequestMenu>::new);
+        event.register(LogisticsPipes.DISK_MENU.get(), DiskScreen::new);
+        event.register(LogisticsPipes.MACRO_EDIT_MENU.get(), MacroEditScreen::new);
         LogisticsPipes.CONFIG_MENUS.values().forEach(menu -> event.register(menu.get(), PipeConfigScreen::new));
         event.register(LogisticsPipes.CRAFTING_TABLE_MENU.get(), CraftingTableScreen::new);
         event.register(LogisticsPipes.CHASSIS_MENU.get(), ChassisScreen::new);
