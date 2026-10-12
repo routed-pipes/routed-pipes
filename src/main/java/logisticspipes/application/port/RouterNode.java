@@ -13,6 +13,7 @@ import logisticspipes.domain.logistics.ExtractionMode;
 import logisticspipes.domain.logistics.InventoryRef;
 import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.domain.logistics.SinkRule;
+import logisticspipes.domain.logistics.SupplyMode;
 import logisticspipes.domain.routing.RouterId;
 import logisticspipes.domain.routing.Side;
 import logisticspipes.domain.transport.TransportMode;
@@ -44,6 +45,25 @@ public interface RouterNode {
     }
 
     // whether the contents of the inventory can be ordered
+    // what a provider hands out of its inventories, which may be less than what is in them
+    default Map<ItemType, Integer> provided() {
+        return contents();
+    }
+
+    // like send for an order, but takes only what the provider hands out
+    default int provide(ItemType type, int count, RouterId destination) {
+        return send(type, count, destination);
+    }
+
+    // how many of the item still fit into the inventories, counted no further than upTo
+    default int roomFor(ItemType type, int upTo) {
+        return inventoriesAccepting(new ItemBatch(type, upTo)).isEmpty() ? 0 : upTo;
+    }
+
+    default SupplyMode supplyMode() {
+        return SupplyMode.BULK50;
+    }
+
     default boolean provides() {
         return kind() == PipeKind.PROVIDER;
     }

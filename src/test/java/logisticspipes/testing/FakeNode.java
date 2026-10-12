@@ -18,6 +18,7 @@ import logisticspipes.domain.logistics.InventoryRef;
 import logisticspipes.domain.logistics.ItemSink;
 import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.domain.logistics.SinkRule;
+import logisticspipes.domain.logistics.SupplyMode;
 import logisticspipes.domain.routing.RouterId;
 import logisticspipes.domain.routing.Side;
 import logisticspipes.domain.transport.TransportMode;
@@ -49,6 +50,10 @@ public final class FakeNode implements RouterNode {
     // energy in junctions next to this pipe, plenty unless a test says otherwise
     public int power = 1_000_000;
     public boolean provides;
+    // empty means the provider hands out all it has
+    public Map<ItemType, Integer> provided;
+    public SupplyMode supplyMode = SupplyMode.BULK50;
+    public int roomLeft = Integer.MAX_VALUE;
     public final List<ExtractionMode> extractions = new ArrayList<>();
     private final PipeKind kind;
 
@@ -102,6 +107,26 @@ public final class FakeNode implements RouterNode {
             shipments.add(new Shipment(new ItemBatch(type, sent), destination));
         }
         return sent;
+    }
+
+    @Override
+    public Map<ItemType, Integer> provided() {
+        return provided == null ? contents() : provided;
+    }
+
+    @Override
+    public int provide(ItemType type, int count, RouterId destination) {
+        return send(type, Math.min(count, provided().getOrDefault(type, 0)), destination, TransportMode.REQUESTED);
+    }
+
+    @Override
+    public int roomFor(ItemType type, int upTo) {
+        return room ? Math.min(upTo, roomLeft) : 0;
+    }
+
+    @Override
+    public SupplyMode supplyMode() {
+        return supplyMode;
     }
 
     @Override

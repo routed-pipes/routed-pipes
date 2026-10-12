@@ -19,6 +19,7 @@ import logisticspipes.domain.transport.TravellingItem;
 import logisticspipes.testing.FakeNode;
 import logisticspipes.testing.FakeNode.Shipment;
 import logisticspipes.testing.Fixtures.TestItem;
+import logisticspipes.domain.logistics.SupplyMode;
 import org.junit.jupiter.api.Test;
 
 class LogisticsNetworkRequestTest {
@@ -606,5 +607,75 @@ class LogisticsNetworkRequestTest {
         assertThat(network.status(REQUEST)).isEqualTo(new RouterStatus(4, 80));
         assertThat(network.status(ISLAND)).isEqualTo(new RouterStatus(0, 1_000_000));
         assertThat(request.power + supplier.power).isEqualTo(80);
+    }
+
+    @Test
+    void onlyWhatAProviderHandsOutCanBeOrdered() {
+        connect();
+        provider.stock("coal", 64);
+        provider.provided = Map.of(item("coal"), 60);
+
+        assertThat(network.available(REQUEST)).containsEntry(item("coal"), 60);
+        assertThat(network.request(REQUEST, batch("coal", 64), NOW).plan().complete()).isFalse();
+        assertThat(network.request(REQUEST, batch("coal", 60), NOW).plan().complete()).isTrue();
+        assertThat(provider.contents).containsEntry(item("coal"), 4);
+    }
+
+    @Test
+    void fullSupplierOrdersOnlyWhenAllOfItCanBeHad() {
+        connect();
+        provider.stock("coal", 4);
+        supplier.supplyMode = SupplyMode.FULL;
+        supplier.supplyTargets.put(item("coal"), 16);
+
+        network.tick(SUPPLIER, 0);
+        assertThat(provider.shipments).isEmpty();
+
+        provider.stock("coal", 16);
+        network.tick(SUPPLIER, 20);
+        assertThat(provider.shipments).containsExactly(new Shipment(batch("coal", 16), SUPPLIER));
+    }
+
+    @Test
+    void partialSupplierTopsUpAsSoonAsOneIsMissing() {
+        connect();
+        provider.stock("coal", 64);
+        supplier.supplyMode = SupplyMode.PARTIAL;
+        supplier.supplyTargets.put(item("coal"), 16);
+        supplier.stock("coal", 15);
+
+        network.tick(SUPPLIER, 0);
+
+        assertThat(provider.shipments).containsExactly(new Shipment(batch("coal", 1), SUPPLIER));
+    }
+
+    @Test
+    void bulk100SupplierWaitsUntilItIsEmpty() {
+        connect();
+        provider.stock("coal", 64);
+        supplier.supplyMode = SupplyMode.BULK100;
+        supplier.supplyTargets.put(item("coal"), 16);
+        supplier.stock("coal", 1);
+
+        network.tick(SUPPLIER, 0);
+        assertThat(provider.shipments).isEmpty();
+
+        supplier.contents.clear();
+        network.tick(SUPPLIER, 20);
+        assertThat(provider.shipments).containsExactly(new Shipment(batch("coal", 16), SUPPLIER));
+    }
+
+    @Test
+    void infiniteSupplierFillsTheRoomItHas() {
+        connect();
+        provider.stock("coal", 200);
+        supplier.supplyMode = SupplyMode.INFINITE;
+        supplier.supplyTargets.put(item("coal"), 1);
+        supplier.stock("coal", 30);
+        supplier.roomLeft = 40;
+
+        network.tick(SUPPLIER, 0);
+
+        assertThat(provider.shipments).containsExactly(new Shipment(batch("coal", 40), SUPPLIER));
     }
 }

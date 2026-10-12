@@ -4,6 +4,8 @@ import java.util.function.Predicate;
 
 import logisticspipes.adapter.minecraft.PipeBlockEntity;
 import logisticspipes.domain.logistics.PipeKind;
+import logisticspipes.domain.logistics.ProviderMode;
+import logisticspipes.domain.logistics.SupplyMode;
 import net.minecraft.util.Mth;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -17,16 +19,21 @@ import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
-// settings of basic, supplier, crafting and satellite pipes: marker slots that only remember an item and a count
+// settings of basic, provider, supplier, crafting and satellite pipes: marker slots that only remember an item and a count
 public class PipeConfigMenu extends AbstractContainerMenu implements MarkerMenu {
 
     public static final int BUTTON_SATELLITE_DOWN = 0;
     public static final int BUTTON_SATELLITE_UP = 1;
     public static final int BUTTON_IMPORT_RECIPE = 2;
     public static final int BUTTON_DEFAULT_ROUTE = 3;
+    public static final int BUTTON_MODE = 4;
+    public static final int BUTTON_EXCLUDE = 5;
     public static final int DATA_SATELLITE = 0;
     public static final int DATA_DEFAULT_ROUTE = 1;
-    public static final int DATA_COUNT = 2;
+    // which provider or supply mode, -1 where there is none to choose
+    public static final int DATA_MODE = 2;
+    public static final int DATA_EXCLUDE = 3;
+    public static final int DATA_COUNT = 4;
     public static final int MAX_SATELLITE_ID = 99;
     private static final int MAX_MARKER_COUNT = 64;
 
@@ -50,7 +57,7 @@ public class PipeConfigMenu extends AbstractContainerMenu implements MarkerMenu 
         this.usable = usable;
         this.importRecipe = importRecipe;
         if (kind != PipeKind.SATELLITE) {
-            int left = kind == PipeKind.SUPPLIER ? 62 : 30;
+            int left = kind == PipeKind.SUPPLIER ? 62 : kind == PipeKind.PROVIDER ? 8 : 30;
             for (int slot = 0; slot < PipeBlockEntity.OUTPUT_SLOT; slot++) {
                 addSlot(new MarkerSlot(config, slot, left + slot % 3 * 18, 17 + slot / 3 * 18));
             }
@@ -92,6 +99,18 @@ public class PipeConfigMenu extends AbstractContainerMenu implements MarkerMenu 
         return data.get(DATA_DEFAULT_ROUTE) != 0;
     }
 
+    public int mode() {
+        return data.get(DATA_MODE);
+    }
+
+    public boolean exclude() {
+        return data.get(DATA_EXCLUDE) != 0;
+    }
+
+    private int modeCount() {
+        return kind == PipeKind.PROVIDER ? ProviderMode.values().length : SupplyMode.values().length;
+    }
+
     // left click copies the held stack or clears, right click changes the count by one
     @Override
     public void clicked(int slotId, int button, ClickType clickType, Player player) {
@@ -124,6 +143,14 @@ public class PipeConfigMenu extends AbstractContainerMenu implements MarkerMenu 
         }
         if (id == BUTTON_DEFAULT_ROUTE && kind == PipeKind.BASIC) {
             data.set(DATA_DEFAULT_ROUTE, defaultRoute() ? 0 : 1);
+            return true;
+        }
+        if (id == BUTTON_MODE && (kind == PipeKind.PROVIDER || kind == PipeKind.SUPPLIER) && mode() >= 0) {
+            data.set(DATA_MODE, (mode() + 1) % modeCount());
+            return true;
+        }
+        if (id == BUTTON_EXCLUDE && kind == PipeKind.PROVIDER) {
+            data.set(DATA_EXCLUDE, exclude() ? 0 : 1);
             return true;
         }
         if (id != BUTTON_SATELLITE_DOWN && id != BUTTON_SATELLITE_UP) {

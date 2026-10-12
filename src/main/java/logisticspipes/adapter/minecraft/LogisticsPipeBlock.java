@@ -90,7 +90,7 @@ public class LogisticsPipeBlock extends Block implements EntityBlock {
             }
             return InteractionResult.sidedSuccess(level.isClientSide);
         }
-        if (kind == null || kind == PipeKind.PROVIDER) {
+        if (kind == null) {
             return InteractionResult.PASS;
         }
         if (!level.isClientSide && level.getBlockEntity(pos) instanceof PipeBlockEntity pipe) {

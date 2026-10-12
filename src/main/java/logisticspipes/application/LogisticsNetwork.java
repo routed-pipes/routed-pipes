@@ -23,6 +23,7 @@ import logisticspipes.domain.logistics.ItemSink;
 import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.domain.logistics.SinkBid;
 import logisticspipes.domain.logistics.SinkRule;
+import logisticspipes.domain.logistics.SupplyMode;
 import logisticspipes.domain.logistics.SinkOffer;
 import logisticspipes.domain.request.CraftJob;
 import logisticspipes.domain.request.Crafter;
@@ -57,6 +58,8 @@ public final class LogisticsNetwork {
     static final int CRAFT_INTERVAL = 5;
     static final int SUPPLY_INTERVAL = 20;
     static final int MAX_NEW_TABLES_PER_TICK = 40;
+    // a supplier filling all the room it has orders no more than this at a time
+    static final int SUPPLY_ROOM_CHECK = 64;
 
     // a sink that takes a batch and what it charges for that
     private record Claim(RouterId router, int energy, int maxItems) {
@@ -410,7 +413,10 @@ public final class LogisticsNetwork {
                 continue;
             }
             ItemType type = provision.batch().type();
-            int sent = provider.send(type, provision.batch().count(), provision.destination());
+            // spare output of a crafting pipe is not held back by any provider setting
+            int sent = provider.provides()
+                    ? provider.provide(type, provision.batch().count(), provision.destination())
+                    : provider.send(type, provision.batch().count(), provision.destination());
             pending.expect(provision.destination(), type, sent, now + PROVISION_TIMEOUT);
         }
         for (CraftJob craft : plan.crafts()) {
@@ -441,11 +447,14 @@ public final class LogisticsNetwork {
             });
         } else if (node.kind() == PipeKind.SUPPLIER && now % SUPPLY_INTERVAL == 0) {
             Map<ItemType, Integer> contents = node.contents();
+            SupplyMode supply = node.supplyMode();
             node.supplyTargets().forEach((type, wanted) -> {
-                int have = contents.getOrDefault(type, 0) + pending.expected(id, type, now);
-                // reorders once the stock is down to half, and only if the inventory can take any of it
-                if (have * 2 <= wanted && !node.inventoriesAccepting(new ItemBatch(type, wanted - have)).isEmpty()) {
-                    requestUpTo(id, type, wanted - have, now);
+                int amount = supply.amount(wanted, contents.getOrDefault(type, 0), pending.expected(id, type, now),
+                        node.roomFor(type, SUPPLY_ROOM_CHECK));
+                if (amount > 0 && supply.allOrNothing()) {
+                    request(id, new ItemBatch(type, amount), now, ENERGY_PER_SUPPLY_ORDER);
+                } else if (amount > 0) {
+                    requestUpTo(id, type, amount, now);
                 }
             });
         }
@@ -512,7 +521,7 @@ public final class LogisticsNetwork {
             RouterNode node = nodes.get(id);
             if (node.provides()) {
                 if (!sharesInventory(node, counted)) {
-                    stock.add(new Stock(id, node.contents()));
+                    stock.add(new Stock(id, node.provided()));
                     counted.addAll(node.inventories().values());
                 }
             } else if (node.kind() == PipeKind.CRAFTING && node.recipe().isPresent()) {

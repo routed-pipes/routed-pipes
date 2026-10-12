@@ -10,6 +10,8 @@ import logisticspipes.adapter.minecraft.menu.RequestMenu;
 import logisticspipes.adapter.neoforge.LogisticsPipes;
 import logisticspipes.domain.item.ItemBatch;
 import logisticspipes.domain.logistics.PipeKind;
+import logisticspipes.domain.logistics.ProviderMode;
+import logisticspipes.domain.logistics.SupplyMode;
 import logisticspipes.application.LogisticsNetwork;
 import logisticspipes.application.RequestOutcome;
 import net.minecraft.core.BlockPos;
@@ -522,6 +524,70 @@ public class RequestGameTest {
             Integer listed = request.available().get(batch(Items.COBBLESTONE, 1).type());
             helper.assertTrue(listed != null && listed == 40, "the double chest holds 40 but the request pipe lists " + listed);
             helper.assertTrue(!request.request(batch(Items.COBBLESTONE, 60)).started(), "60 are not there to be had");
+            helper.succeed();
+        });
+    }
+
+    // two stacks of ten, one item stays behind in each
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void providerLeavesOneItemPerStack(GameTestHelper helper) {
+        GameTestPower.supply(helper);
+        PipeBlockEntity request = pipe(helper, PipeKind.REQUEST, 0, 1);
+        BlockPos target = chest(helper, 0, 2);
+        PipeBlockEntity provider = pipe(helper, PipeKind.PROVIDER, 1, 1);
+        provider.setMode(ProviderMode.LEAVE_ONE_PER_STACK.ordinal());
+        BlockPos source = chest(helper, 1, 2, new ItemStack(Items.COAL, 10), new ItemStack(Items.COAL, 10));
+
+        helper.runAfterDelay(SETTLE + 15, () -> {
+            int offered = request.available().getOrDefault(batch(Items.COAL, 1).type(), 0);
+            helper.assertTrue(offered == 18, "expected 18 coal on offer but found " + offered);
+            helper.assertTrue(!request.request(batch(Items.COAL, 19)).plan().complete(), "19 is more than it hands out");
+            helper.assertTrue(request.request(batch(Items.COAL, 18)).plan().complete(), "18 can be had");
+        });
+        helper.runAfterDelay(100, () -> {
+            assertCount(helper, target, Items.COAL, 18);
+            Container chest = helper.getBlockEntity(source);
+            helper.assertTrue(chest.getItem(0).getCount() == 1 && chest.getItem(1).getCount() == 1, "one coal stays in each stack");
+            helper.succeed();
+        });
+    }
+
+    // the first slot is not offered, and the list keeps iron back
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void providerKeepsItsFirstStackAndWhatIsExcluded(GameTestHelper helper) {
+        GameTestPower.supply(helper);
+        PipeBlockEntity request = pipe(helper, PipeKind.REQUEST, 0, 1);
+        chest(helper, 0, 2);
+        PipeBlockEntity provider = pipe(helper, PipeKind.PROVIDER, 1, 1);
+        provider.setMode(ProviderMode.LEAVE_FIRST.ordinal());
+        provider.config().setItem(0, new ItemStack(Items.IRON_INGOT));
+        provider.setExclude(true);
+        chest(helper, 1, 2, new ItemStack(Items.COAL, 10), new ItemStack(Items.COAL, 7), new ItemStack(Items.IRON_INGOT, 5));
+
+        helper.runAfterDelay(SETTLE + 15, () -> {
+            java.util.Map<logisticspipes.domain.item.ItemType, Integer> offered = request.available();
+            helper.assertTrue(offered.getOrDefault(batch(Items.COAL, 1).type(), 0) == 7, "only the second stack of coal is offered");
+            helper.assertTrue(!offered.containsKey(batch(Items.IRON_INGOT, 1).type()), "iron is kept back");
+            provider.setExclude(false);
+            helper.assertTrue(request.available().getOrDefault(batch(Items.IRON_INGOT, 1).type(), 0) == 5, "now iron is all it gives");
+            helper.assertTrue(!request.available().containsKey(batch(Items.COAL, 1).type()), "and coal is not");
+            helper.succeed();
+        });
+    }
+
+    // a supplier set to fill everything keeps ordering past its target
+    @GameTest(template = EMPTY, timeoutTicks = 400)
+    public static void infiniteSupplierFillsPastItsTarget(GameTestHelper helper) {
+        GameTestPower.supply(helper);
+        PipeBlockEntity supplier = pipe(helper, PipeKind.SUPPLIER, 0, 1);
+        supplier.config().setItem(0, new ItemStack(Items.COAL, 1));
+        supplier.setMode(SupplyMode.INFINITE.ordinal());
+        BlockPos target = chest(helper, 0, 2);
+        pipe(helper, PipeKind.PROVIDER, 1, 1);
+        chest(helper, 1, 2, new ItemStack(Items.COAL, 64), new ItemStack(Items.COAL, 64), new ItemStack(Items.COAL, 64));
+
+        helper.runAfterDelay(300, () -> {
+            assertCount(helper, target, Items.COAL, 192);
             helper.succeed();
         });
     }

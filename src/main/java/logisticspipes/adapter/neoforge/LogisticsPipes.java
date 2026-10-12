@@ -70,6 +70,7 @@ public class LogisticsPipes {
 
     static {
         CONFIG_MENUS.put(PipeKind.BASIC, configMenu("basic", PipeKind.BASIC));
+        CONFIG_MENUS.put(PipeKind.PROVIDER, configMenu("provider", PipeKind.PROVIDER));
         CONFIG_MENUS.put(PipeKind.SUPPLIER, configMenu("supplier", PipeKind.SUPPLIER));
         CONFIG_MENUS.put(PipeKind.CRAFTING, configMenu("crafting", PipeKind.CRAFTING));
         CONFIG_MENUS.put(PipeKind.SATELLITE, configMenu("satellite", PipeKind.SATELLITE));

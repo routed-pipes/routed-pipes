@@ -27,7 +27,10 @@ import logisticspipes.domain.logistics.InventoryRef;
 import logisticspipes.domain.logistics.ItemSink;
 import logisticspipes.domain.logistics.ModuleKind;
 import logisticspipes.domain.logistics.PipeKind;
+import logisticspipes.domain.logistics.ProviderMode;
+import logisticspipes.domain.logistics.ProviderSettings;
 import logisticspipes.domain.logistics.SinkRule;
+import logisticspipes.domain.logistics.SupplyMode;
 import logisticspipes.domain.routing.RouterId;
 import logisticspipes.domain.routing.Side;
 import logisticspipes.domain.transport.Departure;
@@ -84,15 +87,21 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     private final ContainerData data = new ContainerData() {
         @Override
         public int get(int index) {
-            return index == PipeConfigMenu.DATA_DEFAULT_ROUTE ? (defaultRoute ? 1 : 0) : satelliteId;
+            return switch (index) {
+                case PipeConfigMenu.DATA_DEFAULT_ROUTE -> defaultRoute ? 1 : 0;
+                case PipeConfigMenu.DATA_MODE -> mode;
+                case PipeConfigMenu.DATA_EXCLUDE -> exclude ? 1 : 0;
+                default -> satelliteId;
+            };
         }
 
         @Override
         public void set(int index, int value) {
-            if (index == PipeConfigMenu.DATA_DEFAULT_ROUTE) {
-                defaultRoute = value != 0;
-            } else {
-                satelliteId = value;
+            switch (index) {
+                case PipeConfigMenu.DATA_DEFAULT_ROUTE -> defaultRoute = value != 0;
+                case PipeConfigMenu.DATA_MODE -> mode = value;
+                case PipeConfigMenu.DATA_EXCLUDE -> exclude = value != 0;
+                default -> satelliteId = value;
             }
             settingsChanged();
         }
@@ -108,6 +117,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     private Direction pointed;
     private List<Direction> pointableCache = List.of();
     private boolean defaultRoute;
+    // provider mode of a provider pipe, supply mode of a supplier pipe
+    private int mode;
+    private boolean exclude;
     private boolean announced;
     private LogisticsNetwork network;
     private Map<ItemType, Integer> contentsCache;
@@ -123,6 +135,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
 
     public PipeBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
+        if (kind() == PipeKind.SUPPLIER) {
+            mode = SupplyMode.BULK50.ordinal();
+        }
         config.addListener(container -> settingsChanged());
         modules.addListener(container -> settingsChanged());
         upgrades.addListener(container -> {
@@ -264,6 +279,84 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         pointed = pointableCache.get((pointableCache.indexOf(pointed) + 1) % pointableCache.size());
         neighbourChanged();
         settingsChanged();
+    }
+
+    public void setMode(int ordinal) {
+        data.set(PipeConfigMenu.DATA_MODE, ordinal);
+    }
+
+    public void setExclude(boolean enabled) {
+        data.set(PipeConfigMenu.DATA_EXCLUDE, enabled ? 1 : 0);
+    }
+
+    private ProviderSettings providerSettings() {
+        if (kind() == PipeKind.PROVIDER) {
+            ProviderMode[] modes = ProviderMode.values();
+            return new ProviderSettings(modes[Math.floorMod(mode, modes.length)], supplyTargets().keySet(), exclude);
+        }
+        return pluggedModules().stream().filter(stack -> ((ModuleItem) stack.getItem()).kind() == ModuleKind.PROVIDER)
+                .findFirst().map(ModuleItem::providerOf).orElse(ProviderSettings.EVERYTHING);
+    }
+
+    private static List<ItemBatch> batchesOf(List<ItemStack> slots) {
+        List<ItemBatch> batches = new ArrayList<>();
+        for (ItemStack stack : slots) {
+            batches.add(stack.isEmpty() ? null : McItemType.batchOf(stack));
+        }
+        return batches;
+    }
+
+    @Override
+    public Map<ItemType, Integer> provided() {
+        ProviderSettings settings = providerSettings();
+        Map<ItemType, Integer> stock = new LinkedHashMap<>();
+        for (Direction side : inventorySides()) {
+            List<ItemStack> slots = storage().slots(level, worldPosition.relative(side), accessFace(side));
+            settings.stock(batchesOf(slots)).forEach((type, count) -> stock.merge(type, count, Integer::sum));
+        }
+        return stock;
+    }
+
+    @Override
+    public int provide(ItemType type, int count, RouterId destination) {
+        ProviderSettings settings = providerSettings();
+        int remaining = count;
+        for (Direction side : inventorySides()) {
+            BlockPos target = worldPosition.relative(side);
+            List<ItemBatch> slots = batchesOf(storage().slots(level, target, accessFace(side)));
+            int[] takeable = settings.takeable(slots);
+            for (int slot = 0; slot < takeable.length && remaining > 0; slot++) {
+                if (takeable[slot] == 0 || !slots.get(slot).type().equals(type)) {
+                    continue;
+                }
+                ItemStack taken = storage().extractSlot(level, target, accessFace(side), slot, Math.min(takeable[slot], remaining));
+                if (!taken.isEmpty()) {
+                    transport.insert(new TravellingItem(McItemType.batchOf(taken), Directions.toDomain(side), destination));
+                    remaining -= taken.getCount();
+                }
+            }
+        }
+        if (remaining < count) {
+            contentsCache = null;
+            setChanged();
+        }
+        return count - remaining;
+    }
+
+    @Override
+    public int roomFor(ItemType type, int upTo) {
+        ItemStack stack = McItemType.stackOf(new ItemBatch(type, upTo));
+        int room = 0;
+        for (Direction side : inventorySides()) {
+            room += upTo - storage().insert(level, worldPosition.relative(side), accessFace(side), stack, true).getCount();
+        }
+        return Math.min(room, upTo);
+    }
+
+    @Override
+    public SupplyMode supplyMode() {
+        SupplyMode[] modes = SupplyMode.values();
+        return modes[Math.floorMod(mode, modes.length)];
     }
 
     public void setSatelliteId(int id) {
@@ -708,6 +801,8 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         tag.put("Items", TransportTags.save(transport, registries));
         tag.putInt("Satellite", satelliteId);
         tag.putBoolean("DefaultRoute", defaultRoute);
+        tag.putInt("Mode", mode);
+        tag.putBoolean("Exclude", exclude);
         if (pointed != null) {
             tag.putInt("Pointed", pointed.get3DDataValue());
         }
@@ -739,6 +834,12 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         }
         if (tag.contains("DefaultRoute")) {
             defaultRoute = tag.getBoolean("DefaultRoute");
+        }
+        if (tag.contains("Mode")) {
+            mode = tag.getInt("Mode");
+        }
+        if (tag.contains("Exclude")) {
+            exclude = tag.getBoolean("Exclude");
         }
         if (tag.contains("Pointed")) {
             pointed = Direction.from3DDataValue(tag.getInt("Pointed"));

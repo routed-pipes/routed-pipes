@@ -15,6 +15,8 @@ import logisticspipes.domain.logistics.ModuleKind;
 import logisticspipes.domain.logistics.PassiveSupplier;
 import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.domain.logistics.PolymorphicItemSink;
+import logisticspipes.domain.logistics.ProviderMode;
+import logisticspipes.domain.logistics.ProviderSettings;
 import logisticspipes.domain.logistics.SinkRule;
 import logisticspipes.domain.logistics.Terminus;
 import net.minecraft.ChatFormatting;
@@ -40,6 +42,8 @@ public class ModuleItem extends Item {
 
     private static final int FILTER_SLOTS = 9;
     private static final String DEFAULT_ROUTE_TAG = "LogisticsPipesDefaultRoute";
+    private static final String MODE_TAG = "LogisticsPipesMode";
+    private static final String EXCLUDE_TAG = "LogisticsPipesExclude";
 
     private final ModuleKind kind;
     private final PipeKind settingsLayout;
@@ -63,6 +67,7 @@ public class ModuleItem extends Item {
         return switch (kind) {
             case ITEM_SINK -> Optional.of(PipeKind.BASIC);
             case TERMINUS, PASSIVE_SUPPLIER -> Optional.of(PipeKind.SUPPLIER);
+            case PROVIDER -> Optional.of(PipeKind.PROVIDER);
             default -> Optional.empty();
         };
     }
@@ -118,6 +123,25 @@ public class ModuleItem extends Item {
         return module.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getBoolean(DEFAULT_ROUTE_TAG);
     }
 
+    private static int intOf(ItemStack module, String tag) {
+        return module.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getInt(tag);
+    }
+
+    // what a provider module hands out
+    public static ProviderSettings providerOf(ItemStack module) {
+        ProviderMode[] modes = ProviderMode.values();
+        return new ProviderSettings(modes[Math.floorMod(intOf(module, MODE_TAG), modes.length)], filterTypes(module).keySet(),
+                intOf(module, EXCLUDE_TAG) != 0);
+    }
+
+    public static void configureProvider(ItemStack module, List<ItemStack> filter, ProviderMode mode, boolean exclude) {
+        configureSink(module, filter, false);
+        CustomData.update(DataComponents.CUSTOM_DATA, module, tag -> {
+            tag.putInt(MODE_TAG, mode.ordinal());
+            tag.putInt(EXCLUDE_TAG, exclude ? 1 : 0);
+        });
+    }
+
     public static void configureSink(ItemStack module, List<ItemStack> filter, boolean defaultRoute) {
         List<ItemStack> slots = new ArrayList<>(filter);
         while (slots.size() < FILTER_SLOTS) {
@@ -155,13 +179,21 @@ public class ModuleItem extends Item {
         ContainerData data = new ContainerData() {
             @Override
             public int get(int index) {
-                return index == PipeConfigMenu.DATA_DEFAULT_ROUTE && defaultRouteOf(module) ? 1 : 0;
+                return switch (index) {
+                    case PipeConfigMenu.DATA_DEFAULT_ROUTE -> defaultRouteOf(module) ? 1 : 0;
+                    case PipeConfigMenu.DATA_MODE -> kind == ModuleKind.PROVIDER ? intOf(module, MODE_TAG) : -1;
+                    case PipeConfigMenu.DATA_EXCLUDE -> intOf(module, EXCLUDE_TAG);
+                    default -> 0;
+                };
             }
 
             @Override
             public void set(int index, int value) {
                 if (index == PipeConfigMenu.DATA_DEFAULT_ROUTE) {
                     configureSink(module, filterOf(module), value != 0);
+                } else if (index == PipeConfigMenu.DATA_MODE || index == PipeConfigMenu.DATA_EXCLUDE) {
+                    String tag = index == PipeConfigMenu.DATA_MODE ? MODE_TAG : EXCLUDE_TAG;
+                    CustomData.update(DataComponents.CUSTOM_DATA, module, data -> data.putInt(tag, value));
                 }
             }
 

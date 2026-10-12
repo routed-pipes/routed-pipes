@@ -16,6 +16,8 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> im
     private static final int SATELLITE_TINT = 0xFF6F8FBF;
 
     private Button defaultRoute;
+    private Button mode;
+    private Button exclude;
 
     public PipeConfigScreen(PipeConfigMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
@@ -41,6 +43,16 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> im
             defaultRoute = addRenderableWidget(Button.builder(defaultRouteLabel(),
                     button -> press(PipeConfigMenu.BUTTON_DEFAULT_ROUTE)).bounds(leftPos + 92, topPos + 34, 76, 16).build());
         }
+        if (menu.kind() == PipeKind.PROVIDER) {
+            mode = addRenderableWidget(Button.builder(modeLabel(), button -> press(PipeConfigMenu.BUTTON_MODE))
+                    .bounds(leftPos + 68, topPos + 22, 100, 16).build());
+            exclude = addRenderableWidget(Button.builder(excludeLabel(), button -> press(PipeConfigMenu.BUTTON_EXCLUDE))
+                    .bounds(leftPos + 68, topPos + 42, 100, 16).build());
+        }
+        if (menu.kind() == PipeKind.SUPPLIER) {
+            mode = addRenderableWidget(Button.builder(modeLabel(), button -> press(PipeConfigMenu.BUTTON_MODE))
+                    .bounds(leftPos + 120, topPos + 34, 48, 16).build());
+        }
         if (menu.kind() == PipeKind.CRAFTING) {
             addRenderableWidget(Button.builder(Component.translatable("logisticspipes.gui.import"),
                     button -> press(PipeConfigMenu.BUTTON_IMPORT_RECIPE)).bounds(leftPos + 85, topPos + 25, 38, 14).build());
@@ -60,10 +72,27 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> im
         return Component.translatable(menu.defaultRoute() ? "logisticspipes.gui.default_route.on" : "logisticspipes.gui.default_route.off");
     }
 
+    private Component modeLabel() {
+        String group = menu.kind() == PipeKind.PROVIDER ? "provider_mode" : "supply_mode";
+        return Component.translatable("logisticspipes.gui." + group + "." + Math.max(0, menu.mode()));
+    }
+
+    private Component excludeLabel() {
+        return Component.translatable(menu.exclude() ? "logisticspipes.gui.exclude" : "logisticspipes.gui.include");
+    }
+
     @Override
     protected void containerTick() {
         if (defaultRoute != null) {
             defaultRoute.setMessage(defaultRouteLabel());
+        }
+        if (mode != null) {
+            // modules that share this layout have no mode to choose
+            mode.visible = menu.mode() >= 0;
+            mode.setMessage(modeLabel());
+        }
+        if (exclude != null) {
+            exclude.setMessage(excludeLabel());
         }
     }
 

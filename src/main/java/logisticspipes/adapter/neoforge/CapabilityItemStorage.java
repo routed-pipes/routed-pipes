@@ -45,6 +45,23 @@ public final class CapabilityItemStorage implements ItemStorage {
     }
 
     @Override
+    public List<ItemStack> slots(Level level, BlockPos pos, Direction side) {
+        IItemHandler handler = level.getCapability(Capabilities.ItemHandler.BLOCK, pos, side);
+        List<ItemStack> slots = new ArrayList<>();
+        for (int slot = 0; handler != null && slot < handler.getSlots(); slot++) {
+            ItemStack stack = handler.getStackInSlot(slot);
+            slots.add(stack.isEmpty() || handler.extractItem(slot, 1, true).isEmpty() ? ItemStack.EMPTY : stack.copy());
+        }
+        return slots;
+    }
+
+    @Override
+    public ItemStack extractSlot(Level level, BlockPos pos, Direction side, int slot, int count) {
+        IItemHandler handler = level.getCapability(Capabilities.ItemHandler.BLOCK, pos, side);
+        return handler == null || slot >= handler.getSlots() ? ItemStack.EMPTY : handler.extractItem(slot, count, false);
+    }
+
+    @Override
     public ItemStack extract(Level level, BlockPos pos, Direction side, ItemStack match, int count) {
         IItemHandler handler = level.getCapability(Capabilities.ItemHandler.BLOCK, pos, side);
         if (handler == null) {

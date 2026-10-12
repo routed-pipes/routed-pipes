@@ -18,6 +18,11 @@ public interface ItemStorage {
     // copies of everything that can be taken out through this side
     List<ItemStack> contents(Level level, BlockPos pos, Direction side);
 
+    // every slot in order, empty ones and ones nothing can be taken from as empty stacks
+    List<ItemStack> slots(Level level, BlockPos pos, Direction side);
+
+    ItemStack extractSlot(Level level, BlockPos pos, Direction side, int slot, int count);
+
     // takes out up to count items that match the given stack
     ItemStack extract(Level level, BlockPos pos, Direction side, ItemStack match, int count);
 }
