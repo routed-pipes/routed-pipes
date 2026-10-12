@@ -183,7 +183,7 @@ public class ChassisGameTest {
         SimpleContainerData slots = new SimpleContainerData(ChassisMenu.DATA_COUNT);
         slots.set(0, 2);
         ChassisMenu menu = new ChassisMenu(LogisticsPipes.CHASSIS_MENU.get(), 1, player.getInventory(), pipe.modules(), slots, user -> true,
-                () -> { });
+                () -> { }, (user, slot) -> { });
         int hotbar = menu.slots.size() - 9;
 
         menu.quickMoveStack(player, hotbar);

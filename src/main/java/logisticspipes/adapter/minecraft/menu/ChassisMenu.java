@@ -1,5 +1,6 @@
 package logisticspipes.adapter.minecraft.menu;
 
+import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 
 import logisticspipes.adapter.minecraft.ModuleItem;
@@ -40,6 +41,8 @@ public class ChassisMenu extends AbstractContainerMenu {
     }
 
     public static final int BUTTON_TURN = 0;
+    // plus the slot of the module whose settings are to be opened
+    public static final int BUTTON_SETTINGS = 10;
     public static final int DATA_SLOTS = 0;
     public static final int DATA_POINTED = 1;
     public static final int DATA_COUNT = 2;
@@ -47,16 +50,19 @@ public class ChassisMenu extends AbstractContainerMenu {
     private final ContainerData slotCount;
     private final Predicate<Player> usable;
     private final Runnable turn;
+    private final BiConsumer<Player, Integer> openSettings;
 
     // client side
     public ChassisMenu(MenuType<?> type, int id, Inventory inventory) {
-        this(type, id, inventory, new SimpleContainer(PipeBlockEntity.MODULE_SLOTS), new SimpleContainerData(DATA_COUNT), player -> true, () -> { });
+        this(type, id, inventory, new SimpleContainer(PipeBlockEntity.MODULE_SLOTS), new SimpleContainerData(DATA_COUNT), player -> true, () -> { },
+                (player, slot) -> { });
     }
 
     public ChassisMenu(MenuType<?> type, int id, Inventory inventory, Container modules, ContainerData slotCount,
-            Predicate<Player> usable, Runnable turn) {
+            Predicate<Player> usable, Runnable turn, BiConsumer<Player, Integer> openSettings) {
         super(type, id);
         this.turn = turn;
+        this.openSettings = openSettings;
         this.slotCount = slotCount;
         this.usable = usable;
         for (int slot = 0; slot < PipeBlockEntity.MODULE_SLOTS; slot++) {
@@ -102,6 +108,10 @@ public class ChassisMenu extends AbstractContainerMenu {
 
     @Override
     public boolean clickMenuButton(Player player, int id) {
+        if (id >= BUTTON_SETTINGS && id < BUTTON_SETTINGS + slotCount.get(DATA_SLOTS)) {
+            openSettings.accept(player, id - BUTTON_SETTINGS);
+            return true;
+        }
         if (id != BUTTON_TURN) {
             return false;
         }

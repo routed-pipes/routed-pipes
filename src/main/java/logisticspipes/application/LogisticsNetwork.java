@@ -13,6 +13,7 @@ import java.util.OptionalInt;
 import java.util.Set;
 
 import logisticspipes.application.port.RouterNode;
+import logisticspipes.domain.crafting.CraftingSetup;
 import logisticspipes.domain.crafting.OutputOrder;
 import logisticspipes.domain.item.ItemBatch;
 import logisticspipes.domain.item.ItemType;
@@ -24,7 +25,7 @@ import logisticspipes.domain.logistics.ItemSink;
 import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.domain.logistics.SinkBid;
 import logisticspipes.domain.logistics.SinkRule;
-import logisticspipes.domain.logistics.SupplyMode;
+import logisticspipes.domain.logistics.Supply;
 import logisticspipes.domain.logistics.SinkOffer;
 import logisticspipes.domain.request.CraftJob;
 import logisticspipes.domain.request.Crafter;
@@ -437,7 +438,7 @@ public final class LogisticsNetwork {
         if (node == null || now == lastChangeAnywhere) {
             return;
         }
-        if (node.kind() == PipeKind.CRAFTING && now % CRAFT_INTERVAL == 0) {
+        if (!node.outputOrders().isEmpty() && now % CRAFT_INTERVAL == 0) {
             node.outputOrders().ship(now, CRAFT_TIMEOUT, order -> {
                 // only pay for what is really there to send
                 int ready = Math.min(order.batch().count(), node.contents().getOrDefault(order.batch().type(), 0));
@@ -446,18 +447,11 @@ public final class LogisticsNetwork {
                 }
                 return node.send(order.batch().type(), ready, order.destination());
             });
-        } else if (node.kind() == PipeKind.SUPPLIER && now % SUPPLY_INTERVAL == 0) {
-            Map<ItemType, Integer> contents = node.contents();
-            SupplyMode supply = node.supplyMode();
-            node.supplyTargets().forEach((type, wanted) -> {
-                int amount = supply.amount(wanted, contents.getOrDefault(type, 0), pending.expected(id, type, now),
-                        node.roomFor(type, SUPPLY_ROOM_CHECK));
-                if (amount > 0 && supply.allOrNothing()) {
-                    request(id, new ItemBatch(type, amount), now, ENERGY_PER_SUPPLY_ORDER);
-                } else if (amount > 0) {
-                    requestUpTo(id, type, amount, now);
-                }
-            });
+        }
+        if (now % SUPPLY_INTERVAL == 0) {
+            for (Supply supply : node.supplies()) {
+                supply(id, node, supply, now);
+            }
         }
         if (!settling(id, now)) {
             for (Extraction extraction : node.extractions()) {
@@ -466,6 +460,19 @@ public final class LogisticsNetwork {
                 }
             }
         }
+    }
+
+    private void supply(RouterId id, RouterNode node, Supply supply, long now) {
+        Map<ItemType, Integer> contents = node.contents();
+        supply.targets().forEach((type, wanted) -> {
+            int amount = supply.mode().amount(wanted, contents.getOrDefault(type, 0), pending.expected(id, type, now),
+                    node.roomFor(type, SUPPLY_ROOM_CHECK));
+            if (amount > 0 && supply.mode().allOrNothing()) {
+                request(id, new ItemBatch(type, amount), now, ENERGY_PER_SUPPLY_ORDER);
+            } else if (amount > 0) {
+                requestUpTo(id, type, amount, now);
+            }
+        });
     }
 
     // sends off the first kind of item in the inventory that some other router wants and the network can pay for
@@ -529,39 +536,48 @@ public final class LogisticsNetwork {
                     stock.add(new Stock(id, node.provided()));
                     counted.addAll(node.inventories().values());
                 }
-            } else if (node.kind() == PipeKind.CRAFTING && node.recipe().isPresent()) {
-                ItemType made = node.recipe().get().output().type();
-                int spare = node.contents().getOrDefault(made, 0) - node.outputOrders().owed(made);
-                if (spare > 0) {
-                    stock.add(new Stock(id, Map.of(made, spare)));
+            } else {
+                Map<ItemType, Integer> spare = new LinkedHashMap<>();
+                for (CraftingSetup craft : node.crafts()) {
+                    ItemType made = craft.recipe().output().type();
+                    int left = node.contents().getOrDefault(made, 0) - node.outputOrders().owed(made);
+                    if (left > 0) {
+                        spare.put(made, left);
+                    }
+                }
+                if (!spare.isEmpty()) {
+                    stock.add(new Stock(id, spare));
                 }
             }
         }
         return stock;
     }
 
-    // crafting pipes that can work for the requester, the ones with the least to do first
+    private record Candidate(Crafter crafter, int priority) {
+    }
+
+    // crafters that can work for the requester: higher priority first, then the ones with the least to do
     private List<Crafter> craftersFor(RouterId requester) {
         List<RouterId> reachable = reachableFrom(requester);
-        List<Crafter> crafters = new ArrayList<>();
+        List<Candidate> candidates = new ArrayList<>();
         for (RouterId id : reachable) {
             RouterNode node = nodes.get(id);
-            if (node.kind() != PipeKind.CRAFTING || node.recipe().isEmpty()) {
-                continue;
+            for (CraftingSetup craft : node.crafts()) {
+                int backlog = node.outputOrders().owedInTotal();
+                if (craft.satellite() == 0) {
+                    candidates.add(new Candidate(Crafter.of(id, craft.recipe(), null, Map.of(), backlog), craft.priority()));
+                    continue;
+                }
+                Map<ItemType, Integer> forSatellite = new LinkedHashMap<>();
+                craft.satelliteInputs().forEach(input -> forSatellite.merge(input.type(), input.count(), Integer::sum));
+                // without its satellite the pipe cannot get its ingredients to the right place
+                satellite(reachable, craft.satellite()).ifPresent(found -> candidates.add(
+                        new Candidate(Crafter.of(id, craft.recipe(), found, forSatellite, backlog), craft.priority())));
             }
-            int backlog = node.outputOrders().owedInTotal();
-            if (node.satelliteId() == 0) {
-                crafters.add(Crafter.of(id, node.recipe().get(), null, Map.of(), backlog));
-                continue;
-            }
-            Map<ItemType, Integer> forSatellite = new LinkedHashMap<>();
-            node.satelliteInputs().forEach(input -> forSatellite.merge(input.type(), input.count(), Integer::sum));
-            // without its satellite the pipe cannot get its ingredients to the right place
-            satellite(reachable, node.satelliteId()).ifPresent(found ->
-                    crafters.add(Crafter.of(id, node.recipe().get(), found, forSatellite, backlog)));
         }
-        crafters.sort(Comparator.comparingInt(Crafter::backlog));
-        return crafters;
+        candidates.sort(Comparator.comparingInt(Candidate::priority).reversed()
+                .thenComparingInt(candidate -> candidate.crafter().backlog()));
+        return candidates.stream().map(Candidate::crafter).toList();
     }
 
     private Optional<RouterId> satellite(List<RouterId> reachable, int satelliteId) {

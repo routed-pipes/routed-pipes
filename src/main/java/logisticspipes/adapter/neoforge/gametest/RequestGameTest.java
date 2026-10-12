@@ -591,4 +591,25 @@ public class RequestGameTest {
             helper.succeed();
         });
     }
+
+    // the supplier pipe as a module in a chassis
+    @GameTest(template = EMPTY, timeoutTicks = 300)
+    public static void activeSupplierModuleKeepsChestStocked(GameTestHelper helper) {
+        GameTestPower.supply(helper);
+        BlockPos chassisPos = new BlockPos(0, 1, 1);
+        helper.setBlock(chassisPos, LogisticsPipes.CHASSIS_PIPES.get(1).get());
+        PipeBlockEntity chassis = helper.getBlockEntity(chassisPos);
+        ItemStack module = new ItemStack(LogisticsPipes.MODULES.get(logisticspipes.domain.logistics.ModuleKind.ACTIVE_SUPPLIER).get());
+        logisticspipes.adapter.minecraft.ModuleItem.configureSupplier(module, java.util.List.of(new ItemStack(Items.COAL, 16)), SupplyMode.PARTIAL);
+        chassis.modules().setItem(0, module);
+        BlockPos target = chest(helper, 0, 2);
+        transport(helper, 1, 1);
+        pipe(helper, PipeKind.PROVIDER, 2, 1);
+        chest(helper, 2, 2, new ItemStack(Items.COAL, 64));
+
+        helper.runAfterDelay(200, () -> {
+            assertCount(helper, target, Items.COAL, 16);
+            helper.succeed();
+        });
+    }
 }

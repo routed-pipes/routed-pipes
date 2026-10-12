@@ -17,6 +17,7 @@ import logisticspipes.application.LogisticsNetwork;
 import logisticspipes.application.RequestOutcome;
 import logisticspipes.application.RouterStatus;
 import logisticspipes.application.port.RouterNode;
+import logisticspipes.domain.crafting.CraftingSetup;
 import logisticspipes.domain.crafting.OutputOrder;
 import logisticspipes.domain.crafting.OutputOrders;
 import logisticspipes.domain.crafting.Recipe;
@@ -30,6 +31,7 @@ import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.domain.logistics.ProviderMode;
 import logisticspipes.domain.logistics.ProviderSettings;
 import logisticspipes.domain.logistics.SinkRule;
+import logisticspipes.domain.logistics.Supply;
 import logisticspipes.domain.logistics.SupplyMode;
 import logisticspipes.domain.routing.RouterId;
 import logisticspipes.domain.routing.Side;
@@ -91,6 +93,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
                 case PipeConfigMenu.DATA_DEFAULT_ROUTE -> defaultRoute ? 1 : 0;
                 case PipeConfigMenu.DATA_MODE -> mode;
                 case PipeConfigMenu.DATA_EXCLUDE -> exclude ? 1 : 0;
+                case PipeConfigMenu.DATA_PRIORITY -> priority;
                 default -> satelliteId;
             };
         }
@@ -101,6 +104,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
                 case PipeConfigMenu.DATA_DEFAULT_ROUTE -> defaultRoute = value != 0;
                 case PipeConfigMenu.DATA_MODE -> mode = value;
                 case PipeConfigMenu.DATA_EXCLUDE -> exclude = value != 0;
+                case PipeConfigMenu.DATA_PRIORITY -> priority = value;
                 default -> satelliteId = value;
             }
             settingsChanged();
@@ -120,6 +124,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     // provider mode of a provider pipe, supply mode of a supplier pipe
     private int mode;
     private boolean exclude;
+    // how eagerly a crafting pipe is used, higher first
+    private int priority;
+    private Boolean upkeepCache;
     private boolean announced;
     private LogisticsNetwork network;
     private Map<ItemType, Integer> contentsCache;
@@ -151,6 +158,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     private void settingsChanged() {
         sinkRulesCache = null;
         extractionsCache = null;
+        upkeepCache = null;
         if (announced && level != null && !level.isClientSide && pipe().routed()) {
             network().sinksChanged(routerId);
         }
@@ -400,7 +408,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
                 getBlockState().getBlock().getName());
     }
 
-    MenuProvider menuProvider() {
+    public MenuProvider menuProvider() {
         Component title = getBlockState().getBlock().getName();
         PipeServices services = pipe().services();
         if (kind() == PipeKind.REQUEST) {
@@ -423,24 +431,68 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
                 }
             };
             return new SimpleMenuProvider((id, inventory, player) -> new ChassisMenu(services.chassisMenu().get(), id,
-                    inventory, modules, chassis, user -> Container.stillValidBlockEntity(this, user), this::pointAtNext), title);
+                    inventory, modules, chassis, user -> Container.stillValidBlockEntity(this, user), this::pointAtNext,
+                    this::openModuleSettings), title);
         }
         return new SimpleMenuProvider((id, inventory, player) -> new PipeConfigMenu(services.configMenu(kind()), id,
                 inventory, kind(), config, data, user -> Container.stillValidBlockEntity(this, user), this::importRecipe), title);
     }
 
+    // the settings of a module while it sits in the chassis
+    private void openModuleSettings(Player player, int slot) {
+        ItemStack module = modules.getItem(slot);
+        if (slot < pipe().moduleSlots() && module.getItem() instanceof ModuleItem item) {
+            item.settingsProvider(module, user -> Container.stillValidBlockEntity(this, user) && modules.getItem(slot) == module,
+                    this::settingsChanged, this::importRecipe).ifPresent(player::openMenu);
+        }
+    }
+
+    public void setPriority(int value) {
+        data.set(PipeConfigMenu.DATA_PRIORITY, value);
+    }
+
     // copies the recipe of a crafting table next to the pipe into the pipe settings
     public void importRecipe() {
+        importRecipe(config);
+    }
+
+    private void importRecipe(Container target) {
         for (Direction side : Direction.values()) {
-            BlockPos target = worldPosition.relative(side);
-            if (level.isLoaded(target) && level.getBlockEntity(target) instanceof CraftingTableBlockEntity table) {
+            BlockPos neighbour = worldPosition.relative(side);
+            if (level.isLoaded(neighbour) && level.getBlockEntity(neighbour) instanceof CraftingTableBlockEntity table) {
                 for (int slot = 0; slot < OUTPUT_SLOT; slot++) {
-                    config.setItem(slot, table.pattern().getItem(slot).copy());
+                    target.setItem(slot, table.pattern().getItem(slot).copy());
                 }
-                config.setItem(OUTPUT_SLOT, table.result());
+                target.setItem(OUTPUT_SLOT, table.result());
                 return;
             }
         }
+    }
+
+    // pipes that only take items in have nothing to do on their own
+    private boolean needsUpkeep() {
+        if (upkeepCache == null) {
+            upkeepCache = kind() == PipeKind.CRAFTING || kind() == PipeKind.SUPPLIER || kind() == PipeKind.CHASSIS
+                    && (!extractions().isEmpty() || hasModule(ModuleKind.CRAFTER) || hasModule(ModuleKind.ACTIVE_SUPPLIER));
+        }
+        return upkeepCache;
+    }
+
+    @Override
+    public List<CraftingSetup> crafts() {
+        if (kind() == PipeKind.CRAFTING) {
+            return recipe().map(recipe -> List.of(new CraftingSetup(recipe, satelliteInputs(), satelliteId, priority)))
+                    .orElse(List.of());
+        }
+        return pluggedModules().stream().flatMap(stack -> ModuleItem.craftingOf(stack).stream()).toList();
+    }
+
+    @Override
+    public List<Supply> supplies() {
+        if (kind() == PipeKind.SUPPLIER) {
+            return List.of(new Supply(supplyTargets(), supplyMode()));
+        }
+        return pluggedModules().stream().flatMap(stack -> ModuleItem.supplyOf(stack).stream()).toList();
     }
 
     // moves items on without waiting for the server, so they do not blink at pipe borders
@@ -469,9 +521,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             linksDirty = false;
             network().updateLinks(routerId, PipeTopology.discoverLinks(level, worldPosition), level.getGameTime());
         }
-        // a chassis that only takes items in has no upkeep
-        if (kind() == PipeKind.CRAFTING || kind() == PipeKind.SUPPLIER
-                || kind() == PipeKind.CHASSIS && !extractions().isEmpty()) {
+        if (needsUpkeep()) {
             network().tick(routerId, level.getGameTime());
         }
         if (!transport.isEmpty()) {
@@ -802,6 +852,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         tag.putInt("Satellite", satelliteId);
         tag.putBoolean("DefaultRoute", defaultRoute);
         tag.putInt("Mode", mode);
+        tag.putInt("Priority", priority);
         tag.putBoolean("Exclude", exclude);
         if (pointed != null) {
             tag.putInt("Pointed", pointed.get3DDataValue());
@@ -837,6 +888,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         }
         if (tag.contains("Mode")) {
             mode = tag.getInt("Mode");
+        }
+        if (tag.contains("Priority")) {
+            priority = tag.getInt("Priority");
         }
         if (tag.contains("Exclude")) {
             exclude = tag.getBoolean("Exclude");

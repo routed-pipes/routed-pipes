@@ -20,6 +20,8 @@ import logisticspipes.testing.FakeNode;
 import logisticspipes.testing.FakeNode.Shipment;
 import logisticspipes.testing.Fixtures.TestItem;
 import logisticspipes.domain.logistics.SupplyMode;
+import logisticspipes.domain.crafting.CraftingSetup;
+import logisticspipes.domain.logistics.Supply;
 import org.junit.jupiter.api.Test;
 
 class LogisticsNetworkRequestTest {
@@ -677,5 +679,52 @@ class LogisticsNetworkRequestTest {
         network.tick(SUPPLIER, 0);
 
         assertThat(provider.shipments).containsExactly(new Shipment(batch("coal", 40), SUPPLIER));
+    }
+
+    @Test
+    void theCrafterWithTheHigherPriorityIsUsedEvenWhenItIsBusier() {
+        connect();
+        provider.stock("log", 64);
+        Recipe recipe = new Recipe(List.of(batch("log", 1)), batch("planks", 4));
+        crafting.crafts = List.of(new CraftingSetup(recipe, List.of(), 0, 0));
+        FakeNode preferred = new FakeNode(PipeKind.CRAFTING);
+        preferred.crafts = List.of(new CraftingSetup(recipe, List.of(), 0, 5));
+        network.addRouter(ISLAND, preferred, BUILT);
+        network.updateLinks(ISLAND, List.of(new Link(REQUEST, Side.EAST, 9)), BUILT);
+        network.updateLinks(REQUEST, List.of(new Link(PROVIDER, Side.EAST, 1), new Link(ISLAND, Side.WEST, 9)), BUILT);
+
+        network.request(REQUEST, batch("planks", 8), 0);
+        network.request(REQUEST, batch("planks", 4), 0);
+
+        assertThat(preferred.outputOrders.owedInTotal()).isEqualTo(12);
+        assertThat(crafting.outputOrders.isEmpty()).isTrue();
+    }
+
+    @Test
+    void aPipeWithSeveralRecipesCraftsAnyOfThem() {
+        connect();
+        provider.stock("log", 64);
+        crafting.crafts = List.of(
+                new CraftingSetup(new Recipe(List.of(batch("log", 1)), batch("planks", 4)), List.of(), 0, 0),
+                new CraftingSetup(new Recipe(List.of(batch("planks", 2)), batch("stick", 4)), List.of(), 0, 0));
+
+        assertThat(network.available(REQUEST)).containsKeys(item("planks"), item("stick"));
+        assertThat(network.request(REQUEST, batch("stick", 4), 0).plan().complete()).isTrue();
+        assertThat(crafting.outputOrders.owed(item("stick"))).isEqualTo(4);
+    }
+
+    @Test
+    void aPipeKeepsUpEveryStockItHas() {
+        connect();
+        provider.stock("coal", 64);
+        provider.stock("iron", 64);
+        request.inventories.add(Side.UP);
+        request.supplies = List.of(new Supply(Map.of(item("coal"), 8), SupplyMode.PARTIAL),
+                new Supply(Map.of(item("iron"), 4), SupplyMode.PARTIAL));
+
+        network.tick(REQUEST, 0);
+
+        assertThat(provider.shipments).containsExactlyInAnyOrder(new Shipment(batch("coal", 8), REQUEST),
+                new Shipment(batch("iron", 4), REQUEST));
     }
 }

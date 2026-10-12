@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import logisticspipes.domain.crafting.CraftingSetup;
 import logisticspipes.domain.crafting.OutputOrders;
 import logisticspipes.domain.crafting.Recipe;
 import logisticspipes.domain.item.ItemBatch;
@@ -13,6 +14,7 @@ import logisticspipes.domain.logistics.Extraction;
 import logisticspipes.domain.logistics.InventoryRef;
 import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.domain.logistics.SinkRule;
+import logisticspipes.domain.logistics.Supply;
 import logisticspipes.domain.logistics.SupplyMode;
 import logisticspipes.domain.routing.RouterId;
 import logisticspipes.domain.routing.Side;
@@ -62,6 +64,19 @@ public interface RouterNode {
 
     default SupplyMode supplyMode() {
         return SupplyMode.BULK50;
+    }
+
+    // every recipe this pipe crafts
+    default List<CraftingSetup> crafts() {
+        if (kind() != PipeKind.CRAFTING || recipe().isEmpty()) {
+            return List.of();
+        }
+        return List.of(new CraftingSetup(recipe().get(), satelliteInputs(), satelliteId(), 0));
+    }
+
+    // every stock this pipe keeps up
+    default List<Supply> supplies() {
+        return kind() == PipeKind.SUPPLIER ? List.of(new Supply(supplyTargets(), supplyMode())) : List.of();
     }
 
     default boolean provides() {

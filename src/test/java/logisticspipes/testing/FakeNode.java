@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import logisticspipes.application.port.RouterNode;
+import logisticspipes.domain.crafting.CraftingSetup;
 import logisticspipes.domain.crafting.OutputOrders;
 import logisticspipes.domain.crafting.Recipe;
 import logisticspipes.domain.item.ItemBatch;
@@ -19,6 +20,7 @@ import logisticspipes.domain.logistics.InventoryRef;
 import logisticspipes.domain.logistics.ItemSink;
 import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.domain.logistics.SinkRule;
+import logisticspipes.domain.logistics.Supply;
 import logisticspipes.domain.logistics.SupplyMode;
 import logisticspipes.domain.routing.RouterId;
 import logisticspipes.domain.routing.Side;
@@ -41,6 +43,9 @@ public final class FakeNode implements RouterNode {
     public final Map<ItemType, Integer> supplyTargets = new LinkedHashMap<>();
     public final OutputOrders outputOrders = new OutputOrders();
     public Recipe recipe;
+    // set by tests about pipes with several recipes or stocks, like a chassis with modules
+    public List<CraftingSetup> crafts;
+    public List<Supply> supplies;
     // basic pipes take everything by default, like a fresh one in the game
     public SinkRule sink = new ItemSink(Set.of(), true);
     public int satelliteId;
@@ -160,6 +165,16 @@ public final class FakeNode implements RouterNode {
     @Override
     public List<SinkRule> sinkRules() {
         return kind == PipeKind.BASIC || kind == PipeKind.CHASSIS ? List.of(sink) : List.of();
+    }
+
+    @Override
+    public List<CraftingSetup> crafts() {
+        return crafts == null ? RouterNode.super.crafts() : crafts;
+    }
+
+    @Override
+    public List<Supply> supplies() {
+        return supplies == null ? RouterNode.super.supplies() : supplies;
     }
 
     @Override

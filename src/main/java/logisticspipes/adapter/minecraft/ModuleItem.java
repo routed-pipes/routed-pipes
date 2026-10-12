@@ -6,11 +6,16 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.Set;
 import java.util.function.Supplier;
 
 import logisticspipes.adapter.minecraft.menu.NamesMenu;
 import logisticspipes.adapter.minecraft.menu.PipeConfigMenu;
+import logisticspipes.domain.crafting.CraftingSetup;
+import logisticspipes.domain.crafting.Recipe;
+import logisticspipes.domain.item.ItemBatch;
 import logisticspipes.domain.item.ItemType;
 import logisticspipes.domain.logistics.EnchantmentSink;
 import logisticspipes.domain.logistics.Extraction;
@@ -23,6 +28,8 @@ import logisticspipes.domain.logistics.PolymorphicItemSink;
 import logisticspipes.domain.logistics.ProviderMode;
 import logisticspipes.domain.logistics.ProviderSettings;
 import logisticspipes.domain.logistics.SinkRule;
+import logisticspipes.domain.logistics.Supply;
+import logisticspipes.domain.logistics.SupplyMode;
 import logisticspipes.domain.logistics.Terminus;
 import logisticspipes.domain.logistics.TraitSink;
 import net.minecraft.ChatFormatting;
@@ -32,9 +39,11 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.MenuProvider;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerData;
@@ -49,11 +58,13 @@ import net.minecraft.world.level.Level;
 // a module for chassis pipes, its settings live on the item so they survive being moved around
 public class ModuleItem extends Item {
 
-    private static final int FILTER_SLOTS = 9;
+    private static final int FILTER_SLOTS = PipeBlockEntity.CONFIG_SLOTS;
     private static final String DEFAULT_ROUTE_TAG = "LogisticsPipesDefaultRoute";
     private static final String MODE_TAG = "LogisticsPipesMode";
     private static final String EXCLUDE_TAG = "LogisticsPipesExclude";
     private static final String NAMES_TAG = "LogisticsPipesNames";
+    private static final String SATELLITE_TAG = "LogisticsPipesSatellite";
+    private static final String PRIORITY_TAG = "LogisticsPipesPriority";
 
     private final ModuleKind kind;
     private final PipeKind settingsLayout;
@@ -78,8 +89,9 @@ public class ModuleItem extends Item {
     public static Optional<PipeKind> settingsLayoutFor(ModuleKind kind) {
         return switch (kind) {
             case ITEM_SINK -> Optional.of(PipeKind.BASIC);
-            case TERMINUS, PASSIVE_SUPPLIER, ENCHANTMENT_SINK_MK2 -> Optional.of(PipeKind.SUPPLIER);
+            case TERMINUS, PASSIVE_SUPPLIER, ENCHANTMENT_SINK_MK2, ACTIVE_SUPPLIER -> Optional.of(PipeKind.SUPPLIER);
             case PROVIDER, ADVANCED_EXTRACTOR -> Optional.of(PipeKind.PROVIDER);
+            case CRAFTER -> Optional.of(PipeKind.CRAFTING);
             default -> Optional.empty();
         };
     }
@@ -177,6 +189,70 @@ public class ModuleItem extends Item {
         return module.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getInt(tag);
     }
 
+    public boolean hasSettings() {
+        return namesMenu != null || settingsLayout != null;
+    }
+
+    // the mode a module is in, -1 for modules without modes
+    private static int modeOf(ItemStack module) {
+        ModuleKind kind = ((ModuleItem) module.getItem()).kind;
+        if (kind != ModuleKind.PROVIDER && kind != ModuleKind.ACTIVE_SUPPLIER) {
+            return -1;
+        }
+        boolean set = module.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).contains(MODE_TAG);
+        return set || kind == ModuleKind.PROVIDER ? intOf(module, MODE_TAG) : SupplyMode.BULK50.ordinal();
+    }
+
+    // what a crafter module makes, empty until it has ingredients and a result
+    public static Optional<CraftingSetup> craftingOf(ItemStack module) {
+        if (!(module.getItem() instanceof ModuleItem item) || item.kind != ModuleKind.CRAFTER) {
+            return Optional.empty();
+        }
+        NonNullList<ItemStack> slots = filterOf(module);
+        int satellite = intOf(module, SATELLITE_TAG);
+        List<ItemBatch> inputs = new ArrayList<>();
+        List<ItemBatch> forSatellite = new ArrayList<>();
+        for (int slot = 0; slot < PipeBlockEntity.OUTPUT_SLOT; slot++) {
+            if (!slots.get(slot).isEmpty()) {
+                inputs.add(McItemType.batchOf(slots.get(slot)));
+                if (satellite != 0 && slot >= PipeBlockEntity.SATELLITE_ROW) {
+                    forSatellite.add(McItemType.batchOf(slots.get(slot)));
+                }
+            }
+        }
+        ItemStack output = slots.get(PipeBlockEntity.OUTPUT_SLOT);
+        if (inputs.isEmpty() || output.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(new CraftingSetup(new Recipe(inputs, McItemType.batchOf(output)), forSatellite, satellite,
+                intOf(module, PRIORITY_TAG)));
+    }
+
+    public static void configureCrafter(ItemStack module, List<ItemStack> inputs, ItemStack output, int satellite, int priority) {
+        List<ItemStack> slots = new ArrayList<>(inputs);
+        while (slots.size() < PipeBlockEntity.OUTPUT_SLOT) {
+            slots.add(ItemStack.EMPTY);
+        }
+        slots.add(output);
+        configureSink(module, slots, false);
+        CustomData.update(DataComponents.CUSTOM_DATA, module, tag -> {
+            tag.putInt(SATELLITE_TAG, satellite);
+            tag.putInt(PRIORITY_TAG, priority);
+        });
+    }
+
+    public static Optional<Supply> supplyOf(ItemStack module) {
+        if (!(module.getItem() instanceof ModuleItem item) || item.kind != ModuleKind.ACTIVE_SUPPLIER) {
+            return Optional.empty();
+        }
+        return Optional.of(new Supply(filterTypes(module), SupplyMode.values()[Math.floorMod(modeOf(module), SupplyMode.values().length)]));
+    }
+
+    public static void configureSupplier(ItemStack module, List<ItemStack> targets, SupplyMode mode) {
+        configureSink(module, targets, false);
+        CustomData.update(DataComponents.CUSTOM_DATA, module, tag -> tag.putInt(MODE_TAG, mode.ordinal()));
+    }
+
     // what a provider module hands out
     public static ProviderSettings providerOf(ItemStack module) {
         ProviderMode[] modes = ProviderMode.values();
@@ -210,25 +286,34 @@ public class ModuleItem extends Item {
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack module = player.getItemInHand(hand);
-        if (namesMenu != null) {
-            if (!level.isClientSide) {
-                player.openMenu(new SimpleMenuProvider((id, inventory, user) -> new NamesMenu(namesMenu.get(), id, inventory,
-                        module, holder -> !module.isEmpty() && holder.getInventory().contains(module), () -> { }),
-                        module.getHoverName()));
-            }
-            return InteractionResultHolder.sidedSuccess(module, level.isClientSide);
-        }
-        if (settingsLayout == null) {
+        if (!hasSettings()) {
             return InteractionResultHolder.pass(module);
         }
         if (!level.isClientSide) {
-            player.openMenu(new SimpleMenuProvider((id, inventory, user) -> settings(id, user, module), module.getHoverName()));
+            // nothing to import a recipe from while the module is in the hand
+            settingsProvider(module, holder -> !module.isEmpty() && holder.getInventory().contains(module), () -> { },
+                    target -> { }).ifPresent(player::openMenu);
         }
         return InteractionResultHolder.sidedSuccess(module, level.isClientSide);
     }
 
+    // the settings screen of a module wherever it is, changed runs after every change
+    public Optional<MenuProvider> settingsProvider(ItemStack module, Predicate<Player> usable, Runnable changed,
+            Consumer<Container> importRecipe) {
+        if (namesMenu != null) {
+            return Optional.of(new SimpleMenuProvider((id, inventory, user) -> new NamesMenu(namesMenu.get(), id, inventory,
+                    module, usable, changed), module.getHoverName()));
+        }
+        if (settingsLayout == null) {
+            return Optional.empty();
+        }
+        return Optional.of(new SimpleMenuProvider((id, inventory, user) -> settings(id, user, module, usable, changed,
+                importRecipe), module.getHoverName()));
+    }
+
     // the same screen as a pipe with that layout, every change is written straight back to the module
-    private PipeConfigMenu settings(int id, Player player, ItemStack module) {
+    private PipeConfigMenu settings(int id, Player player, ItemStack module, Predicate<Player> usable, Runnable changed,
+            Consumer<Container> importRecipe) {
         SimpleContainer filter = new SimpleContainer(PipeBlockEntity.CONFIG_SLOTS);
         NonNullList<ItemStack> stored = filterOf(module);
         for (int slot = 0; slot < FILTER_SLOTS; slot++) {
@@ -239,8 +324,10 @@ public class ModuleItem extends Item {
             public int get(int index) {
                 return switch (index) {
                     case PipeConfigMenu.DATA_DEFAULT_ROUTE -> defaultRouteOf(module) ? 1 : 0;
-                    case PipeConfigMenu.DATA_MODE -> kind == ModuleKind.PROVIDER ? intOf(module, MODE_TAG) : -1;
+                    case PipeConfigMenu.DATA_MODE -> modeOf(module);
                     case PipeConfigMenu.DATA_EXCLUDE -> intOf(module, EXCLUDE_TAG);
+                    case PipeConfigMenu.DATA_SATELLITE -> intOf(module, SATELLITE_TAG);
+                    case PipeConfigMenu.DATA_PRIORITY -> intOf(module, PRIORITY_TAG);
                     default -> 0;
                 };
             }
@@ -249,10 +336,16 @@ public class ModuleItem extends Item {
             public void set(int index, int value) {
                 if (index == PipeConfigMenu.DATA_DEFAULT_ROUTE) {
                     configureSink(module, filterOf(module), value != 0);
-                } else if (index == PipeConfigMenu.DATA_MODE || index == PipeConfigMenu.DATA_EXCLUDE) {
-                    String tag = index == PipeConfigMenu.DATA_MODE ? MODE_TAG : EXCLUDE_TAG;
+                } else {
+                    String tag = switch (index) {
+                        case PipeConfigMenu.DATA_MODE -> MODE_TAG;
+                        case PipeConfigMenu.DATA_EXCLUDE -> EXCLUDE_TAG;
+                        case PipeConfigMenu.DATA_SATELLITE -> SATELLITE_TAG;
+                        default -> PRIORITY_TAG;
+                    };
                     CustomData.update(DataComponents.CUSTOM_DATA, module, data -> data.putInt(tag, value));
                 }
+                changed.run();
             }
 
             @Override
@@ -260,14 +353,15 @@ public class ModuleItem extends Item {
                 return PipeConfigMenu.DATA_COUNT;
             }
         };
-        filter.addListener(changed -> {
+        filter.addListener(container -> {
             List<ItemStack> slots = new ArrayList<>();
             for (int slot = 0; slot < FILTER_SLOTS; slot++) {
                 slots.add(filter.getItem(slot).copy());
             }
             configureSink(module, slots, defaultRouteOf(module));
+            changed.run();
         });
-        return new PipeConfigMenu(settingsMenu.get(), id, player.getInventory(), settingsLayout, filter, data,
-                user -> !module.isEmpty() && user.getInventory().contains(module), () -> { });
+        return new PipeConfigMenu(settingsMenu.get(), id, player.getInventory(), settingsLayout, filter, data, usable,
+                () -> importRecipe.accept(filter));
     }
 }

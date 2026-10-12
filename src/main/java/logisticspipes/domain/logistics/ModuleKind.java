@@ -27,5 +27,9 @@ public enum ModuleKind {
     // takes anything enchanted
     ENCHANTMENT_SINK,
     // takes enchanted versions of the listed items
-    ENCHANTMENT_SINK_MK2
+    ENCHANTMENT_SINK_MK2,
+    // crafts like a crafting pipe
+    CRAFTER,
+    // keeps its inventory stocked like a supplier pipe
+    ACTIVE_SUPPLIER
 }

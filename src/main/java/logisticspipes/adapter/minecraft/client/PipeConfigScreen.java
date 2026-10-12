@@ -21,6 +21,8 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> im
 
     public PipeConfigScreen(PipeConfigMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
+        imageHeight = PipeConfigMenu.inventoryTop(menu.kind()) + 82;
+        inventoryLabelY = imageHeight - 94;
     }
 
     private boolean hasSatelliteControls() {
@@ -54,6 +56,10 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> im
                     .bounds(leftPos + 120, topPos + 34, 48, 16).build());
         }
         if (menu.kind() == PipeKind.CRAFTING) {
+            addRenderableWidget(Button.builder(Component.literal("<"), button -> press(PipeConfigMenu.BUTTON_PRIORITY_DOWN))
+                    .bounds(leftPos + 96, topPos + 74, 14, 14).build());
+            addRenderableWidget(Button.builder(Component.literal(">"), button -> press(PipeConfigMenu.BUTTON_PRIORITY_UP))
+                    .bounds(leftPos + 132, topPos + 74, 14, 14).build());
             addRenderableWidget(Button.builder(Component.translatable("logisticspipes.gui.import"),
                     button -> press(PipeConfigMenu.BUTTON_IMPORT_RECIPE)).bounds(leftPos + 85, topPos + 25, 38, 14).build());
         }
@@ -142,6 +148,11 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> im
     @Override
     protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
         super.renderLabels(graphics, mouseX, mouseY);
+        if (menu.kind() == PipeKind.CRAFTING) {
+            graphics.drawString(font, Component.translatable("logisticspipes.gui.priority"), 30, 77, TEXT, false);
+            String priority = Integer.toString(menu.priority());
+            graphics.drawString(font, priority, 121 - font.width(priority) / 2, 77, TEXT, false);
+        }
         if (!hasSatelliteControls()) {
             return;
         }

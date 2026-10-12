@@ -33,7 +33,11 @@ public class PipeConfigMenu extends AbstractContainerMenu implements MarkerMenu 
     // which provider or supply mode, -1 where there is none to choose
     public static final int DATA_MODE = 2;
     public static final int DATA_EXCLUDE = 3;
-    public static final int DATA_COUNT = 4;
+    public static final int DATA_PRIORITY = 4;
+    public static final int DATA_COUNT = 5;
+    public static final int BUTTON_PRIORITY_DOWN = 6;
+    public static final int BUTTON_PRIORITY_UP = 7;
+    public static final int MAX_PRIORITY = 99;
     public static final int MAX_SATELLITE_ID = 99;
     private static final int MAX_MARKER_COUNT = 64;
 
@@ -66,13 +70,14 @@ public class PipeConfigMenu extends AbstractContainerMenu implements MarkerMenu 
             addSlot(new MarkerSlot(config, PipeBlockEntity.OUTPUT_SLOT, 124, 26));
         }
         markerSlots = slots.size();
+        int top = inventoryTop(kind);
         for (int row = 0; row < 3; row++) {
             for (int column = 0; column < 9; column++) {
-                addSlot(new Slot(inventory, 9 + row * 9 + column, 8 + column * 18, 84 + row * 18));
+                addSlot(new Slot(inventory, 9 + row * 9 + column, 8 + column * 18, top + row * 18));
             }
         }
         for (int column = 0; column < 9; column++) {
-            addSlot(new Slot(inventory, column, 8 + column * 18, 142));
+            addSlot(new Slot(inventory, column, 8 + column * 18, top + 58));
         }
         addDataSlots(data);
     }
@@ -97,6 +102,15 @@ public class PipeConfigMenu extends AbstractContainerMenu implements MarkerMenu 
 
     public boolean defaultRoute() {
         return data.get(DATA_DEFAULT_ROUTE) != 0;
+    }
+
+    // crafting settings have a row more than the others
+    public static int inventoryTop(PipeKind kind) {
+        return kind == PipeKind.CRAFTING ? 104 : 84;
+    }
+
+    public int priority() {
+        return data.get(DATA_PRIORITY);
     }
 
     public int mode() {
@@ -151,6 +165,11 @@ public class PipeConfigMenu extends AbstractContainerMenu implements MarkerMenu 
         }
         if (id == BUTTON_EXCLUDE && kind == PipeKind.PROVIDER) {
             data.set(DATA_EXCLUDE, exclude() ? 0 : 1);
+            return true;
+        }
+        if ((id == BUTTON_PRIORITY_DOWN || id == BUTTON_PRIORITY_UP) && kind == PipeKind.CRAFTING) {
+            int change = id == BUTTON_PRIORITY_UP ? 1 : -1;
+            data.set(DATA_PRIORITY, Mth.clamp(priority() + change, -MAX_PRIORITY, MAX_PRIORITY));
             return true;
         }
         if (id != BUTTON_SATELLITE_DOWN && id != BUTTON_SATELLITE_UP) {

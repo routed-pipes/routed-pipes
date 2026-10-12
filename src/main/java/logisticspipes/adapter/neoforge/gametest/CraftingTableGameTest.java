@@ -8,6 +8,11 @@ import logisticspipes.adapter.minecraft.menu.MenuRequests;
 import logisticspipes.adapter.neoforge.LogisticsPipes;
 import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.application.RequestOutcome;
+import logisticspipes.adapter.minecraft.ModuleItem;
+import logisticspipes.domain.logistics.ModuleKind;
+import logisticspipes.adapter.minecraft.menu.ChassisMenu;
+import logisticspipes.adapter.minecraft.menu.PipeConfigMenu;
+import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
@@ -311,6 +316,57 @@ public class CraftingTableGameTest {
             assertCount(helper, chest, Items.OAK_PLANKS, 12, "second delivery");
             assertCount(helper, logs, Items.OAK_LOG, 13, "no log used for the spare planks");
             helper.assertTrue(table.surplus().isEmpty(), "the spare planks are gone");
+            helper.succeed();
+        });
+    }
+
+    // the same as a crafting pipe, but as a module in a chassis that points at the table
+    @GameTest(template = EMPTY, timeoutTicks = 300)
+    public static void crafterModuleCraftsOnRequest(GameTestHelper helper) {
+        GameTestPower.supply(helper);
+        PipeBlockEntity request = pipe(helper, PipeKind.REQUEST, 0);
+        BlockPos target = chest(helper, 0);
+        pipe(helper, PipeKind.PROVIDER, 1);
+        chest(helper, 1, new ItemStack(Items.OAK_LOG, 16));
+        BlockPos chassisPos = new BlockPos(2, 1, 1);
+        helper.setBlock(chassisPos, LogisticsPipes.CHASSIS_PIPES.get(1).get());
+        PipeBlockEntity chassis = helper.getBlockEntity(chassisPos);
+        ItemStack crafter = new ItemStack(LogisticsPipes.MODULES.get(ModuleKind.CRAFTER).get());
+        ModuleItem.configureCrafter(crafter, List.of(new ItemStack(Items.OAK_LOG)), new ItemStack(Items.OAK_PLANKS, 4), 0, 0);
+        chassis.modules().setItem(0, crafter);
+        table(helper, 2, 2, Items.OAK_LOG);
+
+        helper.runAfterDelay(SETTLE, () -> {
+            RequestOutcome plan = request.request(McItemType.batchOf(new ItemStack(Items.OAK_PLANKS, 8)));
+            helper.assertTrue(plan.started(), "planks should be craftable, missing " + plan.missing());
+        });
+
+        helper.succeedWhen(() -> {
+            Container chest = helper.getBlockEntity(target);
+            assertCount(helper, chest, Items.OAK_PLANKS, 8, "delivered");
+        });
+    }
+
+    // the settings button in the chassis opens the module where it sits, and import reads the table next to the pipe
+    @GameTest(template = EMPTY)
+    public static void crafterModuleIsSetUpInsideTheChassis(GameTestHelper helper) {
+        BlockPos chassisPos = new BlockPos(2, 1, 1);
+        helper.setBlock(chassisPos, LogisticsPipes.CHASSIS_PIPES.get(1).get());
+        PipeBlockEntity chassis = helper.getBlockEntity(chassisPos);
+        chassis.modules().setItem(0, new ItemStack(LogisticsPipes.MODULES.get(ModuleKind.CRAFTER).get()));
+        table(helper, 2, 2, Items.OAK_LOG);
+        TestPlayer player = TestPlayer.in(helper);
+
+        helper.runAfterDelay(SETTLE, () -> {
+            player.openMenu(chassis.menuProvider());
+            player.containerMenu.clickMenuButton(player, ChassisMenu.BUTTON_SETTINGS);
+            helper.assertTrue(player.containerMenu instanceof PipeConfigMenu, "the module settings should be open");
+            player.containerMenu.clickMenuButton(player, PipeConfigMenu.BUTTON_IMPORT_RECIPE);
+            player.containerMenu.clickMenuButton(player, PipeConfigMenu.BUTTON_PRIORITY_UP);
+            helper.assertTrue(chassis.crafts().size() == 1, "the module should have the recipe of the table");
+            helper.assertTrue(chassis.crafts().get(0).recipe().output().equals(McItemType.batchOf(new ItemStack(Items.OAK_PLANKS, 4))),
+                    "four planks");
+            helper.assertTrue(chassis.crafts().get(0).priority() == 1, "priority one");
             helper.succeed();
         });
     }
