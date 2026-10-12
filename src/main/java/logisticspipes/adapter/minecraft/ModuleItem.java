@@ -33,6 +33,7 @@ import logisticspipes.domain.logistics.PassiveSupplier;
 import logisticspipes.domain.logistics.PatternSupply;
 import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.domain.logistics.PolymorphicItemSink;
+import logisticspipes.domain.logistics.BulkStorageSink;
 import logisticspipes.domain.logistics.ProviderMode;
 import logisticspipes.domain.logistics.ProviderSettings;
 import logisticspipes.domain.logistics.SinkRule;
@@ -129,6 +130,7 @@ public class ModuleItem extends Item {
             case TERMINUS -> Optional.of(new Terminus(filterTypes(module).keySet()));
             case PASSIVE_SUPPLIER -> Optional.of(new PassiveSupplier(filterTypes(module)));
             case POLYMORPHIC_ITEM_SINK -> Optional.of(new PolymorphicItemSink());
+            case BULK_STORAGE_SINK -> Optional.of(new BulkStorageSink());
             case MOD_ITEM_SINK -> Optional.of(new TraitSink(TraitSink.Trait.MOD, Set.copyOf(namesOf(module))));
             case TAG_ITEM_SINK -> Optional.of(new TraitSink(TraitSink.Trait.TAG, Set.copyOf(namesOf(module))));
             case CREATIVE_TAB_ITEM_SINK -> Optional.of(new TraitSink(TraitSink.Trait.GROUP, Set.copyOf(namesOf(module))));

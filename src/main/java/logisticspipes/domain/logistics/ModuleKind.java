@@ -31,5 +31,7 @@ public enum ModuleKind {
     // crafts like a crafting pipe
     CRAFTER,
     // keeps its inventory stocked like a supplier pipe
-    ACTIVE_SUPPLIER
+    ACTIVE_SUPPLIER,
+    // makes every default route of its network take more of what its inventory already holds
+    BULK_STORAGE_SINK
 }

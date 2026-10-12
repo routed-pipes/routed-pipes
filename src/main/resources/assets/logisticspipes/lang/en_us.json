@@ -73,6 +73,8 @@
   "item.logisticspipes.module_passive_supplier.description": "Takes passing items until the inventory holds the listed amounts, before any ItemSink gets them. Use it in your hand to set it up.",
   "item.logisticspipes.module_polymorphic_item_sink": "Polymorphic ItemSink Module",
   "item.logisticspipes.module_polymorphic_item_sink.description": "Takes more of whatever the inventory already holds.",
+  "item.logisticspipes.module_bulk_storage_sink": "Bulk Storage Sink Module",
+  "item.logisticspipes.module_bulk_storage_sink.description": "Every default route of its network takes more of whatever its inventory already holds.",
   "item.logisticspipes.module_quick_sort": "QuickSort Module",
   "item.logisticspipes.module_advanced_extractor": "Advanced Extractor Module",
   "item.logisticspipes.module_advanced_extractor.description": "An extractor that only touches the listed items, or all but those. Use it in your hand to set it up.",

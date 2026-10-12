@@ -94,9 +94,9 @@ public class LogisticsPipeBlock extends Block implements EntityBlock {
             return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
         }
         if (stack.getItem() instanceof PipeControllerItem && level.getBlockEntity(pos) instanceof PipeBlockEntity pipe
-                && (kind != null || !pipe.travellingItems().isEmpty())) {
+                && (kind != null || ItemTracer.nearest(pipe, hit.getLocation()).isPresent())) {
             if (!level.isClientSide && pipe.security().allows(player, Permission.CHECK_NETWORK)) {
-                // with items in the pipe the controller tells where the one that was clicked is headed
+                // with items in or just past the pipe the controller tells where the one nearest the click is headed
                 ItemTracer.of(pipe, hit.getLocation()).ifPresent(trace -> ItemTracer.show(player, trace));
                 if (kind != null) {
                     // a busy routed pipe still opens, or a waiting item would keep its controller shut

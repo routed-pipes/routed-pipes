@@ -18,7 +18,7 @@ public enum ProgramCategory {
             modules("item_sink", "passive_supplier", "extractor", "polymorphic_item_sink", "quick_sort", "terminus",
                     "advanced_extractor", "provider")),
     CHASSIS_2(modules("mod_item_sink", "tag_item_sink", "enchantment_sink", "enchantment_sink_mk2",
-            "creative_tab_item_sink", "crafter", "active_supplier"));
+            "creative_tab_item_sink", "crafter", "active_supplier", "bulk_storage_sink"));
 
     private final List<Program> programs;
 

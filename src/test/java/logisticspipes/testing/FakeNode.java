@@ -69,6 +69,8 @@ public final class FakeNode implements RouterNode {
     public int stackExtraction;
     // how often the network looked into the inventories of this pipe
     public int probes;
+    // how often anybody asked what is in them
+    public int looks;
     // energy in junctions next to this pipe, plenty unless a test says otherwise
     public int power = 1_000_000;
     public boolean provides;
@@ -141,6 +143,7 @@ public final class FakeNode implements RouterNode {
 
     @Override
     public Map<ItemType, Integer> contents() {
+        looks++;
         return new LinkedHashMap<>(contents);
     }
 
@@ -197,7 +200,7 @@ public final class FakeNode implements RouterNode {
 
     @Override
     public List<SinkRule> sinkRules() {
-        return kind == PipeKind.BASIC || kind == PipeKind.CHASSIS ? List.of(sink) : List.of();
+        return sink != null && (kind == PipeKind.BASIC || kind == PipeKind.CHASSIS) ? List.of(sink) : List.of();
     }
 
     @Override

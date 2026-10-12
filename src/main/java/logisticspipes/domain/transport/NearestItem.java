@@ -10,7 +10,18 @@ import logisticspipes.domain.routing.Side;
 // the pipe is a block that runs from 0 to 1 in every direction
 public final class NearestItem {
 
+    // an item and the pipe it is in, which is that many blocks away from the pipe the point is measured in
+    public record InPipe<P>(P pipe, int dx, int dy, int dz, TravellingItem item) {
+    }
+
     private NearestItem() {
+    }
+
+    // the same over several pipes, for an item that has moved on since somebody pointed at it
+    // of two equally near ones the first in the list wins
+    public static <P> Optional<InPipe<P>> among(List<InPipe<P>> items, double x, double y, double z) {
+        return items.stream().min(Comparator.comparingDouble(
+                found -> distanceSquared(position(found.item()), x - found.dx(), y - found.dy(), z - found.dz())));
     }
 
     // empty for a pipe without items, of two equally near ones the one that came in first wins

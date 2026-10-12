@@ -17,7 +17,7 @@ LINKS = ["disconnected", "mismatched", "connected"]
 MODULES = ["module_item_sink", "module_extractor", "module_provider", "module_terminus", "module_passive_supplier",
            "module_polymorphic_item_sink", "module_quick_sort", "module_advanced_extractor", "module_mod_item_sink",
            "module_tag_item_sink", "module_creative_tab_item_sink", "module_enchantment_sink", "module_enchantment_sink_mk2",
-           "module_crafter", "module_active_supplier"]
+           "module_crafter", "module_active_supplier", "module_bulk_storage_sink"]
 # high speed tubes: the model of the original, the texture it is drawn with
 # and the quarter turns that make the model face north the way the game counts the blocks of the tube
 TUBES = {"line_tube": ("tube_line", "line_tube", 0), "speedup_tube": ("tube_speedup", "speedup_tube", 0),

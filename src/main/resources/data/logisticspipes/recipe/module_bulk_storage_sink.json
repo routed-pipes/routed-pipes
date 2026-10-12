@@ -1,0 +1,30 @@
+{
+  "type": "logisticspipes:programmed",
+  "category": "misc",
+  "pattern": [
+    " A ",
+    "BCB",
+    "DED"
+  ],
+  "key": {
+    "A": {
+      "item": "logisticspipes:logistics_programmer"
+    },
+    "B": {
+      "tag": "c:dusts/redstone"
+    },
+    "C": {
+      "item": "logisticspipes:chip_fpga"
+    },
+    "D": {
+      "tag": "c:ingots/gold"
+    },
+    "E": {
+      "item": "logisticspipes:module_polymorphic_item_sink"
+    }
+  },
+  "result": {
+    "id": "logisticspipes:module_bulk_storage_sink",
+    "count": 1
+  }
+}

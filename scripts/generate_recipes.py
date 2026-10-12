@@ -198,6 +198,7 @@ RECIPES = [
     programmed("module_creative_tab_item_sink", MODULE_UPGRADE_2, "module_blank"),
     programmed("module_crafter", MODULE_ADVANCED_1, "module_blank"),
     programmed("module_active_supplier", MODULE_ADVANCED_4, "module_blank"),
+    programmed("module_bulk_storage_sink", MODULE_UPGRADE_2, "module_polymorphic_item_sink"),
 
     shapeless("basic_logistics_pipe", [ITEM_PIPES], file="basic_logistics_pipe_from_pipes"),
     shapeless("fluid_basic_pipe", [FLUID_PIPES], file="fluid_basic_pipe_from_pipes"),

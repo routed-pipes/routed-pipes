@@ -28,6 +28,7 @@ import logisticspipes.adapter.minecraft.client.MacroEditScreen;
 import logisticspipes.adapter.minecraft.client.NamesScreen;
 import logisticspipes.adapter.minecraft.client.PipeConfigScreen;
 import logisticspipes.adapter.minecraft.client.PipeItemRenderer;
+import logisticspipes.adapter.minecraft.client.PlacementGhost;
 import logisticspipes.adapter.minecraft.client.ProgramCompilerScreen;
 import logisticspipes.adapter.minecraft.client.RemoteOrdererKey;
 import logisticspipes.adapter.minecraft.client.RequestScreen;
@@ -71,6 +72,7 @@ import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import net.neoforged.neoforge.client.event.RenderHighlightEvent;
 import net.neoforged.neoforge.client.model.BakedModelWrapper;
 import net.neoforged.neoforge.client.model.data.ModelData;
 import net.neoforged.neoforge.client.model.data.ModelProperty;
@@ -100,6 +102,8 @@ public class LogisticsPipesClient {
                 HudRenderer.render(event.getPoseStack(), event.getCamera());
             }
         });
+        NeoForge.EVENT_BUS.addListener((RenderHighlightEvent.Block event) -> PlacementGhost.draw(event.getTarget(),
+                event.getPoseStack(), event.getMultiBufferSource(), event.getCamera().getPosition()));
         ClientMenuLink.setSender(new ClientMenuLink.Sender() {
             @Override
             public void setMarker(int containerId, int slot, ItemStack stack) {

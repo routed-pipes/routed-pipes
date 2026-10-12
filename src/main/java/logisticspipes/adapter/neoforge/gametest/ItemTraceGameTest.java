@@ -1,5 +1,6 @@
 package logisticspipes.adapter.neoforge.gametest;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -157,5 +158,56 @@ public class ItemTraceGameTest {
         plain.accept(new ItemStack(Items.DIRT), Direction.UP);
         helper.assertTrue(useController(helper, player, plainPos).consumesAction(), "items in plain pipes can be traced too");
         helper.succeed();
+    }
+
+    private static List<PipeBlockEntity> row(GameTestHelper helper, int length) {
+        List<PipeBlockEntity> pipes = new ArrayList<>();
+        for (int x = 0; x < length; x++) {
+            pipes.add(transport(helper, new BlockPos(x, 1, 1)));
+        }
+        return pipes;
+    }
+
+    // a row of plain pipes, the first one is clicked after the item has moved on
+    @GameTest(template = EMPTY)
+    public static void traceFindsAnItemThatHasLeftTheClickedPipe(GameTestHelper helper) {
+        List<PipeBlockEntity> pipes = row(helper, 5);
+        Vec3 click = Vec3.atCenterOf(pipes.get(0).getBlockPos());
+
+        helper.runAfterDelay(SETTLE, () -> {
+            helper.assertTrue(ItemTracer.of(pipes.get(0), click).isEmpty(), "nothing to trace in empty pipes");
+            pipes.get(ItemTracer.SEARCH_DISTANCE).accept(new ItemStack(Items.DIRT, 3), Direction.UP);
+            ItemTracer.Trace far = ItemTracer.of(pipes.get(0), click).orElseThrow(
+                    () -> new IllegalStateException("the dirt three pipes on should be found"));
+            helper.assertTrue(far.item().is(Items.DIRT) && far.item().getCount() == 3, "three dirt: " + far.item());
+            helper.assertTrue(far.path().get(0).equals(pipes.get(ItemTracer.SEARCH_DISTANCE).getBlockPos()),
+                    "its way starts at the pipe it is in: " + far.path());
+
+            pipes.get(1).accept(new ItemStack(Items.SAND), Direction.UP);
+            helper.assertTrue(ItemTracer.of(pipes.get(0), click).orElseThrow().item().is(Items.SAND), "the sand next door is nearer");
+            helper.assertTrue(ItemTracer.of(pipes.get(4), Vec3.atCenterOf(pipes.get(4).getBlockPos())).orElseThrow().item()
+                    .is(Items.DIRT), "from the other end the dirt is nearer");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = EMPTY)
+    public static void traceDoesNotLookFurtherThanAFewPipes(GameTestHelper helper) {
+        List<PipeBlockEntity> pipes = row(helper, ItemTracer.SEARCH_DISTANCE + 2);
+        // next to the row but not connected to it, there is a block of air between them
+        PipeBlockEntity apart = transport(helper, new BlockPos(0, 1, 3));
+        TestPlayer player = TestPlayer.in(helper);
+
+        helper.runAfterDelay(SETTLE, () -> {
+            pipes.get(ItemTracer.SEARCH_DISTANCE + 1).accept(new ItemStack(Items.DIRT), Direction.UP);
+            apart.accept(new ItemStack(Items.SAND), Direction.UP);
+            helper.assertTrue(ItemTracer.of(pipes.get(0), Vec3.atCenterOf(pipes.get(0).getBlockPos())).isEmpty(),
+                    "an item four pipes on or in a pipe that is not connected is not the one that was clicked");
+            helper.assertTrue(useController(helper, player, new BlockPos(0, 1, 1)) == ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION,
+                    "the controller does nothing on a plain pipe with nothing near");
+            helper.assertTrue(useController(helper, player, new BlockPos(1, 1, 1)).consumesAction(),
+                    "one pipe on the item is in reach of the click");
+            helper.succeed();
+        });
     }
 }

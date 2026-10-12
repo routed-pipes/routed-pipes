@@ -15,6 +15,8 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerListener;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
@@ -180,5 +182,63 @@ public class PipeControllerGameTest {
             helper.assertTrue(menu.page() == 0, "paging stops at the first page");
             helper.succeed();
         });
+    }
+
+    // the menu as the client has it, it hears of the numbers of the server's the way vanilla sends them
+    private static UpgradeMenu clientOf(UpgradeMenu server, TestPlayer player) {
+        UpgradeMenu client = new UpgradeMenu(LogisticsPipes.UPGRADE_MENU.get(), server.containerId, player.getInventory());
+        server.addSlotListener(new ContainerListener() {
+            @Override
+            public void slotChanged(AbstractContainerMenu menu, int slot, ItemStack stack) {
+            }
+
+            @Override
+            public void dataChanged(AbstractContainerMenu menu, int index, int value) {
+                client.setData(index, value);
+            }
+        });
+        return client;
+    }
+
+    // the screen presses a button on its own menu first and then tells the server
+    private static void pressOnBothSides(UpgradeMenu client, UpgradeMenu server, TestPlayer player, int button) {
+        client.clickMenuButton(player, button);
+        server.clickMenuButton(player, button);
+        server.broadcastChanges();
+    }
+
+    // four orders in a crafting pipe make two pages
+    @GameTest(template = EMPTY)
+    public static void clientShowsThePageOfTheServerWhenPagingPastTheEnds(GameTestHelper helper) {
+        PipeBlockEntity crafting = pipe(helper, PipeKind.CRAFTING, 1);
+        for (int extra = 0; extra < 4; extra++) {
+            crafting.outputOrders().add(OutputOrder.extra(McItemType.batchOf(new ItemStack(Items.STICK, 1 + extra)),
+                    helper.getLevel().getGameTime()));
+        }
+        TestPlayer player = TestPlayer.in(helper);
+        UpgradeMenu server = controller(helper, player, 1);
+        UpgradeMenu client = clientOf(server, player);
+
+        pressOnBothSides(client, server, player, UpgradeMenu.Tab.TASKS.ordinal());
+        helper.assertTrue(client.tab() == UpgradeMenu.Tab.TASKS && client.page() == 0 && client.pages() == 2,
+                "the client starts on page 1 of 2, got " + (client.page() + 1) + "/" + client.pages());
+        for (int press = 0; press < 3; press++) {
+            pressOnBothSides(client, server, player, UpgradeMenu.BUTTON_NEXT_PAGE);
+        }
+        helper.assertTrue(server.page() == 1 && client.page() == 1,
+                "paging stops at page 2 on both sides, the client shows " + (client.page() + 1) + "/" + client.pages());
+        for (int press = 0; press < 3; press++) {
+            pressOnBothSides(client, server, player, UpgradeMenu.BUTTON_PREVIOUS_PAGE);
+        }
+        helper.assertTrue(server.page() == 0 && client.page() == 0,
+                "paging stops at page 1 on both sides, the client shows " + (client.page() + 1) + "/" + client.pages());
+
+        pressOnBothSides(client, server, player, UpgradeMenu.Tab.NETWORK.ordinal());
+        for (int press = 0; press < 2; press++) {
+            pressOnBothSides(client, server, player, UpgradeMenu.BUTTON_NEXT_PAGE);
+        }
+        helper.assertTrue(client.page() == server.page() && client.pages() == server.pages(),
+                "the network tab pages the same way, the client shows " + (client.page() + 1) + "/" + client.pages());
+        helper.succeed();
     }
 }

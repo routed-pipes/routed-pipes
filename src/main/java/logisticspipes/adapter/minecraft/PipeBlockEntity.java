@@ -1002,7 +1002,8 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     private boolean needsUpkeep() {
         if (upkeepCache == null) {
             upkeepCache = kind() == PipeKind.CRAFTING || kind() == PipeKind.SUPPLIER || kind() == PipeKind.CHASSIS
-                    && (!extractions().isEmpty() || hasModule(ModuleKind.CRAFTER) || hasModule(ModuleKind.ACTIVE_SUPPLIER));
+                    && (!extractions().isEmpty() || hasModule(ModuleKind.CRAFTER) || hasModule(ModuleKind.ACTIVE_SUPPLIER)
+                    || hasModule(ModuleKind.BULK_STORAGE_SINK));
         }
         return upkeepCache;
     }

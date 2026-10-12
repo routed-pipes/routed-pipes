@@ -22,6 +22,7 @@ import logisticspipes.domain.crafting.FluidInput;
 import logisticspipes.domain.crafting.OutputOrder;
 import logisticspipes.domain.fluid.FluidBatch;
 import logisticspipes.domain.fluid.FluidType;
+import logisticspipes.domain.logistics.BulkStorageSink;
 import logisticspipes.domain.item.ItemBatch;
 import logisticspipes.domain.item.ItemType;
 import logisticspipes.domain.logistics.DestinationSelector;
@@ -103,6 +104,7 @@ public final class LogisticsNetwork {
     private final Map<RouterId, List<SinkRule>> sinkRules = new HashMap<>();
     private final Map<ItemType, Set<RouterId>> sinksByItem = new HashMap<>();
     private final Set<RouterId> sinksForAnything = new HashSet<>();
+    private final BulkStorage bulkStorage = new BulkStorage();
     private final FluidLogistics fluids = new FluidLogistics(this);
     private final SubSystemPower subSystemPower = new SubSystemPower(this);
     // how long the answer to which groups of routers have energy is good for, in ticks
@@ -161,6 +163,7 @@ public final class LogisticsNetwork {
         subSystemPower.forget(id);
         changedAt.remove(id);
         forgetSinks(id);
+        bulkStorage.forget(id);
         lastChangeOfComponent.clear();
         lastChangeAnywhere = now;
     }
@@ -264,11 +267,13 @@ public final class LogisticsNetwork {
     // has to be called whenever what a router takes in changes: its filters, modules or default route
     public void sinksChanged(RouterId id) {
         forgetSinks(id);
+        bulkStorage.forget(id);
         RouterNode node = nodes.get(id);
         if (node == null) {
             return;
         }
         List<SinkRule> rules = List.copyOf(node.sinkRules());
+        bulkStorage.rulesChanged(id, rules);
         if (rules.isEmpty()) {
             return;
         }
@@ -307,6 +312,10 @@ public final class LogisticsNetwork {
         if (rules == null || node == null) {
             return Optional.empty();
         }
+        if (bulkStorage.holding(type).contains(id) && bulkStorageAt(id)) {
+            // the index says it holds the item, so there is no need to look, see BulkStorage
+            return Optional.of(BulkStorageSink.STORED);
+        }
         Map<ItemType, Integer> contents = Map.of();
         if (rules.stream().anyMatch(SinkRule::needsContents)) {
             // what is already on its way here counts as if it were in the inventory
@@ -315,6 +324,16 @@ public final class LogisticsNetwork {
         }
         Map<ItemType, Integer> seen = contents;
         return rules.stream().flatMap(rule -> rule.bid(type, seen).stream()).max(Comparator.comparingInt(SinkBid::priority));
+    }
+
+    // whether a bulk storage sink module is in the network of the router
+    private boolean bulkStorageAt(RouterId id) {
+        if (bulkStorage.modules().isEmpty()) {
+            return false;
+        }
+        OptionalInt component = routing.component(id);
+        return component.isPresent()
+                && bulkStorage.modules().stream().anyMatch(module -> routing.component(module).equals(component));
     }
 
     // side an item has to leave the router through, picks a new destination if the current one does not work out
@@ -515,11 +534,27 @@ public final class LogisticsNetwork {
             // fluid pipes look after it, see FluidLogistics
             return Optional.empty();
         }
+        if (bulkStorageAt(at)) {
+            // with bulk storage most sinks are default routes, far too many to go through for every item
+            // whoever wants the item more than those is asked first, and that is the usual end of it
+            Set<RouterId> keen = bulkStorage.keenOn(batch.type());
+            keen.addAll(sinksByItem.getOrDefault(batch.type(), Set.of()));
+            Optional<Claim> claim = claimAmong(keen, at, batch, origin, mayStay,
+                    Math.max(minPriority, ItemSink.DEFAULT_ROUTE_PRIORITY + 1), now);
+            if (claim.isPresent()) {
+                return claim;
+            }
+        }
+        Set<RouterId> candidates = new HashSet<>(sinksForAnything);
+        candidates.addAll(sinksByItem.getOrDefault(batch.type(), Set.of()));
+        return claimAmong(candidates, at, batch, origin, mayStay, minPriority, now);
+    }
+
+    private Optional<Claim> claimAmong(Set<RouterId> candidates, RouterId at, ItemBatch batch, Side origin, boolean mayStay,
+            int minPriority, long now) {
         Set<InventoryRef> cameFrom = sourceInventories(at, origin, mayStay);
         List<SinkOffer> offers = new ArrayList<>();
         Map<RouterId, SinkBid> bids = new HashMap<>();
-        Set<RouterId> candidates = new HashSet<>(sinksForAnything);
-        candidates.addAll(sinksByItem.getOrDefault(batch.type(), Set.of()));
         for (RouterId candidate : candidates) {
             Optional<SinkBid> bid = sinkBid(candidate, batch.type(), now);
             if (bid.isEmpty() || bid.get().priority() < minPriority
@@ -845,6 +880,9 @@ public final class LogisticsNetwork {
         RouterNode node = nodes.get(id);
         if (node == null || now == lastChangeAnywhere) {
             return;
+        }
+        if (bulkStorage.modules().contains(id)) {
+            bulkStorage.look(nodes::get);
         }
         if (!node.outputOrders().isEmpty() && now % CRAFT_INTERVAL == 0) {
             node.outputOrders().ship(now, CRAFT_TIMEOUT, order -> {

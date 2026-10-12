@@ -68,4 +68,46 @@ class NearestItemTest {
 
         assertThat(NearestItem.to(List.of(first, second), 0.5, 0.5, 0.5)).containsSame(first);
     }
+
+    @Test
+    void noPipesWithItemsMeansNoNearestItem() {
+        assertThat(NearestItem.among(List.<NearestItem.InPipe<String>>of(), 0.5, 0.5, 0.5)).isEmpty();
+    }
+
+    @Test
+    void anItemInAnotherPipeIsFoundWhenThePipeAtThePointIsEmpty() {
+        TravellingItem movedOn = item(1, Side.WEST, Side.EAST, LENGTH / 2);
+
+        assertThat(NearestItem.among(List.of(new NearestItem.InPipe<>("two east", 2, 0, 0, movedOn)), 0.5, 1, 0.5))
+                .map(NearestItem.InPipe::pipe).contains("two east");
+    }
+
+    @Test
+    void itemsInOtherPipesAreMeasuredFromWhereTheirPipeIs() {
+        // both at the centre of their pipe
+        NearestItem.InPipe<String> east = new NearestItem.InPipe<>("east", 1, 0, 0, item(1, Side.WEST, Side.EAST, LENGTH / 2));
+        NearestItem.InPipe<String> above = new NearestItem.InPipe<>("above", 0, 2, 0, item(2, Side.DOWN, Side.UP, LENGTH / 2));
+        List<NearestItem.InPipe<String>> items = List.of(east, above);
+
+        assertThat(NearestItem.among(items, 0.9, 0.5, 0.5)).contains(east);
+        assertThat(NearestItem.among(items, 0.5, 1.9, 0.5)).contains(above);
+        assertThat(NearestItem.among(items, 0.5, 0.5, 0.5)).contains(east);
+    }
+
+    @Test
+    void anItemLeavingTheNextPipeTowardsThePointBeatsOneAtTheFarSideOfThisPipe() {
+        NearestItem.InPipe<String> here = new NearestItem.InPipe<>("here", 0, 0, 0, item(1, Side.WEST, Side.EAST, 0));
+        NearestItem.InPipe<String> next = new NearestItem.InPipe<>("next", 1, 0, 0, item(2, Side.EAST, Side.WEST, LENGTH));
+
+        assertThat(NearestItem.among(List.of(here, next), 0.9, 0.5, 0.5)).contains(next);
+        assertThat(NearestItem.among(List.of(here, next), 0.4, 0.5, 0.5)).contains(here);
+    }
+
+    @Test
+    void ofTwoEquallyNearItemsInDifferentPipesTheFirstWins() {
+        NearestItem.InPipe<String> west = new NearestItem.InPipe<>("west", -1, 0, 0, item(1, Side.WEST, Side.EAST, LENGTH / 2));
+        NearestItem.InPipe<String> east = new NearestItem.InPipe<>("east", 1, 0, 0, item(2, Side.WEST, Side.EAST, LENGTH / 2));
+
+        assertThat(NearestItem.among(List.of(west, east), 0.5, 0.5, 0.5)).contains(west);
+    }
 }

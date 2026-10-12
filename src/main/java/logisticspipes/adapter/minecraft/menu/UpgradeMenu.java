@@ -369,13 +369,16 @@ public class UpgradeMenu extends AbstractContainerMenu {
     public boolean clickMenuButton(Player player, int id) {
         if (id >= 0 && id < Tab.values().length) {
             data.set(DATA_TAB, id);
-        } else if (tab() == Tab.NETWORK && (id == BUTTON_PREVIOUS_PAGE || id == BUTTON_NEXT_PAGE)) {
+        } else if (id == BUTTON_PREVIOUS_PAGE || id == BUTTON_NEXT_PAGE) {
             // only the server knows how many pages there are, a page the client made up would stick
             if (pipe != null) {
-                network.set(NETWORK_PAGE, network.get(NETWORK_PAGE) + (id == BUTTON_NEXT_PAGE ? 1 : -1));
+                int step = id == BUTTON_NEXT_PAGE ? 1 : -1;
+                if (tab() == Tab.NETWORK) {
+                    network.set(NETWORK_PAGE, network.get(NETWORK_PAGE) + step);
+                } else {
+                    data.set(DATA_PAGE, data.get(DATA_PAGE) + step);
+                }
             }
-        } else if (id == BUTTON_PREVIOUS_PAGE || id == BUTTON_NEXT_PAGE) {
-            data.set(DATA_PAGE, data.get(DATA_PAGE) + (id == BUTTON_NEXT_PAGE ? 1 : -1));
         } else {
             return false;
         }

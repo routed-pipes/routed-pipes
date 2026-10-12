@@ -1,8 +1,10 @@
 package logisticspipes.adapter.minecraft;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import logisticspipes.domain.routing.RouterId;
 import logisticspipes.domain.transport.NearestItem;
@@ -25,6 +27,8 @@ public final class ItemTracer {
     private static final int MAX_PIPES = 4096;
     private static final int PARTICLES_PER_PIPE = 3;
     private static final double PARTICLE_SPREAD = 0.25;
+    // an item is through a pipe in two or three ticks, so it has often left the pipe by the time the click gets here
+    public static final int SEARCH_DISTANCE = 3;
 
     // the path starts at the pipe the item is in and ends at its destination, or where its way cannot be followed any further
     // an item that is not headed anywhere, or to a pipe that is gone, has no destination and only the pipe it is in as its path
@@ -34,11 +38,41 @@ public final class ItemTracer {
     private ItemTracer() {
     }
 
-    // the item nearest to where the pipe was clicked, empty for a pipe with nothing in it
+    // the item nearest to where the pipe was clicked, in that pipe or one a few pipes on
+    // empty when there is nothing in any of them
     public static Optional<Trace> of(PipeBlockEntity pipe, Vec3 click) {
-        BlockPos pos = pipe.getBlockPos();
-        return NearestItem.to(pipe.travellingItems(), click.x - pos.getX(), click.y - pos.getY(), click.z - pos.getZ())
-                .map(item -> trace(pipe, item));
+        return nearest(pipe, click).map(found -> trace(found.pipe(), found.item()));
+    }
+
+    static Optional<NearestItem.InPipe<PipeBlockEntity>> nearest(PipeBlockEntity clicked, Vec3 click) {
+        BlockPos origin = clicked.getBlockPos();
+        Level level = clicked.getLevel();
+        List<NearestItem.InPipe<PipeBlockEntity>> items = new ArrayList<>();
+        Set<BlockPos> seen = new HashSet<>();
+        seen.add(origin);
+        List<PipeBlockEntity> ring = List.of(clicked);
+        for (int distance = 0; distance <= SEARCH_DISTANCE && !ring.isEmpty(); distance++) {
+            List<PipeBlockEntity> next = new ArrayList<>();
+            for (PipeBlockEntity pipe : ring) {
+                BlockPos pos = pipe.getBlockPos();
+                for (TravellingItem item : pipe.travellingItems()) {
+                    items.add(new NearestItem.InPipe<>(pipe, pos.getX() - origin.getX(), pos.getY() - origin.getY(),
+                            pos.getZ() - origin.getZ(), item));
+                }
+                if (distance == SEARCH_DISTANCE) {
+                    continue;
+                }
+                for (Direction direction : Direction.values()) {
+                    BlockPos neighbour = pos.relative(direction);
+                    if (LogisticsPipeBlock.connected(pipe.getBlockState(), direction) && seen.add(neighbour)
+                            && level.getBlockEntity(neighbour) instanceof PipeBlockEntity connected) {
+                        next.add(connected);
+                    }
+                }
+            }
+            ring = next;
+        }
+        return NearestItem.among(items, click.x - origin.getX(), click.y - origin.getY(), click.z - origin.getZ());
     }
 
     private static Trace trace(PipeBlockEntity pipe, TravellingItem item) {

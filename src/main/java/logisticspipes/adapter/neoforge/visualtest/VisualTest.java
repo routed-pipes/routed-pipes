@@ -292,6 +292,11 @@ public final class VisualTest {
             minecraft.options.hideGui = false;
         });
         step(40, () -> shot("hud_panels"));
+        // looking at a free spot next to a pipe with a pipe in the hand shows where it would go
+        step(5, () -> command("item replace entity @p weapon.mainhand with logisticspipes:basic_logistics_pipe"));
+        step(10, () -> command("tp @p 2.5 -58.4 7.5 90 50"));
+        step(10, () -> shot("placement_ghost"));
+        step(5, () -> command("item replace entity @p weapon.mainhand with air"));
         step(1, () -> minecraft.options.hideGui = true);
         step(5, () -> command("item replace entity @p armor.head with air"));
         step(5, () -> minecraft.setScreen(new logisticspipes.adapter.minecraft.client.GuideBookScreen()));
