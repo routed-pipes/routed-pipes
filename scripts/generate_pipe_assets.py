@@ -75,7 +75,7 @@ def corner_i(meshes, corner, axis):
 
 
 def write_part(path, vertices, coords, mesh_lists, material, icon=False):
-    """One obj file with the given meshes. Faces are written twice, front and back, as the pipe is see-through."""
+    """One obj file with the given meshes. The model brings its own back faces where they can be seen."""
     lines = ["mtllib pipe.mtl", "o part", f"usemtl {material}"]
     vertex_index, coord_index, faces_out = {}, {}, []
     for faces in mesh_lists:
@@ -96,9 +96,11 @@ def write_part(path, vertices, coords, mesh_lists, material, icon=False):
             for start in range(1, len(corners) - 1, 2):
                 polygon = [corners[0]] + corners[start:start + 3]
                 faces_out.append(polygon)
-                faces_out.append(list(reversed(polygon)))
     for vertex in vertex_index:
         x, y, z = vertices[vertex - 1]
+        if icon:
+            # a hair outside the frame like in the original, a support runs through the same plane
+            x, y, z = ((value - 0.5) * 1.001 + 0.5 for value in (x, y, z))
         lines.append(f"v {x:.6f} {y:.6f} {z:.6f}")
     for u, v in coord_index:
         lines.append(f"vt {u:.6f} {v:.6f}")
