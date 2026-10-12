@@ -1,0 +1,62 @@
+#!/usr/bin/env python3
+"""Checks the screenshots of the visual test for things that can be judged without looking at them."""
+import sys
+from pathlib import Path
+
+from PIL import Image, ImageChops
+
+SHOTS = Path("build/visual-test/screenshots")
+EXPECTED = ["pipes_overview", "pipes_close", "pipes_junction", "pipes_vertical", "crafting_table", "chassis",
+            "gui_request", "gui_supplier", "gui_basic", "gui_crafting", "gui_satellite", "gui_chassis",
+            "gui_module_item_sink", "gui_crafting_table", "gui_crafting_imported"]
+FLICKER_FRAMES = 45
+# the grey of the window background drawn by Panel
+PANEL = (198, 198, 198)
+
+
+def load(name):
+    return Image.open(SHOTS / f"{name}.png").convert("RGB")
+
+
+def changed_box(base, frame):
+    difference = ImageChops.difference(base, frame).convert("L").point(lambda value: 255 if value > 30 else 0)
+    return difference.getbbox()
+
+
+def main():
+    problems = []
+    for name in EXPECTED + ["flicker_base"] + [f"flicker_{frame:02d}" for frame in range(FLICKER_FRAMES)]:
+        if not (SHOTS / f"{name}.png").exists():
+            problems.append(f"missing screenshot {name}")
+    if problems:
+        return problems
+
+    # the item must be visible in every frame and never jump backwards
+    base = load("flicker_base")
+    last = None
+    for frame in range(FLICKER_FRAMES):
+        box = changed_box(base, load(f"flicker_{frame:02d}"))
+        if box is None:
+            problems.append(f"flicker_{frame:02d}: the travelling item is not visible")
+            continue
+        centre = (box[0] + box[2]) / 2
+        # the first frames show it leaving the chest downwards, after that it moves sideways
+        if last is not None and frame > 4 and centre < last - 2:
+            problems.append(f"flicker_{frame:02d}: the item jumped back from x={last:.0f} to x={centre:.0f}")
+        last = centre
+
+    # a screen that failed to open would leave no window background in the picture
+    for name in (shot for shot in EXPECTED if shot.startswith("gui_")):
+        colours = dict((colour, count) for count, colour in load(name).getcolors(maxcolors=1 << 24))
+        if colours.get(PANEL, 0) < 5000:
+            problems.append(f"{name}: no window on the screen")
+    return problems
+
+
+if __name__ == "__main__":
+    found = main()
+    for problem in found:
+        print("FAIL", problem)
+    if not found:
+        print("visual checks passed")
+    sys.exit(1 if found else 0)
