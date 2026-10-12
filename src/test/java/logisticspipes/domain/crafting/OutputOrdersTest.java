@@ -93,4 +93,15 @@ class OutputOrdersTest {
         assertThat(orders.owed(batch("ingot", 1).type())).isEqualTo(11);
         assertThat(orders.owedInTotal()).isEqualTo(16);
     }
+
+    @Test
+    void addsUpWhatIsOwedPerItem() {
+        orders.add(new OutputOrder(router(1), batch("ingot", 8)));
+        orders.add(new OutputOrder(router(2), batch("plate", 5)));
+        orders.add(new OutputOrder(router(2), batch("ingot", 3)));
+
+        assertThat(orders.owedByType()).containsExactly(
+                java.util.Map.entry(batch("ingot", 1).type(), 11),
+                java.util.Map.entry(batch("plate", 1).type(), 5));
+    }
 }

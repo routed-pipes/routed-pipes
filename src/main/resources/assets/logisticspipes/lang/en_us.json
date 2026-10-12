@@ -122,5 +122,11 @@
   "logisticspipes.status.routers": "Connected logistics pipes: %s",
   "logisticspipes.status.energy": "Network power: %s FE",
   "logisticspipes.status.items": "Items inside: %s",
+  "logisticspipes.status.modules": "Modules: %s",
+  "logisticspipes.status.takes": "Takes: %s",
+  "logisticspipes.status.default_route": "Default route",
+  "logisticspipes.status.orders": "Crafting: %s",
+  "logisticspipes.status.order_entry": "%s x %s",
+  "logisticspipes.status.more": "+%s more",
   "config.jade.plugin_logisticspipes.pipe_status": "Logistics pipe status"
 }

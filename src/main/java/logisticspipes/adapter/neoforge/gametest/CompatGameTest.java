@@ -1,5 +1,6 @@
 package logisticspipes.adapter.neoforge.gametest;
 
+import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -7,6 +8,7 @@ import java.util.function.Consumer;
 
 import logisticspipes.adapter.minecraft.McItemType;
 import logisticspipes.adapter.minecraft.PipeBlockEntity;
+import logisticspipes.adapter.minecraft.PipeDetails;
 import logisticspipes.adapter.minecraft.PowerJunctionBlockEntity;
 import logisticspipes.adapter.neoforge.CapabilityItemStorage;
 import logisticspipes.adapter.neoforge.LogisticsPipes;
@@ -32,6 +34,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.level.block.state.properties.Property;
+import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
@@ -92,6 +95,9 @@ public class CompatGameTest {
         }
         if (has("create:millstone")) {
             tests.add(test("compat.create.crafts_with_millstone", CompatGameTest::createCraftsWithMillstone, 2400));
+        }
+        if (ModList.get().isLoaded("jade")) {
+            tests.add(test("compat.jade.sends_pipe_details", CompatGameTest::jadeSendsPipeDetails));
         }
         return tests;
     }
@@ -287,6 +293,45 @@ public class CompatGameTest {
             helper.assertTrue(gravel == 3, "expected 3 gravel but found " + gravel + ", millstone is "
                     + helper.getBlockEntity(millstone).saveWithoutMetadata(helper.getLevel().registryAccess()));
             helper.assertTrue(junction.stored() < PowerJunctionBlockEntity.CAPACITY, "moving the items should have cost power");
+        });
+    }
+
+    // runs the server half of the tooltip the way Jade does when a client looks at a pipe
+    // everything of Jade is found by name because there is no compile dependency on it
+    private static void jadeSendsPipeDetails(GameTestHelper helper) {
+        GameTestPower.supply(helper);
+        PipeBlockEntity basic = pipe(helper, PipeKind.BASIC, 0);
+        basic.config().setItem(0, new ItemStack(Items.DIAMOND));
+
+        helper.runAfterDelay(5, () -> {
+            CompoundTag data = new CompoundTag();
+            try {
+                Class<?> accessorType = Class.forName("snownee.jade.api.BlockAccessor");
+                Object accessor = Proxy.newProxyInstance(accessorType.getClassLoader(), new Class<?>[] {accessorType},
+                        (proxy, method, arguments) -> switch (method.getName()) {
+                            case "getBlockEntity" -> basic;
+                            case "getLevel" -> helper.getLevel();
+                            default -> throw new UnsupportedOperationException(method.getName());
+                        });
+                Object registration = Class.forName("snownee.jade.impl.WailaCommonRegistration").getMethod("instance").invoke(null);
+                List<?> providers = (List<?>) registration.getClass().getMethod("getBlockNBTProviders", Block.class, BlockEntity.class)
+                        .invoke(registration, basic.getBlockState().getBlock(), basic);
+                Class<?> providerType = Class.forName("snownee.jade.api.IServerDataProvider");
+                for (Object provider : providers) {
+                    if (providerType.getMethod("getUid").invoke(provider).toString().equals("logisticspipes:pipe_status")) {
+                        providerType.getMethod("appendServerData", CompoundTag.class, Class.forName("snownee.jade.api.Accessor"))
+                                .invoke(provider, data, accessor);
+                    }
+                }
+            } catch (ReflectiveOperationException e) {
+                throw new IllegalStateException(e);
+            }
+            helper.assertTrue(data.getInt("LogisticsPipesRouters") == 0 && data.contains("LogisticsPipesEnergy"),
+                    "Jade should get the status of the pipe, got " + data);
+            PipeDetails details = PipeDetails.load(data.getCompound("LogisticsPipesDetails"), helper.getLevel().registryAccess());
+            helper.assertTrue(details.listed().shown().size() == 1 && details.listed().shown().get(0).stack().is(Items.DIAMOND),
+                    "Jade should get the filter of the pipe, got " + data);
+            helper.succeed();
         });
     }
 

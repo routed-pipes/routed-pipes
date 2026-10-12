@@ -1,8 +1,10 @@
 package logisticspipes.domain.crafting;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 import java.util.function.ToIntFunction;
 
 import logisticspipes.domain.item.ItemBatch;
@@ -27,6 +29,15 @@ public final class OutputOrders {
     // how many of an item are still owed in total
     public int owed(ItemType type) {
         return orders.stream().filter(order -> order.batch().type().equals(type)).mapToInt(order -> order.batch().count()).sum();
+    }
+
+    // what is still owed per item, in the order the items were first asked for
+    public Map<ItemType, Integer> owedByType() {
+        Map<ItemType, Integer> owed = new LinkedHashMap<>();
+        for (OutputOrder order : orders) {
+            owed.merge(order.batch().type(), order.batch().count(), Integer::sum);
+        }
+        return owed;
     }
 
     public int owedInTotal() {
