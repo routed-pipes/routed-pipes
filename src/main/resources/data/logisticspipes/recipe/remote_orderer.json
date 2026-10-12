@@ -1,17 +1,28 @@
 {
-  "type": "minecraft:crafting_shapeless",
+  "type": "minecraft:crafting_shaped",
   "category": "misc",
-  "ingredients": [
-    {
-      "item": "minecraft:compass"
-    },
-    {
-      "item": "minecraft:ender_pearl"
-    },
-    {
-      "item": "minecraft:redstone"
-    }
+  "pattern": [
+    "ABA",
+    "CDE",
+    "CCE"
   ],
+  "key": {
+    "A": {
+      "item": "logisticspipes:chip_advanced"
+    },
+    "B": {
+      "tag": "c:ingots/gold"
+    },
+    "C": {
+      "tag": "c:dusts/redstone"
+    },
+    "D": {
+      "tag": "c:glass_blocks"
+    },
+    "E": {
+      "tag": "c:gems/lapis"
+    }
+  },
   "result": {
     "id": "logisticspipes:remote_orderer",
     "count": 1

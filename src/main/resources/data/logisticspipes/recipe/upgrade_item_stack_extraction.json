@@ -1,20 +1,31 @@
 {
-  "type": "minecraft:crafting_shapeless",
+  "type": "logisticspipes:programmed",
   "category": "misc",
-  "ingredients": [
-    {
+  "pattern": [
+    "ABA",
+    "CDC",
+    "EFE"
+  ],
+  "key": {
+    "A": {
+      "tag": "c:dusts/redstone"
+    },
+    "B": {
+      "item": "logisticspipes:logistics_programmer"
+    },
+    "C": {
+      "tag": "c:ingots/gold"
+    },
+    "D": {
+      "item": "logisticspipes:chip_advanced"
+    },
+    "E": {
       "item": "minecraft:paper"
     },
-    {
-      "item": "minecraft:redstone"
-    },
-    {
-      "item": "minecraft:gold_ingot"
-    },
-    {
-      "item": "minecraft:hopper"
+    "F": {
+      "tag": "c:nuggets/gold"
     }
-  ],
+  },
   "result": {
     "id": "logisticspipes:upgrade_item_stack_extraction",
     "count": 1

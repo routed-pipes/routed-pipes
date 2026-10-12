@@ -1,17 +1,22 @@
 {
-  "type": "minecraft:crafting_shapeless",
+  "type": "minecraft:crafting_shaped",
   "category": "misc",
-  "ingredients": [
-    {
-      "item": "minecraft:paper"
-    },
-    {
-      "item": "minecraft:redstone"
-    },
-    {
-      "item": "minecraft:gold_nugget"
-    }
+  "pattern": [
+    "ABA",
+    "BCB",
+    "ABA"
   ],
+  "key": {
+    "A": {
+      "tag": "c:ingots/iron"
+    },
+    "B": {
+      "tag": "c:dusts/redstone"
+    },
+    "C": {
+      "tag": "c:nuggets/gold"
+    }
+  },
   "result": {
     "id": "logisticspipes:disk",
     "count": 1

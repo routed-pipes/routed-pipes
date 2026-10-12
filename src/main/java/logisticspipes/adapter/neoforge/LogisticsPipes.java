@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import logisticspipes.adapter.minecraft.CompilerDiskContents;
 import logisticspipes.adapter.minecraft.ConnectorPipeBlock;
 import logisticspipes.adapter.minecraft.CraftingTableBlock;
 import logisticspipes.adapter.minecraft.CraftingTableBlockEntity;
@@ -29,6 +30,11 @@ import logisticspipes.adapter.minecraft.PowerJunctionBlock;
 import logisticspipes.adapter.minecraft.PowerJunctionBlockEntity;
 import logisticspipes.adapter.minecraft.PowerProviderBlock;
 import logisticspipes.adapter.minecraft.PowerProviderBlockEntity;
+import logisticspipes.adapter.minecraft.ProgramCompilerBlock;
+import logisticspipes.adapter.minecraft.ProgramCompilerBlockEntity;
+import logisticspipes.adapter.minecraft.ProgramCompilerServices;
+import logisticspipes.adapter.minecraft.ProgrammedRecipe;
+import logisticspipes.adapter.minecraft.ProgrammerItem;
 import logisticspipes.adapter.minecraft.RemoteOrdererItem;
 import logisticspipes.adapter.minecraft.RequestTableBlock;
 import logisticspipes.adapter.minecraft.SettingsCopierItem;
@@ -58,6 +64,7 @@ import logisticspipes.adapter.minecraft.menu.FluidRequestMenu;
 import logisticspipes.adapter.minecraft.menu.MenuRequests;
 import logisticspipes.adapter.minecraft.menu.NamesMenu;
 import logisticspipes.adapter.minecraft.menu.PipeConfigMenu;
+import logisticspipes.adapter.minecraft.menu.ProgramCompilerMenu;
 import logisticspipes.adapter.minecraft.menu.RequestMenu;
 import logisticspipes.adapter.minecraft.menu.RequestTableMenu;
 import logisticspipes.adapter.minecraft.menu.SecurityStationMenu;
@@ -80,6 +87,7 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -114,6 +122,8 @@ public class LogisticsPipes {
     private static final DeferredRegister<CreativeModeTab> TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
     private static final DeferredRegister<DataComponentType<?>> DATA_COMPONENTS =
             DeferredRegister.create(Registries.DATA_COMPONENT_TYPE, MODID);
+    private static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS =
+            DeferredRegister.create(Registries.RECIPE_SERIALIZER, MODID);
 
     public static final Supplier<MenuType<RequestMenu>> REQUEST_MENU = MENUS.register("request",
             () -> new MenuType<>((id, inventory) -> new RequestMenu(LogisticsPipes.REQUEST_MENU.get(), id),
@@ -373,6 +383,37 @@ public class LogisticsPipes {
                             STATISTICS_TABLE.get())
                     .build(null));
 
+    public static final Supplier<MenuType<ProgramCompilerMenu>> PROGRAM_COMPILER_MENU = MENUS.register("program_compiler",
+            () -> new MenuType<>((id, inventory) -> new ProgramCompilerMenu(LogisticsPipes.PROGRAM_COMPILER_MENU.get(), id, inventory),
+                    FeatureFlags.DEFAULT_FLAGS));
+    public static final DeferredItem<ProgrammerItem> LOGISTICS_PROGRAMMER = ITEMS.register("logistics_programmer",
+            () -> new ProgrammerItem(new Item.Properties().stacksTo(1)));
+    public static final DeferredBlock<ProgramCompilerBlock> PROGRAM_COMPILER = BLOCKS.register("program_compiler",
+            () -> new ProgramCompilerBlock(BlockBehaviour.Properties.of().strength(2.5f).sound(SoundType.METAL),
+                    new ProgramCompilerServices(() -> LogisticsPipes.PROGRAM_COMPILER_BLOCK_ENTITY.get(), PROGRAM_COMPILER_MENU)));
+    public static final Supplier<BlockEntityType<ProgramCompilerBlockEntity>> PROGRAM_COMPILER_BLOCK_ENTITY =
+            BLOCK_ENTITIES.register("program_compiler", () -> BlockEntityType.Builder
+                    .of((pos, state) -> new ProgramCompilerBlockEntity(LogisticsPipes.PROGRAM_COMPILER_BLOCK_ENTITY.get(), pos, state),
+                            PROGRAM_COMPILER.get())
+                    .build(null));
+
+    static {
+        ITEMS.registerSimpleBlockItem(PROGRAM_COMPILER);
+        DATA_COMPONENTS.register("program", () -> ProgrammerItem.PROGRAM);
+        DATA_COMPONENTS.register("compiler_disk", () -> CompilerDiskContents.TYPE);
+        RECIPE_SERIALIZERS.register("programmed", () -> ProgrammedRecipe.SERIALIZER);
+    }
+
+    // what the rest is crafted from, raw chips are smelted into chips
+    static {
+        for (String part : new String[] {"chip_basic_raw", "chip_basic", "chip_advanced_raw", "chip_advanced",
+                "chip_fpga_raw", "chip_fpga", "module_blank"}) {
+            ITEMS.registerSimpleItem(part);
+        }
+        ITEMS.registerSimpleBlockItem(BLOCKS.registerSimpleBlock("frame",
+                BlockBehaviour.Properties.of().strength(2.5f).sound(SoundType.METAL)));
+    }
+
     static {
         ITEMS.registerSimpleBlockItem(CRAFTING_TABLE);
         ITEMS.registerSimpleBlockItem(POWER_JUNCTION);
@@ -397,6 +438,7 @@ public class LogisticsPipes {
         MENUS.register(modEventBus);
         TABS.register(modEventBus);
         DATA_COMPONENTS.register(modEventBus);
+        RECIPE_SERIALIZERS.register(modEventBus);
         modEventBus.addListener(LogisticsPipes::registerCapabilities);
         modEventBus.addListener(LogisticsPipes::registerPayloads);
         NeoForge.EVENT_BUS.addListener(LogisticsPipes::buildCreativeTabs);

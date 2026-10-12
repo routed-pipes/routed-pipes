@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:smelting",
+  "category": "misc",
+  "ingredient": {
+    "item": "logisticspipes:chip_advanced_raw"
+  },
+  "result": {
+    "id": "logisticspipes:chip_advanced",
+    "count": 1
+  },
+  "experience": 0.0,
+  "cookingtime": 200
+}

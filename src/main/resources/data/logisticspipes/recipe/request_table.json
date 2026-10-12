@@ -1,17 +1,28 @@
 {
-  "type": "minecraft:crafting_shapeless",
+  "type": "minecraft:crafting_shaped",
   "category": "misc",
-  "ingredients": [
-    {
-      "item": "logisticspipes:request_pipe"
-    },
-    {
-      "item": "minecraft:crafting_table"
-    },
-    {
-      "item": "minecraft:chest"
-    }
+  "pattern": [
+    " A ",
+    "BCD",
+    " E "
   ],
+  "key": {
+    "A": {
+      "item": "logisticspipes:chip_advanced"
+    },
+    "B": {
+      "item": "logisticspipes:request_pipe_mk2"
+    },
+    "C": {
+      "item": "logisticspipes:frame"
+    },
+    "D": {
+      "item": "logisticspipes:crafting_pipe"
+    },
+    "E": {
+      "tag": "c:chests/wooden"
+    }
+  },
   "result": {
     "id": "logisticspipes:request_table",
     "count": 1

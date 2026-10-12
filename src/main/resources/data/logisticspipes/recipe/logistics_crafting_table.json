@@ -1,17 +1,25 @@
 {
-  "type": "minecraft:crafting_shapeless",
+  "type": "minecraft:crafting_shaped",
   "category": "misc",
-  "ingredients": [
-    {
+  "pattern": [
+    " A ",
+    "BCB",
+    " D "
+  ],
+  "key": {
+    "A": {
       "item": "minecraft:crafting_table"
     },
-    {
-      "item": "minecraft:chest"
+    "B": {
+      "tag": "minecraft:planks"
     },
-    {
-      "item": "minecraft:redstone"
+    "C": {
+      "item": "logisticspipes:frame"
+    },
+    "D": {
+      "item": "minecraft:piston"
     }
-  ],
+  },
   "result": {
     "id": "logisticspipes:logistics_crafting_table",
     "count": 1

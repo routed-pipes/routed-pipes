@@ -1,17 +1,28 @@
 {
-  "type": "minecraft:crafting_shapeless",
+  "type": "logisticspipes:programmed",
   "category": "misc",
-  "ingredients": [
-    {
-      "item": "minecraft:paper"
-    },
-    {
-      "item": "minecraft:redstone"
-    },
-    {
-      "item": "minecraft:slime_ball"
-    }
+  "pattern": [
+    " A ",
+    "BCB",
+    "DED"
   ],
+  "key": {
+    "A": {
+      "item": "logisticspipes:logistics_programmer"
+    },
+    "B": {
+      "tag": "c:dusts/redstone"
+    },
+    "C": {
+      "item": "logisticspipes:chip_fpga"
+    },
+    "D": {
+      "tag": "c:ingots/iron"
+    },
+    "E": {
+      "item": "logisticspipes:module_blank"
+    }
+  },
   "result": {
     "id": "logisticspipes:module_polymorphic_item_sink",
     "count": 1

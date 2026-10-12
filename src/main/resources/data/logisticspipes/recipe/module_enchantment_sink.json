@@ -1,14 +1,28 @@
 {
-  "type": "minecraft:crafting_shapeless",
+  "type": "logisticspipes:programmed",
   "category": "misc",
-  "ingredients": [
-    {
-      "item": "logisticspipes:module_item_sink"
-    },
-    {
-      "item": "minecraft:lapis_lazuli"
-    }
+  "pattern": [
+    " A ",
+    "BCB",
+    "DED"
   ],
+  "key": {
+    "A": {
+      "item": "logisticspipes:logistics_programmer"
+    },
+    "B": {
+      "tag": "c:dusts/redstone"
+    },
+    "C": {
+      "item": "logisticspipes:chip_basic"
+    },
+    "D": {
+      "tag": "c:ingots/iron"
+    },
+    "E": {
+      "item": "logisticspipes:module_item_sink"
+    }
+  },
   "result": {
     "id": "logisticspipes:module_enchantment_sink",
     "count": 1

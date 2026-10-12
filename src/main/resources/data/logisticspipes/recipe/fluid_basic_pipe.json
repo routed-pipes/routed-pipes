@@ -1,17 +1,28 @@
 {
-  "type": "minecraft:crafting_shapeless",
+  "type": "logisticspipes:programmed",
   "category": "misc",
-  "ingredients": [
-    {
+  "pattern": [
+    " A ",
+    "BCB",
+    "DED"
+  ],
+  "key": {
+    "A": {
+      "item": "logisticspipes:logistics_programmer"
+    },
+    "B": {
+      "item": "logisticspipes:chip_basic"
+    },
+    "C": {
       "item": "logisticspipes:basic_logistics_pipe"
     },
-    {
-      "item": "minecraft:bucket"
+    "D": {
+      "tag": "c:ingots/gold"
     },
-    {
-      "item": "minecraft:gold_ingot"
+    "E": {
+      "item": "minecraft:bucket"
     }
-  ],
+  },
   "result": {
     "id": "logisticspipes:fluid_basic_pipe",
     "count": 1

@@ -2,16 +2,19 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
-    "GGG",
-    "N N",
-    "GGG"
+    "ABA",
+    "C C",
+    "ABA"
   ],
   "key": {
-    "G": {
-      "item": "minecraft:glass"
+    "A": {
+      "tag": "c:ingots/iron"
     },
-    "N": {
-      "item": "minecraft:iron_nugget"
+    "B": {
+      "tag": "c:dusts/redstone"
+    },
+    "C": {
+      "tag": "c:glass_blocks"
     }
   },
   "result": {

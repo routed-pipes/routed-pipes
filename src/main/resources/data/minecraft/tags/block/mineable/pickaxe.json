@@ -31,6 +31,8 @@
     "logisticspipes:power_provider_rf",
     "logisticspipes:security_station",
     "logisticspipes:statistics_table",
+    "logisticspipes:frame",
+    "logisticspipes:program_compiler",
     "logisticspipes:request_table",
     "logisticspipes:line_tube",
     "logisticspipes:speedup_tube",

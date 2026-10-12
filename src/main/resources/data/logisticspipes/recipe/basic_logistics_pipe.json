@@ -1,17 +1,18 @@
 {
-  "type": "minecraft:crafting_shapeless",
+  "type": "minecraft:crafting_shaped",
   "category": "misc",
-  "ingredients": [
-    {
-      "item": "logisticspipes:transport_pipe"
-    },
-    {
-      "item": "minecraft:redstone"
-    },
-    {
-      "item": "minecraft:gold_nugget"
-    }
+  "pattern": [
+    "A",
+    "B"
   ],
+  "key": {
+    "A": {
+      "item": "logisticspipes:chip_fpga"
+    },
+    "B": {
+      "item": "logisticspipes:transport_pipe"
+    }
+  },
   "result": {
     "id": "logisticspipes:basic_logistics_pipe",
     "count": 1

@@ -23,6 +23,7 @@ import logisticspipes.adapter.minecraft.client.MacroEditScreen;
 import logisticspipes.adapter.minecraft.client.NamesScreen;
 import logisticspipes.adapter.minecraft.client.PipeConfigScreen;
 import logisticspipes.adapter.minecraft.client.PipeItemRenderer;
+import logisticspipes.adapter.minecraft.client.ProgramCompilerScreen;
 import logisticspipes.adapter.minecraft.client.RemoteOrdererKey;
 import logisticspipes.adapter.minecraft.client.RequestScreen;
 import logisticspipes.adapter.minecraft.client.RequestTableScreen;
@@ -117,6 +118,7 @@ public class LogisticsPipesClient {
         event.register(LogisticsPipes.UPGRADE_MENU.get(), UpgradeScreen::new);
         event.register(LogisticsPipes.SECURITY_STATION_MENU.get(), SecurityStationScreen::new);
         event.register(LogisticsPipes.STATISTICS_TABLE_MENU.get(), StatisticsTableScreen::new);
+        event.register(LogisticsPipes.PROGRAM_COMPILER_MENU.get(), ProgramCompilerScreen::new);
         LogisticsPipes.FLUID_CONFIG_MENUS.values().forEach(menu -> event.register(menu.get(), FluidConfigScreen::new));
         event.register(LogisticsPipes.FLUID_REQUEST_MENU.get(), FluidRequestScreen::new);
     }

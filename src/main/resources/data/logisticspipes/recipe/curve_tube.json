@@ -2,12 +2,12 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
-    "LLL",
-    "L  ",
-    "L  "
+    "AAA",
+    "A  ",
+    "A  "
   ],
   "key": {
-    "L": {
+    "A": {
       "item": "logisticspipes:line_tube"
     }
   },

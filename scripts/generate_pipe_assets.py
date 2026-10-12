@@ -363,13 +363,16 @@ def main():
     upgrades = ["sneaky", "speed", "module_upgrade", "action_speed", "item_extraction", "item_stack_extraction",
                 "crafting_byproduct", "crafting_cleanup", "disconnection", "advanced_satellite", "power_supplier_rf",
                 "power_transportation", "opaque"]
-    for module in MODULES + ["remote_orderer", "pipe_controller", "settings_copier", "security_card", "disk", "frequency_card"] + ["upgrade_" + upgrade for upgrade in upgrades]:
+    parts = ["chip_basic_raw", "chip_basic", "chip_advanced_raw", "chip_advanced", "chip_fpga_raw", "chip_fpga", "module_blank",
+             "logistics_programmer"]
+    for module in MODULES + ["remote_orderer", "pipe_controller", "settings_copier", "security_card", "disk", "frequency_card"] + ["upgrade_" + upgrade for upgrade in upgrades] + parts:
         write(ASSETS + f"models/item/{module}.json",
               {"parent": "minecraft:item/generated", "textures": {"layer0": f"logisticspipes:item/{module}"}})
     # the window of the container is tinted with the colour of the fluid in it
     write(ASSETS + "models/item/fluid_container.json", {"parent": "minecraft:item/generated", "textures": {
         "layer0": "logisticspipes:item/fluid_container", "layer1": "logisticspipes:item/fluid_container_window"}})
-    cubes = ["logistics_crafting_table", "power_junction", "power_provider_rf", "security_station", "statistics_table"]
+    cubes = ["logistics_crafting_table", "power_junction", "power_provider_rf", "security_station", "statistics_table",
+             "frame", "program_compiler"]
     for cube in cubes:
         write(ASSETS + f"models/block/{cube}.json", {"parent": "minecraft:block/cube_bottom_top", "textures": {
             "top": f"logisticspipes:block/{cube}_top", "side": f"logisticspipes:block/{cube}_side",

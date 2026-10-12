@@ -1,17 +1,28 @@
 {
-  "type": "minecraft:crafting_shapeless",
+  "type": "logisticspipes:programmed",
   "category": "misc",
-  "ingredients": [
-    {
-      "item": "logisticspipes:request_pipe"
-    },
-    {
-      "item": "minecraft:redstone"
-    },
-    {
-      "item": "minecraft:gold_ingot"
-    }
+  "pattern": [
+    " A ",
+    "BCB",
+    "DED"
   ],
+  "key": {
+    "A": {
+      "item": "logisticspipes:logistics_programmer"
+    },
+    "B": {
+      "tag": "c:dusts/redstone"
+    },
+    "C": {
+      "item": "logisticspipes:chip_advanced"
+    },
+    "D": {
+      "tag": "c:ingots/gold"
+    },
+    "E": {
+      "item": "logisticspipes:request_pipe"
+    }
+  },
   "result": {
     "id": "logisticspipes:request_pipe_mk2",
     "count": 1

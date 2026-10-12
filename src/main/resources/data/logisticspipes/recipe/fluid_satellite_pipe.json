@@ -1,14 +1,25 @@
 {
-  "type": "minecraft:crafting_shapeless",
+  "type": "logisticspipes:programmed",
   "category": "misc",
-  "ingredients": [
-    {
-      "item": "logisticspipes:fluid_basic_pipe"
-    },
-    {
-      "item": "minecraft:lapis_lazuli"
-    }
+  "pattern": [
+    " A ",
+    "BCB",
+    " D "
   ],
+  "key": {
+    "A": {
+      "item": "logisticspipes:logistics_programmer"
+    },
+    "B": {
+      "tag": "c:dusts/redstone"
+    },
+    "C": {
+      "item": "logisticspipes:chip_fpga"
+    },
+    "D": {
+      "item": "logisticspipes:fluid_basic_pipe"
+    }
+  },
   "result": {
     "id": "logisticspipes:fluid_satellite_pipe",
     "count": 1

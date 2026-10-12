@@ -1,14 +1,28 @@
 {
-  "type": "minecraft:crafting_shapeless",
+  "type": "logisticspipes:programmed",
   "category": "misc",
-  "ingredients": [
-    {
+  "pattern": [
+    " A ",
+    "BCB",
+    "DED"
+  ],
+  "key": {
+    "A": {
+      "item": "logisticspipes:logistics_programmer"
+    },
+    "B": {
+      "tag": "c:dusts/glowstone"
+    },
+    "C": {
       "item": "logisticspipes:chassis_pipe_mk2"
     },
-    {
-      "item": "minecraft:gold_ingot"
+    "D": {
+      "tag": "c:ingots/iron"
+    },
+    "E": {
+      "item": "logisticspipes:chip_advanced"
     }
-  ],
+  },
   "result": {
     "id": "logisticspipes:chassis_pipe_mk3",
     "count": 1

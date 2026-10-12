@@ -1,17 +1,22 @@
 {
-  "type": "minecraft:crafting_shapeless",
+  "type": "logisticspipes:programmed",
   "category": "misc",
-  "ingredients": [
-    {
-      "item": "logisticspipes:module_extractor"
-    },
-    {
-      "item": "minecraft:redstone"
-    },
-    {
-      "item": "minecraft:gold_ingot"
-    }
+  "pattern": [
+    "A",
+    "B",
+    "C"
   ],
+  "key": {
+    "A": {
+      "item": "logisticspipes:logistics_programmer"
+    },
+    "B": {
+      "item": "logisticspipes:chip_fpga"
+    },
+    "C": {
+      "item": "logisticspipes:module_extractor"
+    }
+  },
   "result": {
     "id": "logisticspipes:module_advanced_extractor",
     "count": 1
