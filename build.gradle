@@ -95,6 +95,15 @@ neoForge {
             programArguments.addAll '--width', '854', '--height', '480'
         }
 
+        // second start on the world of visualTest, checks that deliveries and crafting survive a restart
+        visualTestResume {
+            client()
+            gameDirectory = project.file('run-visual')
+            systemProperty 'logisticspipes.visualTest', project.file('build/visual-test').absolutePath
+            systemProperty 'logisticspipes.visualTest.resume', 'true'
+            programArguments.addAll '--width', '854', '--height', '480'
+        }
+
         // the scripted client with the other mods installed, started by scripts/visual-test.sh compat
         visualTestCompat {
             client()
@@ -256,7 +265,7 @@ def quietOptions = tasks.register('quietClientOptions') {
         }
     }
 }
-tasks.matching { it.name in ['runClient', 'runVisualTest', 'runVisualTestCompat'] }.configureEach {
+tasks.matching { it.name in ['runClient', 'runVisualTest', 'runVisualTestResume', 'runVisualTestCompat'] }.configureEach {
     dependsOn quietOptions
 }
 

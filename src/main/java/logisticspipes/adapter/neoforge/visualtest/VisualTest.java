@@ -26,6 +26,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.Container;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
@@ -47,6 +48,9 @@ import org.slf4j.Logger;
 public final class VisualTest {
 
     public static final String PROPERTY = "logisticspipes.visualTest";
+    // second run on the world the first run left behind, checks that what was under way still arrives
+    public static final String RESUME_PROPERTY = "logisticspipes.visualTest.resume";
+    private static final int RESUME_TIMEOUT = 1500;
     private static final Logger LOGGER = LogUtils.getLogger();
     private static final String WORLD = "visual_test";
     private static final int FLICKER_FRAMES = 45;
@@ -67,6 +71,7 @@ public final class VisualTest {
     private final Deque<Step> steps = new ArrayDeque<>();
     private boolean worldRequested;
     private boolean scripted;
+    private volatile boolean resumeChecked;
     private int wait;
 
     private VisualTest(File output) {
@@ -121,6 +126,13 @@ public final class VisualTest {
 
     private void createWorld() throws IOException {
         minecraft.options.pauseOnLostFocus = false;
+        if (Boolean.getBoolean(RESUME_PROPERTY)) {
+            minecraft.createWorldOpenFlows().openWorld(WORLD, () -> {
+                LOGGER.error("restart check failed: the world could not be opened again");
+                minecraft.stop();
+            });
+            return;
+        }
         deleteRecursively(output.toPath());
         Files.createDirectories(output.toPath());
         deleteRecursively(minecraft.getLevelSource().getBaseDir().resolve(WORLD));
@@ -130,6 +142,29 @@ public final class VisualTest {
                 registries -> registries.registryOrThrow(Registries.WORLD_PRESET).getHolderOrThrow(WorldPresets.FLAT)
                         .value().createWorldDimensions(),
                 minecraft.screen);
+    }
+
+    // after the restart the chest at the request pipe has to fill up with what was ordered before quitting
+    private void resumeScript() {
+        for (int waited = 0; waited < RESUME_TIMEOUT; waited += 20) {
+            boolean last = waited + 20 >= RESUME_TIMEOUT;
+            step(20, () -> onServer(server -> {
+                if (resumeChecked) {
+                    return;
+                }
+                Container chest = (Container) server.overworld().getBlockEntity(REQUEST.above());
+                int cobblestone = chest.countItem(Items.COBBLESTONE);
+                int ingots = chest.countItem(Items.IRON_INGOT);
+                if (cobblestone == 33 && ingots == 2) {
+                    resumeChecked = true;
+                    LOGGER.info("restart check passed");
+                    minecraft.execute(steps::clear);
+                } else if (last) {
+                    LOGGER.error("restart check failed: chest holds {} cobblestone and {} iron ingots, expected 33 and 2",
+                            cobblestone, ingots);
+                }
+            }));
+        }
     }
 
     private static void deleteRecursively(Path path) throws IOException {
@@ -144,6 +179,10 @@ public final class VisualTest {
     }
 
     private void script() {
+        if (Boolean.getBoolean(RESUME_PROPERTY)) {
+            resumeScript();
+            return;
+        }
         // request - transport - basic - transport - provider in a row, a supplier on a side branch,
         // and a furnace with crafting pipe below and satellite on top
         step(0, () -> {
@@ -165,7 +204,8 @@ public final class VisualTest {
             command("setblock 2 -58 6 chest");
             command("setblock 0 -59 12 logisticspipes:transport_pipe");
             command("setblock 0 -59 13 logisticspipes:crafting_pipe");
-            command("setblock 0 -58 13 furnace");
+            command("setblock 0 -58 13 furnace{Items:[{Slot:1b,id:\"minecraft:coal\",count:8}]}");
+            command("setblock 0 -58 2 chest");
             command("setblock 0 -57 13 logisticspipes:satellite_pipe");
             command("fill 1 -59 13 1 -57 13 logisticspipes:transport_pipe");
             command("fill 0 -59 14 0 -59 16 logisticspipes:transport_pipe");
@@ -233,6 +273,14 @@ public final class VisualTest {
         step(5, () -> onServer(server -> server.getPlayerList().getPlayers().get(0).closeContainer()));
         screenShot("gui_crafting_table", TABLE, "2.5 -60 17.5 90 0");
         screenShot("gui_crafting_imported", TABLE_PIPE, "2.5 -60 17.5 90 0");
+
+        // left under way on purpose: the client quits while these are in the pipes and in the furnace
+        step(3, () -> onServer(server -> {
+            PipeBlockEntity request = pipe(server, REQUEST);
+            boolean ordered = request.request(McItemType.batchOf(new ItemStack(Items.COBBLESTONE, 32))).started()
+                    && request.request(McItemType.batchOf(new ItemStack(Items.IRON_INGOT, 2))).started();
+            LOGGER.info("orders before restart {}", ordered ? "placed" : "REFUSED");
+        }));
     }
 
     private void step(int waitAfter, Runnable action) {

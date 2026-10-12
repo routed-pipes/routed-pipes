@@ -96,6 +96,8 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     private int satelliteId;
     private boolean defaultRoute = true;
     private boolean announced;
+    private Map<ItemType, Integer> contentsCache;
+    private long contentsCachedAt;
     private boolean linksDirty;
 
     public PipeBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
@@ -346,6 +348,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         ItemStack rest = storage().exists(level, target, accessFace(side))
                 ? storage().insert(level, target, accessFace(side), stack, false)
                 : stack;
+        contentsCache = null;
         if (rest.isEmpty()) {
             return;
         }
@@ -396,15 +399,20 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         return sides;
     }
 
+    // looked up at most once per tick, sinks that depend on it get asked for every passing item
     @Override
     public Map<ItemType, Integer> contents() {
-        Map<ItemType, Integer> contents = new LinkedHashMap<>();
-        for (Direction side : inventorySides()) {
-            for (ItemStack stack : storage().contents(level, worldPosition.relative(side), accessFace(side))) {
-                contents.merge(McItemType.batchOf(stack).type(), stack.getCount(), Integer::sum);
+        if (contentsCache == null || contentsCachedAt != level.getGameTime()) {
+            Map<ItemType, Integer> contents = new LinkedHashMap<>();
+            for (Direction side : inventorySides()) {
+                for (ItemStack stack : storage().contents(level, worldPosition.relative(side), accessFace(side))) {
+                    contents.merge(McItemType.batchOf(stack).type(), stack.getCount(), Integer::sum);
+                }
             }
+            contentsCache = contents;
+            contentsCachedAt = level.getGameTime();
         }
-        return contents;
+        return new LinkedHashMap<>(contentsCache);
     }
 
     @Override
@@ -423,6 +431,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             }
         }
         if (remaining < count) {
+            contentsCache = null;
             setChanged();
         }
         return count - remaining;
