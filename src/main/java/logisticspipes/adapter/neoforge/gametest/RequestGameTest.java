@@ -28,6 +28,8 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.ChestBlock;
+import net.minecraft.world.level.block.state.properties.ChestType;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -205,7 +207,7 @@ public class RequestGameTest {
         transport(helper, 5, 2);
         transport(helper, 5, 3);
 
-        crafting.config().setItem(0, new ItemStack(Items.RAW_IRON, 1));
+        crafting.config().setItem(PipeBlockEntity.SATELLITE_ROW, new ItemStack(Items.RAW_IRON, 1));
         crafting.config().setItem(PipeBlockEntity.OUTPUT_SLOT, new ItemStack(Items.IRON_INGOT, 1));
         crafting.setSatelliteId(3);
         satellite.setSatelliteId(3);
@@ -453,6 +455,69 @@ public class RequestGameTest {
 
             MenuRequests.applyText(player, menu.containerId + 1, RequestMenu.TEXT_SEARCH, "diamond");
             helper.assertTrue(menu.getSlot(3).hasItem(), "text for another menu is ignored");
+            helper.succeed();
+        });
+    }
+
+    // a large order to a chest with one free slot: what does not fit waits in the pipe and follows once there is room
+    @GameTest(template = EMPTY, timeoutTicks = 400)
+    public static void orderedItemsWaitInThePipeUntilTheChestHasRoom(GameTestHelper helper) {
+        GameTestPower.supply(helper);
+        PipeBlockEntity request = pipe(helper, PipeKind.REQUEST, 0, 1);
+        BlockPos target = chest(helper, 0, 2);
+        Container almostFull = helper.getBlockEntity(target);
+        for (int slot = 1; slot < almostFull.getContainerSize(); slot++) {
+            almostFull.setItem(slot, new ItemStack(Items.STONE, 64));
+        }
+        pipe(helper, PipeKind.PROVIDER, 1, 1);
+        chest(helper, 1, 2, new ItemStack(Items.COBBLESTONE, 64), new ItemStack(Items.COBBLESTONE, 64));
+        pipe(helper, PipeKind.BASIC, 2, 1);
+        BlockPos elsewhere = chest(helper, 2, 2);
+
+        helper.runAfterDelay(SETTLE + 10, () -> helper.assertTrue(
+                request.request(batch(Items.COBBLESTONE, 100)).started(), "request"));
+
+        helper.runAfterDelay(150, () -> {
+            assertCount(helper, target, Items.COBBLESTONE, 64);
+            helper.assertContainerEmpty(elsewhere);
+            helper.assertTrue(request.travellingItems().stream().mapToInt(item -> item.batch().count()).sum() == 36,
+                    "the rest should be waiting in the request pipe");
+            almostFull.setItem(1, ItemStack.EMPTY);
+        });
+
+        helper.runAfterDelay(250, () -> {
+            assertCount(helper, target, Items.COBBLESTONE, 100);
+            helper.assertContainerEmpty(elsewhere);
+            helper.assertTrue(request.travellingItems().isEmpty(), "nothing left in the pipe");
+            helper.succeed();
+        });
+    }
+
+    // both halves of a double chest are one inventory: two providers on it must not double the stock
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void twoProvidersOnADoubleChestListItsContentsOnce(GameTestHelper helper) {
+        GameTestPower.supply(helper);
+        PipeBlockEntity request = pipe(helper, PipeKind.REQUEST, 0, 1);
+        pipe(helper, PipeKind.PROVIDER, 1, 1);
+        pipe(helper, PipeKind.PROVIDER, 2, 1);
+        // facing north the left half has its partner to the east
+        helper.setBlock(new BlockPos(1, 2, 1), Blocks.CHEST.defaultBlockState()
+                .setValue(ChestBlock.FACING, Direction.NORTH).setValue(ChestBlock.TYPE, ChestType.LEFT));
+        helper.setBlock(new BlockPos(2, 2, 1), Blocks.CHEST.defaultBlockState()
+                .setValue(ChestBlock.FACING, Direction.NORTH).setValue(ChestBlock.TYPE, ChestType.RIGHT));
+        Container half = helper.getBlockEntity(new BlockPos(1, 2, 1));
+        half.setItem(0, new ItemStack(Items.COBBLESTONE, 40));
+
+        helper.runAfterDelay(SETTLE + 10, () -> {
+            PipeBlockEntity first = helper.getBlockEntity(new BlockPos(1, 1, 1));
+            PipeBlockEntity second = helper.getBlockEntity(new BlockPos(2, 1, 1));
+            Integer seenBySecond = second.contents().get(batch(Items.COBBLESTONE, 1).type());
+            helper.assertTrue(seenBySecond != null && seenBySecond == 40, "the pipe on the other half should see the cobblestone too");
+            helper.assertTrue(first.inventories().values().equals(second.inventories().values()) || first.inventories().values()
+                    .containsAll(second.inventories().values()), "both halves should count as one inventory");
+            Integer listed = request.available().get(batch(Items.COBBLESTONE, 1).type());
+            helper.assertTrue(listed != null && listed == 40, "the double chest holds 40 but the request pipe lists " + listed);
+            helper.assertTrue(!request.request(batch(Items.COBBLESTONE, 60)).started(), "60 are not there to be had");
             helper.succeed();
         });
     }

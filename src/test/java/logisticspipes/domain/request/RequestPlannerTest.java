@@ -31,7 +31,7 @@ class RequestPlannerTest {
     }
 
     private static Crafter crafter(RouterId router, Recipe recipe) {
-        return new Crafter(router, recipe, router);
+        return Crafter.of(router, recipe);
     }
 
     private static final Recipe PLANKS = new Recipe(List.of(batch("log", 1)), batch("planks", 4));
@@ -120,13 +120,34 @@ class RequestPlannerTest {
     }
 
     @Test
-    void sendsIngredientsToTheSatellite() {
+    void sendsOnlyTheSatellitePartOfARecipeToTheSatellite() {
+        Recipe smelting = new Recipe(List.of(batch("coal", 1), batch("ore", 8)), batch("ingot", 8));
+        Crafter furnace = Crafter.of(CRAFTER, smelting, SATELLITE, Map.of(item("ore"), 8), 0);
+        RequestPlan plan = new RequestPlanner(List.of(new Stock(NEAR, Map.of(item("coal"), 64, item("ore"), 64))), List.of(furnace))
+                .plan(REQUESTER, batch("ingot", 16));
+
+        assertThat(plan.provisions()).containsExactlyInAnyOrder(
+                new Provision(NEAR, CRAFTER, batch("coal", 2)),
+                new Provision(NEAR, SATELLITE, batch("ore", 16)));
+        assertThat(plan.crafts()).containsExactly(new CraftJob(CRAFTER, REQUESTER, batch("ingot", 16)));
+    }
+
+    @Test
+    void splitsAnInputBetweenPipeAndSatelliteWhenBothListIt() {
+        Recipe recipe = new Recipe(List.of(batch("log", 3)), batch("planks", 4));
+        Crafter crafter = Crafter.of(CRAFTER, recipe, SATELLITE, Map.of(item("log"), 1), 0);
+
+        assertThat(crafter.ownInputs()).containsOnly(Map.entry(item("log"), 2));
+        assertThat(crafter.satelliteInputs()).containsOnly(Map.entry(item("log"), 1));
+    }
+
+    @Test
+    void usesCraftersInTheGivenOrder() {
         RequestPlan plan = new RequestPlanner(List.of(stock(NEAR, "log", 64)),
-                List.of(new Crafter(CRAFTER, PLANKS, SATELLITE)))
+                List.of(crafter(OTHER_CRAFTER, PLANKS), crafter(CRAFTER, PLANKS)))
                 .plan(REQUESTER, batch("planks", 4));
 
-        assertThat(plan.provisions()).containsExactly(new Provision(NEAR, SATELLITE, batch("log", 1)));
-        assertThat(plan.crafts()).containsExactly(new CraftJob(CRAFTER, REQUESTER, batch("planks", 4)));
+        assertThat(plan.crafts()).containsExactly(new CraftJob(OTHER_CRAFTER, REQUESTER, batch("planks", 4)));
     }
 
     @Test

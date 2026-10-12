@@ -10,6 +10,7 @@ import java.util.Set;
 
 import logisticspipes.domain.item.ItemType;
 import logisticspipes.domain.logistics.ExtractionMode;
+import logisticspipes.domain.logistics.InventoryRef;
 import logisticspipes.domain.logistics.ItemSink;
 import logisticspipes.domain.logistics.PassiveSupplier;
 import logisticspipes.domain.logistics.PolymorphicItemSink;
@@ -173,10 +174,54 @@ class LogisticsNetworkChassisTest {
     }
 
     @Test
-    void itemSinkBeatsPassiveSupplierBeatsTerminusBeatsDefaultRoute() {
-        assertThat(ItemSink.FILTER_PRIORITY).isGreaterThan(PassiveSupplier.PRIORITY);
-        assertThat(PassiveSupplier.PRIORITY).isGreaterThan(Terminus.PRIORITY);
+    void passiveSupplierBeatsItemSinkBeatsTerminusBeatsDefaultRoute() {
+        assertThat(PassiveSupplier.PRIORITY).isGreaterThan(ItemSink.FILTER_PRIORITY);
+        assertThat(ItemSink.FILTER_PRIORITY).isGreaterThan(Terminus.PRIORITY);
         assertThat(Terminus.PRIORITY).isGreaterThan(ItemSink.DEFAULT_ROUTE_PRIORITY);
+    }
+
+    @Test
+    void lowStockOnAPassiveSupplierWinsOverANearerItemSink() {
+        connect();
+        store.inventories.add(Side.UP);
+        store.sink = new ItemSink(Set.of(item("coal")), false);
+        chassis.inventories.add(Side.UP);
+        chassis.sink = new PassiveSupplier(Map.of(item("coal"), 16));
+
+        assertThat(network.chooseExit(STORE, new TravellingItem(batch("coal", 4), Side.DOWN, null), NOW)).contains(Side.WEST);
+    }
+
+    @Test
+    void extractorDoesNotFeedAnotherPipeOnTheSameInventory() {
+        connect();
+        chassis.extractions.add(ExtractionMode.EXTRACTOR);
+        chassis.stock("stone", 40);
+        chassis.inventoryRefs.put(Side.UP, new InventoryRef(7));
+        store.inventories.add(Side.UP);
+        store.inventoryRefs.put(Side.UP, new InventoryRef(7));
+
+        network.tick(CHASSIS, NOW);
+        assertThat(chassis.shipments).isEmpty();
+        assertThat(chassis.power).isEqualTo(1_000_000);
+
+        store.inventoryRefs.put(Side.UP, new InventoryRef(8));
+        network.tick(CHASSIS, NOW + 20);
+        assertThat(chassis.shipments).hasSize(1);
+    }
+
+    @Test
+    void itemComingOutOfAnInventoryIsNotSunkBackIntoItThroughAnotherPipe() {
+        connect();
+        store.inventories.add(Side.UP);
+        store.inventoryRefs.put(Side.UP, new InventoryRef(7));
+        request.inventories.add(Side.UP);
+        request.inventoryRefs.put(Side.UP, new InventoryRef(7));
+        TravellingItem fromTheSharedChest = new TravellingItem(batch("stone", 4), Side.UP, null);
+
+        assertThat(network.chooseExit(REQUEST, fromTheSharedChest, NOW)).isEmpty();
+
+        TravellingItem fromElsewhere = new TravellingItem(batch("stone", 4), Side.DOWN, null);
+        assertThat(network.chooseExit(REQUEST, fromElsewhere, NOW)).contains(Side.WEST);
     }
 
     @Test

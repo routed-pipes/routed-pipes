@@ -127,15 +127,47 @@ class LogisticsNetworkTest {
     }
 
     @Test
-    void picksNewDestinationWhenTheOldOneIsGone() {
+    void waitsAWhileForADestinationThatHasGoneMissing() {
         line();
         a.inventories.add(Side.DOWN);
         c.inventories.add(Side.UP);
         network.removeRouter(C, 0);
         TravellingItem item = new TravellingItem(batch("stone", 8), Side.EAST, C);
 
+        for (int tick = 0; tick < LogisticsNetwork.REROUTE_PATIENCE; tick++) {
+            assertThat(network.chooseExit(B, item, NOW)).isEmpty();
+            assertThat(item.destination()).contains(C);
+            item.waitForExit();
+        }
+
         assertThat(network.chooseExit(B, item, NOW)).contains(Side.WEST);
         assertThat(item.destination()).contains(A);
+    }
+
+    @Test
+    void goesOnAsSoonAsTheMissingDestinationIsBack() {
+        line();
+        c.inventories.add(Side.UP);
+        network.removeRouter(C, 0);
+        TravellingItem item = new TravellingItem(batch("stone", 8), Side.WEST, C);
+        assertThat(network.chooseExit(B, item, NOW)).isEmpty();
+
+        network.addRouter(C, c, NOW);
+        network.updateLinks(C, List.of(new Link(B, Side.WEST, 5)), NOW);
+
+        assertThat(network.chooseExit(B, item, NOW + LogisticsNetwork.SETTLE_TICKS)).contains(Side.EAST);
+    }
+
+    @Test
+    void waitingForTheNetworkToSettleDoesNotCountAgainstTheItem() {
+        line();
+        TravellingItem item = itemFrom(Side.UP);
+        item.waitForExit();
+        item.waitForExit();
+
+        network.chooseExit(A, item, 1);
+
+        assertThat(item.waited()).isZero();
     }
 
     @Test

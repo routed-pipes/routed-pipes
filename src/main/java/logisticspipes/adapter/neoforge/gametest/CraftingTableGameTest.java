@@ -278,4 +278,37 @@ public class CraftingTableGameTest {
         helper.assertTrue(table.storage().isEmpty(), "the preview and the storage cannot be set from the client");
         helper.succeed();
     }
+
+    // the two planks left over from an earlier craft fill the next small order, no log is used for it
+    @GameTest(template = EMPTY, timeoutTicks = 400)
+    public static void leftoverOutputIsUsedForTheNextRequest(GameTestHelper helper) {
+        GameTestPower.supply(helper);
+        PipeBlockEntity request = pipe(helper, PipeKind.REQUEST, 0);
+        BlockPos target = chest(helper, 0);
+        pipe(helper, PipeKind.PROVIDER, 1);
+        BlockPos source = chest(helper, 1, new ItemStack(Items.OAK_LOG, 16));
+        PipeBlockEntity crafting = pipe(helper, PipeKind.CRAFTING, 2);
+        CraftingTableBlockEntity table = table(helper, 2, 2, Items.OAK_LOG);
+        crafting.importRecipe();
+
+        helper.runAfterDelay(SETTLE, () -> helper.assertTrue(
+                request.request(McItemType.batchOf(new ItemStack(Items.OAK_PLANKS, 10))).started(), "first request"));
+        helper.runAfterDelay(150, () -> {
+            Container chest = helper.getBlockEntity(target);
+            Container logs = helper.getBlockEntity(source);
+            assertCount(helper, chest, Items.OAK_PLANKS, 10, "first delivery");
+            assertCount(helper, logs, Items.OAK_LOG, 13, "three logs for ten planks");
+            Integer listed = request.available().get(McItemType.batchOf(new ItemStack(Items.OAK_PLANKS)).type());
+            helper.assertTrue(listed != null && listed == 2, "the two spare planks should be on offer, listed " + listed);
+            helper.assertTrue(request.request(McItemType.batchOf(new ItemStack(Items.OAK_PLANKS, 2))).started(), "second request");
+        });
+        helper.runAfterDelay(300, () -> {
+            Container chest = helper.getBlockEntity(target);
+            Container logs = helper.getBlockEntity(source);
+            assertCount(helper, chest, Items.OAK_PLANKS, 12, "second delivery");
+            assertCount(helper, logs, Items.OAK_LOG, 13, "no log used for the spare planks");
+            helper.assertTrue(table.surplus().isEmpty(), "the spare planks are gone");
+            helper.succeed();
+        });
+    }
 }

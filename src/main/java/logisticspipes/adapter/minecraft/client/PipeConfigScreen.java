@@ -1,5 +1,6 @@
 package logisticspipes.adapter.minecraft.client;
 
+import logisticspipes.adapter.minecraft.PipeBlockEntity;
 import logisticspipes.adapter.minecraft.menu.MarkerMenu;
 import logisticspipes.adapter.minecraft.menu.PipeConfigMenu;
 import logisticspipes.domain.logistics.PipeKind;
@@ -12,6 +13,7 @@ import net.minecraft.world.entity.player.Inventory;
 public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> implements MarkerScreen {
 
     private static final int TEXT = 0x404040;
+    private static final int SATELLITE_TINT = 0xFF6F8FBF;
 
     private Button defaultRoute;
 
@@ -98,6 +100,14 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> im
     @Override
     protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
         Panel.draw(graphics, leftPos, topPos, imageWidth, imageHeight, menu);
+        if (menu.kind() == PipeKind.CRAFTING && menu.satelliteId() != 0) {
+            // the bottom row of the recipe is what goes to the satellite
+            for (int slot = PipeBlockEntity.SATELLITE_ROW; slot < PipeBlockEntity.OUTPUT_SLOT; slot++) {
+                int x = leftPos + menu.getSlot(slot).x;
+                int y = topPos + menu.getSlot(slot).y;
+                graphics.fill(x, y, x + 16, y + 16, SATELLITE_TINT);
+            }
+        }
     }
 
     @Override

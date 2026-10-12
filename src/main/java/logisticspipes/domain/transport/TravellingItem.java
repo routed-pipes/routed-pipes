@@ -127,12 +127,26 @@ public final class TravellingItem {
         return first;
     }
 
-    int waited() {
+    // ticks this item has been waiting in the pipe for an exit
+    public int waited() {
         return waited;
     }
 
-    void waitForExit() {
+    public void waitForExit() {
         waited++;
+    }
+
+    // for waits that are nobody's fault, like a network that is still loading: the item will not be given up on
+    public void stayPatient() {
+        waited = 0;
+    }
+
+    // what did not fit into the inventory this item was ordered for, to be tried again from the same pipe
+    public TravellingItem remainder(ItemBatch rest) {
+        TravellingItem again = new TravellingItem(batch.equals(rest) ? id : ThreadLocalRandom.current().nextLong(), rest, origin, destination);
+        again.arrived = arrived;
+        again.ticksPerPipe = ticksPerPipe;
+        return again;
     }
 
     void advance() {

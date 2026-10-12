@@ -8,16 +8,18 @@ import org.junit.jupiter.api.Test;
 
 class OutputOrdersTest {
 
+    private static final long PATIENCE = 1000;
+
     private final OutputOrders orders = new OutputOrders();
 
     @Test
     void keepsOrderUntilEverythingIsShipped() {
         orders.add(new OutputOrder(router(1), batch("ingot", 8)));
 
-        orders.ship(order -> 3);
-        assertThat(orders.all()).containsExactly(new OutputOrder(router(1), batch("ingot", 5)));
+        orders.ship(50, PATIENCE, order -> 3);
+        assertThat(orders.all()).containsExactly(new OutputOrder(router(1), batch("ingot", 5), 50));
 
-        orders.ship(order -> 5);
+        orders.ship(60, PATIENCE, order -> 5);
         assertThat(orders.isEmpty()).isTrue();
     }
 
@@ -26,7 +28,7 @@ class OutputOrdersTest {
         OutputOrder order = new OutputOrder(router(1), batch("ingot", 8));
         orders.add(order);
 
-        orders.ship(ignored -> 0);
+        orders.ship(50, PATIENCE, ignored -> 0);
 
         assertThat(orders.all()).containsExactly(order);
     }
@@ -36,7 +38,7 @@ class OutputOrdersTest {
         orders.add(new OutputOrder(router(1), batch("ingot", 2)));
         orders.add(new OutputOrder(router(2), batch("ingot", 4)));
 
-        orders.ship(order -> order.destination().equals(router(2)) ? 4 : 0);
+        orders.ship(50, PATIENCE, order -> order.destination().equals(router(2)) ? 4 : 0);
 
         assertThat(orders.all()).containsExactly(new OutputOrder(router(1), batch("ingot", 2)));
     }
@@ -57,5 +59,38 @@ class OutputOrdersTest {
         assertThat(recipe.runsPossible(java.util.Map.of(batch("planks", 1).type(), 10, batch("stick", 1).type(), 5))).isEqualTo(3);
         assertThat(recipe.runsPossible(java.util.Map.of(batch("planks", 1).type(), 10))).isZero();
         assertThat(new Recipe(java.util.List.of(), batch("thing", 1)).runsPossible(java.util.Map.of())).isZero();
+    }
+
+    @Test
+    void dropsAnOrderThatMadeNoProgressForTooLong() {
+        orders.add(new OutputOrder(router(1), batch("ingot", 8), 100));
+
+        orders.ship(100 + PATIENCE - 1, PATIENCE, ignored -> 0);
+        assertThat(orders.all()).hasSize(1);
+
+        java.util.concurrent.atomic.AtomicInteger asked = new java.util.concurrent.atomic.AtomicInteger();
+        orders.ship(100 + PATIENCE, PATIENCE, ignored -> asked.incrementAndGet());
+        assertThat(orders.isEmpty()).isTrue();
+        assertThat(asked).hasValue(0);
+    }
+
+    @Test
+    void progressGivesAnOrderMoreTime() {
+        orders.add(new OutputOrder(router(1), batch("ingot", 8), 100));
+
+        orders.ship(100 + PATIENCE - 1, PATIENCE, ignored -> 2);
+        orders.ship(100 + PATIENCE + 500, PATIENCE, ignored -> 0);
+
+        assertThat(orders.all()).extracting(order -> order.batch().count()).containsExactly(6);
+    }
+
+    @Test
+    void knowsHowMuchIsOwed() {
+        orders.add(new OutputOrder(router(1), batch("ingot", 8)));
+        orders.add(new OutputOrder(router(2), batch("ingot", 3)));
+        orders.add(new OutputOrder(router(2), batch("plate", 5)));
+
+        assertThat(orders.owed(batch("ingot", 1).type())).isEqualTo(11);
+        assertThat(orders.owedInTotal()).isEqualTo(16);
     }
 }

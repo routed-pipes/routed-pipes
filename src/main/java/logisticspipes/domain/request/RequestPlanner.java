@@ -44,7 +44,7 @@ public final class RequestPlanner {
     private final List<Stock> stock;
     private final List<Crafter> crafters;
 
-    // stock is used in the given order, so pass the nearest providers first
+    // stock and crafters are used in the given order, so pass the nearest providers and the least busy crafters first
     public RequestPlanner(List<Stock> stock, List<Crafter> crafters) {
         this.stock = List.copyOf(stock);
         this.crafters = List.copyOf(crafters);
@@ -68,14 +68,17 @@ public final class RequestPlanner {
         if (crafting.add(type)) {
             Draft closest = null;
             for (Crafter crafter : crafters) {
-                if (!crafter.recipe().output().type().equals(type)) {
+                if (!crafter.output().type().equals(type)) {
                     continue;
                 }
                 Draft attempt = draft.copy();
-                int perRun = crafter.recipe().output().count();
+                int perRun = crafter.output().count();
                 int runs = (remaining + perRun - 1) / perRun;
-                for (Map.Entry<ItemType, Integer> input : crafter.recipe().inputTotals().entrySet()) {
-                    resolve(attempt, crafter.ingredientTarget(), input.getKey(), input.getValue() * runs, crafting);
+                for (Map.Entry<ItemType, Integer> input : crafter.ownInputs().entrySet()) {
+                    resolve(attempt, crafter.router(), input.getKey(), input.getValue() * runs, crafting);
+                }
+                for (Map.Entry<ItemType, Integer> input : crafter.satelliteInputs().entrySet()) {
+                    resolve(attempt, crafter.satellite(), input.getKey(), input.getValue() * runs, crafting);
                 }
                 attempt.crafts.add(new CraftJob(crafter.router(), destination, new ItemBatch(type, remaining)));
                 if (attempt.missing.equals(draft.missing)) {

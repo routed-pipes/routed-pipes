@@ -222,7 +222,7 @@ public final class VisualTest {
         });
         step(20, () -> onServer(server -> {
             PipeBlockEntity crafting = pipe(server, CRAFTING);
-            crafting.config().setItem(0, new ItemStack(Items.RAW_IRON, 1));
+            crafting.config().setItem(PipeBlockEntity.SATELLITE_ROW, new ItemStack(Items.RAW_IRON, 1));
             crafting.config().setItem(PipeBlockEntity.OUTPUT_SLOT, new ItemStack(Items.IRON_INGOT, 1));
             crafting.setSatelliteId(3);
             pipe(server, SATELLITE).setSatelliteId(3);

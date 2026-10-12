@@ -15,6 +15,7 @@ import logisticspipes.domain.crafting.Recipe;
 import logisticspipes.domain.item.ItemBatch;
 import logisticspipes.domain.item.ItemType;
 import logisticspipes.domain.logistics.ExtractionMode;
+import logisticspipes.domain.logistics.InventoryRef;
 import logisticspipes.domain.logistics.ItemSink;
 import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.domain.logistics.SinkRule;
@@ -28,6 +29,11 @@ public final class FakeNode implements RouterNode {
     }
 
     public final Set<Side> inventories = EnumSet.noneOf(Side.class);
+    // which inventory each side touches, only set by tests about shared inventories
+    public final Map<Side, InventoryRef> inventoryRefs = new LinkedHashMap<>();
+    public final List<ItemBatch> satelliteInputs = new ArrayList<>();
+    // false makes the inventory refuse everything
+    public boolean room = true;
     public final Map<ItemType, Integer> contents = new LinkedHashMap<>();
     public final List<Shipment> shipments = new ArrayList<>();
     public final Map<ItemType, Integer> supplyTargets = new LinkedHashMap<>();
@@ -67,7 +73,17 @@ public final class FakeNode implements RouterNode {
     @Override
     public Set<Side> inventoriesAccepting(ItemBatch batch) {
         probes++;
-        return EnumSet.copyOf(inventories);
+        return room ? EnumSet.copyOf(inventories) : EnumSet.noneOf(Side.class);
+    }
+
+    @Override
+    public Map<Side, InventoryRef> inventories() {
+        return inventoryRefs;
+    }
+
+    @Override
+    public List<ItemBatch> satelliteInputs() {
+        return satelliteInputs;
     }
 
     @Override

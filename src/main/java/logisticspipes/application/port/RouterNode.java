@@ -11,6 +11,7 @@ import logisticspipes.domain.crafting.Recipe;
 import logisticspipes.domain.item.ItemBatch;
 import logisticspipes.domain.item.ItemType;
 import logisticspipes.domain.logistics.ExtractionMode;
+import logisticspipes.domain.logistics.InventoryRef;
 import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.domain.routing.RouterId;
 import logisticspipes.domain.routing.Side;
@@ -21,6 +22,11 @@ public interface RouterNode {
     PipeKind kind();
 
     boolean hasInventory();
+
+    // which inventory is on which side, empty for sides without one
+    default Map<Side, InventoryRef> inventories() {
+        return Map.of();
+    }
 
     // sides with an inventory that has room for at least part of the batch
     Set<Side> inventoriesAccepting(ItemBatch batch);
@@ -54,6 +60,11 @@ public interface RouterNode {
     // crafting pipes only
     default Optional<Recipe> recipe() {
         return Optional.empty();
+    }
+
+    // crafting pipes only: the part of the recipe that is delivered to the satellite
+    default List<ItemBatch> satelliteInputs() {
+        return List.of();
     }
 
     // crafting pipes only, outlives the network so the pipe has to keep it

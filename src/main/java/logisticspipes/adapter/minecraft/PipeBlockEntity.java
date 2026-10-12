@@ -1,6 +1,7 @@
 package logisticspipes.adapter.minecraft;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -23,6 +24,7 @@ import logisticspipes.domain.crafting.Recipe;
 import logisticspipes.domain.item.ItemBatch;
 import logisticspipes.domain.item.ItemType;
 import logisticspipes.domain.logistics.ExtractionMode;
+import logisticspipes.domain.logistics.InventoryRef;
 import logisticspipes.domain.logistics.ItemSink;
 import logisticspipes.domain.logistics.ModuleKind;
 import logisticspipes.domain.logistics.PipeKind;
@@ -54,15 +56,19 @@ import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.ChestType;
 
 public class PipeBlockEntity extends BlockEntity implements RouterNode {
 
     // settings slots: 0-8 are recipe inputs or supplier targets, 9 is the recipe output
     public static final int CONFIG_SLOTS = 10;
     public static final int OUTPUT_SLOT = 9;
+    // first slot of the recipe row that is delivered to the satellite
+    public static final int SATELLITE_ROW = 6;
     // the largest chassis has this many
     public static final int MODULE_SLOTS = 8;
     public static final int UPGRADE_SLOTS = 4;
@@ -362,7 +368,10 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         if (rest.isEmpty()) {
             return;
         }
-        if (pipe().routed()) {
+        if (pipe().routed() && kind() != PipeKind.BASIC && item.destination().filter(routerId::equals).isPresent()) {
+            // ordered for this inventory and it did not all fit, the rest waits in the pipe for room
+            transport.insert(item.remainder(McItemType.batchOf(rest)));
+        } else if (pipe().routed()) {
             // did not fit after all, send it somewhere else
             transport.insert(new TravellingItem(McItemType.batchOf(rest), exit, null));
         } else {
@@ -403,6 +412,25 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     @Override
     public boolean hasInventory() {
         return !inventorySides().isEmpty();
+    }
+
+    @Override
+    public Map<Side, InventoryRef> inventories() {
+        Map<Side, InventoryRef> inventories = new EnumMap<>(Side.class);
+        for (Direction side : inventorySides()) {
+            inventories.put(Directions.toDomain(side), inventoryRef(worldPosition.relative(side)));
+        }
+        return inventories;
+    }
+
+    // both halves of a double chest are the same inventory
+    private InventoryRef inventoryRef(BlockPos pos) {
+        BlockState state = level.getBlockState(pos);
+        if (state.getBlock() instanceof ChestBlock && state.getValue(ChestBlock.TYPE) != ChestType.SINGLE) {
+            BlockPos other = pos.relative(ChestBlock.getConnectedDirection(state));
+            return new InventoryRef(Math.min(pos.asLong(), other.asLong()));
+        }
+        return new InventoryRef(pos.asLong());
     }
 
     @Override
@@ -506,6 +534,18 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         return Optional.of(new Recipe(inputs, McItemType.batchOf(output)));
     }
 
+    // with a satellite chosen the bottom row of the recipe goes there, the rest to this pipe
+    @Override
+    public List<ItemBatch> satelliteInputs() {
+        List<ItemBatch> inputs = new ArrayList<>();
+        for (int slot = SATELLITE_ROW; slot < OUTPUT_SLOT && satelliteId != 0; slot++) {
+            if (!config.getItem(slot).isEmpty()) {
+                inputs.add(McItemType.batchOf(config.getItem(slot)));
+            }
+        }
+        return inputs;
+    }
+
     @Override
     public OutputOrders outputOrders() {
         return outputOrders;
@@ -573,6 +613,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             entry.putUUID("Destination", order.destination().value());
             entry.put("Stack", McItemType.stackOf(new ItemBatch(order.batch().type(), 1)).save(registries));
             entry.putInt("Count", order.batch().count());
+            entry.putLong("Since", order.since());
             orders.add(entry);
         }
         tag.put("Orders", orders);
@@ -606,7 +647,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             CompoundTag entry = orders.getCompound(index);
             ItemStack.parse(registries, entry.getCompound("Stack")).filter(stack -> !stack.isEmpty())
                     .ifPresent(stack -> outputOrders.add(new OutputOrder(new RouterId(entry.getUUID("Destination")),
-                            new ItemBatch(McItemType.batchOf(stack).type(), entry.getInt("Count")))));
+                            new ItemBatch(McItemType.batchOf(stack).type(), entry.getInt("Count")), entry.getLong("Since"))));
         }
     }
 }

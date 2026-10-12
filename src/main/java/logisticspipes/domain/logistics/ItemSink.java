@@ -9,7 +9,7 @@ import logisticspipes.domain.item.ItemType;
 // what a basic pipe takes in: listed items first, and as default route anything nobody else wants
 public record ItemSink(Set<ItemType> filter, boolean defaultRoute) implements SinkRule {
 
-    public static final int FILTER_PRIORITY = 3;
+    public static final int FILTER_PRIORITY = 2;
     public static final int DEFAULT_ROUTE_PRIORITY = 0;
 
     public ItemSink {

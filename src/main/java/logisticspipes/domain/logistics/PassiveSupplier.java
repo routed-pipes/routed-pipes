@@ -6,9 +6,10 @@ import java.util.OptionalInt;
 import logisticspipes.domain.item.ItemType;
 
 // takes passing items until the inventory holds the wanted amount, it never orders anything
+// a stock that is running low matters more than a general item sink, so this ranks highest
 public record PassiveSupplier(Map<ItemType, Integer> targets) implements SinkRule {
 
-    public static final int PRIORITY = 2;
+    public static final int PRIORITY = 3;
 
     public PassiveSupplier {
         targets = Map.copyOf(targets);

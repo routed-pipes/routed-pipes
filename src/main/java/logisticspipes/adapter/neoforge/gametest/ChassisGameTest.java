@@ -5,6 +5,7 @@ import java.util.List;
 import logisticspipes.adapter.minecraft.McItemType;
 import logisticspipes.adapter.minecraft.ModuleItem;
 import logisticspipes.adapter.minecraft.PipeBlockEntity;
+import logisticspipes.adapter.minecraft.PowerJunctionBlockEntity;
 import logisticspipes.adapter.minecraft.menu.ChassisMenu;
 import logisticspipes.adapter.minecraft.menu.PipeConfigMenu;
 import logisticspipes.adapter.neoforge.LogisticsPipes;
@@ -372,6 +373,31 @@ public class ChassisGameTest {
         helper.runAfterDelay(100, () -> {
             assertCount(helper, source, Items.COBBLESTONE, 40);
             helper.assertContainerEmpty(target);
+            helper.succeed();
+        });
+    }
+
+    // an extractor and a basic pipe on the same chest used to pass items round in a circle and burn power doing it
+    @GameTest(template = EMPTY, timeoutTicks = 300)
+    public static void extractorDoesNotFeedAPipeOnItsOwnChest(GameTestHelper helper) {
+        helper.setBlock(new BlockPos(0, 1, 2), Blocks.AIR);
+        helper.setBlock(new BlockPos(1, 1, 2), Blocks.AIR);
+        PowerJunctionBlockEntity junction = GameTestPower.junction(helper, new BlockPos(4, 1, 2), PowerJunctionBlockEntity.CAPACITY);
+        chassis(helper, 1, 4, module(ModuleKind.EXTRACTOR));
+        BlockPos shared = new BlockPos(4, 2, 1);
+        helper.setBlock(shared, Blocks.CHEST);
+        Container contents = helper.getBlockEntity(shared);
+        contents.setItem(0, new ItemStack(Items.COBBLESTONE, 40));
+        helper.setBlock(new BlockPos(5, 1, 1), LogisticsPipes.TRANSPORT_PIPE.get());
+        helper.setBlock(new BlockPos(5, 2, 1), LogisticsPipes.pipe(PipeKind.BASIC));
+
+        helper.runAfterDelay(200, () -> {
+            assertCount(helper, shared, Items.COBBLESTONE, 40);
+            helper.assertTrue(junction.stored() == PowerJunctionBlockEntity.CAPACITY, "nothing should have been moved or paid for");
+            PipeBlockEntity basic = helper.getBlockEntity(new BlockPos(5, 2, 1));
+            helper.assertTrue(basic.inventories().equals(java.util.Map.of(logisticspipes.domain.routing.Side.WEST,
+                    ((PipeBlockEntity) helper.getBlockEntity(new BlockPos(4, 1, 1))).inventories().values().iterator().next())),
+                    "both pipes should see the same inventory");
             helper.succeed();
         });
     }

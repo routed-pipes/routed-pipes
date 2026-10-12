@@ -10,6 +10,7 @@ import java.util.Map;
 import logisticspipes.domain.crafting.OutputOrder;
 import logisticspipes.domain.crafting.Recipe;
 import logisticspipes.domain.item.ItemType;
+import logisticspipes.domain.logistics.InventoryRef;
 import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.domain.routing.Link;
 import logisticspipes.domain.routing.RouterId;
@@ -47,6 +48,7 @@ class LogisticsNetworkRequestTest {
     private void connect() {
         List<RouterId> ids = List.of(REQUEST, PROVIDER, CRAFTING, SATELLITE, SUPPLIER);
         List<FakeNode> nodes = List.of(request, provider, crafting, satellite, supplier);
+        supplier.inventories.add(Side.UP);
         for (int i = 0; i < ids.size(); i++) {
             network.addRouter(ids.get(i), nodes.get(i), 0);
         }
@@ -136,7 +138,7 @@ class LogisticsNetworkRequestTest {
         crafting.stock("planks", 6);
         network.tick(CRAFTING, 40);
         assertThat(crafting.shipments).containsExactly(new Shipment(batch("planks", 6), REQUEST));
-        assertThat(crafting.outputOrders.all()).containsExactly(new OutputOrder(REQUEST, batch("planks", 2)));
+        assertThat(crafting.outputOrders.all()).containsExactly(new OutputOrder(REQUEST, batch("planks", 2), 40));
 
         crafting.stock("planks", 6);
         network.tick(CRAFTING, 60);
@@ -145,16 +147,30 @@ class LogisticsNetworkRequestTest {
     }
 
     @Test
-    void ingredientsGoToTheChosenSatellite() {
+    void onlyTheSatellitePartOfTheRecipeGoesToTheSatellite() {
         connect();
-        provider.stock("ore", 20);
-        crafting.recipe = new Recipe(List.of(batch("ore", 1)), batch("ingot", 1));
+        provider.stock("ore", 20).stock("coal", 20);
+        crafting.recipe = new Recipe(List.of(batch("coal", 1), batch("ore", 1)), batch("ingot", 1));
+        crafting.satelliteInputs.add(batch("ore", 1));
         crafting.satelliteId = 7;
         satellite.satelliteId = 7;
 
         network.request(REQUEST, batch("ingot", 3), 0);
 
-        assertThat(provider.shipments).containsExactly(new Shipment(batch("ore", 3), SATELLITE));
+        assertThat(provider.shipments).containsExactlyInAnyOrder(
+                new Shipment(batch("ore", 3), SATELLITE), new Shipment(batch("coal", 3), CRAFTING));
+    }
+
+    @Test
+    void withoutASatelliteEverythingGoesToTheCraftingPipe() {
+        connect();
+        provider.stock("ore", 20);
+        crafting.recipe = new Recipe(List.of(batch("ore", 1)), batch("ingot", 1));
+        crafting.satelliteInputs.add(batch("ore", 1));
+
+        network.request(REQUEST, batch("ingot", 3), 0);
+
+        assertThat(provider.shipments).containsExactly(new Shipment(batch("ore", 3), CRAFTING));
     }
 
     @Test
@@ -222,17 +238,143 @@ class LogisticsNetworkRequestTest {
     }
 
     @Test
-    void supplierTopsUpAfterDeliveryWhenItemsWereUsed() {
+    void supplierReordersOnceStockIsDownToHalf() {
         connect();
         provider.stock("coal", 64);
         supplier.supplyTargets.put(item("coal"), 16);
+        supplier.stock("coal", 9);
+
         network.tick(SUPPLIER, 0);
-        network.chooseExit(SUPPLIER, new TravellingItem(batch("coal", 16), Side.WEST, SUPPLIER), NOW);
-        supplier.stock("coal", 12);
+        assertThat(provider.shipments).isEmpty();
 
+        supplier.stock("coal", 8);
         network.tick(SUPPLIER, 20);
+        assertThat(provider.shipments).containsExactly(new Shipment(batch("coal", 8), SUPPLIER));
+    }
 
-        assertThat(provider.shipments).hasSize(2).last().isEqualTo(new Shipment(batch("coal", 4), SUPPLIER));
+    @Test
+    void supplierOrdersNothingWhileItsInventoryIsFull() {
+        connect();
+        provider.stock("coal", 64);
+        supplier.supplyTargets.put(item("coal"), 16);
+        supplier.room = false;
+
+        network.tick(SUPPLIER, 0);
+
+        assertThat(provider.shipments).isEmpty();
+    }
+
+    @Test
+    void supplierTakesWhatIsInStockWhenCraftingTheRestIsNotPossible() {
+        connect();
+        provider.stock("coal", 5);
+        crafting.recipe = new Recipe(List.of(batch("log", 1)), batch("coal", 1));
+        supplier.supplyTargets.put(item("coal"), 16);
+
+        network.tick(SUPPLIER, 0);
+
+        assertThat(provider.shipments).containsExactly(new Shipment(batch("coal", 5), SUPPLIER));
+    }
+
+    @Test
+    void supplierNeverOrdersFromItsOwnInventory() {
+        connect();
+        provider.stock("coal", 64);
+        provider.inventoryRefs.put(Side.UP, new InventoryRef(7));
+        supplier.inventoryRefs.put(Side.UP, new InventoryRef(7));
+        supplier.supplyTargets.put(item("coal"), 16);
+
+        network.tick(SUPPLIER, 0);
+
+        assertThat(provider.shipments).isEmpty();
+    }
+
+    @Test
+    void twoProvidersOnOneInventoryCountItOnce() {
+        connect();
+        provider.stock("log", 20);
+        provider.inventoryRefs.put(Side.UP, new InventoryRef(7));
+        FakeNode second = new FakeNode(PipeKind.PROVIDER).stock("log", 20);
+        second.inventoryRefs.put(Side.UP, new InventoryRef(7));
+        network.addRouter(ISLAND, second, 0);
+        network.updateLinks(ISLAND, List.of(new Link(REQUEST, Side.EAST, 1)), 0);
+        network.updateLinks(REQUEST, List.of(new Link(PROVIDER, Side.EAST, 1), new Link(ISLAND, Side.WEST, 1)), 0);
+
+        assertThat(network.available(REQUEST)).containsEntry(item("log"), 20);
+        assertThat(network.request(REQUEST, batch("log", 30), 0).started()).isFalse();
+    }
+
+    @Test
+    void orderedItemWaitsInThePipeWhileItsDestinationIsFull() {
+        connect();
+        supplier.room = false;
+        TravellingItem item = new TravellingItem(batch("coal", 8), Side.WEST, SUPPLIER);
+        item.waitForExit();
+
+        assertThat(network.chooseExit(SUPPLIER, item, NOW)).isEmpty();
+        assertThat(item.destination()).contains(SUPPLIER);
+        assertThat(item.waited()).isZero();
+
+        supplier.room = true;
+        assertThat(network.chooseExit(SUPPLIER, item, NOW)).contains(Side.UP);
+    }
+
+    @Test
+    void finishedItemsLeftInACraftingInventoryCanBeOrdered() {
+        connect();
+        provider.stock("log", 20);
+        crafting.recipe = new Recipe(List.of(batch("log", 1)), batch("planks", 4));
+        crafting.stock("planks", 6);
+
+        assertThat(network.available(REQUEST)).containsEntry(item("planks"), 6);
+        assertThat(network.request(REQUEST, batch("planks", 5), 0).started()).isTrue();
+
+        assertThat(crafting.shipments).containsExactly(new Shipment(batch("planks", 5), REQUEST));
+        assertThat(provider.shipments).isEmpty();
+        assertThat(crafting.outputOrders.isEmpty()).isTrue();
+    }
+
+    @Test
+    void itemsOwedToAnEarlierOrderAreNotOfferedAgain() {
+        connect();
+        provider.stock("log", 20);
+        crafting.recipe = new Recipe(List.of(batch("log", 1)), batch("planks", 4));
+        network.request(REQUEST, batch("planks", 8), 0);
+        crafting.stock("planks", 8);
+
+        assertThat(network.available(REQUEST)).containsEntry(item("planks"), 0);
+    }
+
+    @Test
+    void theCrafterWithTheLeastToDoGetsTheNextOrder() {
+        connect();
+        provider.stock("log", 64);
+        crafting.recipe = new Recipe(List.of(batch("log", 1)), batch("planks", 4));
+        FakeNode second = new FakeNode(PipeKind.CRAFTING);
+        second.recipe = crafting.recipe;
+        network.addRouter(ISLAND, second, 0);
+        network.updateLinks(ISLAND, List.of(new Link(REQUEST, Side.EAST, 9)), 0);
+        network.updateLinks(REQUEST, List.of(new Link(PROVIDER, Side.EAST, 1), new Link(ISLAND, Side.WEST, 9)), 0);
+
+        network.request(REQUEST, batch("planks", 8), 0);
+        network.request(REQUEST, batch("planks", 4), 0);
+
+        assertThat(crafting.outputOrders.owedInTotal()).isEqualTo(8);
+        assertThat(second.outputOrders.owedInTotal()).isEqualTo(4);
+    }
+
+    @Test
+    void craftingOrderThatNeverGetsItsOutputIsGivenUp() {
+        connect();
+        provider.stock("log", 20);
+        crafting.recipe = new Recipe(List.of(batch("log", 1)), batch("planks", 4));
+        network.request(REQUEST, batch("planks", 8), 0);
+
+        network.tick(CRAFTING, LogisticsNetwork.CRAFT_TIMEOUT - 1);
+        assertThat(crafting.outputOrders.all()).hasSize(1);
+
+        network.tick(CRAFTING, LogisticsNetwork.CRAFT_TIMEOUT);
+        assertThat(crafting.outputOrders.isEmpty()).isTrue();
     }
 
     @Test
