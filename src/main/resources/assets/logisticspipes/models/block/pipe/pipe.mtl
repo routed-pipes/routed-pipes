@@ -1,0 +1,4 @@
+newmtl frame
+map_Kd #frame
+newmtl icon
+map_Kd #icon

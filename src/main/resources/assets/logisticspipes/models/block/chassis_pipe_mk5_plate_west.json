@@ -1,0 +1,11 @@
+{
+  "loader": "neoforge:obj",
+  "model": "logisticspipes:models/block/pipe/plate_west.obj",
+  "flip_v": true,
+  "automatic_culling": false,
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "icon": "logisticspipes:block/chassis_pipe_mk5_icon",
+    "particle": "logisticspipes:block/chassis_pipe_mk5_icon"
+  }
+}

@@ -1,6 +1,0 @@
-{
-  "parent": "logisticspipes:block/pipe_edge_east",
-  "textures": {
-    "pipe": "logisticspipes:block/chassis_pipe_mk5"
-  }
-}

@@ -261,6 +261,15 @@ public final class VisualTest {
         step(40, () -> command("tick unfreeze"));
 
         step(0, () -> minecraft.options.hideGui = false);
+        // pipes in the hotbar, to see what they look like as items
+        step(5, () -> {
+            command("item replace entity @p hotbar.2 with logisticspipes:transport_pipe 16");
+            command("item replace entity @p hotbar.3 with logisticspipes:basic_logistics_pipe 16");
+            command("item replace entity @p hotbar.4 with logisticspipes:provider_pipe");
+            command("item replace entity @p hotbar.5 with logisticspipes:chassis_pipe_mk5");
+            command("item replace entity @p hotbar.6 with logisticspipes:logistics_crafting_table");
+            command("item replace entity @p hotbar.7 with logisticspipes:power_junction");
+        });
         // with a block info mod installed this shows its tooltip for a pipe
         shotFrom("hud_looking_at_pipe", "2.5 -60 0.5 90 0");
         screenShot("gui_request", REQUEST, "2.5 -60 2.5 90 0");

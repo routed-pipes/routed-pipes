@@ -104,6 +104,12 @@ neoForge {
             programArguments.addAll '--width', '854', '--height', '480'
         }
 
+        // a client to play in, with the mods of the compatibility run. Drop more mods into run-pack/mods
+        clientPack {
+            client()
+            gameDirectory = project.file('run-pack')
+        }
+
         // the scripted client with the other mods installed, started by scripts/visual-test.sh compat
         visualTestCompat {
             client()
@@ -257,6 +263,7 @@ tasks.named('check').configure {
 def quietOptions = tasks.register('quietClientOptions') {
     def targets = [(file('run/options.txt')): 'onboardAccessibility:false\nnarrator:0\n',
                    (file('run-compat/options.txt')): 'onboardAccessibility:false\nnarrator:0\nsoundCategory_master:0.0\n',
+                   (file('run-pack/options.txt')): 'onboardAccessibility:false\nnarrator:0\n',
                    (file('run-visual/options.txt')): 'onboardAccessibility:false\nnarrator:0\nsoundCategory_master:0.0\n']
     doLast {
         targets.each { options, content ->
@@ -267,7 +274,7 @@ def quietOptions = tasks.register('quietClientOptions') {
         }
     }
 }
-tasks.matching { it.name in ['runClient', 'runVisualTest', 'runVisualTestResume', 'runVisualTestCompat'] }.configureEach {
+tasks.matching { it.name in ['runClient', 'runClientPack', 'runVisualTest', 'runVisualTestResume', 'runVisualTestCompat'] }.configureEach {
     dependsOn quietOptions
 }
 
@@ -278,4 +285,13 @@ def copyCompatMods = tasks.register('copyCompatMods', Sync) {
 }
 tasks.matching { it.name in ['runGameTestServerCompat', 'runVisualTestCompat'] }.configureEach {
     dependsOn copyCompatMods
+}
+
+// the play pack gets the same mods, copied and not synced so that mods added by hand stay
+def copyPackMods = tasks.register('copyPackMods', Copy) {
+    from configurations.compatMods
+    into 'run-pack/mods'
+}
+tasks.matching { it.name == 'runClientPack' }.configureEach {
+    dependsOn copyPackMods
 }

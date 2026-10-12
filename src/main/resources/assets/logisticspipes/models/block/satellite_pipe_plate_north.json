@@ -1,0 +1,11 @@
+{
+  "loader": "neoforge:obj",
+  "model": "logisticspipes:models/block/pipe/plate_north.obj",
+  "flip_v": true,
+  "automatic_culling": false,
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "icon": "logisticspipes:block/satellite_pipe_icon",
+    "particle": "logisticspipes:block/satellite_pipe_icon"
+  }
+}

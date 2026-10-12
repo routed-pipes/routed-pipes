@@ -44,3 +44,6 @@ run-visual/
 
 ### Compatibility test run ###
 run-compat/
+
+### Play pack ###
+run-pack/
