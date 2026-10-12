@@ -67,7 +67,7 @@ class PipeTransportTest {
 
     @Test
     void viewerMovesItemsAlongAndHandsThemBackAtTheEnd() {
-        TravellingItem item = TravellingItem.restore(1, batch("stone", 1), Side.WEST, null, Side.EAST, 1);
+        TravellingItem item = TravellingItem.restore(1, batch("stone", 1), Side.WEST, null, null, Side.EAST, 1);
         transport.insert(item);
 
         for (int i = 0; i < PipeTransport.TICKS_PER_PIPE - 2; i++) {
@@ -94,11 +94,11 @@ class PipeTransportTest {
 
     @Test
     void viewerDoesNotExpectAnItemItAlreadyHas() {
-        TravellingItem item = TravellingItem.restore(7, batch("stone", 1), Side.WEST, null, Side.EAST, 3);
+        TravellingItem item = TravellingItem.restore(7, batch("stone", 1), Side.WEST, null, null, Side.EAST, 3);
         transport.insert(item);
 
         transport.expect(item.enteringFrom(Side.WEST));
-        transport.expect(TravellingItem.restore(8, batch("stone", 1), Side.WEST, null, null, 0));
+        transport.expect(TravellingItem.restore(8, batch("stone", 1), Side.WEST, null, null, null, 0));
 
         assertThat(transport.items()).extracting(TravellingItem::id).containsExactly(7L, 8L);
         assertThat(transport.progressOf(7)).hasValue(3);
@@ -107,7 +107,7 @@ class PipeTransportTest {
 
     @Test
     void viewerKeepsRealItemsWithoutExitWhereTheyAre() {
-        transport.insert(TravellingItem.restore(1, batch("stone", 1), Side.WEST, null, null, 2));
+        transport.insert(TravellingItem.restore(1, batch("stone", 1), Side.WEST, null, null, null, 2));
 
         for (int i = 0; i < PipeTransport.TICKS_PER_PIPE; i++) {
             assertThat(transport.advance()).isEmpty();
@@ -154,7 +154,7 @@ class PipeTransportTest {
 
     @Test
     void restoredItemKeepsItsExitAndProgress() {
-        TravellingItem item = TravellingItem.restore(1, batch("stone", 1), Side.WEST, router(7), Side.UP, 8);
+        TravellingItem item = TravellingItem.restore(1, batch("stone", 1), Side.WEST, router(7), null, Side.UP, 8);
         transport.insert(item);
 
         List<Departure> departures = tick(2, travelling -> Optional.of(Side.DOWN));
@@ -173,7 +173,7 @@ class PipeTransportTest {
 
     @Test
     void enteringTheNextPipeKeepsBatchAndDestination() {
-        TravellingItem item = TravellingItem.restore(1, batch("stone", 4), Side.WEST, router(7), Side.EAST, 10);
+        TravellingItem item = TravellingItem.restore(1, batch("stone", 4), Side.WEST, router(7), null, Side.EAST, 10);
 
         TravellingItem next = item.enteringFrom(Side.WEST);
 
@@ -187,17 +187,49 @@ class PipeTransportTest {
 
     @Test
     void unroutedPipePassesItemsStraightOn() {
-        assertThat(UnroutedPipe.chooseExit(Set.of(Side.WEST, Side.EAST), item())).contains(Side.EAST);
+        assertThat(UnroutedPipe.chooseExit(Set.of(Side.WEST, Side.EAST), item(), router -> Optional.empty())).contains(Side.EAST);
     }
 
     @Test
     void unroutedPipeNeverSendsItemsBack() {
-        assertThat(UnroutedPipe.chooseExit(Set.of(Side.WEST), item())).isEmpty();
+        assertThat(UnroutedPipe.chooseExit(Set.of(Side.WEST), item(), router -> Optional.of(Side.WEST))).isEmpty();
     }
 
     @Test
-    void unroutedPipePicksTheSameBranchEveryTime() {
-        assertThat(UnroutedPipe.chooseExit(Set.of(Side.EAST, Side.UP, Side.WEST), item()))
+    void forkSendsItemTowardsItsNextRouter() {
+        TravellingItem item = item();
+        item.passTo(router(5));
+
+        assertThat(UnroutedPipe.chooseExit(Set.of(Side.EAST, Side.UP, Side.WEST), item,
+                router -> router.equals(router(5)) ? Optional.of(Side.EAST) : Optional.empty())).contains(Side.EAST);
+    }
+
+    @Test
+    void forkFallsBackToTheSameBranchWhenTheRouterIsUnknown() {
+        TravellingItem item = item();
+        item.passTo(router(5));
+
+        assertThat(UnroutedPipe.chooseExit(Set.of(Side.EAST, Side.UP, Side.WEST), item, router -> Optional.empty()))
                 .contains(Side.UP);
+        assertThat(UnroutedPipe.chooseExit(Set.of(Side.EAST, Side.UP, Side.WEST), item(), router -> Optional.of(Side.EAST)))
+                .contains(Side.UP);
+    }
+
+    @Test
+    void straightPipeDoesNotAskWhereTheRouterIs() {
+        TravellingItem item = item();
+        item.passTo(router(5));
+
+        assertThat(UnroutedPipe.chooseExit(Set.of(Side.WEST, Side.EAST), item, router -> {
+            throw new AssertionError("no fork here");
+        })).contains(Side.EAST);
+    }
+
+    @Test
+    void nextRouterTravelsWithTheItem() {
+        TravellingItem item = item();
+        item.passTo(router(5));
+
+        assertThat(item.enteringFrom(Side.WEST).nextHop()).contains(router(5));
     }
 }

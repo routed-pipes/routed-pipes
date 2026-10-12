@@ -1,8 +1,11 @@
 package logisticspipes.domain.transport;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 
+import logisticspipes.domain.routing.RouterId;
 import logisticspipes.domain.routing.Side;
 
 public final class UnroutedPipe {
@@ -11,10 +14,16 @@ public final class UnroutedPipe {
     }
 
     // plain pipes just pass items on, never back where they came from
-    public static Optional<Side> chooseExit(Set<Side> connections, TravellingItem item) {
-        return connections.stream()
-                .filter(side -> side != item.origin())
-                .sorted()
-                .findFirst();
+    // at a fork the item takes the branch that leads to the router it is headed for
+    public static Optional<Side> chooseExit(Set<Side> connections, TravellingItem item,
+            Function<RouterId, Optional<Side>> branchTowards) {
+        List<Side> onward = connections.stream().filter(side -> side != item.origin()).sorted().toList();
+        if (onward.size() > 1) {
+            Optional<Side> branch = item.nextHop().flatMap(branchTowards).filter(onward::contains);
+            if (branch.isPresent()) {
+                return branch;
+            }
+        }
+        return onward.stream().findFirst();
     }
 }

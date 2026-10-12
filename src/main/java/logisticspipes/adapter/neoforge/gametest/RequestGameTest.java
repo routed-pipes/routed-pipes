@@ -126,6 +126,33 @@ public class RequestGameTest {
         helper.succeedWhen(() -> helper.assertItemEntityPresent(Items.COBBLESTONE, new BlockPos(0, 1, 1), 2));
     }
 
+    // one provider feeding two request pipes behind a fork of plain pipes
+    @GameTest(template = EMPTY, timeoutTicks = 300)
+    public static void forkInTransportPipesLeadsToTheRightRouter(GameTestHelper helper) {
+        pipe(helper, PipeKind.PROVIDER, 1, 1);
+        chest(helper, 1, 2, new ItemStack(Items.COBBLESTONE, 64), new ItemStack(Items.DIAMOND, 8));
+        transport(helper, 2, 1);
+        transport(helper, 3, 1);
+        PipeBlockEntity east = pipe(helper, PipeKind.REQUEST, 4, 1);
+        BlockPos eastChest = chest(helper, 4, 2);
+        transport(helper, 2, 2);
+        PipeBlockEntity top = pipe(helper, PipeKind.REQUEST, 2, 3);
+        BlockPos topChest = chest(helper, 3, 3);
+
+        helper.runAfterDelay(SETTLE, () -> {
+            helper.assertTrue(east.request(batch(Items.COBBLESTONE, 10)).complete(), "east request");
+            helper.assertTrue(top.request(batch(Items.DIAMOND, 3)).complete(), "top request");
+        });
+
+        helper.runAfterDelay(150, () -> {
+            assertCount(helper, eastChest, Items.COBBLESTONE, 10);
+            assertCount(helper, eastChest, Items.DIAMOND, 0);
+            assertCount(helper, topChest, Items.DIAMOND, 3);
+            assertCount(helper, topChest, Items.COBBLESTONE, 0);
+            helper.succeed();
+        });
+    }
+
     @GameTest(template = EMPTY, timeoutTicks = 300)
     public static void supplierKeepsChestStocked(GameTestHelper helper) {
         PipeBlockEntity supplier = pipe(helper, PipeKind.SUPPLIER, 0, 1);

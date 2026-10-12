@@ -18,9 +18,10 @@ public final class RouteCalculator {
         PriorityQueue<Route> open = new PriorityQueue<>(Comparator
                 .comparingInt(Route::distance)
                 .thenComparing((Route route) -> route.destination().value())
-                .thenComparing(Route::exit));
+                .thenComparing(Route::exit)
+                .thenComparing((Route route) -> route.nextHop().value()));
         for (Link link : links.getOrDefault(source, List.of())) {
-            open.add(new Route(link.target(), link.exit(), link.distance()));
+            open.add(new Route(link.target(), link.exit(), link.target(), link.distance()));
         }
         while (!open.isEmpty()) {
             Route route = open.poll();
@@ -31,7 +32,7 @@ public final class RouteCalculator {
             routes.put(reached, route);
             for (Link link : links.getOrDefault(reached, List.of())) {
                 if (!routes.containsKey(link.target())) {
-                    open.add(new Route(link.target(), route.exit(), route.distance() + link.distance()));
+                    open.add(new Route(link.target(), route.exit(), route.nextHop(), route.distance() + link.distance()));
                 }
             }
         }

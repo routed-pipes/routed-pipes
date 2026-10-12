@@ -16,6 +16,8 @@ public final class TravellingItem {
     private final ItemBatch batch;
     private final Side origin;
     private RouterId destination;
+    // the router this item is passed to next, plain pipes need it at forks
+    private RouterId nextHop;
     private Side exit;
     private int progress;
     private boolean decided;
@@ -33,8 +35,10 @@ public final class TravellingItem {
         this.destination = destination;
     }
 
-    public static TravellingItem restore(long id, ItemBatch batch, Side origin, RouterId destination, Side exit, int progress) {
+    public static TravellingItem restore(long id, ItemBatch batch, Side origin, RouterId destination, RouterId nextHop,
+            Side exit, int progress) {
         TravellingItem item = new TravellingItem(id, batch, origin, destination);
+        item.nextHop = nextHop;
         item.exit = exit;
         item.decided = exit != null;
         item.progress = progress;
@@ -43,7 +47,9 @@ public final class TravellingItem {
 
     // the same item at the start of the next pipe
     public TravellingItem enteringFrom(Side side) {
-        return new TravellingItem(id, batch, side, destination);
+        TravellingItem next = new TravellingItem(id, batch, side, destination);
+        next.nextHop = nextHop;
+        return next;
     }
 
     // stays the same from pipe to pipe, so a viewer can tell which item is which
@@ -69,6 +75,14 @@ public final class TravellingItem {
 
     public void clearDestination() {
         destination = null;
+    }
+
+    public Optional<RouterId> nextHop() {
+        return Optional.ofNullable(nextHop);
+    }
+
+    public void passTo(RouterId router) {
+        nextHop = router;
     }
 
     public Optional<Side> exit() {

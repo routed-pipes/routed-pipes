@@ -16,7 +16,7 @@ class DestinationSelectorTest {
     private static final RouterId SOURCE = router(1);
 
     private static Map.Entry<RouterId, Route> routeTo(int number, int distance) {
-        return Map.entry(router(number), new Route(router(number), Side.EAST, distance));
+        return Map.entry(router(number), new Route(router(number), Side.EAST, router(number), distance));
     }
 
     @Test

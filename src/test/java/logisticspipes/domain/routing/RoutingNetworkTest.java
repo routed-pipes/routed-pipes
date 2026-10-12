@@ -18,7 +18,7 @@ class RoutingNetworkTest {
         network.add(router(2));
         network.setLinks(router(1), List.of(new Link(router(2), Side.EAST, 3)));
 
-        assertThat(network.route(router(1), router(2))).contains(new Route(router(2), Side.EAST, 3));
+        assertThat(network.route(router(1), router(2))).contains(new Route(router(2), Side.EAST, router(2), 3));
         assertThat(network.route(router(2), router(1))).isEmpty();
     }
 

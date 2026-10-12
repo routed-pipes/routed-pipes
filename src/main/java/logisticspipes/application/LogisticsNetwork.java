@@ -85,7 +85,9 @@ public final class LogisticsNetwork {
         if (!nodes.containsKey(destination)) {
             return Optional.empty();
         }
-        return routing.route(at, destination).map(Route::exit);
+        Optional<Route> route = routing.route(at, destination);
+        route.ifPresent(found -> item.passTo(found.nextHop()));
+        return route.map(Route::exit);
     }
 
     private Optional<RouterId> findDestination(RouterId at, TravellingItem item) {

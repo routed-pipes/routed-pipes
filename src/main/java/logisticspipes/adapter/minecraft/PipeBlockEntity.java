@@ -207,7 +207,8 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
                 connections.add(Directions.toDomain(side));
             }
         }
-        return UnroutedPipe.chooseExit(connections, item);
+        return UnroutedPipe.chooseExit(connections, item, router -> PipeTopology
+                .branchTowards(level, worldPosition, router).map(Directions::toDomain));
     }
 
     private void depart(Departure departure) {
@@ -223,7 +224,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         if (!level.isLoaded(target)) {
             // wait at the chunk border and try again next tick
             transport.insert(TravellingItem.restore(item.id(), item.batch(), item.origin(),
-                    item.destination().orElse(null), exit, PipeTransport.TICKS_PER_PIPE - 1));
+                    item.destination().orElse(null), item.nextHop().orElse(null), exit, PipeTransport.TICKS_PER_PIPE - 1));
             return;
         }
         if (level.getBlockEntity(target) instanceof PipeBlockEntity neighbour) {
@@ -387,6 +388,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             entry.putString("Origin", item.origin().name());
             item.exit().ifPresent(exit -> entry.putString("Exit", exit.name()));
             item.destination().ifPresent(destination -> entry.putUUID("Destination", destination.value()));
+            item.nextHop().ifPresent(nextHop -> entry.putUUID("NextHop", nextHop.value()));
             entry.putInt("Progress", item.progress());
             items.add(entry);
         }
@@ -437,6 +439,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
                     McItemType.batchOf(stack.get()),
                     Side.valueOf(entry.getString("Origin")),
                     entry.hasUUID("Destination") ? new RouterId(entry.getUUID("Destination")) : null,
+                    entry.hasUUID("NextHop") ? new RouterId(entry.getUUID("NextHop")) : null,
                     entry.contains("Exit") ? Side.valueOf(entry.getString("Exit")) : null,
                     shown.progressOf(id).orElse(entry.getInt("Progress"))));
         }

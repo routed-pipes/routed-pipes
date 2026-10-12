@@ -151,4 +151,15 @@ class LogisticsNetworkTest {
         assertThat(network.chooseExit(C, item)).isEmpty();
         assertThat(item.destination()).isEmpty();
     }
+
+    @Test
+    void tellsTheItemWhichRouterComesNext() {
+        line();
+        c.inventories.add(Side.UP);
+        TravellingItem item = itemFrom(Side.UP);
+
+        network.chooseExit(A, item);
+
+        assertThat(item.nextHop()).contains(B);
+    }
 }
