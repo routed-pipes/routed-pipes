@@ -11,6 +11,9 @@ import java.util.stream.Stream;
 import logisticspipes.adapter.minecraft.CraftingTableBlock;
 import logisticspipes.adapter.minecraft.CraftingTableBlockEntity;
 import logisticspipes.adapter.minecraft.CraftingTableServices;
+import logisticspipes.adapter.minecraft.FluidContainerItem;
+import logisticspipes.adapter.minecraft.FluidContents;
+import logisticspipes.adapter.minecraft.FluidServices;
 import logisticspipes.adapter.minecraft.LevelNetworks;
 import logisticspipes.adapter.minecraft.LogisticsPipeBlock;
 import logisticspipes.adapter.minecraft.ModuleItem;
@@ -32,6 +35,8 @@ import logisticspipes.adapter.minecraft.UpgradeItem;
 import logisticspipes.adapter.minecraft.menu.ChassisMenu;
 import logisticspipes.adapter.minecraft.menu.FirewallMenu;
 import logisticspipes.adapter.minecraft.menu.CraftingTableMenu;
+import logisticspipes.adapter.minecraft.menu.FluidConfigMenu;
+import logisticspipes.adapter.minecraft.menu.FluidRequestMenu;
 import logisticspipes.adapter.minecraft.menu.MenuRequests;
 import logisticspipes.adapter.minecraft.menu.NamesMenu;
 import logisticspipes.adapter.minecraft.menu.PipeConfigMenu;
@@ -39,11 +44,13 @@ import logisticspipes.adapter.minecraft.menu.RequestMenu;
 import logisticspipes.adapter.minecraft.menu.RequestTableMenu;
 import logisticspipes.adapter.minecraft.menu.UpgradeMenu;
 import logisticspipes.adapter.neoforge.benchmark.Benchmark;
+import logisticspipes.adapter.neoforge.gametest.TestTank;
 import logisticspipes.domain.logistics.ModuleKind;
 import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.domain.tube.TubeKind;
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.flag.FeatureFlags;
@@ -84,6 +91,8 @@ public class LogisticsPipes {
             DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, MODID);
     private static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(Registries.MENU, MODID);
     private static final DeferredRegister<CreativeModeTab> TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
+    private static final DeferredRegister<DataComponentType<?>> DATA_COMPONENTS =
+            DeferredRegister.create(Registries.DATA_COMPONENT_TYPE, MODID);
 
     public static final Supplier<MenuType<RequestMenu>> REQUEST_MENU = MENUS.register("request",
             () -> new MenuType<>((id, inventory) -> new RequestMenu(LogisticsPipes.REQUEST_MENU.get(), id),
@@ -122,9 +131,27 @@ public class LogisticsPipes {
             () -> new MenuType<>((id, inventory) -> new ChassisMenu(LogisticsPipes.CHASSIS_MENU.get(), id, inventory),
                     FeatureFlags.DEFAULT_FLAGS));
 
+    public static final Map<PipeKind, Supplier<MenuType<FluidConfigMenu>>> FLUID_CONFIG_MENUS = new EnumMap<>(PipeKind.class);
+
+    static {
+        FLUID_CONFIG_MENUS.put(PipeKind.FLUID_BASIC, fluidConfigMenu("fluid_basic", PipeKind.FLUID_BASIC));
+        FLUID_CONFIG_MENUS.put(PipeKind.FLUID_TERMINUS, fluidConfigMenu("fluid_terminus", PipeKind.FLUID_TERMINUS));
+        FLUID_CONFIG_MENUS.put(PipeKind.FLUID_SATELLITE, fluidConfigMenu("fluid_satellite", PipeKind.FLUID_SATELLITE));
+        FLUID_CONFIG_MENUS.put(PipeKind.FLUID_SUPPLIER, fluidConfigMenu("fluid_supplier", PipeKind.FLUID_SUPPLIER));
+        FLUID_CONFIG_MENUS.put(PipeKind.FLUID_CONTAINER_SUPPLIER,
+                fluidConfigMenu("fluid_container_supplier", PipeKind.FLUID_CONTAINER_SUPPLIER));
+    }
+
+    public static final Supplier<MenuType<FluidRequestMenu>> FLUID_REQUEST_MENU = MENUS.register("fluid_request",
+            () -> new MenuType<>((id, inventory) -> new FluidRequestMenu(LogisticsPipes.FLUID_REQUEST_MENU.get(), id),
+                    FeatureFlags.DEFAULT_FLAGS));
+
+    private static final FluidServices FLUIDS = new FluidServices(new CapabilityFluidStorage(), FLUID_CONFIG_MENUS,
+            FLUID_REQUEST_MENU);
+
     private static final PipeServices SERVICES = new PipeServices(() -> LogisticsPipes.PIPE_BLOCK_ENTITY.get(),
             new CapabilityItemStorage(), new LevelNetworks(), REQUEST_MENU, CHASSIS_MENU, UPGRADE_MENU, FIREWALL_MENU,
-            REQUEST_TABLE_MENU, CONFIG_MENUS);
+            REQUEST_TABLE_MENU, CONFIG_MENUS, FLUIDS);
 
     public static final DeferredBlock<LogisticsPipeBlock> TRANSPORT_PIPE = pipe("transport_pipe", null, 0);
     public static final Map<PipeKind, DeferredBlock<LogisticsPipeBlock>> LOGISTICS_PIPES = new EnumMap<>(PipeKind.class);
@@ -141,6 +168,16 @@ public class LogisticsPipes {
                 BlockBehaviour.Properties.of().strength(2.5f).sound(SoundType.METAL), SERVICES));
         ITEMS.registerSimpleBlockItem(table);
         LOGISTICS_PIPES.put(PipeKind.REQUEST_TABLE, table);
+        LOGISTICS_PIPES.put(PipeKind.FLUID_BASIC, pipe("fluid_basic_pipe", PipeKind.FLUID_BASIC, 0));
+        LOGISTICS_PIPES.put(PipeKind.FLUID_INSERTION, pipe("fluid_insertion_pipe", PipeKind.FLUID_INSERTION, 0));
+        LOGISTICS_PIPES.put(PipeKind.FLUID_EXTRACTOR, pipe("fluid_extractor_pipe", PipeKind.FLUID_EXTRACTOR, 0));
+        LOGISTICS_PIPES.put(PipeKind.FLUID_PROVIDER, pipe("fluid_provider_pipe", PipeKind.FLUID_PROVIDER, 0));
+        LOGISTICS_PIPES.put(PipeKind.FLUID_TERMINUS, pipe("fluid_terminus_pipe", PipeKind.FLUID_TERMINUS, 0));
+        LOGISTICS_PIPES.put(PipeKind.FLUID_REQUEST, pipe("fluid_request_pipe", PipeKind.FLUID_REQUEST, 0));
+        LOGISTICS_PIPES.put(PipeKind.FLUID_SATELLITE, pipe("fluid_satellite_pipe", PipeKind.FLUID_SATELLITE, 0));
+        LOGISTICS_PIPES.put(PipeKind.FLUID_SUPPLIER, pipe("fluid_supplier_pipe", PipeKind.FLUID_SUPPLIER, 0));
+        LOGISTICS_PIPES.put(PipeKind.FLUID_CONTAINER_SUPPLIER,
+                pipe("fluid_container_supplier_pipe", PipeKind.FLUID_CONTAINER_SUPPLIER, 0));
     }
 
     // chassis mk1 to mk5 by number of module slots
@@ -181,6 +218,14 @@ public class LogisticsPipes {
 
     public static final DeferredItem<SettingsCopierItem> SETTINGS_COPIER = ITEMS.register("settings_copier",
             () -> new SettingsCopierItem(new Item.Properties()));
+
+    // never in a player's hands, so it is in no creative tab and has no recipe
+    public static final DeferredItem<FluidContainerItem> FLUID_CONTAINER = ITEMS.register("fluid_container",
+            () -> new FluidContainerItem(new Item.Properties(), FLUIDS.storage()));
+
+    static {
+        DATA_COMPONENTS.register("fluid", () -> FluidContents.TYPE);
+    }
 
     public static final Supplier<BlockEntityType<PipeBlockEntity>> PIPE_BLOCK_ENTITY = BLOCK_ENTITIES.register("pipe",
             () -> BlockEntityType.Builder
@@ -242,7 +287,8 @@ public class LogisticsPipes {
         TABS.register("main", () -> CreativeModeTab.builder()
                 .title(Component.translatable("itemGroup.logisticspipes"))
                 .icon(() -> new ItemStack(pipe(PipeKind.BASIC)))
-                .displayItems((parameters, output) -> ITEMS.getEntries().forEach(item -> output.accept(item.get())))
+                .displayItems((parameters, output) -> ITEMS.getEntries().stream()
+                        .filter(item -> item != FLUID_CONTAINER).forEach(item -> output.accept(item.get())))
                 .build());
     }
 
@@ -252,6 +298,7 @@ public class LogisticsPipes {
         BLOCK_ENTITIES.register(modEventBus);
         MENUS.register(modEventBus);
         TABS.register(modEventBus);
+        DATA_COMPONENTS.register(modEventBus);
         modEventBus.addListener(LogisticsPipes::registerCapabilities);
         modEventBus.addListener(LogisticsPipes::registerPayloads);
         NeoForge.EVENT_BUS.addListener(LogisticsPipes::buildCreativeTabs);
@@ -276,6 +323,12 @@ public class LogisticsPipes {
     private static Supplier<MenuType<PipeConfigMenu>> configMenu(String name, PipeKind kind) {
         return MENUS.register(name, () -> new MenuType<>(
                 (id, inventory) -> new PipeConfigMenu(SERVICES.configMenu(kind), id, inventory, kind),
+                FeatureFlags.DEFAULT_FLAGS));
+    }
+
+    private static Supplier<MenuType<FluidConfigMenu>> fluidConfigMenu(String name, PipeKind kind) {
+        return MENUS.register(name, () -> new MenuType<>(
+                (id, inventory) -> new FluidConfigMenu(FLUIDS.configMenu(kind), id, inventory, kind),
                 FeatureFlags.DEFAULT_FLAGS));
     }
 
@@ -309,6 +362,10 @@ public class LogisticsPipes {
     private static void registerCapabilities(RegisterCapabilitiesEvent event) {
         event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, PIPE_BLOCK_ENTITY.get(),
                 (pipe, side) -> side == null ? null : new PipeItemHandler(pipe, side));
+        event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, PIPE_BLOCK_ENTITY.get(),
+                (pipe, side) -> side == null || pipe.fluidPipe() == null || !pipe.fluidPipe().receives()
+                        ? null : new PipeFluidHandler(pipe.fluidPipe(), side));
+        TestTank.registerIfTesting(event);
         event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, CRAFTING_TABLE_BLOCK_ENTITY.get(),
                 (table, side) -> new CraftingTableItemHandler(table));
         event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, POWER_JUNCTION_BLOCK_ENTITY.get(),

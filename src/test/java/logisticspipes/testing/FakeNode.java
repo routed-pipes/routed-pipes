@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import logisticspipes.application.port.FluidNode;
 import logisticspipes.application.port.RouterNode;
 import logisticspipes.domain.crafting.Cleanup;
 import logisticspipes.domain.crafting.CraftingSetup;
@@ -71,6 +72,8 @@ public final class FakeNode implements RouterNode {
     // extractors take everything unless a test lists items
     public Set<ItemType> extractionList = Set.of();
     public boolean extractionExcludes = true;
+    // set by tests about fluid pipes
+    public FluidNode fluid;
     private final PipeKind kind;
 
     public FakeNode(PipeKind kind) {
@@ -86,6 +89,11 @@ public final class FakeNode implements RouterNode {
     @Override
     public PipeKind kind() {
         return kind;
+    }
+
+    @Override
+    public Optional<FluidNode> fluidNode() {
+        return Optional.ofNullable(fluid);
     }
 
     @Override

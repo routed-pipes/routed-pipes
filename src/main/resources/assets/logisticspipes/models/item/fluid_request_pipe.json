@@ -1,0 +1,79 @@
+{
+  "parent": "minecraft:block/block",
+  "loader": "neoforge:composite",
+  "children": {
+    "frame": {
+      "loader": "neoforge:obj",
+      "model": "logisticspipes:models/block/pipe/item_frame.obj",
+      "flip_v": true,
+      "automatic_culling": false,
+      "render_type": "minecraft:cutout",
+      "textures": {
+        "frame": "logisticspipes:block/pipe_frame"
+      }
+    },
+    "plate_north": {
+      "loader": "neoforge:obj",
+      "model": "logisticspipes:models/block/pipe/plate_north.obj",
+      "flip_v": true,
+      "automatic_culling": false,
+      "render_type": "minecraft:cutout",
+      "textures": {
+        "icon": "logisticspipes:block/fluid_request_pipe_icon"
+      }
+    },
+    "plate_south": {
+      "loader": "neoforge:obj",
+      "model": "logisticspipes:models/block/pipe/plate_south.obj",
+      "flip_v": true,
+      "automatic_culling": false,
+      "render_type": "minecraft:cutout",
+      "textures": {
+        "icon": "logisticspipes:block/fluid_request_pipe_icon"
+      }
+    },
+    "plate_east": {
+      "loader": "neoforge:obj",
+      "model": "logisticspipes:models/block/pipe/plate_east.obj",
+      "flip_v": true,
+      "automatic_culling": false,
+      "render_type": "minecraft:cutout",
+      "textures": {
+        "icon": "logisticspipes:block/fluid_request_pipe_icon"
+      }
+    },
+    "plate_west": {
+      "loader": "neoforge:obj",
+      "model": "logisticspipes:models/block/pipe/plate_west.obj",
+      "flip_v": true,
+      "automatic_culling": false,
+      "render_type": "minecraft:cutout",
+      "textures": {
+        "icon": "logisticspipes:block/fluid_request_pipe_icon"
+      }
+    },
+    "plate_up": {
+      "loader": "neoforge:obj",
+      "model": "logisticspipes:models/block/pipe/plate_up.obj",
+      "flip_v": true,
+      "automatic_culling": false,
+      "render_type": "minecraft:cutout",
+      "textures": {
+        "icon": "logisticspipes:block/fluid_request_pipe_icon"
+      }
+    },
+    "plate_down": {
+      "loader": "neoforge:obj",
+      "model": "logisticspipes:models/block/pipe/plate_down.obj",
+      "flip_v": true,
+      "automatic_culling": false,
+      "render_type": "minecraft:cutout",
+      "textures": {
+        "icon": "logisticspipes:block/fluid_request_pipe_icon"
+      }
+    }
+  },
+  "textures": {
+    "particle": "logisticspipes:block/pipe_frame"
+  }
+}

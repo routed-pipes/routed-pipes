@@ -3,6 +3,8 @@ package logisticspipes.testing;
 import java.util.Set;
 import java.util.UUID;
 
+import logisticspipes.domain.fluid.FluidBatch;
+import logisticspipes.domain.fluid.FluidType;
 import logisticspipes.domain.item.ItemBatch;
 import logisticspipes.domain.item.ItemType;
 import logisticspipes.domain.routing.RouterId;
@@ -31,6 +33,9 @@ public final class Fixtures {
         }
     }
 
+    public record TestFluid(String name) implements FluidType {
+    }
+
     private Fixtures() {
     }
 
@@ -40,5 +45,9 @@ public final class Fixtures {
 
     public static ItemBatch batch(String name, int count) {
         return new ItemBatch(new TestItem(name), count);
+    }
+
+    public static FluidBatch fluid(String name, int amount) {
+        return new FluidBatch(new TestFluid(name), amount);
     }
 }

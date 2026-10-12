@@ -23,7 +23,8 @@ public record PipeServices(
         Supplier<MenuType<UpgradeMenu>> upgradeMenu,
         Supplier<MenuType<FirewallMenu>> firewallMenu,
         Supplier<MenuType<RequestTableMenu>> requestTableMenu,
-        Map<PipeKind, Supplier<MenuType<PipeConfigMenu>>> configMenus) {
+        Map<PipeKind, Supplier<MenuType<PipeConfigMenu>>> configMenus,
+        FluidServices fluids) {
 
     public boolean hasSettings(PipeKind kind) {
         return configMenus.containsKey(kind);

@@ -29,6 +29,11 @@ public record McItemType(Item item, DataComponentPatch components) implements It
     }
 
     @Override
+    public boolean packedFluid() {
+        return item instanceof FluidContainerItem;
+    }
+
+    @Override
     public String namespace() {
         return ItemTraits.namespace(item);
     }

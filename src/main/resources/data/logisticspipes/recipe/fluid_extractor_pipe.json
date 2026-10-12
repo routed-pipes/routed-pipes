@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "logisticspipes:fluid_basic_pipe"
+    },
+    {
+      "item": "minecraft:piston"
+    }
+  ],
+  "result": {
+    "id": "logisticspipes:fluid_extractor_pipe",
+    "count": 1
+  }
+}

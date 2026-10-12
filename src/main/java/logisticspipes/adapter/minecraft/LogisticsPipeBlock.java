@@ -111,7 +111,8 @@ public class LogisticsPipeBlock extends Block implements EntityBlock {
         if (kind == null) {
             return InteractionResult.PASS;
         }
-        if (!level.isClientSide && level.getBlockEntity(pos) instanceof PipeBlockEntity pipe) {
+        // some fluid pipes have nothing to set up
+        if (!level.isClientSide && level.getBlockEntity(pos) instanceof PipeBlockEntity pipe && pipe.menuProvider() != null) {
             player.openMenu(pipe.menuProvider());
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
@@ -186,8 +187,12 @@ public class LogisticsPipeBlock extends Block implements EntityBlock {
         if (!routed()) {
             return false;
         }
-        return level.getBlockState(neighbour).getBlock() instanceof PowerJunctionBlock
-                || services.storage().exists(level, neighbour, direction.getOpposite());
+        if (level.getBlockState(neighbour).getBlock() instanceof PowerJunctionBlock) {
+            return true;
+        }
+        // fluid pipes have no use for inventories
+        return kind.fluid() ? services.fluids().storage().tanks(level, neighbour, direction.getOpposite()).isPresent()
+                : services.storage().exists(level, neighbour, direction.getOpposite());
     }
 
     @Override

@@ -21,6 +21,7 @@ import logisticspipes.adapter.minecraft.menu.RequestMenu;
 import logisticspipes.application.LogisticsNetwork;
 import logisticspipes.application.RequestOutcome;
 import logisticspipes.application.RouterStatus;
+import logisticspipes.application.port.FluidNode;
 import logisticspipes.application.port.RouterNode;
 import logisticspipes.domain.crafting.Cleanup;
 import logisticspipes.domain.crafting.CraftingSetup;
@@ -165,9 +166,12 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     private long surroundingsCachedAt;
     private long contentsCachedAt;
     private boolean linksDirty;
+    // null unless this is a fluid pipe
+    private final FluidPipe fluids;
 
     public PipeBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
+        fluids = FluidPipe.of(this, kind());
         if (kind() == PipeKind.SUPPLIER) {
             mode = SupplyMode.BULK50.ordinal();
         }
@@ -210,13 +214,31 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         inventorySidesCache = null;
         junctionsCache = null;
         contentsCache = null;
+        if (fluids != null) {
+            fluids.neighbourChanged();
+        }
+    }
+
+    // null unless this is a fluid pipe
+    public FluidPipe fluidPipe() {
+        return fluids;
+    }
+
+    @Override
+    public Optional<FluidNode> fluidNode() {
+        return Optional.ofNullable(fluids);
+    }
+
+    void insert(TravellingItem item) {
+        transport.insert(item);
+        setChanged();
     }
 
     private boolean surroundingsStale() {
         return level.getGameTime() - surroundingsCachedAt >= SURROUNDINGS_MAX_AGE;
     }
 
-    RouterId routerId() {
+    public RouterId routerId() {
         return routerId;
     }
 
@@ -228,7 +250,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         return (LogisticsPipeBlock) getBlockState().getBlock();
     }
 
-    private LogisticsNetwork network() {
+    LogisticsNetwork network() {
         if (network == null) {
             network = pipe().services().networks().of(level);
         }
@@ -547,6 +569,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     public MenuProvider menuProvider() {
         Component title = getBlockState().getBlock().getName();
         PipeServices services = pipe().services();
+        if (fluids != null) {
+            return fluids.menuProvider();
+        }
         if (kind() == PipeKind.REQUEST) {
             return requestScreen(false);
         }
@@ -769,6 +794,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         if (needsUpkeep()) {
             network().tick(routerId, level.getGameTime());
         }
+        if (fluids != null) {
+            fluids.serverTick();
+        }
         if (!transport.isEmpty()) {
             for (Departure departure : transport.tick(level.getGameTime(), this::chooseExit)) {
                 depart(departure);
@@ -781,6 +809,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     }
 
     private Optional<Side> chooseExit(TravellingItem item) {
+        if (fluids != null && fluids.stops(item)) {
+            return Optional.empty();
+        }
         if (pipe().routed()) {
             return network().chooseExit(routerId, item, level.getGameTime());
         }
@@ -796,6 +827,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
 
     private void depart(Departure departure) {
         TravellingItem item = departure.item();
+        if (FluidPipe.ended(this, departure)) {
+            return;
+        }
         ItemStack stack = McItemType.stackOf(item.batch());
         if (departure.exit().isEmpty() && table != null && item.destination().filter(routerId::equals).isPresent()) {
             // what a request table ordered ends up in its buffer
@@ -878,7 +912,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             }
             if (level.getBlockEntity(target) instanceof PowerJunctionBlockEntity) {
                 junctions.add(target);
-            } else if (getBlockState().getValue(LogisticsPipeBlock.CONNECTED.get(side))
+            } else if (fluids == null && getBlockState().getValue(LogisticsPipeBlock.CONNECTED.get(side))
                     && !(level.getBlockState(target).getBlock() instanceof LogisticsPipeBlock)
                     && storage().exists(level, target, accessFace(side))) {
                 sides.add(side);
@@ -1088,7 +1122,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             table.drops().forEach(stack -> Block.popResource(level, worldPosition, stack));
         }
         for (TravellingItem item : transport.clear()) {
-            Block.popResource(level, worldPosition, McItemType.stackOf(item.batch()));
+            if (!FluidPipe.spilled(this, item)) {
+                Block.popResource(level, worldPosition, McItemType.stackOf(item.batch()));
+            }
         }
     }
 
@@ -1149,6 +1185,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             orders.add(entry);
         }
         tag.put("Orders", orders);
+        if (fluids != null) {
+            tag.put("Fluids", fluids.save(registries));
+        }
     }
 
     @Override
@@ -1197,6 +1236,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         }
         if (tag.contains("Upgrades")) {
             ContainerTags.load(upgrades, tag.getCompound("Upgrades"), registries);
+        }
+        if (fluids != null && tag.contains("Fluids")) {
+            fluids.load(tag.getCompound("Fluids"), registries);
         }
         ListTag orders = tag.getList("Orders", Tag.TAG_COMPOUND);
         for (int index = 0; index < orders.size(); index++) {

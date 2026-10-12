@@ -621,7 +621,9 @@ public class RequestGameTest {
                 made.add(recipe.value().getResultItem(helper.getLevel().registryAccess()).getItem()));
         java.util.List<String> without = new java.util.ArrayList<>();
         net.minecraft.core.registries.BuiltInRegistries.ITEM.entrySet().forEach(entry -> {
-            if (entry.getKey().location().getNamespace().equals(LogisticsPipes.MODID) && !made.contains(entry.getValue())) {
+            // packed fluid is never in a player's hands
+            if (entry.getKey().location().getNamespace().equals(LogisticsPipes.MODID) && !made.contains(entry.getValue())
+                    && entry.getValue() != LogisticsPipes.FLUID_CONTAINER.get()) {
                 without.add(entry.getKey().location().getPath());
             }
         });

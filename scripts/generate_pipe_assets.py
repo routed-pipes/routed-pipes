@@ -7,7 +7,8 @@ import json
 import os
 
 PIPES = ["transport_pipe", "basic_logistics_pipe", "provider_pipe", "request_pipe", "supplier_pipe",
-         "crafting_pipe", "satellite_pipe", "firewall_pipe"] + [f"chassis_pipe_mk{tier}" for tier in range(1, 6)]
+         "crafting_pipe", "satellite_pipe", "firewall_pipe"] + [f"chassis_pipe_mk{tier}" for tier in range(1, 6)] + [
+             "fluid_basic_pipe", "fluid_insertion_pipe", "fluid_extractor_pipe", "fluid_provider_pipe", "fluid_terminus_pipe", "fluid_request_pipe", "fluid_satellite_pipe", "fluid_supplier_pipe", "fluid_container_supplier_pipe"]
 MODULES = ["module_item_sink", "module_extractor", "module_provider", "module_terminus", "module_passive_supplier",
            "module_polymorphic_item_sink", "module_quick_sort", "module_advanced_extractor", "module_mod_item_sink",
            "module_tag_item_sink", "module_creative_tab_item_sink", "module_enchantment_sink", "module_enchantment_sink_mk2",
@@ -268,6 +269,9 @@ def main():
     for module in MODULES + ["remote_orderer", "pipe_controller", "settings_copier"] + ["upgrade_" + upgrade for upgrade in upgrades]:
         write(ASSETS + f"models/item/{module}.json",
               {"parent": "minecraft:item/generated", "textures": {"layer0": f"logisticspipes:item/{module}"}})
+    # the window of the container is tinted with the colour of the fluid in it
+    write(ASSETS + "models/item/fluid_container.json", {"parent": "minecraft:item/generated", "textures": {
+        "layer0": "logisticspipes:item/fluid_container", "layer1": "logisticspipes:item/fluid_container_window"}})
     cubes = ["logistics_crafting_table", "power_junction"]
     for cube in cubes:
         write(ASSETS + f"models/block/{cube}.json", {"parent": "minecraft:block/cube_bottom_top", "textures": {

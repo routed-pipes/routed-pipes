@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import logisticspipes.adapter.minecraft.CraftingTableBlockEntity;
+import logisticspipes.adapter.minecraft.FluidContainerItem;
+import logisticspipes.adapter.minecraft.McFluidType;
 import logisticspipes.adapter.minecraft.McItemType;
 import logisticspipes.adapter.minecraft.PipeBlockEntity;
 import logisticspipes.adapter.minecraft.PipeDetails;
@@ -18,6 +20,7 @@ import logisticspipes.adapter.minecraft.menu.CraftingTableMenu;
 import logisticspipes.adapter.minecraft.menu.MenuRequests;
 import logisticspipes.adapter.neoforge.CapabilityItemStorage;
 import logisticspipes.adapter.neoforge.LogisticsPipes;
+import logisticspipes.domain.fluid.FluidBatch;
 import logisticspipes.domain.logistics.PipeKind;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -42,10 +45,15 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.level.block.state.properties.Property;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import net.neoforged.neoforge.items.IItemHandler;
@@ -89,6 +97,85 @@ public class CompatGameTest {
             tests.add(test("compat.orders_from." + name, helper -> ordersFrom(helper, block)));
         }
         return tests;
+    }
+
+    private static final List<String> TANKS = List.of(
+            "create:fluid_tank",
+            "mekanism:basic_fluid_tank");
+
+    @GameTestGenerator
+    public static Collection<TestFunction> tanks() {
+        List<TestFunction> tests = new ArrayList<>();
+        for (String id : TANKS) {
+            if (has(id)) {
+                String name = id.replace(':', '.');
+                tests.add(test("compat.fills_tank." + name, helper -> fillsTank(helper, block(id)), 400));
+                tests.add(test("compat.extracts_from_tank." + name, helper -> extractsFromTank(helper, block(id)), 600));
+                tests.add(test("compat.orders_from_tank." + name, helper -> ordersFromTank(helper, block(id)), 400));
+            }
+        }
+        return tests;
+    }
+
+    private static IFluidHandler tankAt(GameTestHelper helper, BlockPos pos) {
+        IFluidHandler handler = helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, helper.absolutePos(pos), Direction.SOUTH);
+        helper.assertTrue(handler != null, "no tank at " + pos);
+        return handler;
+    }
+
+    private static void fluidFilter(PipeBlockEntity pipe, Fluid fluid) {
+        pipe.config().setItem(0, FluidContainerItem.marker(new McFluidType(fluid)));
+    }
+
+    // fluid pumped into an insertion pipe ends up in the tank of the other mod
+    private static void fillsTank(GameTestHelper helper, Block tank) {
+        GameTestPower.supply(helper);
+        PipeBlockEntity insertion = pipe(helper, PipeKind.FLUID_INSERTION, 0, 1);
+        fluidFilter(pipe(helper, PipeKind.FLUID_BASIC, 1, 1), Fluids.WATER);
+        BlockPos target = new BlockPos(1, 1, 0);
+        helper.setBlock(target, tank);
+
+        helper.runAfterDelay(10, () -> {
+            IFluidHandler pump = helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, insertion.getBlockPos(), Direction.UP);
+            helper.assertTrue(pump != null && pump.fill(new FluidStack(Fluids.WATER, 3000), IFluidHandler.FluidAction.EXECUTE) == 3000,
+                    "the insertion pipe should take what is pumped in");
+        });
+
+        helper.succeedWhen(() -> {
+            FluidStack held = tankAt(helper, target).getFluidInTank(0);
+            helper.assertTrue(held.getFluid() == Fluids.WATER && held.getAmount() == 3000, "the tank holds " + held);
+        });
+    }
+
+    // fluid in the tank of the other mod can be ordered
+    private static void ordersFromTank(GameTestHelper helper, Block tank) {
+        GameTestPower.supply(helper);
+        PipeBlockEntity request = pipe(helper, PipeKind.FLUID_REQUEST, 0, 1);
+        FluidTank target = TestTank.place(helper, new BlockPos(0, 2, 1), Fluids.EMPTY, 0);
+        pipe(helper, PipeKind.FLUID_PROVIDER, 1, 1);
+        BlockPos source = new BlockPos(1, 1, 0);
+        helper.setBlock(source, tank);
+        helper.assertTrue(tankAt(helper, source).fill(new FluidStack(Fluids.WATER, 4000), IFluidHandler.FluidAction.EXECUTE) == 4000,
+                "could not fill the tank");
+
+        helper.runAfterDelay(10, () -> helper.assertTrue(
+                request.fluidPipe().request(new FluidBatch(new McFluidType(Fluids.WATER), 2500)).started(), "request should be possible"));
+
+        helper.succeedWhen(() -> helper.assertTrue(target.getFluidAmount() == 2500, "only " + target.getFluidAmount() + " mB arrived"));
+    }
+
+    // an extractor pipe empties the tank of the other mod
+    private static void extractsFromTank(GameTestHelper helper, Block tank) {
+        GameTestPower.supply(helper);
+        pipe(helper, PipeKind.FLUID_EXTRACTOR, 0, 1);
+        BlockPos source = new BlockPos(0, 1, 0);
+        helper.setBlock(source, tank);
+        fluidFilter(pipe(helper, PipeKind.FLUID_BASIC, 1, 1), Fluids.WATER);
+        FluidTank target = TestTank.place(helper, new BlockPos(1, 2, 1), Fluids.EMPTY, 0);
+        helper.assertTrue(tankAt(helper, source).fill(new FluidStack(Fluids.WATER, 2000), IFluidHandler.FluidAction.EXECUTE) == 2000,
+                "could not fill the tank");
+
+        helper.succeedWhen(() -> helper.assertTrue(target.getFluidAmount() == 2000, "only " + target.getFluidAmount() + " mB came out"));
     }
 
     // tests that need a working machine or network of another mod

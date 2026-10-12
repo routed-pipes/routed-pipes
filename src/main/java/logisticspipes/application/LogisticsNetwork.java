@@ -38,6 +38,7 @@ import logisticspipes.domain.request.RequestPlanner;
 import logisticspipes.domain.request.Stock;
 import logisticspipes.domain.routing.Link;
 import logisticspipes.domain.routing.Route;
+import logisticspipes.domain.routing.RouteTable;
 import logisticspipes.domain.routing.RouterId;
 import logisticspipes.domain.routing.RoutingNetwork;
 import logisticspipes.domain.routing.Side;
@@ -88,6 +89,19 @@ public final class LogisticsNetwork {
     private final Map<RouterId, List<SinkRule>> sinkRules = new HashMap<>();
     private final Map<ItemType, Set<RouterId>> sinksByItem = new HashMap<>();
     private final Set<RouterId> sinksForAnything = new HashSet<>();
+    private final FluidLogistics fluids = new FluidLogistics(this);
+
+    public FluidLogistics fluids() {
+        return fluids;
+    }
+
+    RouterNode node(RouterId id) {
+        return nodes.get(id);
+    }
+
+    RouteTable routes(RouterId from) {
+        return routing.routesFrom(from);
+    }
 
     public void addRouter(RouterId id, RouterNode node, long now) {
         nodes.put(id, node);
@@ -116,6 +130,7 @@ public final class LogisticsNetwork {
         firewalls.remove(id);
         open = null;
         pending.forget(id);
+        fluids.forget(id);
         changedAt.remove(id);
         forgetSinks(id);
         lastChangeOfComponent.clear();
@@ -344,6 +359,10 @@ public final class LogisticsNetwork {
     // only sinks that want it at least as much as minPriority count
     private Optional<Claim> findDestination(RouterId at, ItemBatch batch, Side origin, boolean mayStay, int minPriority,
             long now) {
+        if (batch.type().packedFluid()) {
+            // fluid pipes look after it, see FluidLogistics
+            return Optional.empty();
+        }
         Set<InventoryRef> cameFrom = sourceInventories(at, origin, mayStay);
         List<SinkOffer> offers = new ArrayList<>();
         Map<RouterId, SinkBid> bids = new HashMap<>();
@@ -478,7 +497,7 @@ public final class LogisticsNetwork {
     }
 
     // takes energy from the junctions of the network the router is in, all of it or nothing
-    private boolean usePower(RouterId at, int amount) {
+    boolean usePower(RouterId at, int amount) {
         List<RouterNode> sources = new ArrayList<>();
         if (nodes.containsKey(at)) {
             sources.add(nodes.get(at));

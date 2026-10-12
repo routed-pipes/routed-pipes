@@ -25,4 +25,9 @@ public interface ItemType {
     default boolean enchanted() {
         return false;
     }
+
+    // fluid packed for its way through the pipes, no inventory and no item sink takes it
+    default boolean packedFluid() {
+        return false;
+    }
 }

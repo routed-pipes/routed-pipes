@@ -135,4 +135,9 @@ public interface RouterNode {
     default Map<ItemType, Integer> supplyTargets() {
         return Map.of();
     }
+
+    // fluid pipes only
+    default Optional<FluidNode> fluidNode() {
+        return Optional.empty();
+    }
 }

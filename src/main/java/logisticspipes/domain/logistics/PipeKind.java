@@ -19,5 +19,28 @@ public enum PipeKind {
     // filters what passes on the ways that lead out of it
     FIREWALL,
     // a request pipe as a block with a crafting grid and a buffer of its own
-    REQUEST_TABLE
+    REQUEST_TABLE,
+    // puts the listed fluid into the tanks next to it
+    FLUID_BASIC,
+    // packs fluid that is pumped into it and sends it to a pipe that takes it
+    FLUID_INSERTION,
+    // an insertion pipe that pulls fluid out of the tanks next to it by itself
+    FLUID_EXTRACTOR,
+    // offers the fluid in the tanks next to it
+    FLUID_PROVIDER,
+    // takes the listed fluids when no basic fluid pipe does
+    FLUID_TERMINUS,
+    // where players order fluid
+    FLUID_REQUEST,
+    // drop off point for fluid, asks again for what got lost on the way
+    FLUID_SATELLITE,
+    // keeps the tank next to it stocked with a fluid
+    FLUID_SUPPLIER,
+    // keeps the tank next to it stocked by ordering full buckets and emptying them
+    FLUID_CONTAINER_SUPPLIER;
+
+    // fluid pipes have tanks of their own and work on the tanks next to them
+    public boolean fluid() {
+        return name().startsWith("FLUID_");
+    }
 }
