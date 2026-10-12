@@ -13,19 +13,21 @@ import logisticspipes.domain.routing.Side;
 // the items currently inside one pipe
 public final class PipeTransport {
 
-    public static final int TICKS_PER_PIPE = 10;
-    // how long an item waits for an exit, covers networks that are still loading
-    public static final int MAX_WAIT = 40;
+    // a pipe is this many steps long, fine enough for every speed to be a whole number of steps per tick
+    public static final int PIPE_LENGTH = 60;
+    // ticks an item waits for an exit before it is given up on
+    public static final int MAX_WAIT = 200;
 
     private final List<TravellingItem> items = new ArrayList<>();
     // ids a viewer guessed and the real pipe has not confirmed yet
     private final Set<Long> unconfirmed = new HashSet<>();
     private boolean changed;
-    // routed pipes set the pace of every item that passes, plain pipes leave it alone
-    private Integer pace;
+    // routed pipes set the pace of every item that passes, in percent of the speed its mode has
+    // plain pipes have none and leave items as fast as they came
+    private Integer boost;
 
-    public void setPace(Integer ticksPerPipe) {
-        pace = ticksPerPipe;
+    public void setBoost(Integer percent) {
+        boost = percent;
     }
 
     public void insert(TravellingItem item) {
@@ -57,23 +59,27 @@ public final class PipeTransport {
     }
 
     // moves everything one step, the exit is picked when an item is first seen
-    public List<Departure> tick(ExitChooser chooser) {
+    public List<Departure> tick(long now, ExitChooser chooser) {
         List<Departure> departures = new ArrayList<>();
         for (Iterator<TravellingItem> iterator = items.iterator(); iterator.hasNext();) {
             TravellingItem item = iterator.next();
+            if (item.movedIn(now)) {
+                // came in from a pipe that ticked earlier in this same tick
+                continue;
+            }
             if (!item.decided()) {
                 Optional<Side> exit = chooser.chooseExit(item);
-                if (exit.isEmpty() && item.waited() < MAX_WAIT) {
+                if (exit.isEmpty() && !item.abandoned() && item.waited() < MAX_WAIT) {
                     item.waitForExit();
                     continue;
                 }
                 item.decide(exit);
-                if (pace != null) {
-                    item.setTicksPerPipe(pace);
+                if (boost != null) {
+                    item.setSpeed(item.mode().speed() * boost / 100);
                 }
                 changed = true;
             }
-            item.advance();
+            item.advance(now);
             if (item.exit().isEmpty() && item.pastCentre()) {
                 iterator.remove();
                 changed = true;
@@ -87,14 +93,17 @@ public final class PipeTransport {
     }
 
     // what a viewer does between updates: move along and hand back the items that reached their exit
-    public List<Departure> advance() {
+    public List<Departure> advance(long now) {
         List<Departure> departures = new ArrayList<>();
         for (Iterator<TravellingItem> iterator = items.iterator(); iterator.hasNext();) {
             TravellingItem item = iterator.next();
+            if (item.movedIn(now)) {
+                continue;
+            }
             if (item.exit().isEmpty()) {
                 // without an exit a real item waits where it is, a guessed one fades out at the centre
                 if (unconfirmed.contains(item.id())) {
-                    item.advance();
+                    item.advance(now);
                     if (item.pastCentre()) {
                         iterator.remove();
                         unconfirmed.remove(item.id());
@@ -102,7 +111,7 @@ public final class PipeTransport {
                 }
                 continue;
             }
-            item.advance();
+            item.advance(now);
             if (item.atExit()) {
                 iterator.remove();
                 departures.add(new Departure(item, item.exit()));

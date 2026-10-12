@@ -9,7 +9,7 @@ import logisticspipes.domain.routing.Side;
 import logisticspipes.domain.routing.RouterId;
 
 // a batch of items moving through one pipe, from the origin side to the centre and out through the exit
-// the exit is decided on entry, an item that finds none waits a moment and then stops at the centre
+// the exit is decided on entry, an item that finds none waits a while and then stops at the centre
 public final class TravellingItem {
 
     private final long id;
@@ -18,40 +18,52 @@ public final class TravellingItem {
     private RouterId destination;
     // the router this item is passed to next, plain pipes need it at forks
     private RouterId nextHop;
+    private TransportMode mode;
     private Side exit;
+    // in steps, see PipeTransport.PIPE_LENGTH
     private int progress;
-    // how long this item takes to cross one pipe
-    private int ticksPerPipe = PipeTransport.TICKS_PER_PIPE;
+    // steps per tick
+    private int speed;
     private boolean decided;
     private boolean arrived;
+    private boolean abandoned;
     private int waited;
+    // the tick this item last moved in, so being handed to the next pipe does not let it move twice in one tick
+    private long movedAt = Long.MIN_VALUE;
 
+    // an item with a destination from the start was ordered, one without is waiting to be claimed
     public TravellingItem(ItemBatch batch, Side origin, RouterId destination) {
-        this(ThreadLocalRandom.current().nextLong(), batch, origin, destination);
+        this(ThreadLocalRandom.current().nextLong(), batch, origin, destination,
+                destination == null ? TransportMode.UNCLAIMED : TransportMode.REQUESTED);
     }
 
-    private TravellingItem(long id, ItemBatch batch, Side origin, RouterId destination) {
+    private TravellingItem(long id, ItemBatch batch, Side origin, RouterId destination, TransportMode mode) {
         this.id = id;
         this.batch = Objects.requireNonNull(batch);
         this.origin = Objects.requireNonNull(origin);
         this.destination = destination;
+        this.mode = mode;
+        this.speed = mode.speed();
     }
 
     public static TravellingItem restore(long id, ItemBatch batch, Side origin, RouterId destination, RouterId nextHop,
-            Side exit, int progress) {
-        TravellingItem item = new TravellingItem(id, batch, origin, destination);
+            TransportMode mode, Side exit, int progress, int speed) {
+        TravellingItem item = new TravellingItem(id, batch, origin, destination, mode);
         item.nextHop = nextHop;
         item.exit = exit;
         item.decided = exit != null;
         item.progress = progress;
+        item.setSpeed(speed);
         return item;
     }
 
-    // the same item at the start of the next pipe
+    // the same item at the start of the next pipe, what it overshot the end of this one by is not lost
     public TravellingItem enteringFrom(Side side) {
-        TravellingItem next = new TravellingItem(id, batch, side, destination);
+        TravellingItem next = new TravellingItem(id, batch, side, destination, mode);
         next.nextHop = nextHop;
-        next.ticksPerPipe = ticksPerPipe;
+        next.speed = speed;
+        next.progress = Math.max(0, progress - PipeTransport.PIPE_LENGTH);
+        next.movedAt = movedAt;
         return next;
     }
 
@@ -72,12 +84,19 @@ public final class TravellingItem {
         return Optional.ofNullable(destination);
     }
 
+    public TransportMode mode() {
+        return mode;
+    }
+
+    // a sink has claimed the item
     public void routeTo(RouterId router) {
         destination = Objects.requireNonNull(router);
+        mode = TransportMode.SORTED;
     }
 
     public void clearDestination() {
         destination = null;
+        mode = TransportMode.UNCLAIMED;
     }
 
     public Optional<RouterId> nextHop() {
@@ -96,24 +115,25 @@ public final class TravellingItem {
         return progress;
     }
 
-    public int ticksPerPipe() {
-        return ticksPerPipe;
+    public int speed() {
+        return speed;
     }
 
-    public void setTicksPerPipe(int ticks) {
-        if (ticks <= 0) {
-            throw new IllegalArgumentException("ticks per pipe must be positive: " + ticks);
+    // never more than one whole pipe per tick
+    public void setSpeed(int stepsPerTick) {
+        if (stepsPerTick <= 0) {
+            throw new IllegalArgumentException("speed must be positive: " + stepsPerTick);
         }
-        ticksPerPipe = ticks;
+        speed = Math.min(stepsPerTick, PipeTransport.PIPE_LENGTH);
     }
 
     // true once the item has left the origin half of the pipe
     public boolean pastCentre() {
-        return progress * 2 >= ticksPerPipe;
+        return progress * 2 >= PipeTransport.PIPE_LENGTH;
     }
 
     public boolean atExit() {
-        return progress >= ticksPerPipe;
+        return progress >= PipeTransport.PIPE_LENGTH;
     }
 
     public boolean decided() {
@@ -141,16 +161,31 @@ public final class TravellingItem {
         waited = 0;
     }
 
+    // there will never be an exit here, like an order arriving at a pipe without an inventory: no point in waiting
+    public void abandon() {
+        abandoned = true;
+    }
+
+    public boolean abandoned() {
+        return abandoned;
+    }
+
     // what did not fit into the inventory this item was ordered for, to be tried again from the same pipe
     public TravellingItem remainder(ItemBatch rest) {
-        TravellingItem again = new TravellingItem(batch.equals(rest) ? id : ThreadLocalRandom.current().nextLong(), rest, origin, destination);
+        long restId = batch.equals(rest) ? id : ThreadLocalRandom.current().nextLong();
+        TravellingItem again = new TravellingItem(restId, rest, origin, destination, mode);
         again.arrived = arrived;
-        again.ticksPerPipe = ticksPerPipe;
+        again.speed = speed;
         return again;
     }
 
-    void advance() {
-        progress++;
+    boolean movedIn(long tick) {
+        return movedAt == tick;
+    }
+
+    void advance(long tick) {
+        progress += speed;
+        movedAt = tick;
     }
 
     void decide(Optional<Side> side) {

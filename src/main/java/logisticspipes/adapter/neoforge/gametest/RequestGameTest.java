@@ -48,7 +48,10 @@ public class RequestGameTest {
     private static PipeBlockEntity pipe(GameTestHelper helper, PipeKind kind, int x, int y) {
         BlockPos pos = new BlockPos(x, y, 1);
         helper.setBlock(pos, LogisticsPipes.pipe(kind));
-        return helper.getBlockEntity(pos);
+        PipeBlockEntity pipe = helper.getBlockEntity(pos);
+        // in these tests a basic pipe takes everything unless the test says otherwise
+        pipe.setDefaultRoute(kind == PipeKind.BASIC);
+        return pipe;
     }
 
     private static void transport(GameTestHelper helper, int x, int y) {
@@ -359,7 +362,7 @@ public class RequestGameTest {
         BlockPos target = chest(helper, 3, 2);
         pipe(helper, PipeKind.PROVIDER, 4, 1);
         chest(helper, 4, 2, new ItemStack(Items.COBBLESTONE, 64));
-        int cost = 10 * LogisticsNetwork.ENERGY_PER_ITEM;
+        int cost = 10 * LogisticsNetwork.ENERGY_PER_PROVIDED_ITEM;
         PowerJunctionBlockEntity junction = GameTestPower.junction(helper, new BlockPos(4, 1, 2), cost - 1);
 
         helper.runAfterDelay(SETTLE, () -> {
@@ -370,6 +373,7 @@ public class RequestGameTest {
             junction.receive(1, false);
             helper.assertTrue(request.request(batch(Items.COBBLESTONE, 10)).started(), "exactly enough should do");
             helper.assertTrue(junction.stored() == 0, "the request should use up the energy");
+            helper.assertTrue(cost == 20, "ten provided items cost 20 FE");
         });
 
         helper.succeedWhen(() -> assertCount(helper, target, Items.COBBLESTONE, 10));

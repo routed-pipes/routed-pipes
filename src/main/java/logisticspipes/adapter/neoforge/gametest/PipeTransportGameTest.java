@@ -1,6 +1,7 @@
 package logisticspipes.adapter.neoforge.gametest;
 
 import logisticspipes.adapter.minecraft.PipeBlockEntity;
+import logisticspipes.adapter.minecraft.PowerJunctionBlockEntity;
 import logisticspipes.adapter.neoforge.LogisticsPipes;
 import logisticspipes.domain.logistics.PipeKind;
 import net.minecraft.core.BlockPos;
@@ -21,8 +22,12 @@ public class PipeTransportGameTest {
 
     private static final String EMPTY = "empty";
 
+    // a basic pipe that takes everything
     private static void router(GameTestHelper helper, int x) {
-        helper.setBlock(new BlockPos(x, 1, 1), LogisticsPipes.pipe(PipeKind.BASIC));
+        BlockPos pos = new BlockPos(x, 1, 1);
+        helper.setBlock(pos, LogisticsPipes.pipe(PipeKind.BASIC));
+        PipeBlockEntity pipe = helper.getBlockEntity(pos);
+        pipe.setDefaultRoute(true);
     }
 
     private static void transport(GameTestHelper helper, int fromX, int toX) {
@@ -50,6 +55,7 @@ public class PipeTransportGameTest {
 
     @GameTest(template = EMPTY, timeoutTicks = 200)
     public static void deliversThroughTransportPipes(GameTestHelper helper) {
+        GameTestPower.supply(helper);
         router(helper, 0);
         transport(helper, 1, 3);
         router(helper, 4);
@@ -62,6 +68,7 @@ public class PipeTransportGameTest {
 
     @GameTest(template = EMPTY, timeoutTicks = 200)
     public static void prefersTheNearestChest(GameTestHelper helper) {
+        GameTestPower.supply(helper);
         router(helper, 1);
         BlockPos near = chestAbove(helper, 1);
         router(helper, 2);
@@ -80,6 +87,7 @@ public class PipeTransportGameTest {
 
     @GameTest(template = EMPTY, timeoutTicks = 200)
     public static void skipsFullChest(GameTestHelper helper) {
+        GameTestPower.supply(helper);
         router(helper, 1);
         BlockPos near = chestAbove(helper, 1);
         Container full = helper.getBlockEntity(near);
@@ -96,8 +104,9 @@ public class PipeTransportGameTest {
         helper.succeedWhen(() -> assertCount(helper, far, Items.DIAMOND, 3));
     }
 
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @GameTest(template = EMPTY, timeoutTicks = 400)
     public static void dropsItemWhenNothingTakesIt(GameTestHelper helper) {
+        GameTestPower.supply(helper);
         router(helper, 0);
         transport(helper, 1, 2);
         router(helper, 3);
@@ -109,6 +118,7 @@ public class PipeTransportGameTest {
 
     @GameTest(template = EMPTY, timeoutTicks = 200)
     public static void hopperFeedsThePipe(GameTestHelper helper) {
+        GameTestPower.supply(helper);
         router(helper, 0);
         BlockPos hopper = new BlockPos(0, 2, 1);
         helper.setBlock(hopper, Blocks.HOPPER);
@@ -122,8 +132,9 @@ public class PipeTransportGameTest {
         helper.succeedWhen(() -> assertCount(helper, chest, Items.DIAMOND, 3));
     }
 
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @GameTest(template = EMPTY, timeoutTicks = 400)
     public static void reroutesAfterThePipeRunIsBroken(GameTestHelper helper) {
+        GameTestPower.supply(helper);
         router(helper, 0);
         transport(helper, 1, 3);
         router(helper, 4);
@@ -134,7 +145,7 @@ public class PipeTransportGameTest {
             helper.runAfterDelay(5, () -> insert(helper, 0, Direction.DOWN, new ItemStack(Items.DIAMOND, 3)));
         });
 
-        helper.runAfterDelay(100, () -> {
+        helper.runAfterDelay(300, () -> {
             helper.assertContainerEmpty(chest);
             helper.assertItemEntityPresent(Items.DIAMOND, new BlockPos(0, 1, 1), 2);
             helper.succeed();
@@ -143,6 +154,7 @@ public class PipeTransportGameTest {
 
     @GameTest(template = EMPTY, timeoutTicks = 200)
     public static void filteredPipeGetsItsItemsBeforeANearerDefaultRoute(GameTestHelper helper) {
+        GameTestPower.supply(helper);
         router(helper, 1);
         BlockPos near = chestAbove(helper, 1);
         router(helper, 2);
@@ -165,6 +177,58 @@ public class PipeTransportGameTest {
             assertCount(helper, near, Items.STONE, 5);
             assertCount(helper, near, Items.DIAMOND, 0);
             helper.succeed();
+        });
+    }
+
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void aFreshBasicPipeTakesNothingUntilItIsToldTo(GameTestHelper helper) {
+        GameTestPower.supply(helper);
+        router(helper, 0);
+        PipeBlockEntity start = helper.getBlockEntity(new BlockPos(0, 1, 1));
+        start.setDefaultRoute(false);
+        helper.setBlock(new BlockPos(1, 1, 1), LogisticsPipes.pipe(PipeKind.BASIC));
+        BlockPos chest = chestAbove(helper, 1);
+        PipeBlockEntity fresh = helper.getBlockEntity(new BlockPos(1, 1, 1));
+
+        helper.runAfterDelay(15, () -> insert(helper, 0, Direction.DOWN, new ItemStack(Items.DIAMOND, 3)));
+        helper.runAfterDelay(60, () -> {
+            helper.assertContainerEmpty(chest);
+            fresh.setDefaultRoute(true);
+        });
+        helper.runAfterDelay(120, () -> {
+            assertCount(helper, chest, Items.DIAMOND, 3);
+            helper.succeed();
+        });
+    }
+
+    // without a junction on the network even plain sorting stands still, the item waits and is then given up on
+    @GameTest(template = EMPTY, timeoutTicks = 400)
+    public static void nothingIsSortedWithoutPower(GameTestHelper helper) {
+        router(helper, 4);
+        router(helper, 5);
+        BlockPos chest = chestAbove(helper, 5);
+
+        helper.runAfterDelay(15, () -> insert(helper, 4, Direction.DOWN, new ItemStack(Items.DIAMOND, 3)));
+        helper.runAfterDelay(100, () -> helper.assertContainerEmpty(chest));
+        helper.runAfterDelay(300, () -> {
+            helper.assertContainerEmpty(chest);
+            helper.assertItemEntityPresent(Items.DIAMOND, new BlockPos(4, 1, 1), 2);
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void sortingAStackCostsALittlePower(GameTestHelper helper) {
+        router(helper, 4);
+        PowerJunctionBlockEntity junction = GameTestPower.junction(helper, new BlockPos(4, 1, 2), 100);
+        router(helper, 5);
+        BlockPos chest = chestAbove(helper, 5);
+
+        helper.runAfterDelay(15, () -> insert(helper, 4, Direction.DOWN, new ItemStack(Items.DIAMOND, 3)));
+
+        helper.succeedWhen(() -> {
+            assertCount(helper, chest, Items.DIAMOND, 3);
+            helper.assertTrue(junction.stored() == 98, "one sorted stack costs 2 FE, junction holds " + junction.stored());
         });
     }
 }

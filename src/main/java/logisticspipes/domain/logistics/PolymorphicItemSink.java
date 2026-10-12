@@ -17,4 +17,9 @@ public record PolymorphicItemSink() implements SinkRule {
     public boolean needsContents() {
         return true;
     }
+
+    @Override
+    public int energy() {
+        return 6;
+    }
 }

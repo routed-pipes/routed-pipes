@@ -6,7 +6,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.OptionalInt;
 import java.util.Set;
 
 import logisticspipes.application.port.RouterNode;
@@ -18,6 +17,7 @@ import logisticspipes.domain.logistics.ExtractionMode;
 import logisticspipes.domain.logistics.InventoryRef;
 import logisticspipes.domain.logistics.ItemSink;
 import logisticspipes.domain.logistics.PipeKind;
+import logisticspipes.domain.logistics.SinkBid;
 import logisticspipes.domain.logistics.SinkRule;
 import logisticspipes.domain.routing.RouterId;
 import logisticspipes.domain.routing.Side;
@@ -42,6 +42,7 @@ public final class FakeNode implements RouterNode {
     // basic pipes take everything by default, like a fresh one in the game
     public SinkRule sink = new ItemSink(Set.of(), true);
     public int satelliteId;
+    public int extractionBoost = 1;
     // how often the network looked into the inventories of this pipe
     public int probes;
     // energy in junctions next to this pipe, plenty unless a test says otherwise
@@ -121,8 +122,13 @@ public final class FakeNode implements RouterNode {
     }
 
     @Override
-    public OptionalInt sinkPriority(ItemType type) {
-        return kind == PipeKind.BASIC || kind == PipeKind.CHASSIS ? sink.priority(type, contents) : OptionalInt.empty();
+    public int extractionBoost() {
+        return extractionBoost;
+    }
+
+    @Override
+    public Optional<SinkBid> sinkBid(ItemType type) {
+        return kind == PipeKind.BASIC || kind == PipeKind.CHASSIS ? sink.bid(type, contents) : Optional.empty();
     }
 
     @Override

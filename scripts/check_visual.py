@@ -10,7 +10,7 @@ LOG = Path(sys.argv[2]) if len(sys.argv) > 2 else None
 EXPECTED = ["pipes_overview", "pipes_close", "pipes_junction", "pipes_vertical", "crafting_table", "chassis",
             "gui_request", "gui_request_search", "gui_supplier", "gui_basic", "gui_crafting", "gui_satellite", "gui_chassis",
             "gui_module_item_sink", "gui_crafting_table", "gui_crafting_imported"]
-FLICKER_FRAMES = 45
+FLICKER_FRAMES = 12
 # the grey of the window background drawn by Panel
 PANEL = (198, 198, 198)
 
@@ -42,7 +42,7 @@ def main():
             continue
         centre = (box[0] + box[2]) / 2
         # the first frames show it leaving the chest downwards, after that it moves sideways
-        if last is not None and frame > 4 and centre < last - 2:
+        if last is not None and frame > 2 and centre < last - 2:
             problems.append(f"flicker_{frame:02d}: the item jumped back from x={last:.0f} to x={centre:.0f}")
         last = centre
 

@@ -3,7 +3,6 @@ package logisticspipes.application.port;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.OptionalInt;
 import java.util.Set;
 
 import logisticspipes.domain.crafting.OutputOrders;
@@ -13,6 +12,7 @@ import logisticspipes.domain.item.ItemType;
 import logisticspipes.domain.logistics.ExtractionMode;
 import logisticspipes.domain.logistics.InventoryRef;
 import logisticspipes.domain.logistics.PipeKind;
+import logisticspipes.domain.logistics.SinkBid;
 import logisticspipes.domain.routing.RouterId;
 import logisticspipes.domain.routing.Side;
 
@@ -52,9 +52,14 @@ public interface RouterNode {
         return List.of();
     }
 
-    // how much the pipe wants an item nobody asked for, empty for not at all
-    default OptionalInt sinkPriority(ItemType type) {
-        return OptionalInt.empty();
+    // multiplies what an extraction round moves, from upgrades
+    default int extractionBoost() {
+        return 1;
+    }
+
+    // whether and how much the pipe wants an item nobody asked for, and what it charges for a stack
+    default Optional<SinkBid> sinkBid(ItemType type) {
+        return Optional.empty();
     }
 
     // crafting pipes only

@@ -1,13 +1,13 @@
 package logisticspipes.adapter.minecraft;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.OptionalInt;
 import java.util.Set;
 import java.util.UUID;
 
@@ -28,6 +28,7 @@ import logisticspipes.domain.logistics.InventoryRef;
 import logisticspipes.domain.logistics.ItemSink;
 import logisticspipes.domain.logistics.ModuleKind;
 import logisticspipes.domain.logistics.PipeKind;
+import logisticspipes.domain.logistics.SinkBid;
 import logisticspipes.domain.logistics.SinkRule;
 import logisticspipes.domain.routing.RouterId;
 import logisticspipes.domain.routing.Side;
@@ -72,7 +73,8 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     // the largest chassis has this many
     public static final int MODULE_SLOTS = 8;
     public static final int UPGRADE_SLOTS = 4;
-    private static final int UPKEEP_INTERVAL = 20;
+    // every speed upgrade makes the pipe send items on this much faster, in percent
+    private static final int SPEED_UPGRADE_PERCENT = 25;
 
     private final PipeTransport transport = new PipeTransport();
     private final SimpleContainer config = new SimpleContainer(CONFIG_SLOTS);
@@ -102,7 +104,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     };
     private RouterId routerId = new RouterId(UUID.randomUUID());
     private int satelliteId;
-    private boolean defaultRoute = true;
+    private boolean defaultRoute;
     private boolean announced;
     private Map<ItemType, Integer> contentsCache;
     private long contentsCachedAt;
@@ -113,7 +115,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         config.addListener(container -> setChanged());
         modules.addListener(container -> setChanged());
         upgrades.addListener(container -> {
-            transport.setPace(pace());
+            transport.setBoost(boost());
             setChanged();
         });
     }
@@ -179,12 +181,12 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         return count;
     }
 
-    // ticks an item needs per pipe after leaving this one, every speed upgrade makes it quicker
-    private Integer pace() {
+    // how fast this pipe sends items on, in percent of their normal speed, plain pipes do not change it
+    private Integer boost() {
         if (!pipe().routed()) {
             return null;
         }
-        return Math.max(2, PipeTransport.TICKS_PER_PIPE / (1 + upgradeCount(UpgradeItem.Kind.SPEED)));
+        return 100 + SPEED_UPGRADE_PERCENT * upgradeCount(UpgradeItem.Kind.SPEED);
     }
 
     // the face of an inventory this pipe uses when the inventory is on the given side of the pipe
@@ -286,7 +288,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
 
     // moves items on without waiting for the server, so they do not blink at pipe borders
     void clientTick() {
-        for (Departure departure : transport.advance()) {
+        for (Departure departure : transport.advance(level.getGameTime())) {
             Side exit = departure.exit().orElseThrow();
             BlockPos target = worldPosition.relative(Directions.toMinecraft(exit));
             if (level.getBlockEntity(target) instanceof PipeBlockEntity neighbour) {
@@ -299,7 +301,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         if (!announced) {
             announced = true;
             linksDirty = true;
-            transport.setPace(pace());
+            transport.setBoost(boost());
             pipe().refreshConnections(getBlockState(), level, worldPosition);
             if (pipe().routed()) {
                 network().addRouter(routerId, this, level.getGameTime());
@@ -310,13 +312,11 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             linksDirty = false;
             network().updateLinks(routerId, PipeTopology.discoverLinks(level, worldPosition), level.getGameTime());
         }
-        if ((kind() == PipeKind.CRAFTING || kind() == PipeKind.SUPPLIER || kind() == PipeKind.CHASSIS)
-                && Math.floorMod(level.getGameTime() + worldPosition.asLong(), UPKEEP_INTERVAL) == 0) {
+        if (kind() == PipeKind.CRAFTING || kind() == PipeKind.SUPPLIER || kind() == PipeKind.CHASSIS) {
             network().tick(routerId, level.getGameTime());
-            setChanged();
         }
         if (!transport.isEmpty()) {
-            for (Departure departure : transport.tick(this::chooseExit)) {
+            for (Departure departure : transport.tick(level.getGameTime(), this::chooseExit)) {
                 depart(departure);
             }
             setChanged();
@@ -353,12 +353,15 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         if (!level.isLoaded(target)) {
             // wait at the chunk border and try again next tick
             transport.insert(TravellingItem.restore(item.id(), item.batch(), item.origin(),
-                    item.destination().orElse(null), item.nextHop().orElse(null), exit, item.ticksPerPipe() - 1));
+                    item.destination().orElse(null), item.nextHop().orElse(null), item.mode(), exit,
+                    PipeTransport.PIPE_LENGTH - item.speed(), item.speed()));
             return;
         }
         if (level.getBlockEntity(target) instanceof PipeBlockEntity neighbour) {
             neighbour.transport.insert(item.enteringFrom(exit.opposite()));
             neighbour.setChanged();
+            // tell clients now, a neighbour that already ticked would only do so a tick later and the item would blink
+            level.sendBlockUpdated(target, neighbour.getBlockState(), neighbour.getBlockState(), Block.UPDATE_CLIENTS);
             return;
         }
         ItemStack rest = storage().exists(level, target, accessFace(side))
@@ -506,17 +509,23 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         return pluggedModules().stream().flatMap(stack -> ModuleItem.extractionOf(stack).stream()).distinct().toList();
     }
 
+    // every speed upgrade doubles what an extractor moves
     @Override
-    public OptionalInt sinkPriority(ItemType type) {
+    public int extractionBoost() {
+        return 1 << upgradeCount(UpgradeItem.Kind.SPEED);
+    }
+
+    @Override
+    public Optional<SinkBid> sinkBid(ItemType type) {
         if (kind() == PipeKind.BASIC) {
-            return new ItemSink(supplyTargets().keySet(), defaultRoute).priority(type);
+            return new ItemSink(supplyTargets().keySet(), defaultRoute).bid(type, Map.of());
         }
         // a chassis wants an item as much as its keenest module does
         List<SinkRule> rules = pluggedModules().stream().flatMap(stack -> ModuleItem.ruleOf(stack).stream()).toList();
         Map<ItemType, Integer> contents = rules.stream().anyMatch(SinkRule::needsContents) ? contents() : Map.of();
         return rules.stream()
-                .flatMapToInt(rule -> rule.priority(type, contents).stream())
-                .max();
+                .flatMap(rule -> rule.bid(type, contents).stream())
+                .max(Comparator.comparingInt(SinkBid::priority));
     }
 
     @Override

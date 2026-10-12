@@ -284,4 +284,28 @@ class LogisticsNetworkTest {
         assertThat(a.probes).isEqualTo(1);
         assertThat(c.probes).isEqualTo(1);
     }
+
+    @Test
+    void pipesChangingInAnUnconnectedNetworkDoNotHoldItemsUp() {
+        line();
+        c.inventories.add(Side.UP);
+        FakeNode far = new FakeNode(PipeKind.BASIC);
+        FakeNode farther = new FakeNode(PipeKind.BASIC);
+        network.addRouter(router(8), far, 95);
+        network.addRouter(router(9), farther, 96);
+        network.updateLinks(router(8), List.of(new Link(router(9), Side.EAST, 1)), 97);
+        network.removeRouter(router(9), 98);
+
+        assertThat(network.chooseExit(A, itemFrom(Side.UP), 99)).contains(Side.EAST);
+    }
+
+    @Test
+    void aRouterVanishingHoldsUpTheOnesThatWereConnectedToIt() {
+        line();
+        a.inventories.add(Side.DOWN);
+        network.removeRouter(C, 95);
+
+        assertThat(network.chooseExit(B, itemFrom(Side.UP), 96)).isEmpty();
+        assertThat(network.chooseExit(B, itemFrom(Side.UP), 95 + LogisticsNetwork.SETTLE_TICKS)).contains(Side.WEST);
+    }
 }

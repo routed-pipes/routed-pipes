@@ -55,7 +55,8 @@ public final class VisualTest {
     private static final int RESUME_TIMEOUT = 1500;
     private static final Logger LOGGER = LogUtils.getLogger();
     private static final String WORLD = "visual_test";
-    private static final int FLICKER_FRAMES = 45;
+    // a requested item crosses the nine pipes of the scene in about fifteen ticks
+    private static final int FLICKER_FRAMES = 12;
 
     private static final BlockPos REQUEST = new BlockPos(0, -59, 2);
     private static final BlockPos SUPPLIER = new BlockPos(2, -59, 6);

@@ -5,6 +5,7 @@ import java.util.Optional;
 import logisticspipes.domain.routing.RouterId;
 import logisticspipes.domain.routing.Side;
 import logisticspipes.domain.transport.PipeTransport;
+import logisticspipes.domain.transport.TransportMode;
 import logisticspipes.domain.transport.TravellingItem;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -28,7 +29,8 @@ final class TransportTags {
             item.destination().ifPresent(destination -> entry.putUUID("Destination", destination.value()));
             item.nextHop().ifPresent(nextHop -> entry.putUUID("NextHop", nextHop.value()));
             entry.putInt("Progress", item.progress());
-            entry.putInt("Speed", item.ticksPerPipe());
+            entry.putInt("Speed", item.speed());
+            entry.putString("Mode", item.mode().name());
             items.add(entry);
         }
         return items;
@@ -51,11 +53,10 @@ final class TransportTags {
                     Side.valueOf(entry.getString("Origin")),
                     entry.hasUUID("Destination") ? new RouterId(entry.getUUID("Destination")) : null,
                     entry.hasUUID("NextHop") ? new RouterId(entry.getUUID("NextHop")) : null,
+                    entry.contains("Mode") ? TransportMode.valueOf(entry.getString("Mode")) : TransportMode.UNCLAIMED,
                     entry.contains("Exit") ? Side.valueOf(entry.getString("Exit")) : null,
-                    shown.progressOf(id).orElse(entry.getInt("Progress")));
-            if (entry.getInt("Speed") > 0) {
-                item.setTicksPerPipe(entry.getInt("Speed"));
-            }
+                    shown.progressOf(id).orElse(entry.getInt("Progress")),
+                    entry.getInt("Speed") > 0 ? entry.getInt("Speed") : TransportMode.UNCLAIMED.speed());
             transport.insert(item);
         }
     }

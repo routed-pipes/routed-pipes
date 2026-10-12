@@ -111,7 +111,10 @@ public class CompatGameTest {
     private static PipeBlockEntity pipe(GameTestHelper helper, PipeKind kind, int x, int y) {
         BlockPos pos = new BlockPos(x, y, 1);
         helper.setBlock(pos, LogisticsPipes.pipe(kind));
-        return helper.getBlockEntity(pos);
+        PipeBlockEntity pipe = helper.getBlockEntity(pos);
+        // in these tests a basic pipe takes everything unless the test says otherwise
+        pipe.setDefaultRoute(kind == PipeKind.BASIC);
+        return pipe;
     }
 
     // puts a stack into whatever face of the block takes it
@@ -141,6 +144,7 @@ public class CompatGameTest {
 
     // items sent to a basic pipe on an ME interface end up in the storage cell of the network
     private static void ae2StoresThroughInterface(GameTestHelper helper) {
+        GameTestPower.supply(helper);
         PipeBlockEntity start = pipe(helper, PipeKind.BASIC, 0);
         start.setDefaultRoute(false);
         helper.setBlock(new BlockPos(1, 1, 1), LogisticsPipes.TRANSPORT_PIPE.get());
@@ -165,6 +169,7 @@ public class CompatGameTest {
     }
 
     private static void ae2StoresIntoMeChest(GameTestHelper helper) {
+        GameTestPower.supply(helper);
         PipeBlockEntity start = pipe(helper, PipeKind.BASIC, 0);
         start.setDefaultRoute(false);
         helper.setBlock(new BlockPos(1, 1, 1), LogisticsPipes.TRANSPORT_PIPE.get());
@@ -296,7 +301,10 @@ public class CompatGameTest {
     private static PipeBlockEntity pipe(GameTestHelper helper, PipeKind kind, int x) {
         BlockPos pos = new BlockPos(x, 1, 1);
         helper.setBlock(pos, LogisticsPipes.pipe(kind));
-        return helper.getBlockEntity(pos);
+        PipeBlockEntity pipe = helper.getBlockEntity(pos);
+        // in these tests a basic pipe takes everything unless the test says otherwise
+        pipe.setDefaultRoute(kind == PipeKind.BASIC);
+        return pipe;
     }
 
     // the inventory as the pipe below it sees it
@@ -318,6 +326,7 @@ public class CompatGameTest {
     }
 
     private static void deliversInto(GameTestHelper helper, Block inventory) {
+        GameTestPower.supply(helper);
         PipeBlockEntity start = pipe(helper, PipeKind.BASIC, 0);
         start.setDefaultRoute(false);
         helper.setBlock(new BlockPos(1, 1, 1), LogisticsPipes.TRANSPORT_PIPE.get());

@@ -9,7 +9,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.OptionalInt;
 import java.util.Set;
 
 import logisticspipes.application.port.RouterNode;
@@ -21,6 +20,7 @@ import logisticspipes.domain.logistics.ExtractionMode;
 import logisticspipes.domain.logistics.InventoryRef;
 import logisticspipes.domain.logistics.ItemSink;
 import logisticspipes.domain.logistics.PipeKind;
+import logisticspipes.domain.logistics.SinkBid;
 import logisticspipes.domain.logistics.SinkOffer;
 import logisticspipes.domain.request.CraftJob;
 import logisticspipes.domain.request.Crafter;
@@ -44,32 +44,65 @@ public final class LogisticsNetwork {
     // how long after a change to the network no new destinations are handed out
     static final long SETTLE_TICKS = 10;
     // how long an item waits for a destination that has gone missing before it is sent somewhere else
-    static final int REROUTE_PATIENCE = 20;
-    // moving an item on purpose costs energy, sorting what passes by is free
-    public static final int ENERGY_PER_ITEM = 10;
+    static final int REROUTE_PATIENCE = 100;
+    // energy in FE, the original mod's costs at its rate of 2 RF per unit
+    // sinks charge per stack on top of this, see SinkRule.energy and ExtractionMode
+    public static final int ENERGY_PER_PROVIDED_ITEM = 2;
+    public static final int ENERGY_PER_CRAFTED_ITEM = 20;
+    public static final int ENERGY_PER_SUPPLY_ORDER = 20;
+    // ticks between rounds of shipping crafted items and of suppliers checking their stock
+    static final int CRAFT_INTERVAL = 5;
+    static final int SUPPLY_INTERVAL = 20;
+
+    // a sink that takes a batch and what it charges for that
+    private record Claim(RouterId router, int energy) {
+    }
 
     private final RoutingNetwork routing = new RoutingNetwork();
     private final Map<RouterId, RouterNode> nodes = new HashMap<>();
     private final PendingDeliveries pending = new PendingDeliveries();
-    private long lastChange = Long.MIN_VALUE / 2;
+    private final Map<RouterId, Long> changedAt = new HashMap<>();
+    // newest change among a router and everything it can reach, worked out when asked and dropped on any change
+    private final Map<RouterId, Long> lastNearbyChange = new HashMap<>();
 
     public void addRouter(RouterId id, RouterNode node, long now) {
         nodes.put(id, node);
         routing.add(id);
-        lastChange = now;
+        changed(id, now);
     }
 
     public void removeRouter(RouterId id, long now) {
+        // everything that was connected to it has to find its way again
+        reachableFrom(id).forEach(neighbour -> changedAt.put(neighbour, now));
         nodes.remove(id);
         routing.remove(id);
         pending.forget(id);
-        lastChange = now;
+        changedAt.remove(id);
+        lastNearbyChange.clear();
     }
 
     public void updateLinks(RouterId id, List<Link> links, long now) {
         if (routing.setLinks(id, links)) {
-            lastChange = now;
+            changed(id, now);
         }
+    }
+
+    private void changed(RouterId id, long now) {
+        changedAt.put(id, now);
+        lastNearbyChange.clear();
+    }
+
+    // whether the routers this one is connected to are still finding each other
+    // pipes being built or loaded somewhere else in the world do not count
+    private boolean settling(RouterId at, long now) {
+        long last = lastNearbyChange.computeIfAbsent(at, id -> {
+            long latest = changedAt.getOrDefault(id, Long.MIN_VALUE / 2);
+            for (RouterId other : routing.routesFrom(id).keySet()) {
+                latest = Math.max(latest, changedAt.getOrDefault(other, Long.MIN_VALUE / 2));
+            }
+            return latest;
+        });
+        return now - last < SETTLE_TICKS;
     }
 
     // side an item has to leave the router through, picks a new destination if the current one does not work out
@@ -83,6 +116,7 @@ public final class LogisticsNetwork {
             if (node != null && node.kind() != PipeKind.BASIC) {
                 if (!node.hasInventory()) {
                     // ordered to a pipe without an inventory, so it pops out right here
+                    item.abandon();
                     return Optional.empty();
                 }
                 Optional<Side> side = deliverySides(at, item.batch(), item.origin()).stream().min(Comparator.naturalOrder());
@@ -97,7 +131,7 @@ public final class LogisticsNetwork {
         if (exit.isPresent()) {
             return exit;
         }
-        if (now - lastChange < SETTLE_TICKS) {
+        if (settling(at, now)) {
             // routers are still finding each other, a choice made now could be the wrong one
             item.stayPatient();
             return Optional.empty();
@@ -107,7 +141,10 @@ public final class LogisticsNetwork {
             // the destination may just be in a chunk that is loading
             return Optional.empty();
         }
-        Optional<RouterId> destination = findDestination(at, item.batch(), item.origin(), true, ItemSink.DEFAULT_ROUTE_PRIORITY);
+        // a sink only takes the item if the network can pay for it
+        Optional<RouterId> destination = findDestination(at, item.batch(), item.origin(), true, ItemSink.DEFAULT_ROUTE_PRIORITY)
+                .filter(claim -> usePower(at, claim.energy()))
+                .map(Claim::router);
         destination.ifPresentOrElse(item::routeTo, item::clearDestination);
         return destination.flatMap(found -> exitTowards(at, found, item));
     }
@@ -126,18 +163,20 @@ public final class LogisticsNetwork {
 
     // best sink for a batch that is at the given router and came in through origin
     // only sinks that want it at least as much as minPriority count
-    private Optional<RouterId> findDestination(RouterId at, ItemBatch batch, Side origin, boolean mayStay, int minPriority) {
+    private Optional<Claim> findDestination(RouterId at, ItemBatch batch, Side origin, boolean mayStay, int minPriority) {
         Set<InventoryRef> cameFrom = sourceInventories(at, origin, mayStay);
         List<SinkOffer> offers = new ArrayList<>();
+        Map<RouterId, Integer> energy = new HashMap<>();
         for (Map.Entry<RouterId, RouterNode> entry : nodes.entrySet()) {
-            OptionalInt priority = entry.getValue().sinkPriority(batch.type());
-            if (priority.isEmpty() || priority.getAsInt() < minPriority) {
+            Optional<SinkBid> bid = entry.getValue().sinkBid(batch.type());
+            if (bid.isEmpty() || bid.get().priority() < minPriority) {
                 continue;
             }
             boolean here = entry.getKey().equals(at);
             // a second pipe on the inventory the item came out of would only put it straight back
             if (here ? mayStay : !sharesInventory(entry.getValue(), cameFrom)) {
-                offers.add(new SinkOffer(entry.getKey(), priority.getAsInt()));
+                offers.add(new SinkOffer(entry.getKey(), bid.get().priority()));
+                energy.put(entry.getKey(), bid.get().energy());
             }
         }
         // looking into inventories is the expensive part, so only the best candidates are asked, in order
@@ -146,7 +185,7 @@ public final class LogisticsNetwork {
                     ? deliverySides(at, batch, origin)
                     : nodes.get(candidate).inventoriesAccepting(batch);
             if (!sides.isEmpty()) {
-                return Optional.of(candidate);
+                return Optional.of(new Claim(candidate, energy.get(candidate)));
             }
         }
         return Optional.empty();
@@ -195,12 +234,16 @@ public final class LogisticsNetwork {
 
     // plans the request and starts it right away if nothing is missing and there is power to move the items
     public RequestOutcome request(RouterId requester, ItemBatch wanted, long now) {
+        return request(requester, wanted, now, 0);
+    }
+
+    private RequestOutcome request(RouterId requester, ItemBatch wanted, long now, int extraEnergy) {
         RequestPlan plan = new RequestPlanner(stockFor(requester), craftersFor(requester)).plan(requester, wanted);
         if (!plan.complete()) {
             return new RequestOutcome(plan, true);
         }
         int items = plan.provisions().stream().mapToInt(provision -> provision.batch().count()).sum();
-        if (!usePower(requester, items * ENERGY_PER_ITEM)) {
+        if (!usePower(requester, items * ENERGY_PER_PROVIDED_ITEM + extraEnergy)) {
             return new RequestOutcome(plan, false);
         }
         execute(plan, now);
@@ -260,22 +303,23 @@ public final class LogisticsNetwork {
         }
     }
 
-    // regular upkeep of one router: crafting pipes ship finished items, suppliers reorder, extractors push items out
+    // upkeep of one router, called every tick: crafting pipes ship finished items, suppliers reorder,
+    // extractors push items out, each at its own pace
     public void tick(RouterId id, long now) {
         RouterNode node = nodes.get(id);
         if (node == null) {
             return;
         }
-        if (node.kind() == PipeKind.CRAFTING) {
+        if (node.kind() == PipeKind.CRAFTING && now % CRAFT_INTERVAL == 0) {
             node.outputOrders().ship(now, CRAFT_TIMEOUT, order -> {
                 // only pay for what is really there to send
                 int ready = Math.min(order.batch().count(), node.contents().getOrDefault(order.batch().type(), 0));
-                if (ready == 0 || !usePower(id, ready * ENERGY_PER_ITEM)) {
+                if (ready == 0 || !usePower(id, ready * ENERGY_PER_CRAFTED_ITEM)) {
                     return 0;
                 }
                 return node.send(order.batch().type(), ready, order.destination());
             });
-        } else if (node.kind() == PipeKind.SUPPLIER) {
+        } else if (node.kind() == PipeKind.SUPPLIER && now % SUPPLY_INTERVAL == 0) {
             Map<ItemType, Integer> contents = node.contents();
             node.supplyTargets().forEach((type, wanted) -> {
                 int have = contents.getOrDefault(type, 0) + pending.expected(id, type, now);
@@ -285,20 +329,25 @@ public final class LogisticsNetwork {
                 }
             });
         }
-        if (now - lastChange >= SETTLE_TICKS) {
-            node.extractions().forEach(mode -> extract(id, node, mode));
+        if (!settling(id, now)) {
+            for (ExtractionMode mode : node.extractions()) {
+                if (now % mode.interval() == 0) {
+                    extract(id, node, mode);
+                }
+            }
         }
     }
 
-    // sends off the first kind of item in the inventory that some other router wants
+    // sends off the first kind of item in the inventory that some other router wants and the network can pay for
     private void extract(RouterId id, RouterNode node, ExtractionMode mode) {
         int minPriority = mode.usesDefaultRoutes() ? ItemSink.DEFAULT_ROUTE_PRIORITY : ItemSink.DEFAULT_ROUTE_PRIORITY + 1;
+        int amount = mode.amount() * node.extractionBoost();
         for (Map.Entry<ItemType, Integer> stock : node.contents().entrySet()) {
-            ItemBatch batch = new ItemBatch(stock.getKey(), Math.min(stock.getValue(), mode.amount()));
-            Optional<RouterId> destination = findDestination(id, batch, null, false, minPriority);
-            if (destination.isPresent()) {
-                if (usePower(id, batch.count() * ENERGY_PER_ITEM)) {
-                    node.send(batch.type(), batch.count(), destination.get());
+            ItemBatch batch = new ItemBatch(stock.getKey(), Math.min(stock.getValue(), amount));
+            Optional<Claim> claim = findDestination(id, batch, null, false, minPriority);
+            if (claim.isPresent()) {
+                if (usePower(id, claim.get().energy() + mode.energyFor(batch.count()))) {
+                    node.send(batch.type(), batch.count(), claim.get().router());
                 }
                 return;
             }
@@ -307,12 +356,12 @@ public final class LogisticsNetwork {
 
     // like request, but settles for whatever part of the amount is in stock when not all of it can be had
     private void requestUpTo(RouterId requester, ItemType type, int count, long now) {
-        if (request(requester, new ItemBatch(type, count), now).plan().complete()) {
+        if (request(requester, new ItemBatch(type, count), now, ENERGY_PER_SUPPLY_ORDER).plan().complete()) {
             return;
         }
         int inStock = stockFor(requester).stream().mapToInt(stock -> stock.items().getOrDefault(type, 0)).sum();
         if (inStock > 0) {
-            request(requester, new ItemBatch(type, Math.min(count, inStock)), now);
+            request(requester, new ItemBatch(type, Math.min(count, inStock)), now, ENERGY_PER_SUPPLY_ORDER);
         }
     }
 

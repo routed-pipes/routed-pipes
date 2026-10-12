@@ -52,7 +52,10 @@ public class ChassisGameTest {
     private static PipeBlockEntity pipe(GameTestHelper helper, PipeKind kind, int x) {
         BlockPos pos = new BlockPos(x, 1, 1);
         helper.setBlock(pos, LogisticsPipes.pipe(kind));
-        return helper.getBlockEntity(pos);
+        PipeBlockEntity pipe = helper.getBlockEntity(pos);
+        // in these tests a basic pipe takes everything unless the test says otherwise
+        pipe.setDefaultRoute(kind == PipeKind.BASIC);
+        return pipe;
     }
 
     private static BlockPos chest(GameTestHelper helper, int x, ItemStack... contents) {
@@ -210,8 +213,8 @@ public class ChassisGameTest {
         loaded.loadWithComponents(saved, helper.getLevel().registryAccess());
 
         helper.assertTrue(!loaded.extractions().isEmpty(), "extractor");
-        helper.assertTrue(loaded.sinkPriority(McItemType.batchOf(new ItemStack(Items.DIAMOND)).type()).isPresent(), "sink filter");
-        helper.assertTrue(loaded.sinkPriority(McItemType.batchOf(new ItemStack(Items.DIRT)).type()).isEmpty(), "nothing else");
+        helper.assertTrue(loaded.sinkBid(McItemType.batchOf(new ItemStack(Items.DIAMOND)).type()).isPresent(), "sink filter");
+        helper.assertTrue(loaded.sinkBid(McItemType.batchOf(new ItemStack(Items.DIRT)).type()).isEmpty(), "nothing else");
 
         // a command or a structure may carry only the modules
         CompoundTag onlyModules = new CompoundTag();
@@ -304,7 +307,7 @@ public class ChassisGameTest {
         });
     }
 
-    @GameTest(template = EMPTY, timeoutTicks = 400)
+    @GameTest(template = EMPTY, timeoutTicks = 600)
     public static void passiveSupplierFillsUpToItsTargetAndNoFurther(GameTestHelper helper) {
         GameTestPower.supply(helper);
         PipeBlockEntity source = pipe(helper, PipeKind.BASIC, 0);
@@ -318,7 +321,7 @@ public class ChassisGameTest {
             assertCount(helper, target, Items.COAL, 8);
             source.accept(new ItemStack(Items.COAL, 8), net.minecraft.core.Direction.DOWN);
         });
-        helper.runAfterDelay(250, () -> {
+        helper.runAfterDelay(450, () -> {
             assertCount(helper, target, Items.COAL, 8);
             helper.assertItemEntityPresent(Items.COAL, new BlockPos(0, 1, 1), 2);
             helper.succeed();

@@ -19,4 +19,9 @@ public record Terminus(Set<ItemType> filter) implements SinkRule {
     public OptionalInt priority(ItemType type, Map<ItemType, Integer> contents) {
         return filter.contains(type) ? OptionalInt.of(PRIORITY) : OptionalInt.empty();
     }
+
+    @Override
+    public int energy() {
+        return 4;
+    }
 }

@@ -49,7 +49,10 @@ public class CraftingTableGameTest {
     private static PipeBlockEntity pipe(GameTestHelper helper, PipeKind kind, int x) {
         BlockPos pos = new BlockPos(x, 1, 1);
         helper.setBlock(pos, LogisticsPipes.pipe(kind));
-        return helper.getBlockEntity(pos);
+        PipeBlockEntity pipe = helper.getBlockEntity(pos);
+        // in these tests a basic pipe takes everything unless the test says otherwise
+        pipe.setDefaultRoute(kind == PipeKind.BASIC);
+        return pipe;
     }
 
     private static BlockPos chest(GameTestHelper helper, int x, ItemStack... contents) {

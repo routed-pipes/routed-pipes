@@ -9,7 +9,7 @@ import net.minecraft.world.level.block.state.BlockState;
 
 public class PowerJunctionBlockEntity extends BlockEntity {
 
-    public static final int CAPACITY = 1_000_000;
+    public static final int CAPACITY = 4_000_000;
 
     private int stored;
 

@@ -25,4 +25,9 @@ public record PassiveSupplier(Map<ItemType, Integer> targets) implements SinkRul
     public boolean needsContents() {
         return true;
     }
+
+    @Override
+    public int energy() {
+        return 4;
+    }
 }

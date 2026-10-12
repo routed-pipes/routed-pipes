@@ -28,4 +28,9 @@ public record ItemSink(Set<ItemType> filter, boolean defaultRoute) implements Si
     public OptionalInt priority(ItemType type, Map<ItemType, Integer> contents) {
         return priority(type);
     }
+
+    @Override
+    public int energy() {
+        return 2;
+    }
 }

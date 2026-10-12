@@ -427,14 +427,14 @@ class LogisticsNetworkRequestTest {
 
         assertThat(network.request(REQUEST, batch("log", 8), 0).started()).isTrue();
 
-        assertThat(crafting.power).isEqualTo(500 - 8 * LogisticsNetwork.ENERGY_PER_ITEM);
+        assertThat(crafting.power).isEqualTo(500 - 8 * LogisticsNetwork.ENERGY_PER_PROVIDED_ITEM);
     }
 
     @Test
     void requestWithoutEnoughPowerMovesNothingAndTakesNoEnergy() {
         connect();
         noPower();
-        provider.power = 8 * LogisticsNetwork.ENERGY_PER_ITEM - 1;
+        provider.power = 8 * LogisticsNetwork.ENERGY_PER_PROVIDED_ITEM - 1;
         provider.stock("log", 20);
 
         RequestOutcome outcome = network.request(REQUEST, batch("log", 8), 0);
@@ -443,7 +443,7 @@ class LogisticsNetworkRequestTest {
         assertThat(outcome.powered()).isFalse();
         assertThat(outcome.missing()).isEmpty();
         assertThat(provider.shipments).isEmpty();
-        assertThat(provider.power).isEqualTo(8 * LogisticsNetwork.ENERGY_PER_ITEM - 1);
+        assertThat(provider.power).isEqualTo(8 * LogisticsNetwork.ENERGY_PER_PROVIDED_ITEM - 1);
     }
 
     @Test
@@ -456,7 +456,7 @@ class LogisticsNetworkRequestTest {
 
         assertThat(network.request(REQUEST, batch("log", 8), 0).started()).isTrue();
 
-        assertThat(request.power + supplier.power).isZero();
+        assertThat(request.power + supplier.power).isEqualTo(80 - 8 * LogisticsNetwork.ENERGY_PER_PROVIDED_ITEM);
     }
 
     @Test
@@ -497,7 +497,7 @@ class LogisticsNetworkRequestTest {
         crafting.stock("planks", 3);
         network.tick(CRAFTING, 40);
         assertThat(crafting.shipments).containsExactly(new Shipment(batch("planks", 3), REQUEST));
-        assertThat(crafting.power).isEqualTo(100 - 3 * LogisticsNetwork.ENERGY_PER_ITEM);
+        assertThat(crafting.power).isEqualTo(100 - 3 * LogisticsNetwork.ENERGY_PER_CRAFTED_ITEM);
     }
 
     @Test
@@ -531,7 +531,7 @@ class LogisticsNetworkRequestTest {
     }
 
     @Test
-    void passingItemsAlongCostsNothing() {
+    void sortingNeedsPowerAndChargesTheSinkPriceForTheStack() {
         connect();
         noPower();
         FakeNode sink = new FakeNode(PipeKind.BASIC);
@@ -539,8 +539,56 @@ class LogisticsNetworkRequestTest {
         sink.inventories.add(Side.UP);
         network.addRouter(ISLAND, sink, 0);
         network.updateLinks(REQUEST, List.of(new Link(PROVIDER, Side.EAST, 1), new Link(ISLAND, Side.WEST, 1)), 0);
+        TravellingItem item = new TravellingItem(batch("log", 8), Side.DOWN, null);
 
-        assertThat(network.chooseExit(REQUEST, new TravellingItem(batch("log", 8), Side.DOWN, null), NOW)).contains(Side.WEST);
+        assertThat(network.chooseExit(REQUEST, item, NOW)).isEmpty();
+        assertThat(item.destination()).isEmpty();
+
+        provider.power = 10;
+        assertThat(network.chooseExit(REQUEST, item, NOW)).contains(Side.WEST);
+        assertThat(provider.power).isEqualTo(8);
+    }
+
+    @Test
+    void supplierPaysForTheOrderOnTopOfTheItems() {
+        connect();
+        noPower();
+        request.power = 1000;
+        provider.stock("coal", 64);
+        supplier.supplyTargets.put(item("coal"), 16);
+
+        network.tick(SUPPLIER, 0);
+
+        assertThat(request.power).isEqualTo(1000 - LogisticsNetwork.ENERGY_PER_SUPPLY_ORDER - 16 * LogisticsNetwork.ENERGY_PER_PROVIDED_ITEM);
+    }
+
+    @Test
+    void passingAnItemOnToADestinationItAlreadyHasCostsNothing() {
+        connect();
+        noPower();
+        TravellingItem item = new TravellingItem(batch("log", 8), Side.WEST, SUPPLIER);
+
+        assertThat(network.chooseExit(CRAFTING, item, NOW)).contains(Side.EAST);
+    }
+
+    @Test
+    void upkeepRunsAtItsOwnPace() {
+        connect();
+        provider.stock("log", 20).stock("coal", 64);
+        crafting.recipe = new Recipe(List.of(batch("log", 1)), batch("planks", 4));
+        network.request(REQUEST, batch("planks", 8), 0);
+        crafting.stock("planks", 8);
+        supplier.supplyTargets.put(item("coal"), 16);
+
+        network.tick(CRAFTING, LogisticsNetwork.CRAFT_INTERVAL + 1);
+        network.tick(SUPPLIER, LogisticsNetwork.SUPPLY_INTERVAL + 1);
+        assertThat(crafting.shipments).isEmpty();
+        assertThat(provider.shipments).hasSize(1);
+
+        network.tick(CRAFTING, 2 * LogisticsNetwork.CRAFT_INTERVAL);
+        network.tick(SUPPLIER, 2 * LogisticsNetwork.SUPPLY_INTERVAL);
+        assertThat(crafting.shipments).hasSize(1);
+        assertThat(provider.shipments).hasSize(2);
     }
 
     @Test

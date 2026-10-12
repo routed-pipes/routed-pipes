@@ -5,6 +5,7 @@ import logisticspipes.adapter.minecraft.Directions;
 import logisticspipes.adapter.minecraft.McItemType;
 import logisticspipes.adapter.minecraft.PipeBlockEntity;
 import logisticspipes.domain.routing.Side;
+import logisticspipes.domain.transport.PipeTransport;
 import logisticspipes.domain.transport.TravellingItem;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
@@ -28,7 +29,8 @@ public class PipeItemRenderer implements BlockEntityRenderer<PipeBlockEntity> {
     @Override
     public void render(PipeBlockEntity pipe, float partialTick, PoseStack pose, MultiBufferSource buffers, int light, int overlay) {
         for (TravellingItem item : pipe.travellingItems()) {
-            float progress = Math.min(item.progress() + partialTick, item.ticksPerPipe()) / item.ticksPerPipe();
+            float progress = Math.min(item.progress() + partialTick * item.speed(), PipeTransport.PIPE_LENGTH)
+                    / (float) PipeTransport.PIPE_LENGTH;
             // first half comes in from the origin side, second half goes out through the exit
             Side side = item.origin();
             float offset = Math.max(0.5f - progress, 0);

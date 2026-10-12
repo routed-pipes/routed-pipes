@@ -34,7 +34,10 @@ public class UpgradeGameTest {
     private static PipeBlockEntity pipe(GameTestHelper helper, PipeKind kind, int x) {
         BlockPos pos = new BlockPos(x, 1, 1);
         helper.setBlock(pos, LogisticsPipes.pipe(kind));
-        return helper.getBlockEntity(pos);
+        PipeBlockEntity pipe = helper.getBlockEntity(pos);
+        // in these tests a basic pipe takes everything unless the test says otherwise
+        pipe.setDefaultRoute(kind == PipeKind.BASIC);
+        return pipe;
     }
 
     private static void assertCount(GameTestHelper helper, BlockPos pos, Item item, int expected) {
@@ -136,14 +139,13 @@ public class UpgradeGameTest {
         helper.succeed();
     }
 
-    private static BlockPos longRun(GameTestHelper helper, int speedUpgrades) {
+    // a basic pipe, six transport pipes, a basic pipe with a chest: returns the tick the diamond arrived, or -1
+    private static int[] longRun(GameTestHelper helper, int speedUpgrades) {
         PipeBlockEntity start = pipe(helper, PipeKind.BASIC, 0);
         start.setDefaultRoute(false);
-        if (speedUpgrades > 0) {
-            ItemStack upgrades = upgrade(UpgradeItem.Kind.SPEED, speedUpgrades);
-            for (int i = 0; i < speedUpgrades; i++) {
-                start.installUpgrade(upgrades);
-            }
+        ItemStack upgrades = upgrade(UpgradeItem.Kind.SPEED, speedUpgrades);
+        for (int i = 0; i < speedUpgrades; i++) {
+            start.installUpgrade(upgrades);
         }
         for (int x = 1; x <= 6; x++) {
             helper.setBlock(new BlockPos(x, 1, 1), LogisticsPipes.TRANSPORT_PIPE.get());
@@ -151,30 +153,40 @@ public class UpgradeGameTest {
         pipe(helper, PipeKind.BASIC, 7);
         BlockPos chest = new BlockPos(7, 2, 1);
         helper.setBlock(chest, Blocks.CHEST);
+        int[] arrival = {-1};
         helper.runAfterDelay(15, () -> start.accept(new ItemStack(Items.DIAMOND, 1), Direction.DOWN));
-        return chest;
+        for (int tick = 16; tick < 60; tick++) {
+            int after = tick - 15;
+            helper.runAfterDelay(tick, () -> {
+                Container container = helper.getBlockEntity(chest);
+                if (arrival[0] < 0 && container.countItem(Items.DIAMOND) == 1) {
+                    arrival[0] = after;
+                }
+            });
+        }
+        return arrival;
     }
 
-    // eight pipes at ten ticks each take about eighty ticks
+    // a sorted item does half a block per tick, so eight pipes take about sixteen ticks
     @GameTest(template = EMPTY, timeoutTicks = 200)
     public static void withoutSpeedUpgradeTheRunTakesItsTime(GameTestHelper helper) {
         GameTestPower.supply(helper);
-        BlockPos chest = longRun(helper, 0);
+        int[] arrival = longRun(helper, 0);
 
-        helper.runAfterDelay(15 + 50, () -> helper.assertContainerEmpty(chest));
-        helper.runAfterDelay(15 + 110, () -> {
-            assertCount(helper, chest, Items.DIAMOND, 1);
+        helper.runAfterDelay(70, () -> {
+            helper.assertTrue(arrival[0] >= 14 && arrival[0] <= 20, "expected about 16 ticks, took " + arrival[0]);
             helper.succeed();
         });
     }
 
+    // four upgrades double the speed to the limit of a whole pipe per tick, so the run takes about eight ticks
     @GameTest(template = EMPTY, timeoutTicks = 200)
     public static void speedUpgradesCarryItemsFasterThroughTheWholeRun(GameTestHelper helper) {
         GameTestPower.supply(helper);
-        BlockPos chest = longRun(helper, 3);
+        int[] arrival = longRun(helper, 4);
 
-        helper.runAfterDelay(15 + 50, () -> {
-            assertCount(helper, chest, Items.DIAMOND, 1);
+        helper.runAfterDelay(70, () -> {
+            helper.assertTrue(arrival[0] >= 7 && arrival[0] <= 11, "expected about 8 ticks, took " + arrival[0]);
             helper.succeed();
         });
     }

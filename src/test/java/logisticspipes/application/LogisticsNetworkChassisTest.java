@@ -30,7 +30,8 @@ class LogisticsNetworkChassisTest {
     private static final RouterId CHASSIS = router(1);
     private static final RouterId STORE = router(2);
     private static final RouterId REQUEST = router(3);
-    private static final long NOW = 100;
+    // a tick on which every kind of upkeep is due
+    private static final long NOW = 120;
 
     private final LogisticsNetwork network = new LogisticsNetwork();
     private final FakeNode chassis = new FakeNode(PipeKind.CHASSIS);
@@ -107,7 +108,7 @@ class LogisticsNetworkChassisTest {
         chassis.stock("stone", 40);
         store.inventories.add(Side.UP);
 
-        network.tick(CHASSIS, LogisticsNetwork.SETTLE_TICKS - 1);
+        network.tick(CHASSIS, 0);
 
         assertThat(chassis.shipments).isEmpty();
     }
@@ -280,9 +281,51 @@ class LogisticsNetworkChassisTest {
         network.tick(CHASSIS, NOW);
         assertThat(chassis.shipments).isEmpty();
 
-        store.power = ExtractionMode.EXTRACTOR.amount() * LogisticsNetwork.ENERGY_PER_ITEM;
+        store.power = ExtractionMode.EXTRACTOR.energyFor(ExtractionMode.EXTRACTOR.amount()) + new ItemSink(Set.of(), true).energy();
         network.tick(CHASSIS, NOW + 20);
         assertThat(chassis.shipments).hasSize(1);
         assertThat(store.power).isZero();
+    }
+
+    @Test
+    void quickSortRunsEverySixTicksAndPaysPerStack() {
+        connect();
+        chassis.extractions.add(ExtractionMode.QUICK_SORT);
+        chassis.stock("stone", 200);
+        store.inventories.add(Side.UP);
+        store.sink = new ItemSink(Set.of(item("stone")), false);
+        int before = chassis.power;
+
+        network.tick(CHASSIS, NOW + 1);
+        assertThat(chassis.shipments).isEmpty();
+
+        network.tick(CHASSIS, NOW + 6);
+        assertThat(chassis.shipments).containsExactly(new Shipment(batch("stone", 64), STORE));
+        assertThat(before - chassis.power).isEqualTo(1000 + 2);
+    }
+
+    @Test
+    void speedUpgradesMultiplyWhatAnExtractorMoves() {
+        connect();
+        chassis.extractions.add(ExtractionMode.EXTRACTOR);
+        chassis.extractionBoost = 4;
+        chassis.stock("stone", 200);
+        store.inventories.add(Side.UP);
+
+        network.tick(CHASSIS, NOW);
+
+        assertThat(chassis.shipments).containsExactly(new Shipment(batch("stone", 64), STORE));
+    }
+
+    @Test
+    void sinksChargeWhatTheOriginalDidAtTwoEnergyPerUnit() {
+        assertThat(new ItemSink(Set.of(), true).energy()).isEqualTo(2);
+        assertThat(new Terminus(Set.of()).energy()).isEqualTo(4);
+        assertThat(new PassiveSupplier(Map.of()).energy()).isEqualTo(4);
+        assertThat(new PolymorphicItemSink().energy()).isEqualTo(6);
+        assertThat(ExtractionMode.EXTRACTOR.energyFor(16)).isEqualTo(160);
+        assertThat(ExtractionMode.QUICK_SORT.energyFor(64)).isEqualTo(1000);
+        assertThat(LogisticsNetwork.ENERGY_PER_PROVIDED_ITEM).isEqualTo(2);
+        assertThat(LogisticsNetwork.ENERGY_PER_CRAFTED_ITEM).isEqualTo(20);
     }
 }
