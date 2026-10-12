@@ -708,4 +708,41 @@ public class RequestGameTest {
         helper.assertTrue(table.grid().isEmpty(), "the grid is cleared");
         helper.succeed();
     }
+
+    // the table is locked by a station: setting it up is allowed, ordering from it is not until the station says so
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void requestTableOrdersOnlyForPlayersWhoMayRequest(GameTestHelper helper) {
+        GameTestPower.supply(helper);
+        PipeBlockEntity pipe = pipe(helper, PipeKind.REQUEST_TABLE, 0, 1);
+        logisticspipes.adapter.minecraft.RequestTable table = pipe.requestTable();
+        PipeBlockEntity provider = pipe(helper, PipeKind.PROVIDER, 1, 1);
+        BlockPos source = chest(helper, 1, 2, new ItemStack(Items.OAK_LOG, 8));
+        table.grid().setItem(0, new ItemStack(Items.OAK_LOG));
+        BlockPos stationPos = new BlockPos(3, 1, 1);
+        helper.setBlock(stationPos, LogisticsPipes.SECURITY_STATION.get());
+        logisticspipes.adapter.minecraft.SecurityStationBlockEntity station = helper.getBlockEntity(stationPos);
+        TestPlayer owner = TestPlayer.in(helper);
+        helper.getBlockState(stationPos).getBlock().setPlacedBy(helper.getLevel(), helper.absolutePos(stationPos),
+                helper.getBlockState(stationPos), owner, ItemStack.EMPTY);
+        ItemStack card = LogisticsPipes.SECURITY_CARD.get().cardFor(station.id());
+        pipe.security().card().setItem(0, card.copy());
+        provider.security().card().setItem(0, card.copy());
+        TestPlayer stranger = TestPlayer.in(helper);
+        var settings = station.station().settings();
+        settings.set(stranger.getUUID(), logisticspipes.domain.security.Permission.CONFIGURE_SETTINGS, true);
+
+        helper.runAfterDelay(SETTLE + 15, () -> {
+            stranger.openMenu(pipe.menuProvider());
+            stranger.containerMenu.clickMenuButton(stranger, logisticspipes.adapter.minecraft.menu.RequestTableMenu.BUTTON_ORDER_ONE);
+            assertCount(helper, source, Items.OAK_LOG, 8);
+            stranger.containerMenu.clickMenuButton(stranger, logisticspipes.adapter.minecraft.menu.RequestTableMenu.BUTTON_LIST);
+            helper.assertTrue(!(stranger.containerMenu instanceof RequestMenu), "no item list without the permission to request");
+
+            settings.set(stranger.getUUID(), logisticspipes.domain.security.Permission.ACTIVE_REQUESTING, true);
+            stranger.openMenu(pipe.menuProvider());
+            stranger.containerMenu.clickMenuButton(stranger, logisticspipes.adapter.minecraft.menu.RequestTableMenu.BUTTON_ORDER_ONE);
+            assertCount(helper, source, Items.OAK_LOG, 7);
+            helper.succeed();
+        });
+    }
 }

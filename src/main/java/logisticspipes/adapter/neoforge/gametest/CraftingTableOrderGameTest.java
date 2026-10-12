@@ -274,4 +274,36 @@ public class CraftingTableOrderGameTest {
             helper.succeed();
         });
     }
+
+    // the network is locked by a station, the player at the table may not request there
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void theTableOrdersOnlyForPlayersWhoMayRequest(GameTestHelper helper) {
+        GameTestPower.supply(helper);
+        PipeBlockEntity provider = pipe(helper, PipeKind.PROVIDER, 0);
+        Container source = chest(helper, 0, new ItemStack(Items.OAK_PLANKS, 16));
+        PipeBlockEntity crafting = pipe(helper, PipeKind.CRAFTING, 1);
+        table(helper, 1);
+        BlockPos stationPos = new BlockPos(3, 1, 1);
+        helper.setBlock(stationPos, LogisticsPipes.SECURITY_STATION.get());
+        logisticspipes.adapter.minecraft.SecurityStationBlockEntity station = helper.getBlockEntity(stationPos);
+        TestPlayer owner = TestPlayer.in(helper);
+        helper.getBlockState(stationPos).getBlock().setPlacedBy(helper.getLevel(), helper.absolutePos(stationPos),
+                helper.getBlockState(stationPos), owner, ItemStack.EMPTY);
+        ItemStack card = LogisticsPipes.SECURITY_CARD.get().cardFor(station.id());
+        provider.security().card().setItem(0, card.copy());
+        crafting.security().card().setItem(0, card.copy());
+
+        helper.runAfterDelay(SETTLE, () -> {
+            TestPlayer stranger = playerAtTable(helper, 1);
+            CraftingTableMenu menu = (CraftingTableMenu) stranger.containerMenu;
+
+            MenuRequests.askIngredients(stranger, menu.containerId, 0, STICKS, true);
+            helper.assertTrue(source.countItem(Items.OAK_PLANKS) == 16, "a player who may not request orders nothing");
+
+            station.station().settings().set(stranger.getUUID(), logisticspipes.domain.security.Permission.ACTIVE_REQUESTING, true);
+            MenuRequests.askIngredients(stranger, menu.containerId, 0, STICKS, true);
+            helper.assertTrue(source.countItem(Items.OAK_PLANKS) == 14, "with the permission the planks are ordered");
+            helper.succeed();
+        });
+    }
 }

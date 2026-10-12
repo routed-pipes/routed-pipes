@@ -118,7 +118,7 @@ public class CraftingTableMenu extends AbstractContainerMenu implements MarkerMe
         if (table == null) {
             return;
         }
-        Optional<RequestOutcome> outcome = table.orderIngredients(ingredients, !order);
+        Optional<RequestOutcome> outcome = table.orderIngredients(player, ingredients, !order);
         List<Map.Entry<ItemType, Integer>> missing = new ArrayList<>(outcome.map(RequestOutcome::missing).orElse(Map.of()).entrySet());
         missing.sort(Comparator.comparing(entry -> BuiltInRegistries.ITEM.getKey(((McItemType) entry.getKey()).item())));
         for (int slot = 0; slot < SHORTFALL_SLOTS; slot++) {

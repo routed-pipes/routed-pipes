@@ -866,17 +866,22 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
 
                 @Override
                 public void order(Player player, int crafts, boolean missingOnly) {
-                    tellWhatIsMissing(player, table.orderIngredients(crafts, missingOnly));
+                    // opening the table needs the settings permission, ordering from it the one for requests
+                    if (security.allows(player, Permission.ACTIVE_REQUESTING)) {
+                        tellWhatIsMissing(player, table.orderIngredients(crafts, missingOnly));
+                    }
                 }
 
                 @Override
                 public void openList(Player player) {
-                    openRequestScreen(player, false);
+                    if (security.allows(player, Permission.ACTIVE_REQUESTING)) {
+                        openRequestScreen(player, false);
+                    }
                 }
 
                 @Override
                 public void openDisk(Player player) {
-                    if (drive.holdsDisk()) {
+                    if (drive.holdsDisk() && security.allows(player, Permission.ACTIVE_REQUESTING)) {
                         drive.open(player);
                     }
                 }
