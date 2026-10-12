@@ -242,6 +242,23 @@ public final class VisualTest {
             chassis.modules().setItem(2, new ItemStack(LogisticsPipes.MODULES.get(ModuleKind.PROVIDER).get()));
         }));
 
+        // one of every tube, each between two speedup tubes
+        step(5, () -> onServer(server -> {
+            net.minecraft.server.level.ServerLevel level = server.overworld();
+            logisticspipes.domain.tube.TubeKind[] kinds = {logisticspipes.domain.tube.TubeKind.LINE, logisticspipes.domain.tube.TubeKind.CURVE,
+                    logisticspipes.domain.tube.TubeKind.S_CURVE, logisticspipes.domain.tube.TubeKind.GAIN};
+            for (int row = 0; row < kinds.length; row++) {
+                int z = 30 + row * 7;
+                command("setblock 0 -59 " + z + " logisticspipes:basic_logistics_pipe");
+                LogisticsPipes.TUBES.get(logisticspipes.domain.tube.TubeKind.SPEEDUP).get().build(level, new BlockPos(1, -59, z),
+                        new logisticspipes.domain.tube.TubeShape(logisticspipes.domain.tube.TubeKind.SPEEDUP, logisticspipes.domain.routing.Side.EAST),
+                        pos -> true);
+                LogisticsPipes.TUBES.get(kinds[row]).get().build(level, new BlockPos(5, -59, z),
+                        new logisticspipes.domain.tube.TubeShape(kinds[row], logisticspipes.domain.routing.Side.EAST), pos -> true);
+            }
+        }));
+        shotFrom("tubes_above", "5.5 -50 40.5 180 75");
+        shotFrom("tubes_side", "5.5 -57.5 26.5 0 12");
         shotFrom("pipes_overview", "7.5 -58 7.5 90 12");
         shotFrom("pipes_close", "2.5 -60 4.5 90 0");
         shotFrom("pipes_junction", "3.5 -58.5 8.5 120 15");
