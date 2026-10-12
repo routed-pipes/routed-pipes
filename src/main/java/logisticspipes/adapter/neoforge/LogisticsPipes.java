@@ -239,6 +239,8 @@ public class LogisticsPipes {
                 MenuRequests.apply(context.player(), payload.containerId(), payload.slot(), payload.stack()));
         registrar.playToServer(SetMenuTextPayload.TYPE, SetMenuTextPayload.CODEC, (payload, context) ->
                 MenuRequests.applyText(context.player(), payload.containerId(), payload.field(), payload.text()));
+        registrar.playToServer(OpenRemoteOrdererPayload.TYPE, OpenRemoteOrdererPayload.CODEC, (payload, context) ->
+                RemoteOrdererItem.openFromInventory(context.player()));
     }
 
     private static void registerCapabilities(RegisterCapabilitiesEvent event) {

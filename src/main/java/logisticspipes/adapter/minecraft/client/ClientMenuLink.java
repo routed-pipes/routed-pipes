@@ -2,13 +2,15 @@ package logisticspipes.adapter.minecraft.client;
 
 import net.minecraft.world.item.ItemStack;
 
-// how the client tells the server about things done in a screen, the loader plugs in its way of sending
+// how the client tells the server about things done in a screen or with a key, the loader plugs in its way of sending
 public final class ClientMenuLink {
 
     public interface Sender {
         void setMarker(int containerId, int slot, ItemStack stack);
 
         void setText(int containerId, int field, String text);
+
+        void openRemoteOrderer();
     }
 
     // recipe viewer plugins are created by the viewer, so they cannot be handed this any other way
@@ -19,6 +21,10 @@ public final class ClientMenuLink {
 
         @Override
         public void setText(int containerId, int field, String text) {
+        }
+
+        @Override
+        public void openRemoteOrderer() {
         }
     };
 
@@ -35,5 +41,9 @@ public final class ClientMenuLink {
 
     public static void setText(int containerId, int field, String text) {
         sender.setText(containerId, field, text);
+    }
+
+    public static void openRemoteOrderer() {
+        sender.openRemoteOrderer();
     }
 }

@@ -75,6 +75,13 @@ public class RemoteOrdererItem extends Item {
         if (level.isClientSide) {
             return InteractionResultHolder.success(stack);
         }
+        open(stack, player);
+        return InteractionResultHolder.consume(stack);
+    }
+
+    // server side: opens the linked pipe or tells the player why not
+    private static void open(ItemStack stack, Player player) {
+        Level level = player.level();
         Optional<Link> link = linkOf(stack);
         if (link.isEmpty()) {
             player.displayClientMessage(Component.translatable("logisticspipes.remote_orderer.not_linked"), true);
@@ -86,7 +93,21 @@ public class RemoteOrdererItem extends Item {
         } else {
             player.displayClientMessage(Component.translatable("logisticspipes.remote_orderer.pipe_missing"), true);
         }
-        return InteractionResultHolder.consume(stack);
+    }
+
+    // what the key does: an orderer anywhere in the inventory is used as if it were in the hand, a linked one first
+    // the client only says that the key was pressed, so a player without an orderer gets nothing
+    public static void openFromInventory(Player player) {
+        ItemStack found = ItemStack.EMPTY;
+        for (int slot = 0; slot < player.getInventory().getContainerSize(); slot++) {
+            ItemStack stack = player.getInventory().getItem(slot);
+            if (stack.getItem() instanceof RemoteOrdererItem && (found.isEmpty() || !isLinked(found) && isLinked(stack))) {
+                found = stack;
+            }
+        }
+        if (!found.isEmpty()) {
+            open(found, player);
+        }
     }
 
     @Override

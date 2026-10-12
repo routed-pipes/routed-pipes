@@ -6,6 +6,7 @@ import logisticspipes.adapter.minecraft.client.CraftingTableScreen;
 import logisticspipes.adapter.minecraft.client.NamesScreen;
 import logisticspipes.adapter.minecraft.client.PipeConfigScreen;
 import logisticspipes.adapter.minecraft.client.PipeItemRenderer;
+import logisticspipes.adapter.minecraft.client.RemoteOrdererKey;
 import logisticspipes.adapter.minecraft.client.RequestScreen;
 import logisticspipes.adapter.minecraft.client.UpgradeScreen;
 import logisticspipes.adapter.neoforge.visualtest.ClientBenchmark;
@@ -14,8 +15,11 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
+import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 // never loaded on dedicated servers
@@ -25,6 +29,8 @@ public class LogisticsPipesClient {
     public LogisticsPipesClient(IEventBus modEventBus) {
         modEventBus.addListener(LogisticsPipesClient::registerScreens);
         modEventBus.addListener(LogisticsPipesClient::registerRenderers);
+        modEventBus.addListener((RegisterKeyMappingsEvent event) -> event.register(RemoteOrdererKey.MAPPING));
+        NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post event) -> RemoteOrdererKey.tick());
         ClientMenuLink.setSender(new ClientMenuLink.Sender() {
             @Override
             public void setMarker(int containerId, int slot, ItemStack stack) {
@@ -34,6 +40,11 @@ public class LogisticsPipesClient {
             @Override
             public void setText(int containerId, int field, String text) {
                 PacketDistributor.sendToServer(new SetMenuTextPayload(containerId, field, text));
+            }
+
+            @Override
+            public void openRemoteOrderer() {
+                PacketDistributor.sendToServer(new OpenRemoteOrdererPayload());
             }
         });
         VisualTest.registerIfRequested();
