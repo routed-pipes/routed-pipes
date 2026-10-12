@@ -44,21 +44,29 @@ public final class OutputOrders {
         return orders.stream().mapToInt(order -> order.batch().count()).sum();
     }
 
-    // offers every order to the shipper, which says how many items it managed to send
-    // an order that made no progress for the given time is dropped, its ingredients were probably lost
-    public void ship(long now, long patience, ToIntFunction<OutputOrder> shipper) {
+    // offers every order to the shipper, which says how many items it managed to send, true if any items went out
+    // an order is dropped when the crafter made no progress at all for the given time, its ingredients were probably lost
+    // an order waiting behind another one for the same item is not stale while the crafter keeps delivering
+    public boolean ship(long now, long patience, ToIntFunction<OutputOrder> shipper) {
+        boolean progress = false;
         for (ListIterator<OutputOrder> iterator = orders.listIterator(); iterator.hasNext();) {
             OutputOrder order = iterator.next();
             if (now - order.since() >= patience) {
                 iterator.remove();
                 continue;
             }
-            int left = order.batch().count() - shipper.applyAsInt(order);
+            int sent = shipper.applyAsInt(order);
+            progress |= sent > 0;
+            int left = order.batch().count() - sent;
             if (left <= 0) {
                 iterator.remove();
             } else if (left < order.batch().count()) {
                 iterator.set(new OutputOrder(order.destination(), new ItemBatch(order.batch().type(), left), now));
             }
         }
+        if (progress) {
+            orders.replaceAll(order -> new OutputOrder(order.destination(), order.batch(), now));
+        }
+        return progress;
     }
 }

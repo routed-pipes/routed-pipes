@@ -109,11 +109,12 @@ class LogisticsNetworkCraftingReviewTest {
     @Test
     void anOrderWaitingBehindALongOneIsNotDroppedWhileTheCrafterKeepsDelivering() {
         connect();
-        provider.stock("log", 64);
+        provider.stock("log", 80);
         crafting.recipe = new Recipe(List.of(batch("log", 1)), batch("planks", 1));
         crafting.inventories.add(Side.UP);
         network.request(REQUEST, batch("planks", 64), 0);
         network.request(SUPPLIER, batch("planks", 4), 0);
+        assertThat(crafting.outputOrders.all()).as("both orders are placed").hasSize(2);
 
         // a slow machine, one plank every 400 ticks, and every one goes out right away
         for (long now = 5; now <= LogisticsNetwork.CRAFT_TIMEOUT; now += 5) {

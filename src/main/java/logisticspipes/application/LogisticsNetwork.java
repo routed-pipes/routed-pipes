@@ -383,7 +383,10 @@ public final class LogisticsNetwork {
                     item.abandon();
                     return Optional.empty();
                 }
-                Optional<Side> side = deliverySides(at, item.batch(), item.origin()).stream().min(Comparator.naturalOrder());
+                // an ordered item may go back where it came from: a pipe crafting an ingredient of its own other recipe
+                // takes it out of the machine and puts it in again
+                Optional<Side> side = node == null ? Optional.empty()
+                        : node.inventoriesAccepting(item.batch()).stream().min(Comparator.naturalOrder());
                 if (side.isEmpty()) {
                     // ordered here and there is no room yet, like ore queueing for a furnace: it waits in the pipe
                     item.stayPatient();
@@ -927,7 +930,7 @@ public final class LogisticsNetwork {
             bulkStorage.look(nodes::get);
         }
         if (!node.outputOrders().isEmpty() && now % CRAFT_INTERVAL == 0) {
-            node.outputOrders().ship(now, CRAFT_TIMEOUT, order -> {
+            boolean progress = node.outputOrders().ship(now, CRAFT_TIMEOUT, order -> {
                 // a result with fuzzy flags is whatever matching item the machine holds most of
                 ItemType made = FuzzyMatch.largest(order.batch().type(), node.contents());
                 // only pay for what is really there to send
@@ -938,6 +941,14 @@ public final class LogisticsNetwork {
                 return node.send(made, ready, order.destination(),
                         order.isExtra() ? TransportMode.UNCLAIMED : TransportMode.REQUESTED);
             });
+            if (progress) {
+                // whoever still waits for this crafter waits longer, or a supplier would order the rest a second time
+                for (OutputOrder order : node.outputOrders().all()) {
+                    if (!order.isExtra()) {
+                        pending.extend(order.destination(), order.batch().type().exact(), now + CRAFT_TIMEOUT);
+                    }
+                }
+            }
         } else if (now % CRAFT_INTERVAL == 0) {
             node.cleanup().ifPresent(cleanup -> cleanUp(id, node, cleanup));
         }
@@ -1058,22 +1069,42 @@ public final class LogisticsNetwork {
         } else if (nodes.containsKey(requester)) {
             counted.addAll(nodes.get(requester).inventories().values());
         }
+        // finished items crafting pipes owe, per inventory, nobody else may hand those out
+        Map<InventoryRef, Map<ItemType, Integer>> owedAt = new HashMap<>();
         for (RouterId id : routers) {
             RouterNode node = nodes.get(id);
+            if (!node.outputOrders().isEmpty()) {
+                for (InventoryRef inventory : node.inventories().values()) {
+                    Map<ItemType, Integer> owed = owedAt.computeIfAbsent(inventory, key -> new HashMap<>());
+                    node.outputOrders().all().forEach(order -> owed.merge(order.batch().type().exact(), order.batch().count(), Integer::sum));
+                }
+            }
+        }
+        for (RouterId id : routers) {
+            RouterNode node = nodes.get(id);
+            Map<ItemType, Integer> owedHere = new HashMap<>();
+            node.inventories().values().forEach(inventory -> owedAt.getOrDefault(inventory, Map.of())
+                    .forEach((type, count) -> owedHere.merge(type, count, Integer::sum)));
+            if (node.inventories().isEmpty()) {
+                // without a known inventory at least its own debts count
+                node.outputOrders().all().forEach(order -> owedHere.merge(order.batch().type().exact(), order.batch().count(), Integer::sum));
+            }
             if (node.provides()) {
                 if (!cameShort.contains(id) && !sharesInventory(node, counted) && passes(requester, id, FirewallRule::blockProviding)) {
                     Map<ItemType, Integer> provided = new LinkedHashMap<>(node.provided());
+                    owedHere.forEach((type, count) -> provided.computeIfPresent(type, (key, have) -> have > count ? have - count : null));
                     if (!firewalls.isEmpty()) {
                         provided.keySet().removeIf(type -> !passes(requester, id, rule -> rule.rejects(type)));
                     }
                     stock.add(new Stock(id, provided));
                     counted.addAll(node.inventories().values());
                 }
-            } else {
+            } else if (!sharesInventory(node, counted)) {
+                // a machine with two crafting pipes on it is counted once, and what any of them owes is not spare
                 Map<ItemType, Integer> spare = new LinkedHashMap<>();
                 for (CraftingSetup craft : node.crafts()) {
                     ItemType made = craft.recipe().output().type();
-                    int left = node.contents().getOrDefault(made, 0) - node.outputOrders().owed(made);
+                    int left = node.contents().getOrDefault(made, 0) - owedHere.getOrDefault(made.exact(), 0);
                     // spare output counts as providing, so a firewall that stops that or the item stops it too
                     if (left > 0 && passes(requester, id, rule -> rule.blockProviding() || rule.rejects(made))) {
                         spare.put(made, left);
@@ -1081,6 +1112,7 @@ public final class LogisticsNetwork {
                 }
                 if (!spare.isEmpty()) {
                     stock.add(new Stock(id, spare));
+                    counted.addAll(node.inventories().values());
                 }
             }
         }

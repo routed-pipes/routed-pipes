@@ -40,7 +40,8 @@ class OutputOrdersTest {
 
         orders.ship(50, PATIENCE, order -> order.destination().equals(router(2)) ? 4 : 0);
 
-        assertThat(orders.all()).containsExactly(new OutputOrder(router(1), batch("ingot", 2)));
+        // the crafter made progress, so the order still waiting is not stale either
+        assertThat(orders.all()).containsExactly(new OutputOrder(router(1), batch("ingot", 2), 50));
     }
 
     @Test

@@ -13,7 +13,7 @@ final class PendingDeliveries {
 
     private static final class Expected {
         private int count;
-        private final long deadline;
+        private long deadline;
 
         private Expected(int count, long deadline) {
             this.count = count;
@@ -77,6 +77,14 @@ final class PendingDeliveries {
             }
         }
         return counts;
+    }
+
+    // what is still expected keeps being expected until at least the deadline
+    void extend(RouterId destination, ItemType type, long deadline) {
+        Deque<Expected> queue = expected.get(new Key(destination, type));
+        if (queue != null) {
+            queue.forEach(entry -> entry.deadline = Math.max(entry.deadline, deadline));
+        }
     }
 
     void forget(RouterId destination) {
