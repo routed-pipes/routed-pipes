@@ -294,6 +294,18 @@ tasks.named('check').configure {
     dependsOn 'runGameTestServer'
 }
 
+// a server that crashes while loading mods exits like one whose tests passed, so the log has to say they did
+['runGameTestServer': 'run', 'runGameTestServerCompat': 'run-compat'].each { taskName, directory ->
+    tasks.matching { it.name == taskName }.configureEach {
+        def log = file("${directory}/logs/latest.log")
+        doLast {
+            if (!log.exists() || !(log.text =~ /All \d+ required tests passed/)) {
+                throw new GradleException("The game test server did not report that all tests passed, see ${log}")
+            }
+        }
+    }
+}
+
 // a fresh game directory starts with the accessibility screen, which reads itself out loud
 def quietOptions = tasks.register('quietClientOptions') {
     def targets = [(file('run/options.txt')): 'onboardAccessibility:false\nnarrator:0\n',
