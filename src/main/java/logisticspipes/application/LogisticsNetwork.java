@@ -39,6 +39,8 @@ public final class LogisticsNetwork {
     static final long CRAFT_TIMEOUT = 24000;
     // how long after a change to the network no new destinations are handed out
     static final long SETTLE_TICKS = 10;
+    // items an extractor moves per upkeep round
+    static final int EXTRACT_AMOUNT = 16;
 
     private final RoutingNetwork routing = new RoutingNetwork();
     private final Map<RouterId, RouterNode> nodes = new HashMap<>();
@@ -85,14 +87,14 @@ public final class LogisticsNetwork {
             // routers are still finding each other, a choice made now could be the wrong one
             return Optional.empty();
         }
-        Optional<RouterId> destination = findDestination(at, item);
+        Optional<RouterId> destination = findDestination(at, item.batch(), item.origin(), true);
         destination.ifPresentOrElse(item::routeTo, item::clearDestination);
         return destination.flatMap(found -> exitTowards(at, found, item));
     }
 
     private Optional<Side> exitTowards(RouterId at, RouterId destination, TravellingItem item) {
         if (destination.equals(at)) {
-            return deliverySides(at, item).stream().min(Comparator.naturalOrder());
+            return deliverySides(at, item.batch(), item.origin()).stream().min(Comparator.naturalOrder());
         }
         if (!nodes.containsKey(destination)) {
             return Optional.empty();
@@ -102,16 +104,16 @@ public final class LogisticsNetwork {
         return route.map(Route::exit);
     }
 
-    private Optional<RouterId> findDestination(RouterId at, TravellingItem item) {
+    // best sink for a batch that is at the given router and came in through origin
+    private Optional<RouterId> findDestination(RouterId at, ItemBatch batch, Side origin, boolean mayStay) {
         List<SinkOffer> offers = new ArrayList<>();
         for (Map.Entry<RouterId, RouterNode> entry : nodes.entrySet()) {
-            OptionalInt priority = entry.getValue().sinkPriority(item.batch().type());
-            if (priority.isEmpty()) {
+            boolean here = entry.getKey().equals(at);
+            OptionalInt priority = entry.getValue().sinkPriority(batch.type());
+            if (priority.isEmpty() || here && !mayStay) {
                 continue;
             }
-            Set<Side> sides = entry.getKey().equals(at)
-                    ? deliverySides(at, item)
-                    : entry.getValue().inventoriesAccepting(item.batch());
+            Set<Side> sides = here ? deliverySides(at, batch, origin) : entry.getValue().inventoriesAccepting(batch);
             if (!sides.isEmpty()) {
                 offers.add(new SinkOffer(entry.getKey(), priority.getAsInt()));
             }
@@ -120,14 +122,14 @@ public final class LogisticsNetwork {
     }
 
     // never hand an item back to the inventory it just came out of
-    private Set<Side> deliverySides(RouterId at, TravellingItem item) {
+    private Set<Side> deliverySides(RouterId at, ItemBatch batch, Side origin) {
         RouterNode node = nodes.get(at);
         if (node == null) {
             return Set.of();
         }
         Set<Side> sides = EnumSet.noneOf(Side.class);
-        sides.addAll(node.inventoriesAccepting(item.batch()));
-        sides.remove(item.origin());
+        sides.addAll(node.inventoriesAccepting(batch));
+        sides.remove(origin);
         return sides;
     }
 
@@ -172,7 +174,7 @@ public final class LogisticsNetwork {
         }
     }
 
-    // regular upkeep of one router, crafting pipes ship finished items and suppliers reorder
+    // regular upkeep of one router: crafting pipes ship finished items, suppliers reorder, extractors push items out
     public void tick(RouterId id, long now) {
         RouterNode node = nodes.get(id);
         if (node == null) {
@@ -188,6 +190,21 @@ public final class LogisticsNetwork {
                     requestUpTo(id, type, wanted - have, now);
                 }
             });
+        }
+        if (node.extracts() && now - lastChange >= SETTLE_TICKS) {
+            extract(id, node);
+        }
+    }
+
+    // sends off the first kind of item in the inventory that some other router wants
+    private void extract(RouterId id, RouterNode node) {
+        for (Map.Entry<ItemType, Integer> stock : node.contents().entrySet()) {
+            ItemBatch batch = new ItemBatch(stock.getKey(), Math.min(stock.getValue(), EXTRACT_AMOUNT));
+            Optional<RouterId> destination = findDestination(id, batch, null, false);
+            if (destination.isPresent()) {
+                node.send(batch.type(), batch.count(), destination.get());
+                return;
+            }
         }
     }
 
@@ -216,7 +233,7 @@ public final class LogisticsNetwork {
         List<Stock> stock = new ArrayList<>();
         for (RouterId id : reachableFrom(requester)) {
             RouterNode node = nodes.get(id);
-            if (node.kind() == PipeKind.PROVIDER) {
+            if (node.provides()) {
                 stock.add(new Stock(id, node.contents()));
             }
         }

@@ -1,5 +1,6 @@
 package logisticspipes.adapter.neoforge;
 
+import logisticspipes.adapter.minecraft.client.ChassisScreen;
 import logisticspipes.adapter.minecraft.client.CraftingTableScreen;
 import logisticspipes.adapter.minecraft.client.PipeConfigScreen;
 import logisticspipes.adapter.minecraft.client.PipeItemRenderer;
@@ -25,6 +26,7 @@ public class LogisticsPipesClient {
         event.register(LogisticsPipes.REQUEST_MENU.get(), RequestScreen::new);
         LogisticsPipes.CONFIG_MENUS.values().forEach(menu -> event.register(menu.get(), PipeConfigScreen::new));
         event.register(LogisticsPipes.CRAFTING_TABLE_MENU.get(), CraftingTableScreen::new);
+        event.register(LogisticsPipes.CHASSIS_MENU.get(), ChassisScreen::new);
     }
 
     private static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {

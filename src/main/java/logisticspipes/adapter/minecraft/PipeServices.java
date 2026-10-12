@@ -3,6 +3,7 @@ package logisticspipes.adapter.minecraft;
 import java.util.Map;
 import java.util.function.Supplier;
 
+import logisticspipes.adapter.minecraft.menu.ChassisMenu;
 import logisticspipes.adapter.minecraft.menu.PipeConfigMenu;
 import logisticspipes.adapter.minecraft.menu.RequestMenu;
 import logisticspipes.domain.logistics.PipeKind;
@@ -15,6 +16,7 @@ public record PipeServices(
         ItemStorage storage,
         LevelNetworks networks,
         Supplier<MenuType<RequestMenu>> requestMenu,
+        Supplier<MenuType<ChassisMenu>> chassisMenu,
         Map<PipeKind, Supplier<MenuType<PipeConfigMenu>>> configMenus) {
 
     public boolean hasSettings(PipeKind kind) {

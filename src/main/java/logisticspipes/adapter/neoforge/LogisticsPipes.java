@@ -1,6 +1,8 @@
 package logisticspipes.adapter.neoforge;
 
 import java.util.EnumMap;
+import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -10,11 +12,14 @@ import logisticspipes.adapter.minecraft.CraftingTableBlockEntity;
 import logisticspipes.adapter.minecraft.CraftingTableServices;
 import logisticspipes.adapter.minecraft.LevelNetworks;
 import logisticspipes.adapter.minecraft.LogisticsPipeBlock;
+import logisticspipes.adapter.minecraft.ModuleItem;
 import logisticspipes.adapter.minecraft.PipeBlockEntity;
 import logisticspipes.adapter.minecraft.PipeServices;
+import logisticspipes.adapter.minecraft.menu.ChassisMenu;
 import logisticspipes.adapter.minecraft.menu.CraftingTableMenu;
 import logisticspipes.adapter.minecraft.menu.PipeConfigMenu;
 import logisticspipes.adapter.minecraft.menu.RequestMenu;
+import logisticspipes.domain.logistics.ModuleKind;
 import logisticspipes.domain.logistics.PipeKind;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
@@ -22,6 +27,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
@@ -33,6 +39,7 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.registries.DeferredBlock;
+import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 // composition root, the only place that knows every layer
@@ -64,25 +71,48 @@ public class LogisticsPipes {
             () -> new MenuType<>((id, inventory) -> new CraftingTableMenu(LogisticsPipes.CRAFTING_TABLE_MENU.get(), id, inventory),
                     FeatureFlags.DEFAULT_FLAGS));
 
-    private static final PipeServices SERVICES = new PipeServices(() -> LogisticsPipes.PIPE_BLOCK_ENTITY.get(),
-            new CapabilityItemStorage(), new LevelNetworks(), REQUEST_MENU, CONFIG_MENUS);
+    public static final Supplier<MenuType<ChassisMenu>> CHASSIS_MENU = MENUS.register("chassis",
+            () -> new MenuType<>((id, inventory) -> new ChassisMenu(LogisticsPipes.CHASSIS_MENU.get(), id, inventory),
+                    FeatureFlags.DEFAULT_FLAGS));
 
-    public static final DeferredBlock<LogisticsPipeBlock> TRANSPORT_PIPE = pipe("transport_pipe", null);
+    private static final PipeServices SERVICES = new PipeServices(() -> LogisticsPipes.PIPE_BLOCK_ENTITY.get(),
+            new CapabilityItemStorage(), new LevelNetworks(), REQUEST_MENU, CHASSIS_MENU, CONFIG_MENUS);
+
+    public static final DeferredBlock<LogisticsPipeBlock> TRANSPORT_PIPE = pipe("transport_pipe", null, 0);
     public static final Map<PipeKind, DeferredBlock<LogisticsPipeBlock>> LOGISTICS_PIPES = new EnumMap<>(PipeKind.class);
 
     static {
-        LOGISTICS_PIPES.put(PipeKind.BASIC, pipe("basic_logistics_pipe", PipeKind.BASIC));
-        LOGISTICS_PIPES.put(PipeKind.PROVIDER, pipe("provider_pipe", PipeKind.PROVIDER));
-        LOGISTICS_PIPES.put(PipeKind.REQUEST, pipe("request_pipe", PipeKind.REQUEST));
-        LOGISTICS_PIPES.put(PipeKind.SUPPLIER, pipe("supplier_pipe", PipeKind.SUPPLIER));
-        LOGISTICS_PIPES.put(PipeKind.CRAFTING, pipe("crafting_pipe", PipeKind.CRAFTING));
-        LOGISTICS_PIPES.put(PipeKind.SATELLITE, pipe("satellite_pipe", PipeKind.SATELLITE));
+        LOGISTICS_PIPES.put(PipeKind.BASIC, pipe("basic_logistics_pipe", PipeKind.BASIC, 0));
+        LOGISTICS_PIPES.put(PipeKind.PROVIDER, pipe("provider_pipe", PipeKind.PROVIDER, 0));
+        LOGISTICS_PIPES.put(PipeKind.REQUEST, pipe("request_pipe", PipeKind.REQUEST, 0));
+        LOGISTICS_PIPES.put(PipeKind.SUPPLIER, pipe("supplier_pipe", PipeKind.SUPPLIER, 0));
+        LOGISTICS_PIPES.put(PipeKind.CRAFTING, pipe("crafting_pipe", PipeKind.CRAFTING, 0));
+        LOGISTICS_PIPES.put(PipeKind.SATELLITE, pipe("satellite_pipe", PipeKind.SATELLITE, 0));
+    }
+
+    // chassis mk1 to mk5 by number of module slots
+    public static final Map<Integer, DeferredBlock<LogisticsPipeBlock>> CHASSIS_PIPES = new LinkedHashMap<>();
+    private static final int[] CHASSIS_SLOTS = {1, 2, 3, 4, 8};
+
+    static {
+        for (int tier = 0; tier < CHASSIS_SLOTS.length; tier++) {
+            CHASSIS_PIPES.put(CHASSIS_SLOTS[tier], pipe("chassis_pipe_mk" + (tier + 1), PipeKind.CHASSIS, CHASSIS_SLOTS[tier]));
+        }
+    }
+
+    public static final Map<ModuleKind, DeferredItem<ModuleItem>> MODULES = new EnumMap<>(ModuleKind.class);
+
+    static {
+        for (ModuleKind kind : ModuleKind.values()) {
+            MODULES.put(kind, ITEMS.register("module_" + kind.name().toLowerCase(Locale.ROOT),
+                    () -> new ModuleItem(new Item.Properties(), kind, CONFIG_MENUS.get(PipeKind.BASIC))));
+        }
     }
 
     public static final Supplier<BlockEntityType<PipeBlockEntity>> PIPE_BLOCK_ENTITY = BLOCK_ENTITIES.register("pipe",
             () -> BlockEntityType.Builder
-                    .of(LogisticsPipes::newPipe, Stream.concat(Stream.of(TRANSPORT_PIPE), LOGISTICS_PIPES.values().stream())
-                            .map(Supplier::get).toArray(Block[]::new))
+                    .of(LogisticsPipes::newPipe, Stream.of(Stream.of(TRANSPORT_PIPE), LOGISTICS_PIPES.values().stream(),
+                            CHASSIS_PIPES.values().stream()).flatMap(pipes -> pipes).map(Supplier::get).toArray(Block[]::new))
                     .build(null));
 
     public static final DeferredBlock<CraftingTableBlock> CRAFTING_TABLE = BLOCKS.register("logistics_crafting_table",
@@ -119,9 +149,9 @@ public class LogisticsPipes {
         return LOGISTICS_PIPES.get(kind).get();
     }
 
-    private static DeferredBlock<LogisticsPipeBlock> pipe(String name, PipeKind kind) {
+    private static DeferredBlock<LogisticsPipeBlock> pipe(String name, PipeKind kind, int moduleSlots) {
         DeferredBlock<LogisticsPipeBlock> block = BLOCKS.register(name, () -> new LogisticsPipeBlock(
-                BlockBehaviour.Properties.of().strength(0.5f).sound(SoundType.GLASS).noOcclusion(), kind, SERVICES));
+                BlockBehaviour.Properties.of().strength(0.5f).sound(SoundType.GLASS).noOcclusion(), kind, moduleSlots, SERVICES));
         ITEMS.registerSimpleBlockItem(block);
         return block;
     }

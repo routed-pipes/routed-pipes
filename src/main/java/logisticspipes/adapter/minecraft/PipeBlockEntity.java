@@ -10,6 +10,7 @@ import java.util.OptionalInt;
 import java.util.Set;
 import java.util.UUID;
 
+import logisticspipes.adapter.minecraft.menu.ChassisMenu;
 import logisticspipes.adapter.minecraft.menu.PipeConfigMenu;
 import logisticspipes.adapter.minecraft.menu.RequestMenu;
 import logisticspipes.application.LogisticsNetwork;
@@ -20,6 +21,7 @@ import logisticspipes.domain.crafting.Recipe;
 import logisticspipes.domain.item.ItemBatch;
 import logisticspipes.domain.item.ItemType;
 import logisticspipes.domain.logistics.ItemSink;
+import logisticspipes.domain.logistics.ModuleKind;
 import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.domain.request.RequestPlan;
 import logisticspipes.domain.routing.RouterId;
@@ -41,10 +43,12 @@ import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.Containers;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -56,10 +60,13 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     // settings slots: 0-8 are recipe inputs or supplier targets, 9 is the recipe output
     public static final int CONFIG_SLOTS = 10;
     public static final int OUTPUT_SLOT = 9;
+    // the largest chassis has this many
+    public static final int MODULE_SLOTS = 8;
     private static final int UPKEEP_INTERVAL = 20;
 
     private final PipeTransport transport = new PipeTransport();
     private final SimpleContainer config = new SimpleContainer(CONFIG_SLOTS);
+    private final SimpleContainer modules = new SimpleContainer(MODULE_SLOTS);
     private final OutputOrders outputOrders = new OutputOrders();
     private final ContainerData data = new ContainerData() {
         @Override
@@ -91,6 +98,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     public PipeBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
         config.addListener(container -> setChanged());
+        modules.addListener(container -> setChanged());
     }
 
     RouterId routerId() {
@@ -121,6 +129,19 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         return config;
     }
 
+    public Container modules() {
+        return modules;
+    }
+
+    private boolean hasModule(ModuleKind wanted) {
+        for (int slot = 0; slot < pipe().moduleSlots(); slot++) {
+            if (modules.getItem(slot).getItem() instanceof ModuleItem module && module.kind() == wanted) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void setSatelliteId(int id) {
         data.set(PipeConfigMenu.DATA_SATELLITE, id);
     }
@@ -149,6 +170,12 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         if (kind() == PipeKind.REQUEST) {
             return new SimpleMenuProvider(
                     (id, inventory, player) -> new RequestMenu(services.requestMenu().get(), id, this), title);
+        }
+        if (kind() == PipeKind.CHASSIS) {
+            ContainerData slots = new SimpleContainerData(1);
+            slots.set(0, pipe().moduleSlots());
+            return new SimpleMenuProvider((id, inventory, player) -> new ChassisMenu(services.chassisMenu().get(), id,
+                    inventory, modules, slots, user -> Container.stillValidBlockEntity(this, user)), title);
         }
         return new SimpleMenuProvider((id, inventory, player) -> new PipeConfigMenu(services.configMenu(kind()), id,
                 inventory, kind(), config, data, user -> Container.stillValidBlockEntity(this, user), this::importRecipe), title);
@@ -192,7 +219,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             linksDirty = false;
             network().updateLinks(routerId, PipeTopology.discoverLinks(level, worldPosition), level.getGameTime());
         }
-        if ((kind() == PipeKind.CRAFTING || kind() == PipeKind.SUPPLIER)
+        if ((kind() == PipeKind.CRAFTING || kind() == PipeKind.SUPPLIER || kind() == PipeKind.CHASSIS)
                 && Math.floorMod(level.getGameTime() + worldPosition.asLong(), UPKEEP_INTERVAL) == 0) {
             network().tick(routerId, level.getGameTime());
             setChanged();
@@ -327,11 +354,32 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     }
 
     @Override
+    public boolean provides() {
+        return kind() == PipeKind.PROVIDER || hasModule(ModuleKind.PROVIDER);
+    }
+
+    @Override
+    public boolean extracts() {
+        return hasModule(ModuleKind.EXTRACTOR);
+    }
+
+    @Override
     public OptionalInt sinkPriority(ItemType type) {
-        if (kind() != PipeKind.BASIC) {
-            return OptionalInt.empty();
+        if (kind() == PipeKind.BASIC) {
+            return new ItemSink(supplyTargets().keySet(), defaultRoute).priority(type);
         }
-        return new ItemSink(supplyTargets().keySet(), defaultRoute).priority(type);
+        // a chassis wants an item as much as its keenest item sink module does
+        OptionalInt best = OptionalInt.empty();
+        for (int slot = 0; slot < pipe().moduleSlots(); slot++) {
+            ItemStack stack = modules.getItem(slot);
+            if (stack.getItem() instanceof ModuleItem module && module.kind() == ModuleKind.ITEM_SINK) {
+                OptionalInt priority = ModuleItem.sinkOf(stack).priority(type);
+                if (priority.isPresent() && (best.isEmpty() || priority.getAsInt() > best.getAsInt())) {
+                    best = priority;
+                }
+            }
+        }
+        return best;
     }
 
     @Override
@@ -372,6 +420,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     }
 
     void dropContents() {
+        Containers.dropContents(level, worldPosition, modules);
         for (TravellingItem item : transport.clear()) {
             Block.popResource(level, worldPosition, McItemType.stackOf(item.batch()));
         }
@@ -426,6 +475,11 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             settings.set(slot, config.getItem(slot));
         }
         tag.put("Config", ContainerHelper.saveAllItems(new CompoundTag(), settings, registries));
+        NonNullList<ItemStack> plugged = NonNullList.withSize(MODULE_SLOTS, ItemStack.EMPTY);
+        for (int slot = 0; slot < MODULE_SLOTS; slot++) {
+            plugged.set(slot, modules.getItem(slot));
+        }
+        tag.put("Modules", ContainerHelper.saveAllItems(new CompoundTag(), plugged, registries));
         ListTag orders = new ListTag();
         for (OutputOrder order : outputOrders.all()) {
             CompoundTag entry = new CompoundTag();
@@ -470,6 +524,13 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             ContainerHelper.loadAllItems(tag.getCompound("Config"), settings, registries);
             for (int slot = 0; slot < CONFIG_SLOTS; slot++) {
                 config.setItem(slot, settings.get(slot));
+            }
+        }
+        if (tag.contains("Modules")) {
+            NonNullList<ItemStack> plugged = NonNullList.withSize(MODULE_SLOTS, ItemStack.EMPTY);
+            ContainerHelper.loadAllItems(tag.getCompound("Modules"), plugged, registries);
+            for (int slot = 0; slot < MODULE_SLOTS; slot++) {
+                modules.setItem(slot, plugged.get(slot));
             }
         }
         ListTag orders = tag.getList("Orders", Tag.TAG_COMPOUND);

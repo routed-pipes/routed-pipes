@@ -29,7 +29,17 @@ public interface RouterNode {
     // takes items out of the inventories and sends them on their way, returns how many went out
     int send(ItemType type, int count, RouterId destination);
 
-    // basic pipes only, how much the pipe wants an item nobody asked for
+    // whether the contents of the inventory can be ordered
+    default boolean provides() {
+        return kind() == PipeKind.PROVIDER;
+    }
+
+    // whether the pipe pushes the contents of its inventory to whoever takes them
+    default boolean extracts() {
+        return false;
+    }
+
+    // how much the pipe wants an item nobody asked for, empty for not at all
     default OptionalInt sinkPriority(ItemType type) {
         return OptionalInt.empty();
     }

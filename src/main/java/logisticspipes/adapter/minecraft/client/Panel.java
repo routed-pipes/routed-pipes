@@ -22,6 +22,9 @@ final class Panel {
         graphics.fill(left + 3, top + 3, left + width - 1, top + height - 1, SHADOW);
         graphics.fill(left + 3, top + 3, left + width - 3, top + height - 3, FACE);
         for (Slot slot : menu.slots) {
+            if (!slot.isActive()) {
+                continue;
+            }
             int x = left + slot.x - 1;
             int y = top + slot.y - 1;
             graphics.fill(x, y, x + 18, y + 18, LIGHT);

@@ -4,7 +4,8 @@ import json
 import os
 
 PIPES = ["transport_pipe", "basic_logistics_pipe", "provider_pipe", "request_pipe", "supplier_pipe",
-         "crafting_pipe", "satellite_pipe"]
+         "crafting_pipe", "satellite_pipe"] + [f"chassis_pipe_mk{tier}" for tier in range(1, 6)]
+MODULES = ["module_item_sink", "module_extractor", "module_provider"]
 ASSETS = "src/main/resources/assets/logisticspipes/"
 DATA = "src/main/resources/data/logisticspipes/"
 
@@ -71,6 +72,9 @@ def main():
             write(ASSETS + f"models/block/{name}_{part}.json", {"parent": f"logisticspipes:block/pipe_{part}", "textures": texture})
         write(ASSETS + f"models/item/{name}.json", {"parent": "logisticspipes:block/pipe_inventory", "textures": texture})
         write(ASSETS + f"blockstates/{name}.json", blockstate(name))
+    for module in MODULES:
+        write(ASSETS + f"models/item/{module}.json",
+              {"parent": "minecraft:item/generated", "textures": {"layer0": f"logisticspipes:item/{module}"}})
     table = "logistics_crafting_table"
     write(ASSETS + f"models/block/{table}.json", {"parent": "minecraft:block/cube_bottom_top", "textures": {
         "top": f"logisticspipes:block/{table}_top", "side": f"logisticspipes:block/{table}_side",

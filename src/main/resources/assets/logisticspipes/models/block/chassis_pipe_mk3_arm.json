@@ -1,0 +1,6 @@
+{
+  "parent": "logisticspipes:block/pipe_arm",
+  "textures": {
+    "pipe": "logisticspipes:block/chassis_pipe_mk3"
+  }
+}

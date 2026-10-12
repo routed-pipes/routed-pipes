@@ -16,5 +16,13 @@
   "block.logisticspipes.logistics_crafting_table": "Logistics Crafting Table",
   "logisticspipes.gui.import": "Import",
   "logisticspipes.gui.default_route.on": "Default: yes",
-  "logisticspipes.gui.default_route.off": "Default: no"
+  "logisticspipes.gui.default_route.off": "Default: no",
+  "block.logisticspipes.chassis_pipe_mk1": "Logistics Chassis Mk1",
+  "block.logisticspipes.chassis_pipe_mk2": "Logistics Chassis Mk2",
+  "block.logisticspipes.chassis_pipe_mk3": "Logistics Chassis Mk3",
+  "block.logisticspipes.chassis_pipe_mk4": "Logistics Chassis Mk4",
+  "block.logisticspipes.chassis_pipe_mk5": "Logistics Chassis Mk5",
+  "item.logisticspipes.module_item_sink": "ItemSink Module",
+  "item.logisticspipes.module_extractor": "Extractor Module",
+  "item.logisticspipes.module_provider": "Provider Module"
 }

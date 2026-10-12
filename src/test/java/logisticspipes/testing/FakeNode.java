@@ -34,6 +34,8 @@ public final class FakeNode implements RouterNode {
     // basic pipes take everything by default, like a fresh one in the game
     public ItemSink sink = new ItemSink(Set.of(), true);
     public int satelliteId;
+    public boolean provides;
+    public boolean extracts;
     private final PipeKind kind;
 
     public FakeNode(PipeKind kind) {
@@ -77,8 +79,18 @@ public final class FakeNode implements RouterNode {
     }
 
     @Override
+    public boolean provides() {
+        return provides || kind == PipeKind.PROVIDER;
+    }
+
+    @Override
+    public boolean extracts() {
+        return extracts;
+    }
+
+    @Override
     public OptionalInt sinkPriority(ItemType type) {
-        return kind == PipeKind.BASIC ? sink.priority(type) : OptionalInt.empty();
+        return kind == PipeKind.BASIC || kind == PipeKind.CHASSIS ? sink.priority(type) : OptionalInt.empty();
     }
 
     @Override

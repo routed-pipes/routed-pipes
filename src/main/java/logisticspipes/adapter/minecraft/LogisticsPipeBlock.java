@@ -33,12 +33,14 @@ public class LogisticsPipeBlock extends Block implements EntityBlock {
     private static final VoxelShape[] SHAPES = buildShapes();
 
     private final PipeKind kind;
+    private final int moduleSlots;
     private final PipeServices services;
 
-    // kind is null for plain transport pipes
-    public LogisticsPipeBlock(Properties properties, PipeKind kind, PipeServices services) {
+    // kind is null for plain transport pipes, only chassis pipes have module slots
+    public LogisticsPipeBlock(Properties properties, PipeKind kind, int moduleSlots, PipeServices services) {
         super(properties);
         this.kind = kind;
+        this.moduleSlots = moduleSlots;
         this.services = services;
         BlockState state = stateDefinition.any();
         for (BooleanProperty property : CONNECTED.values()) {
@@ -55,13 +57,17 @@ public class LogisticsPipeBlock extends Block implements EntityBlock {
         return kind;
     }
 
+    int moduleSlots() {
+        return moduleSlots;
+    }
+
     PipeServices services() {
         return services;
     }
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
-        if (kind == null || kind != PipeKind.REQUEST && !services.hasSettings(kind)) {
+        if (kind == null || kind == PipeKind.PROVIDER) {
             return InteractionResult.PASS;
         }
         if (!level.isClientSide && level.getBlockEntity(pos) instanceof PipeBlockEntity pipe) {

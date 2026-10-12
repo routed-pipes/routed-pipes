@@ -7,6 +7,11 @@
     "logisticspipes:supplier_pipe",
     "logisticspipes:crafting_pipe",
     "logisticspipes:satellite_pipe",
+    "logisticspipes:chassis_pipe_mk1",
+    "logisticspipes:chassis_pipe_mk2",
+    "logisticspipes:chassis_pipe_mk3",
+    "logisticspipes:chassis_pipe_mk4",
+    "logisticspipes:chassis_pipe_mk5",
     "logisticspipes:logistics_crafting_table"
   ]
 }

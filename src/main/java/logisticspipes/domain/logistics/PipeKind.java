@@ -13,5 +13,7 @@ public enum PipeKind {
     // turns ingredients into its recipe output
     CRAFTING,
     // extra drop off point for crafting ingredients
-    SATELLITE
+    SATELLITE,
+    // does whatever the modules plugged into it do
+    CHASSIS
 }

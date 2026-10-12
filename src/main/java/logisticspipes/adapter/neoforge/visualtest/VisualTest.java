@@ -13,7 +13,10 @@ import java.util.stream.Stream;
 import com.mojang.logging.LogUtils;
 import logisticspipes.adapter.minecraft.CraftingTableBlockEntity;
 import logisticspipes.adapter.minecraft.McItemType;
+import logisticspipes.adapter.minecraft.ModuleItem;
 import logisticspipes.adapter.minecraft.PipeBlockEntity;
+import logisticspipes.adapter.neoforge.LogisticsPipes;
+import logisticspipes.domain.logistics.ModuleKind;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Screenshot;
 import net.minecraft.core.BlockPos;
@@ -23,6 +26,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Difficulty;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameRules;
@@ -50,6 +54,7 @@ public final class VisualTest {
     private static final BlockPos SUPPLIER = new BlockPos(2, -59, 6);
     private static final BlockPos CRAFTING = new BlockPos(0, -59, 13);
     private static final BlockPos SATELLITE = new BlockPos(0, -57, 13);
+    private static final BlockPos CHASSIS = new BlockPos(0, -59, 0);
     private static final BlockPos TABLE = new BlockPos(0, -58, 17);
     private static final BlockPos TABLE_PIPE = new BlockPos(0, -59, 17);
 
@@ -165,6 +170,9 @@ public final class VisualTest {
             command("fill 0 -59 14 0 -59 16 logisticspipes:transport_pipe");
             command("setblock 0 -59 17 logisticspipes:crafting_pipe");
             command("setblock 0 -58 17 logisticspipes:logistics_crafting_table");
+            command("setblock 0 -59 1 logisticspipes:transport_pipe");
+            command("setblock 0 -59 0 logisticspipes:chassis_pipe_mk5");
+            command("setblock 0 -58 0 chest");
         });
         step(20, () -> onServer(server -> {
             PipeBlockEntity crafting = pipe(server, CRAFTING);
@@ -177,6 +185,10 @@ public final class VisualTest {
             table.pattern().setItem(3, new ItemStack(Items.OAK_PLANKS));
             table.storage().setItem(0, new ItemStack(Items.OAK_PLANKS, 20));
             pipe(server, TABLE_PIPE).importRecipe();
+            PipeBlockEntity chassis = pipe(server, CHASSIS);
+            chassis.modules().setItem(0, new ItemStack(LogisticsPipes.MODULES.get(ModuleKind.ITEM_SINK).get()));
+            chassis.modules().setItem(1, new ItemStack(LogisticsPipes.MODULES.get(ModuleKind.EXTRACTOR).get()));
+            chassis.modules().setItem(2, new ItemStack(LogisticsPipes.MODULES.get(ModuleKind.PROVIDER).get()));
         }));
 
         shotFrom("pipes_overview", "7.5 -58 7.5 90 12");
@@ -184,6 +196,7 @@ public final class VisualTest {
         shotFrom("pipes_junction", "3.5 -58.5 8.5 120 15");
         shotFrom("pipes_vertical", "4.5 -59.5 13.5 90 -5");
         shotFrom("crafting_table", "3.5 -59 18.5 110 15");
+        shotFrom("chassis", "2.5 -59.5 0.5 90 5");
 
         // one item, one tick per frame, it has to be visible in every frame while it crosses pipe borders
         step(10, () -> command("tp @p 3.5 -60 8.5 90 0"));
@@ -204,6 +217,16 @@ public final class VisualTest {
         screenShot("gui_basic", new BlockPos(0, -59, 6), "2.5 -60 6.5 90 0");
         screenShot("gui_crafting", CRAFTING, "2.5 -60 12.5 90 0");
         screenShot("gui_satellite", SATELLITE, "2.5 -60 12.5 90 0");
+        screenShot("gui_chassis", CHASSIS, "2.5 -60 0.5 90 0");
+        step(5, () -> command("item replace entity @p weapon.mainhand with logisticspipes:module_item_sink"));
+        step(15, () -> onServer(server -> {
+            ServerPlayer player = server.getPlayerList().getPlayers().get(0);
+            ItemStack module = player.getMainHandItem();
+            ModuleItem.configureSink(module, java.util.List.of(new ItemStack(Items.DIAMOND), new ItemStack(Items.COAL)), true);
+            module.use(server.overworld(), player, InteractionHand.MAIN_HAND);
+        }));
+        step(2, () -> shot("gui_module_item_sink"));
+        step(5, () -> onServer(server -> server.getPlayerList().getPlayers().get(0).closeContainer()));
         screenShot("gui_crafting_table", TABLE, "2.5 -60 17.5 90 0");
         screenShot("gui_crafting_imported", TABLE_PIPE, "2.5 -60 17.5 90 0");
     }
