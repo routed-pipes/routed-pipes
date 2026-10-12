@@ -3,6 +3,7 @@ package logisticspipes.adapter.minecraft.menu;
 import java.util.function.Predicate;
 
 import logisticspipes.adapter.minecraft.PipeBlockEntity;
+import logisticspipes.domain.item.FuzzyFlags;
 import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.domain.logistics.ProviderMode;
 import logisticspipes.domain.logistics.SupplyMode;
@@ -50,9 +51,28 @@ public class PipeConfigMenu extends AbstractContainerMenu implements MarkerMenu 
     public static final int MAX_PRIORITY = 99;
     public static final int MAX_SATELLITE_ID = 99;
     private static final int MAX_MARKER_COUNT = 64;
+    // a second set of numbers for what upgrades add to the marker slots
+    // not 0 with a pattern upgrade, the switch for what does not fit its slot, and the inventory slot of every marker
+    public static final int EXTRA_PATTERN = 0;
+    public static final int EXTRA_LIMITED = 1;
+    public static final int EXTRA_PATTERN_SLOT = 2;
+    // not 0 with a fuzzy upgrade, and the fuzzy flags of every marker and of the result of a recipe as bits
+    public static final int EXTRA_FUZZY = EXTRA_PATTERN_SLOT + PipeBlockEntity.OUTPUT_SLOT;
+    public static final int EXTRA_FUZZY_FLAGS = EXTRA_FUZZY + 1;
+    public static final int FUZZY_SLOTS = PipeBlockEntity.OUTPUT_SLOT + 1;
+    public static final int EXTRA_COUNT = EXTRA_FUZZY_FLAGS + FUZZY_SLOTS;
+    // plus four per slot, one for every flag
+    public static final int BUTTON_FUZZY = 50;
+    public static final int BUTTON_LIMITED = 9;
+    // plus two per marker slot: down and up
+    public static final int BUTTON_PATTERN_SLOT = 100;
+    public static final int MAX_PATTERN_SLOT = 98;
+    // a pattern has no use for the mode that fills all the room there is
+    private static final int PATTERN_MODES = SupplyMode.INFINITE.ordinal();
 
     private final PipeKind kind;
     private final ContainerData data;
+    private final ContainerData extras;
     private final Predicate<Player> usable;
     private final Runnable importRecipe;
     private final int markerSlots;
@@ -65,9 +85,15 @@ public class PipeConfigMenu extends AbstractContainerMenu implements MarkerMenu 
 
     public PipeConfigMenu(MenuType<?> type, int id, Inventory inventory, PipeKind kind, Container config,
             ContainerData data, Predicate<Player> usable, Runnable importRecipe) {
+        this(type, id, inventory, kind, config, data, new SimpleContainerData(EXTRA_COUNT), usable, importRecipe);
+    }
+
+    public PipeConfigMenu(MenuType<?> type, int id, Inventory inventory, PipeKind kind, Container config,
+            ContainerData data, ContainerData extras, Predicate<Player> usable, Runnable importRecipe) {
         super(type, id);
         this.kind = kind;
         this.data = data;
+        this.extras = extras;
         this.usable = usable;
         this.importRecipe = importRecipe;
         if (kind != PipeKind.SATELLITE) {
@@ -96,6 +122,38 @@ public class PipeConfigMenu extends AbstractContainerMenu implements MarkerMenu 
             addSlot(new Slot(inventory, column, 8 + column * 18, top + 58));
         }
         addDataSlots(data);
+        addDataSlots(extras);
+    }
+
+    // whether the markers of a supplier stand for slots of the inventory
+    public boolean patterned() {
+        return kind == PipeKind.SUPPLIER && mode() >= 0 && extras.get(EXTRA_PATTERN) != 0;
+    }
+
+    public boolean limited() {
+        return extras.get(EXTRA_LIMITED) != 0;
+    }
+
+    // counted from 0
+    public int patternSlot(int marker) {
+        return extras.get(EXTRA_PATTERN_SLOT + marker);
+    }
+
+    // how many of the first slots have fuzzy flags to set, 0 without the upgrade for it
+    public int fuzzySlots() {
+        if (extras.get(EXTRA_FUZZY) == 0 || kind != PipeKind.BASIC && kind != PipeKind.CRAFTING) {
+            return 0;
+        }
+        return kind == PipeKind.CRAFTING ? FUZZY_SLOTS : PipeBlockEntity.OUTPUT_SLOT;
+    }
+
+    public FuzzyFlags fuzzyFlags(int slot) {
+        return FuzzyFlags.of(extras.get(EXTRA_FUZZY_FLAGS + slot));
+    }
+
+    // the mode as the button shows it
+    public int shownMode() {
+        return Math.floorMod(Math.max(0, mode()), modeCount());
     }
 
     @Override
@@ -173,6 +231,9 @@ public class PipeConfigMenu extends AbstractContainerMenu implements MarkerMenu 
     }
 
     private int modeCount() {
+        if (patterned()) {
+            return PATTERN_MODES;
+        }
         return kind == PipeKind.PROVIDER ? ProviderMode.values().length : SupplyMode.values().length;
     }
 
@@ -228,6 +289,23 @@ public class PipeConfigMenu extends AbstractContainerMenu implements MarkerMenu 
         if ((id == BUTTON_PRIORITY_DOWN || id == BUTTON_PRIORITY_UP) && kind == PipeKind.CRAFTING) {
             int change = id == BUTTON_PRIORITY_UP ? 1 : -1;
             data.set(DATA_PRIORITY, Mth.clamp(priority() + change, -MAX_PRIORITY, MAX_PRIORITY));
+            return true;
+        }
+        if (id == BUTTON_LIMITED && patterned()) {
+            extras.set(EXTRA_LIMITED, limited() ? 0 : 1);
+            return true;
+        }
+        int fuzzyButton = id - BUTTON_FUZZY;
+        if (fuzzyButton >= 0 && fuzzyButton < fuzzySlots() * FuzzyFlags.COUNT) {
+            int slot = fuzzyButton / FuzzyFlags.COUNT;
+            extras.set(EXTRA_FUZZY_FLAGS + slot, fuzzyFlags(slot).bits() ^ 1 << fuzzyButton % FuzzyFlags.COUNT);
+            return true;
+        }
+        int patternButton = id - BUTTON_PATTERN_SLOT;
+        if (patterned() && patternButton >= 0 && patternButton < PipeBlockEntity.OUTPUT_SLOT * 2) {
+            int marker = patternButton / 2;
+            int change = patternButton % 2 == 1 ? 1 : -1;
+            extras.set(EXTRA_PATTERN_SLOT + marker, Mth.clamp(patternSlot(marker) + change, 0, MAX_PATTERN_SLOT));
             return true;
         }
         int slotButton = id - BUTTON_SLOT_SATELLITE;

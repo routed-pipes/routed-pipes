@@ -31,17 +31,22 @@ import logisticspipes.domain.crafting.CraftingSetup;
 import logisticspipes.domain.crafting.OutputOrder;
 import logisticspipes.domain.crafting.OutputOrders;
 import logisticspipes.domain.crafting.Recipe;
+import logisticspipes.domain.item.FuzzyFlags;
+import logisticspipes.domain.item.FuzzyType;
 import logisticspipes.domain.item.ItemBatch;
 import logisticspipes.domain.item.ItemType;
 import logisticspipes.domain.logistics.Extraction;
 import logisticspipes.domain.logistics.FirewallRule;
+import logisticspipes.domain.logistics.FuzzySink;
 import logisticspipes.domain.logistics.InventoryRef;
 import logisticspipes.domain.logistics.ItemSink;
 import logisticspipes.domain.logistics.ModuleKind;
+import logisticspipes.domain.logistics.PatternSupply;
 import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.domain.logistics.ProviderMode;
 import logisticspipes.domain.logistics.ProviderSettings;
 import logisticspipes.domain.logistics.SinkRule;
+import logisticspipes.domain.logistics.SneakyFaces;
 import logisticspipes.domain.logistics.Supply;
 import logisticspipes.domain.logistics.SupplyMode;
 import logisticspipes.domain.routing.Link;
@@ -108,6 +113,10 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     private final SimpleContainer upgrades = new SimpleContainer(UPGRADE_SLOTS);
     // two slots for every module slot of a chassis, in the order of the modules
     private final SimpleContainer moduleUpgrades = new SimpleContainer(MODULE_SLOTS * UPGRADES_PER_MODULE);
+    // the row of sneaky upgrades a combination upgrade unlocks
+    private final SimpleContainer sneakyRow = new SimpleContainer(UPGRADE_SLOTS);
+    private SneakyFaces facesCache;
+    private final SlotSettings slotSettings = new SlotSettings(this::settingsChanged);
     private final OutputOrders outputOrders = new OutputOrders();
     private final PipeStatistics statistics = new PipeStatistics();
     private final PipeSecurity security = new PipeSecurity(this);
@@ -232,6 +241,16 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             }
         });
         moduleUpgrades.addListener(container -> settingsChanged());
+        upgrades.addListener(container -> {
+            facesCache = null;
+            // a fuzzy upgrade changes what the pipe takes
+            settingsChanged();
+        });
+        sneakyRow.addListener(container -> {
+            facesCache = null;
+            neighbourChanged();
+            setChanged();
+        });
     }
 
     // filters, modules or the default route changed: forget what was derived from them and tell the network
@@ -384,6 +403,13 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         if (!pipe().routed() || !(stack.getItem() instanceof UpgradeItem upgrade) || !upgrade.kind().fitsPipe(kind())) {
             return false;
         }
+        // with a combination upgrade in the pipe sneaky upgrades go into its row first
+        for (int slot = 0; slot < UPGRADE_SLOTS && upgrade.kind() == UpgradeKind.SNEAKY && hasUpgrade(UpgradeKind.SNEAKY_COMBINATION); slot++) {
+            if (sneakyRow.getItem(slot).isEmpty()) {
+                sneakyRow.setItem(slot, stack.split(1));
+                return true;
+            }
+        }
         for (int slot = 0; slot < UPGRADE_SLOTS; slot++) {
             ItemStack present = upgrades.getItem(slot);
             if (present.isEmpty()) {
@@ -418,7 +444,18 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
 
     // takes all upgrades out again
     public List<ItemStack> removeUpgrades() {
-        return upgrades.removeAllItems();
+        List<ItemStack> removed = new ArrayList<>(upgrades.removeAllItems());
+        removed.addAll(sneakyRow.removeAllItems());
+        return removed;
+    }
+
+    public Container sneakyUpgrades() {
+        return sneakyRow;
+    }
+
+    // empties the row of the combination upgrade
+    public List<ItemStack> removeSneakyRow() {
+        return sneakyRow.removeAllItems();
     }
 
     private static int count(Container container, int from, int to, UpgradeKind kind) {
@@ -454,13 +491,79 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
 
     // the face of an inventory this pipe uses when the inventory is on the given side of the pipe
     Direction accessFace(Direction side) {
-        for (int slot = 0; slot < UPGRADE_SLOTS; slot++) {
-            ItemStack stack = upgrades.getItem(slot);
-            if (stack.getItem() instanceof UpgradeItem upgrade && upgrade.kind() == UpgradeKind.SNEAKY) {
-                return UpgradeItem.sideOf(stack);
+        return Directions.toMinecraft(faces().reading(Directions.toDomain(side.getOpposite())));
+    }
+
+    private static Optional<Side> sneakyFace(ItemStack stack) {
+        return stack.getItem() instanceof UpgradeItem upgrade && upgrade.kind() == UpgradeKind.SNEAKY
+                ? Optional.of(Directions.toDomain(UpgradeItem.sideOf(stack))) : Optional.empty();
+    }
+
+    // what the sneaky upgrades of the pipe itself say
+    private SneakyFaces faces() {
+        if (facesCache == null) {
+            List<SneakyFaces.Slot> slots = new ArrayList<>();
+            List<Side> row = new ArrayList<>();
+            for (int slot = 0; slot < UPGRADE_SLOTS; slot++) {
+                ItemStack stack = upgrades.getItem(slot);
+                boolean combination = stack.getItem() instanceof UpgradeItem upgrade && upgrade.kind() == UpgradeKind.SNEAKY_COMBINATION;
+                slots.add(combination ? SneakyFaces.Slot.COMBINATION
+                        : sneakyFace(stack).map(SneakyFaces.Slot::sneaky).orElse(SneakyFaces.Slot.OTHER));
+                sneakyFace(sneakyRow.getItem(slot)).ifPresent(row::add);
+            }
+            facesCache = SneakyFaces.of(slots, row);
+        }
+        return facesCache;
+    }
+
+    // the sneaky face of the sink module that takes the item, empty if none does or it has no sneaky upgrade
+    private Optional<Side> moduleFace(ItemType type) {
+        List<SneakyFaces.ModuleFace> sinks = new ArrayList<>();
+        boolean any = false;
+        boolean looksInside = false;
+        for (int slot = 0; slot < pipe().moduleSlots(); slot++) {
+            int first = slot * UPGRADES_PER_MODULE;
+            Optional<Side> own = sneakyFace(moduleUpgrades.getItem(first)).or(() -> sneakyFace(moduleUpgrades.getItem(first + 1)));
+            for (SinkRule rule : moduleRules(slot)) {
+                any |= own.isPresent();
+                looksInside |= rule.needsContents();
+                sinks.add(new SneakyFaces.ModuleFace(rule, own));
             }
         }
-        return side.getOpposite();
+        return any ? SneakyFaces.ofModuleTaking(type, looksInside ? contents() : Map.of(), sinks) : Optional.empty();
+    }
+
+    // how the module in a slot takes items nobody asked for, with a fuzzy upgrade of its own its flags count too
+    private List<SinkRule> moduleRules(int slot) {
+        List<SinkRule> rules = new ArrayList<>();
+        ModuleItem.ruleOf(modules.getItem(slot)).ifPresent(rules::add);
+        if (moduleUpgradeCount(slot, UpgradeKind.FUZZY) > 0) {
+            ModuleItem.fuzzySinkOf(modules.getItem(slot)).ifPresent(rules::add);
+        }
+        return rules;
+    }
+
+    // a recipe slot as the planner sees it, with fuzzy flags it stands for everything that matches
+    private ItemBatch marked(int slot) {
+        return slotSettings.batch(slot, config.getItem(slot), hasUpgrade(UpgradeKind.FUZZY));
+    }
+
+    // the faces of the inventory on that side an arriving item tries, in order
+    // ordered items are not for a sink module, so the sneaky upgrade of one does not count for them
+    private List<Direction> insertFaces(Direction side, ItemType type, boolean ordered) {
+        SneakyFaces faces = ordered ? faces() : faces().forModule(moduleFace(type));
+        return faces.inserting(Directions.toDomain(side.getOpposite())).stream().map(Directions::toMinecraft).toList();
+    }
+
+    // returns what did not fit through any of the faces
+    private ItemStack insertThrough(BlockPos target, List<Direction> faces, ItemStack stack, boolean simulate) {
+        ItemStack rest = stack;
+        for (Direction face : faces) {
+            if (!rest.isEmpty() && storage().exists(level, target, face)) {
+                rest = storage().insert(level, target, face, rest, simulate);
+            }
+        }
+        return rest;
     }
 
     // the modules in the slots this chassis really has
@@ -560,7 +663,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         ItemStack stack = McItemType.stackOf(new ItemBatch(type, upTo));
         int room = 0;
         for (Direction side : inventorySides()) {
-            room += upTo - storage().insert(level, worldPosition.relative(side), accessFace(side), stack, true).getCount();
+            room += upTo - insertThrough(worldPosition.relative(side), insertFaces(side, type, true), stack, true).getCount();
         }
         return Math.min(room, upTo);
     }
@@ -757,7 +860,8 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
                     this::openModuleSettings), title);
         }
         return new SimpleMenuProvider((id, inventory, player) -> new PipeConfigMenu(services.configMenu(kind()), id,
-                inventory, kind(), config, data, user -> Container.stillValidBlockEntity(this, user), this::importRecipe), title);
+                inventory, kind(), config, data, slotSettings.data(() -> upgradeCount(UpgradeKind.PATTERN), () -> upgradeCount(UpgradeKind.FUZZY)),
+                user -> Container.stillValidBlockEntity(this, user), this::importRecipe), title);
     }
 
     // the settings of a module while it sits in the chassis
@@ -861,7 +965,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         List<CraftingSetup> crafts = new ArrayList<>();
         for (int slot = 0; slot < pipe().moduleSlots(); slot++) {
             ModuleItem.craftingOf(modules.getItem(slot), moduleUpgradeCount(slot, UpgradeKind.CRAFTING_BYPRODUCT) > 0,
-                    moduleUpgradeCount(slot, UpgradeKind.ADVANCED_SATELLITE) > 0)
+                    moduleUpgradeCount(slot, UpgradeKind.ADVANCED_SATELLITE) > 0, moduleUpgradeCount(slot, UpgradeKind.FUZZY) > 0)
                     .ifPresent(crafts::add);
         }
         return crafts;
@@ -875,7 +979,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         Map<Integer, List<ItemBatch>> inputs = new LinkedHashMap<>();
         for (int slot = 0; slot < OUTPUT_SLOT; slot++) {
             if (slotSatellites[slot] != 0 && !config.getItem(slot).isEmpty()) {
-                inputs.computeIfAbsent(slotSatellites[slot], key -> new ArrayList<>()).add(McItemType.batchOf(config.getItem(slot)));
+                inputs.computeIfAbsent(slotSatellites[slot], key -> new ArrayList<>()).add(marked(slot));
             }
         }
         return inputs;
@@ -914,9 +1018,67 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     @Override
     public List<Supply> supplies() {
         if (kind() == PipeKind.SUPPLIER) {
-            return List.of(new Supply(supplyTargets(), supplyMode()));
+            return hasUpgrade(UpgradeKind.PATTERN) ? List.of() : List.of(new Supply(supplyTargets(), supplyMode()));
         }
-        return pluggedModules().stream().flatMap(stack -> ModuleItem.supplyOf(stack).stream()).toList();
+        // a module with a pattern upgrade goes by slots, see patternSupplies
+        List<Supply> supplies = new ArrayList<>();
+        for (int slot = 0; slot < pipe().moduleSlots(); slot++) {
+            if (moduleUpgradeCount(slot, UpgradeKind.PATTERN) == 0) {
+                ModuleItem.supplyOf(modules.getItem(slot)).ifPresent(supplies::add);
+            }
+        }
+        return supplies;
+    }
+
+    public SlotSettings slotSettings() {
+        return slotSettings;
+    }
+
+    @Override
+    public List<PatternSupply> patternSupplies() {
+        if (kind() == PipeKind.SUPPLIER) {
+            if (!hasUpgrade(UpgradeKind.PATTERN)) {
+                return List.of();
+            }
+            List<PatternSupply.Entry> entries = new ArrayList<>();
+            for (int slot = 0; slot < OUTPUT_SLOT; slot++) {
+                if (!config.getItem(slot).isEmpty()) {
+                    entries.add(new PatternSupply.Entry(slotSettings.patternSlot(slot), McItemType.batchOf(config.getItem(slot))));
+                }
+            }
+            return List.of(new PatternSupply(entries, supplyMode(), slotSettings.limited()));
+        }
+        List<PatternSupply> patterns = new ArrayList<>();
+        for (int slot = 0; slot < pipe().moduleSlots(); slot++) {
+            if (moduleUpgradeCount(slot, UpgradeKind.PATTERN) > 0) {
+                ModuleItem.patternOf(modules.getItem(slot)).ifPresent(patterns::add);
+            }
+        }
+        return patterns;
+    }
+
+    // a pattern is about the first inventory of the pipe
+    @Override
+    public List<ItemBatch> slots() {
+        List<Direction> sides = inventorySides();
+        return sides.isEmpty() ? List.of()
+                : batchesOf(storage().held(level, worldPosition.relative(sides.get(0)), accessFace(sides.get(0))));
+    }
+
+    // puts what a pattern ordered into the slots it is meant for, returns what is left over
+    private ItemStack fillPattern(List<PatternSupply> patterns, BlockPos target, Direction face, ItemStack stack) {
+        ItemStack rest = stack;
+        for (PatternSupply pattern : patterns) {
+            if (rest.isEmpty()) {
+                break;
+            }
+            List<ItemBatch> slots = batchesOf(storage().held(level, target, face));
+            for (Map.Entry<Integer, Integer> placed : pattern.placement(McItemType.batchOf(rest), slots).entrySet()) {
+                ItemStack refused = storage().insertSlot(level, target, face, placed.getKey(), rest.copyWithCount(placed.getValue()), false);
+                rest = rest.copyWithCount(rest.getCount() - placed.getValue() + refused.getCount());
+            }
+        }
+        return rest;
     }
 
     // moves items on without waiting for the server, so they do not blink at pipe borders
@@ -1042,9 +1204,21 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         if (connector != null && connector.handsOver(item, side)) {
             return;
         }
-        ItemStack rest = storage().exists(level, target, accessFace(side))
-                ? storage().insert(level, target, accessFace(side), stack, false)
-                : stack;
+        List<PatternSupply> patterns = item.mode() == TransportMode.REQUESTED && item.destination().filter(routerId::equals).isPresent()
+                && inventorySides().indexOf(side) == 0 ? patternSupplies() : List.of();
+        if (!patterns.isEmpty()) {
+            stack = fillPattern(patterns, target, accessFace(side), stack);
+            contentsCache = null;
+            if (stack.isEmpty()) {
+                return;
+            }
+            if (patterns.stream().anyMatch(pattern -> pattern.limited() && pattern.lists(item.batch().type()))) {
+                // limited: what does not fit its slot must not end up in another one, so it goes back into the pipes
+                transport.insert(new TravellingItem(McItemType.batchOf(stack), exit, null));
+                return;
+            }
+        }
+        ItemStack rest = insertThrough(target, insertFaces(side, item.batch().type(), item.mode() == TransportMode.REQUESTED), stack, false);
         contentsCache = null;
         if (rest.isEmpty()) {
             return;
@@ -1149,7 +1323,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         Set<Side> sides = EnumSet.noneOf(Side.class);
         ItemStack stack = McItemType.stackOf(batch);
         for (Direction side : inventorySides()) {
-            ItemStack rest = storage().insert(level, worldPosition.relative(side), accessFace(side), stack, true);
+            ItemStack rest = insertThrough(worldPosition.relative(side), insertFaces(side, batch.type(), false), stack, true);
             if (rest.getCount() < stack.getCount()) {
                 sides.add(Directions.toDomain(side));
             }
@@ -1237,8 +1411,17 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
                 ItemSink sink = new ItemSink(supplyTargets().keySet(), defaultRoute);
                 // a basic pipe with nothing listed and no default route takes nothing
                 sinkRulesCache = sink.filter().isEmpty() && !sink.defaultRoute() ? List.of() : List.of(sink);
+                List<FuzzyType> fuzzy = hasUpgrade(UpgradeKind.FUZZY)
+                        ? slotSettings.fuzzyTypes(config.getItems().subList(0, OUTPUT_SLOT)) : List.of();
+                if (!fuzzy.isEmpty()) {
+                    sinkRulesCache = List.of(sink, new FuzzySink(fuzzy));
+                }
             } else {
-                sinkRulesCache = pluggedModules().stream().flatMap(stack -> ModuleItem.ruleOf(stack).stream()).toList();
+                List<SinkRule> rules = new ArrayList<>();
+                for (int slot = 0; slot < pipe().moduleSlots(); slot++) {
+                    rules.addAll(moduleRules(slot));
+                }
+                sinkRulesCache = rules;
             }
         }
         return sinkRulesCache;
@@ -1250,13 +1433,13 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         List<ItemBatch> inputs = new ArrayList<>();
         for (int slot = 0; slot < OUTPUT_SLOT; slot++) {
             if (!config.getItem(slot).isEmpty()) {
-                inputs.add(McItemType.batchOf(config.getItem(slot)));
+                inputs.add(marked(slot));
             }
         }
         if (output.isEmpty() || inputs.isEmpty()) {
             return Optional.empty();
         }
-        return Optional.of(new Recipe(inputs, McItemType.batchOf(output)));
+        return Optional.of(new Recipe(inputs, marked(OUTPUT_SLOT)));
     }
 
     // with a satellite chosen the bottom row of the recipe goes there, the rest to this pipe
@@ -1265,7 +1448,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         List<ItemBatch> inputs = new ArrayList<>();
         for (int slot = SATELLITE_ROW; slot < OUTPUT_SLOT && satelliteId != 0; slot++) {
             if (!config.getItem(slot).isEmpty()) {
-                inputs.add(McItemType.batchOf(config.getItem(slot)));
+                inputs.add(marked(slot));
             }
         }
         return inputs;
@@ -1302,6 +1485,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         Containers.dropContents(level, worldPosition, modules);
         Containers.dropContents(level, worldPosition, upgrades);
         Containers.dropContents(level, worldPosition, moduleUpgrades);
+        Containers.dropContents(level, worldPosition, sneakyRow);
         if (table != null) {
             table.drops().forEach(stack -> Block.popResource(level, worldPosition, stack));
         }
@@ -1324,6 +1508,12 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             network().removeRouter(routerId, level.getGameTime());
         }
         super.setRemoved();
+    }
+
+    // the item of a saved order, with the fuzzy flags of the result slot it was placed for
+    private static ItemType orderedType(ItemStack stack, int fuzzy) {
+        ItemType type = McItemType.batchOf(stack).type();
+        return fuzzy == 0 ? type : new FuzzyType(type, FuzzyFlags.of(fuzzy));
     }
 
     @Override
@@ -1377,6 +1567,8 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         tag.put("Modules", ContainerTags.save(modules, registries));
         tag.put("Upgrades", ContainerTags.save(upgrades, registries));
         tag.put("ModuleUpgrades", ContainerTags.save(moduleUpgrades, registries));
+        tag.put("SneakyUpgrades", ContainerTags.save(sneakyRow, registries));
+        tag.put("SlotSettings", slotSettings.save());
         ListTag orders = new ListTag();
         for (OutputOrder order : outputOrders.all()) {
             CompoundTag entry = new CompoundTag();
@@ -1384,6 +1576,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
                 entry.putUUID("Destination", order.destination().value());
             }
             entry.put("Stack", McItemType.stackOf(new ItemBatch(order.batch().type(), 1)).save(registries));
+            if (order.batch().type() instanceof FuzzyType fuzzy) {
+                entry.putInt("Fuzzy", fuzzy.flags().bits());
+            }
             entry.putInt("Count", order.batch().count());
             entry.putLong("Since", order.since());
             orders.add(entry);
@@ -1455,6 +1650,12 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         if (tag.contains("ModuleUpgrades")) {
             ContainerTags.load(moduleUpgrades, tag.getCompound("ModuleUpgrades"), registries);
         }
+        if (tag.contains("SlotSettings")) {
+            slotSettings.load(tag.getCompound("SlotSettings"));
+        }
+        if (tag.contains("SneakyUpgrades")) {
+            ContainerTags.load(sneakyRow, tag.getCompound("SneakyUpgrades"), registries);
+        }
         if (tag.contains("Upgrades")) {
             ContainerTags.load(upgrades, tag.getCompound("Upgrades"), registries);
         }
@@ -1474,7 +1675,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             ItemStack.parse(registries, entry.getCompound("Stack")).filter(stack -> !stack.isEmpty())
                     .ifPresent(stack -> outputOrders.add(new OutputOrder(
                             entry.hasUUID("Destination") ? new RouterId(entry.getUUID("Destination")) : null,
-                            new ItemBatch(McItemType.batchOf(stack).type(), entry.getInt("Count")), entry.getLong("Since"))));
+                            new ItemBatch(orderedType(stack, entry.getInt("Fuzzy")), entry.getInt("Count")), entry.getLong("Since"))));
         }
     }
 }

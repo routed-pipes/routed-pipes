@@ -21,6 +21,12 @@ public interface ItemStorage {
     // every slot in order, empty ones and ones nothing can be taken from as empty stacks
     List<ItemStack> slots(Level level, BlockPos pos, Direction side);
 
+    // every slot in order just as it is, whether or not anything can be taken out of it
+    List<ItemStack> held(Level level, BlockPos pos, Direction side);
+
+    // puts the stack into that one slot, returns what did not fit
+    ItemStack insertSlot(Level level, BlockPos pos, Direction side, int slot, ItemStack stack, boolean simulate);
+
     ItemStack extractSlot(Level level, BlockPos pos, Direction side, int slot, int count);
 
     // takes out up to count items that match the given stack

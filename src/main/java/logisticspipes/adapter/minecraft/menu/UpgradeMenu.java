@@ -13,6 +13,7 @@ import logisticspipes.domain.crafting.OutputOrder;
 import logisticspipes.domain.item.ItemBatch;
 import logisticspipes.domain.listing.Page;
 import logisticspipes.domain.logistics.PipeKind;
+import logisticspipes.domain.logistics.UpgradeKind;
 import logisticspipes.domain.statistics.PipeStatistics;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
@@ -60,6 +61,9 @@ public class UpgradeMenu extends AbstractContainerMenu {
     public static final int FIRST_PIPE_SLOT = SECURITY_SLOT + 1;
     // listed pipes carry their place and counts in here, the stack is the pipe as an item
     private static final String PIPE_TAG = "LogisticsPipesPipe";
+    // the row of sneaky upgrades that is there with a combination upgrade
+    public static final int FIRST_SNEAKY_SLOT = FIRST_PIPE_SLOT + PIPE_ROWS;
+    public static final int SNEAKY_ROW_TOP = 88;
     // listed orders carry their number, amount and target in here, the stack count is always 1
     private static final String TASK_TAG = "LogisticsPipesTask";
     private static final int REFRESH_INTERVAL = 20;
@@ -89,18 +93,18 @@ public class UpgradeMenu extends AbstractContainerMenu {
 
     // client side
     public UpgradeMenu(MenuType<?> type, int id, Inventory inventory) {
-        this(type, id, inventory, new SimpleContainer(PipeBlockEntity.UPGRADE_SLOTS), new SimpleContainer(1), null, false,
-                player -> true);
+        this(type, id, inventory, new SimpleContainer(PipeBlockEntity.UPGRADE_SLOTS), new SimpleContainer(1),
+                new SimpleContainer(PipeBlockEntity.UPGRADE_SLOTS), null, false, player -> true);
     }
 
     // mayUpgrade says whether the security station of the pipe lets this player at the upgrades
     public UpgradeMenu(MenuType<?> type, int id, Inventory inventory, PipeBlockEntity pipe, boolean mayUpgrade,
             Predicate<Player> usable) {
-        this(type, id, inventory, pipe.upgrades(), pipe.security().card(), pipe, mayUpgrade, usable);
+        this(type, id, inventory, pipe.upgrades(), pipe.security().card(), pipe.sneakyUpgrades(), pipe, mayUpgrade, usable);
     }
 
-    private UpgradeMenu(MenuType<?> type, int id, Inventory inventory, Container upgrades, Container card, PipeBlockEntity pipe,
-            boolean mayUpgrade, Predicate<Player> usable) {
+    private UpgradeMenu(MenuType<?> type, int id, Inventory inventory, Container upgrades, Container card, Container sneakyRow,
+            PipeBlockEntity pipe, boolean mayUpgrade, Predicate<Player> usable) {
         super(type, id);
         this.pipe = pipe;
         this.usable = usable;
@@ -163,6 +167,30 @@ public class UpgradeMenu extends AbstractContainerMenu {
         for (int row = 0; row < PIPE_ROWS; row++) {
             addSlot(new MarkerSlot(pipes, row, 8, TASKS_TOP + row * PIPE_ROW_HEIGHT, () -> tab() == Tab.NETWORK));
         }
+        for (int slot = 0; slot < PipeBlockEntity.UPGRADE_SLOTS; slot++) {
+            addSlot(new Slot(sneakyRow, slot, 8 + slot * 18, SNEAKY_ROW_TOP) {
+                @Override
+                public boolean mayPlace(ItemStack stack) {
+                    return mayUpgrade() && sneakyRow() && stack.getItem() instanceof UpgradeItem upgrade
+                            && upgrade.kind() == UpgradeKind.SNEAKY;
+                }
+
+                @Override
+                public boolean mayPickup(Player player) {
+                    return mayUpgrade();
+                }
+
+                @Override
+                public int getMaxStackSize() {
+                    return 1;
+                }
+
+                @Override
+                public boolean isActive() {
+                    return tab() == Tab.UPGRADES && sneakyRow();
+                }
+            });
+        }
         data.set(DATA_PAGES, 1);
         network.set(NETWORK_PAGES, 1);
         data.set(DATA_MAY_UPGRADE, mayUpgrade ? 1 : 0);
@@ -203,6 +231,25 @@ public class UpgradeMenu extends AbstractContainerMenu {
 
     public boolean mayUpgrade() {
         return data.get(DATA_MAY_UPGRADE) != 0;
+    }
+
+    // whether a combination upgrade is in the pipe, both sides see that from the upgrade slots
+    public boolean sneakyRow() {
+        for (int slot = 0; slot < PipeBlockEntity.UPGRADE_SLOTS; slot++) {
+            if (slots.get(slot).getItem().getItem() instanceof UpgradeItem upgrade && upgrade.kind() == UpgradeKind.SNEAKY_COMBINATION) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // without the combination upgrade its row is gone, what was left in it goes back to the player
+    @Override
+    public void removed(Player player) {
+        super.removed(player);
+        if (pipe != null && !sneakyRow()) {
+            pipe.removeSneakyRow().forEach(player.getInventory()::placeItemBackInInventory);
+        }
     }
 
     // whether the station of the card in the pipe still vouches for it
@@ -341,19 +388,21 @@ public class UpgradeMenu extends AbstractContainerMenu {
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
         Slot slot = slots.get(index);
-        if (!slot.hasItem() || index >= FIRST_TASK_SLOT) {
+        if (!slot.hasItem() || index >= FIRST_TASK_SLOT && index < FIRST_SNEAKY_SLOT) {
             return ItemStack.EMPTY;
         }
         ItemStack stack = slot.getItem();
         ItemStack original = stack.copy();
         boolean moved;
-        if (index < PipeBlockEntity.UPGRADE_SLOTS) {
+        if (index < PipeBlockEntity.UPGRADE_SLOTS || index >= FIRST_SNEAKY_SLOT) {
             moved = moveItemStackTo(stack, PipeBlockEntity.UPGRADE_SLOTS, FIRST_TASK_SLOT, true);
         } else if (tab() == Tab.SECURITY) {
             moved = moveItemStackTo(stack, SECURITY_SLOT, SECURITY_SLOT + 1, false);
         } else {
             // upgrades only go in while their slots are on screen
-            moved = tab() == Tab.UPGRADES && moveItemStackTo(stack, 0, PipeBlockEntity.UPGRADE_SLOTS, false);
+            // sneaky upgrades go into the row of the combination upgrade first, its slots refuse everything else
+            moved = tab() == Tab.UPGRADES && (moveItemStackTo(stack, FIRST_SNEAKY_SLOT, slots.size(), false)
+                    || moveItemStackTo(stack, 0, PipeBlockEntity.UPGRADE_SLOTS, false));
         }
         if (!moved) {
             return ItemStack.EMPTY;

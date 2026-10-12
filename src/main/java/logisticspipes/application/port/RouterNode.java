@@ -15,6 +15,7 @@ import logisticspipes.domain.item.ItemType;
 import logisticspipes.domain.logistics.Extraction;
 import logisticspipes.domain.logistics.FirewallRule;
 import logisticspipes.domain.logistics.InventoryRef;
+import logisticspipes.domain.logistics.PatternSupply;
 import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.domain.logistics.SinkRule;
 import logisticspipes.domain.logistics.Supply;
@@ -91,6 +92,16 @@ public interface RouterNode {
     // every stock this pipe keeps up
     default List<Supply> supplies() {
         return kind() == PipeKind.SUPPLIER ? List.of(new Supply(supplyTargets(), supplyMode())) : List.of();
+    }
+
+    // suppliers with a pattern upgrade: what they keep in which slot of the inventory
+    default List<PatternSupply> patternSupplies() {
+        return List.of();
+    }
+
+    // the inventory a pattern is about slot by slot, null for an empty slot
+    default List<ItemBatch> slots() {
+        return List.of();
     }
 
     default boolean provides() {

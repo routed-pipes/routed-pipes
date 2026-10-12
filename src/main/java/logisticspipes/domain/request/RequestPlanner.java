@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -29,6 +30,17 @@ public final class RequestPlanner {
             copy.crafts.addAll(crafts);
             copy.missing.putAll(missing);
             return copy;
+        }
+
+        // every kind of item some provider still has
+        private Set<ItemType> stocked() {
+            Set<ItemType> types = new LinkedHashSet<>();
+            stock.values().forEach(items -> items.forEach((type, count) -> {
+                if (count > 0) {
+                    types.add(type);
+                }
+            }));
+            return types;
         }
 
         private void become(Draft other) {
@@ -65,7 +77,7 @@ public final class RequestPlanner {
         for (ItemBatch batch : wanted) {
             resolve(draft, destination, batch.type(), batch.count(), new HashSet<>());
         }
-        return new RequestPlan(mergedProvisions(draft.provisions), merged(draft.crafts), Map.copyOf(draft.missing));
+        return new RequestPlan(mergedProvisions(draft.provisions), merged(draft.crafts), Map.copyOf(FuzzyMatch.exact(draft.missing)));
     }
 
     private static List<Provision> mergedProvisions(List<Provision> provisions) {
@@ -102,21 +114,25 @@ public final class RequestPlanner {
         return List.copyOf(merged);
     }
 
+    // type may carry fuzzy flags: then every matching item in stock will do, and so will every crafter that makes one
     private void resolve(Draft draft, RouterId destination, ItemType type, int count, Set<ItemType> crafting) {
-        int remaining = takeFromStock(draft, destination, type, count);
+        int remaining = count;
+        for (ItemType candidate : FuzzyMatch.candidates(type, draft::stocked)) {
+            remaining = takeFromStock(draft, destination, candidate, remaining);
+        }
         if (remaining == 0) {
             return;
         }
         // an item that is already being crafted further up must not be crafted again for itself
         if (crafting.add(type)) {
-            List<Crafter> able = crafters.stream().filter(crafter -> crafter.output().type().equals(type))
+            List<Crafter> able = crafters.stream().filter(crafter -> FuzzyMatch.makes(crafter.output().type(), type))
                     .sorted(Comparator.comparingInt(Crafter::priority).reversed()).toList();
             for (int from = 0; from < able.size() && remaining > 0;) {
                 int to = from;
                 while (to < able.size() && able.get(to).priority() == able.get(from).priority()) {
                     to++;
                 }
-                remaining = spread(draft, destination, type, remaining, able.subList(from, to), crafting);
+                remaining = spread(draft, destination, remaining, able.subList(from, to), crafting);
                 from = to;
             }
             if (remaining > 0 && !able.isEmpty()) {
@@ -143,7 +159,7 @@ public final class RequestPlanner {
 
     // shares the work between crafters of the same priority so that they end up equally busy, in whole runs
     // returns how many items could not be crafted
-    private int spread(Draft draft, RouterId destination, ItemType type, int count, List<Crafter> group, Set<ItemType> crafting) {
+    private int spread(Draft draft, RouterId destination, int count, List<Crafter> group, Set<ItemType> crafting) {
         Map<Crafter, Integer> load = new LinkedHashMap<>();
         group.forEach(crafter -> load.put(crafter, crafter.backlog()));
         int remaining = count;
@@ -158,7 +174,7 @@ public final class RequestPlanner {
                     break;
                 }
                 int wanted = runsFor(crafter, Math.min(remaining, share));
-                int done = craft(draft, crafter, destination, type, wanted, remaining, crafting);
+                int done = craft(draft, crafter, destination, wanted, remaining, crafting);
                 int made = Math.min(remaining, done * crafter.output().count());
                 remaining -= made;
                 load.merge(crafter, done * crafter.output().count(), Integer::sum);
@@ -172,7 +188,8 @@ public final class RequestPlanner {
     }
 
     // plans as many of the wanted runs as there are ingredients for, returns how many that was
-    private int craft(Draft draft, Crafter crafter, RouterId destination, ItemType type, int runs, int needed, Set<ItemType> crafting) {
+    // the job is for what the crafter says it makes, which is how the crafter knows its orders
+    private int craft(Draft draft, Crafter crafter, RouterId destination, int runs, int needed, Set<ItemType> crafting) {
         int possible = runs;
         Draft attempt = attempt(draft, crafter, possible, crafting);
         if (attempt == null) {
@@ -192,7 +209,8 @@ public final class RequestPlanner {
         if (attempt == null) {
             return 0;
         }
-        attempt.crafts.add(new CraftJob(crafter.router(), destination, new ItemBatch(type, Math.min(needed, possible * crafter.output().count()))));
+        attempt.crafts.add(new CraftJob(crafter.router(), destination,
+                new ItemBatch(crafter.output().type(), Math.min(needed, possible * crafter.output().count()))));
         draft.become(attempt);
         return possible;
     }

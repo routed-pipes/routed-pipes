@@ -1,20 +1,27 @@
 package logisticspipes.adapter.minecraft.client;
 
+import java.util.List;
+
 import logisticspipes.adapter.minecraft.PipeBlockEntity;
 import logisticspipes.adapter.minecraft.menu.MarkerMenu;
 import logisticspipes.adapter.minecraft.menu.PipeConfigMenu;
+import logisticspipes.domain.item.FuzzyFlags;
 import logisticspipes.domain.logistics.PipeKind;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.Slot;
 
 public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> implements MarkerScreen {
 
     private static final int TEXT = 0x404040;
     private static final int SATELLITE_TINT = 0xFF6F8FBF;
     private static final int SELECTED = 0xFFFFD040;
+    private static final int PATTERN_NUMBER = 0xFFFF55;
 
     private Button defaultRoute;
     private Button mode;
@@ -24,6 +31,11 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> im
     private int satelliteSlot;
     private Button previousSlot;
     private Button nextSlot;
+    // the marker whose inventory slot is being set, only with a pattern upgrade
+    private int patternMarker;
+    private Button limited;
+    private List<Button> patternButtons = List.of();
+    private final FuzzyPanel fuzzy = new FuzzyPanel();
 
     public PipeConfigScreen(PipeConfigMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
@@ -60,6 +72,18 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> im
         if (menu.kind() == PipeKind.SUPPLIER) {
             mode = addRenderableWidget(Button.builder(modeLabel(), button -> press(PipeConfigMenu.BUTTON_MODE))
                     .bounds(leftPos + 120, topPos + 34, 48, 16).build());
+            limited = addRenderableWidget(Button.builder(limitedLabel(), button -> press(PipeConfigMenu.BUTTON_LIMITED))
+                    .bounds(leftPos + 120, topPos + 54, 48, 16).build());
+            patternButtons = List.of(
+                    addRenderableWidget(Button.builder(Component.literal("-"), button -> pressPatternSlot(false))
+                            .bounds(leftPos + 8, topPos + 30, 12, 12).build()),
+                    addRenderableWidget(Button.builder(Component.literal("+"), button -> pressPatternSlot(true))
+                            .bounds(leftPos + 44, topPos + 30, 12, 12).build()),
+                    addRenderableWidget(Button.builder(Component.literal("<"), button -> turnPatternMarker(-1))
+                            .bounds(leftPos + 8, topPos + 50, 12, 12).build()),
+                    addRenderableWidget(Button.builder(Component.literal(">"), button -> turnPatternMarker(1))
+                            .bounds(leftPos + 44, topPos + 50, 12, 12).build()));
+            showPatternControls();
         }
         if (menu.kind() == PipeKind.CRAFTING) {
             exclude = addRenderableWidget(Button.builder(excludeLabel(), button -> press(PipeConfigMenu.BUTTON_EXCLUDE))
@@ -90,6 +114,24 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> im
                 .bounds(x + 16, y - 3, 14, 14).build());
     }
 
+    private void turnPatternMarker(int change) {
+        patternMarker = Math.floorMod(patternMarker + change, PipeBlockEntity.OUTPUT_SLOT);
+    }
+
+    private void pressPatternSlot(boolean up) {
+        press(PipeConfigMenu.BUTTON_PATTERN_SLOT + patternMarker * 2 + (up ? 1 : 0));
+    }
+
+    private Component limitedLabel() {
+        return Component.translatable(menu.limited() ? "logisticspipes.gui.pattern.limited" : "logisticspipes.gui.pattern.unlimited");
+    }
+
+    private void showPatternControls() {
+        limited.visible = menu.patterned();
+        limited.setMessage(limitedLabel());
+        patternButtons.forEach(button -> button.visible = menu.patterned());
+    }
+
     private void turnSatelliteSlot(int change) {
         satelliteSlot = Math.floorMod(satelliteSlot + change, PipeBlockEntity.OUTPUT_SLOT);
     }
@@ -113,7 +155,7 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> im
 
     private Component modeLabel() {
         String group = menu.kind() == PipeKind.PROVIDER ? "provider_mode" : "supply_mode";
-        return Component.translatable("logisticspipes.gui." + group + "." + Math.max(0, menu.mode()));
+        return Component.translatable("logisticspipes.gui." + group + "." + menu.shownMode());
     }
 
     // for a crafter the list is what stays in the machine or what goes
@@ -133,6 +175,9 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> im
             // modules that share this layout have no mode to choose
             mode.visible = menu.mode() >= 0;
             mode.setMessage(modeLabel());
+        }
+        if (limited != null) {
+            showPatternControls();
         }
         if (previousSlot != null) {
             previousSlot.visible = menu.advancedSatellite();
@@ -174,12 +219,34 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> im
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         super.render(graphics, mouseX, mouseY, partialTick);
-        renderTooltip(graphics, mouseX, mouseY);
+        // with a fuzzy upgrade the flags of a marker open under it when the mouse rests there
+        Slot marker = hoveredSlot != null && hoveredSlot.index < menu.fuzzySlots() && hoveredSlot.hasItem() ? hoveredSlot : null;
+        fuzzy.hover(marker == null ? -1 : marker.index, marker == null ? 0 : leftPos + marker.x, marker == null ? 0 : topPos + marker.y,
+                mouseX, mouseY);
+        if (fuzzy.open() >= 0 && fuzzy.open() < menu.fuzzySlots()) {
+            fuzzy.draw(graphics, font, menu.fuzzyFlags(fuzzy.open()));
+        } else {
+            renderTooltip(graphics, mouseX, mouseY);
+        }
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        int flag = fuzzy.flagAt(mouseX, mouseY);
+        if (flag < 0 || fuzzy.open() >= menu.fuzzySlots()) {
+            return super.mouseClicked(mouseX, mouseY, button);
+        }
+        minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+        press(PipeConfigMenu.BUTTON_FUZZY + fuzzy.open() * FuzzyFlags.COUNT + flag);
+        return true;
     }
 
     @Override
     protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
         Panel.draw(graphics, leftPos, topPos, imageWidth, imageHeight, menu);
+        if (menu.patterned()) {
+            graphics.renderOutline(leftPos + menu.getSlot(patternMarker).x - 1, topPos + menu.getSlot(patternMarker).y - 1, 18, 18, SELECTED);
+        }
         for (int slot = 0; slot < PipeBlockEntity.OUTPUT_SLOT && menu.kind() == PipeKind.CRAFTING; slot++) {
             // without the upgrade the bottom row of the recipe is what goes to the satellite
             boolean toSatellite = menu.advancedSatellite() ? menu.slotSatellite(slot) != 0
@@ -195,6 +262,25 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> im
         }
     }
 
+    // inventory slots are shown counted from 1, the way players count them
+    private void patternLabels(GuiGraphics graphics) {
+        graphics.drawString(font, Component.translatable("logisticspipes.gui.pattern.into"), 8, 19, TEXT, false);
+        String target = Integer.toString(menu.patternSlot(patternMarker) + 1);
+        graphics.drawString(font, target, 32 - font.width(target) / 2, 32, TEXT, false);
+        String marker = Integer.toString(patternMarker + 1);
+        graphics.drawString(font, marker, 32 - font.width(marker) / 2, 52, TEXT, false);
+        // every marker carries the number of its slot, drawn over the item
+        graphics.pose().pushPose();
+        graphics.pose().translate(0, 0, 300);
+        for (int slot = 0; slot < PipeBlockEntity.OUTPUT_SLOT; slot++) {
+            if (menu.getSlot(slot).hasItem()) {
+                graphics.drawString(font, Integer.toString(menu.patternSlot(slot) + 1), menu.getSlot(slot).x, menu.getSlot(slot).y,
+                        PATTERN_NUMBER, true);
+            }
+        }
+        graphics.pose().popPose();
+    }
+
     @Override
     protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
         super.renderLabels(graphics, mouseX, mouseY);
@@ -205,6 +291,12 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> im
             graphics.drawString(font, Component.translatable("logisticspipes.gui.priority"), 30, 77, TEXT, false);
             String priority = Integer.toString(menu.priority());
             graphics.drawString(font, priority, 121 - font.width(priority) / 2, 77, TEXT, false);
+        }
+        if (menu.patterned()) {
+            patternLabels(graphics);
+        }
+        for (int slot = 0; slot < menu.fuzzySlots(); slot++) {
+            FuzzyPanel.mark(graphics, menu.getSlot(slot).x, menu.getSlot(slot).y, menu.fuzzyFlags(slot));
         }
         if (!hasSatelliteControls()) {
             return;

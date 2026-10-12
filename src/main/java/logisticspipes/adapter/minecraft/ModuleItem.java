@@ -17,14 +17,17 @@ import logisticspipes.adapter.minecraft.menu.PipeConfigMenu;
 import logisticspipes.domain.crafting.Cleanup;
 import logisticspipes.domain.crafting.CraftingSetup;
 import logisticspipes.domain.crafting.Recipe;
+import logisticspipes.domain.item.FuzzyType;
 import logisticspipes.domain.item.ItemBatch;
 import logisticspipes.domain.item.ItemType;
 import logisticspipes.domain.logistics.EnchantmentSink;
 import logisticspipes.domain.logistics.Extraction;
 import logisticspipes.domain.logistics.ExtractionMode;
+import logisticspipes.domain.logistics.FuzzySink;
 import logisticspipes.domain.logistics.ItemSink;
 import logisticspipes.domain.logistics.ModuleKind;
 import logisticspipes.domain.logistics.PassiveSupplier;
+import logisticspipes.domain.logistics.PatternSupply;
 import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.domain.logistics.PolymorphicItemSink;
 import logisticspipes.domain.logistics.ProviderMode;
@@ -130,6 +133,15 @@ public class ModuleItem extends Item {
             case ENCHANTMENT_SINK_MK2 -> Optional.of(EnchantmentSink.of(plainTypes(module)));
             default -> Optional.empty();
         };
+    }
+
+    // the listed items of an item sink module that have fuzzy flags, empty when none has
+    public static Optional<SinkRule> fuzzySinkOf(ItemStack module) {
+        if (!(module.getItem() instanceof ModuleItem item) || item.kind != ModuleKind.ITEM_SINK) {
+            return Optional.empty();
+        }
+        List<FuzzyType> fuzzy = SlotSettings.of(module, () -> { }).fuzzyTypes(filterOf(module));
+        return fuzzy.isEmpty() ? Optional.empty() : Optional.of(new FuzzySink(fuzzy));
     }
 
     public static Optional<Extraction> extractionOf(ItemStack module) {
@@ -249,9 +261,15 @@ public class ModuleItem extends Item {
 
     // advanced means every ingredient slot goes to the satellite set for it instead of the bottom row to one
     public static Optional<CraftingSetup> craftingOf(ItemStack module, boolean withByproduct, boolean advanced) {
+        return craftingOf(module, withByproduct, advanced, false);
+    }
+
+    // fuzzy means the fuzzy flags of the slots count
+    public static Optional<CraftingSetup> craftingOf(ItemStack module, boolean withByproduct, boolean advanced, boolean fuzzy) {
         if (!(module.getItem() instanceof ModuleItem item) || item.kind != ModuleKind.CRAFTER) {
             return Optional.empty();
         }
+        SlotSettings flags = SlotSettings.of(module, () -> { });
         NonNullList<ItemStack> slots = filterOf(module);
         int satellite = intOf(module, SATELLITE_TAG);
         int[] slotSatellites = slotSatellitesOf(module);
@@ -259,10 +277,10 @@ public class ModuleItem extends Item {
         Map<Integer, List<ItemBatch>> forSatellite = new LinkedHashMap<>();
         for (int slot = 0; slot < PipeBlockEntity.OUTPUT_SLOT; slot++) {
             if (!slots.get(slot).isEmpty()) {
-                inputs.add(McItemType.batchOf(slots.get(slot)));
+                inputs.add(flags.batch(slot, slots.get(slot), fuzzy));
                 int target = advanced ? slotSatellites[slot] : slot >= PipeBlockEntity.SATELLITE_ROW ? satellite : 0;
                 if (target != 0) {
-                    forSatellite.computeIfAbsent(target, key -> new ArrayList<>()).add(McItemType.batchOf(slots.get(slot)));
+                    forSatellite.computeIfAbsent(target, key -> new ArrayList<>()).add(flags.batch(slot, slots.get(slot), fuzzy));
                 }
             }
         }
@@ -271,7 +289,7 @@ public class ModuleItem extends Item {
             return Optional.empty();
         }
         ItemStack extra = slots.get(PipeBlockEntity.BYPRODUCT_SLOT);
-        return Optional.of(new CraftingSetup(new Recipe(inputs, McItemType.batchOf(output)), forSatellite,
+        return Optional.of(new CraftingSetup(new Recipe(inputs, flags.batch(PipeBlockEntity.OUTPUT_SLOT, output, fuzzy)), forSatellite,
                 intOf(module, PRIORITY_TAG), withByproduct && !extra.isEmpty() ? Optional.of(McItemType.batchOf(extra)) : Optional.empty()));
     }
 
@@ -293,6 +311,23 @@ public class ModuleItem extends Item {
             return Optional.empty();
         }
         return Optional.of(new Supply(filterTypes(module), SupplyMode.values()[Math.floorMod(modeOf(module), SupplyMode.values().length)]));
+    }
+
+    // what an active supplier with a pattern upgrade keeps in which slot of its inventory
+    public static Optional<PatternSupply> patternOf(ItemStack module) {
+        if (!(module.getItem() instanceof ModuleItem item) || item.kind != ModuleKind.ACTIVE_SUPPLIER) {
+            return Optional.empty();
+        }
+        SlotSettings settings = SlotSettings.of(module, () -> { });
+        NonNullList<ItemStack> markers = filterOf(module);
+        List<PatternSupply.Entry> entries = new ArrayList<>();
+        for (int slot = 0; slot < PipeBlockEntity.OUTPUT_SLOT; slot++) {
+            if (!markers.get(slot).isEmpty()) {
+                entries.add(new PatternSupply.Entry(settings.patternSlot(slot), McItemType.batchOf(markers.get(slot))));
+            }
+        }
+        return Optional.of(new PatternSupply(entries, SupplyMode.values()[Math.floorMod(modeOf(module), SupplyMode.values().length)],
+                settings.limited()));
     }
 
     public static void configureSupplier(ItemStack module, List<ItemStack> targets, SupplyMode mode) {
@@ -433,7 +468,9 @@ public class ModuleItem extends Item {
             configureSink(module, slots, defaultRouteOf(module));
             changed.run();
         });
-        return new PipeConfigMenu(settingsMenu.get(), id, player.getInventory(), settingsLayout, filter, data, usable,
+        ContainerData extras = SlotSettings.of(module, changed).data(() -> upgrades.applyAsInt(UpgradeKind.PATTERN),
+                () -> upgrades.applyAsInt(UpgradeKind.FUZZY));
+        return new PipeConfigMenu(settingsMenu.get(), id, player.getInventory(), settingsLayout, filter, data, extras, usable,
                 () -> importRecipe.accept(filter));
     }
 }

@@ -27,6 +27,7 @@ import logisticspipes.domain.logistics.ExtractionMode;
 import logisticspipes.domain.logistics.FirewallRule;
 import logisticspipes.domain.logistics.InventoryRef;
 import logisticspipes.domain.logistics.ItemSink;
+import logisticspipes.domain.logistics.PatternSupply;
 import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.domain.logistics.SinkBid;
 import logisticspipes.domain.logistics.SinkRule;
@@ -34,6 +35,7 @@ import logisticspipes.domain.logistics.Supply;
 import logisticspipes.domain.logistics.SinkOffer;
 import logisticspipes.domain.request.CraftJob;
 import logisticspipes.domain.request.Crafter;
+import logisticspipes.domain.request.FuzzyMatch;
 import logisticspipes.domain.request.Provision;
 import logisticspipes.domain.request.RequestPlan;
 import logisticspipes.domain.request.RequestPlanner;
@@ -576,7 +578,7 @@ public final class LogisticsNetwork {
             stock.items().forEach((type, count) -> available.merge(type, count, Integer::sum));
         }
         for (Crafter crafter : craftersFor(requester)) {
-            available.putIfAbsent(crafter.output().type(), 0);
+            available.putIfAbsent(crafter.output().type().exact(), 0);
         }
         return available;
     }
@@ -630,7 +632,7 @@ public final class LogisticsNetwork {
             routers.add(0, at);
         }
         for (RouterId id : routers) {
-            nodes.get(id).outputOrders().owedByType().forEach((type, count) -> backlog.merge(type, count, Integer::sum));
+            nodes.get(id).outputOrders().owedByType().forEach((type, count) -> backlog.merge(type.exact(), count, Integer::sum));
         }
         return backlog;
     }
@@ -799,7 +801,7 @@ public final class LogisticsNetwork {
                     break;
                 }
             }
-            pending.expect(craft.destination(), craft.output().type(), craft.output().count(), now + CRAFT_TIMEOUT);
+            pending.expect(craft.destination(), craft.output().type().exact(), craft.output().count(), now + CRAFT_TIMEOUT);
         }
     }
 
@@ -812,12 +814,14 @@ public final class LogisticsNetwork {
         }
         if (!node.outputOrders().isEmpty() && now % CRAFT_INTERVAL == 0) {
             node.outputOrders().ship(now, CRAFT_TIMEOUT, order -> {
+                // a result with fuzzy flags is whatever matching item the machine holds most of
+                ItemType made = FuzzyMatch.largest(order.batch().type(), node.contents());
                 // only pay for what is really there to send
-                int ready = Math.min(order.batch().count(), node.contents().getOrDefault(order.batch().type(), 0));
+                int ready = Math.min(order.batch().count(), node.contents().getOrDefault(made, 0));
                 if (ready == 0 || !usePower(id, ready * ENERGY_PER_CRAFTED_ITEM)) {
                     return 0;
                 }
-                return node.send(order.batch().type(), ready, order.destination(),
+                return node.send(made, ready, order.destination(),
                         order.isExtra() ? TransportMode.UNCLAIMED : TransportMode.REQUESTED);
             });
         } else if (now % CRAFT_INTERVAL == 0) {
@@ -826,6 +830,9 @@ public final class LogisticsNetwork {
         if (now % SUPPLY_INTERVAL == 0) {
             for (Supply supply : node.supplies()) {
                 supply(id, node, supply, now);
+            }
+            for (PatternSupply pattern : node.patternSupplies()) {
+                supplyPattern(id, node, pattern, now);
             }
         }
         if (!settling(id, now)) {
@@ -861,6 +868,17 @@ public final class LogisticsNetwork {
                 requestUpTo(id, type, amount, now);
             }
         });
+    }
+
+    // a supplier with a pattern orders what each of its slots is short of
+    private void supplyPattern(RouterId id, RouterNode node, PatternSupply pattern, long now) {
+        for (ItemBatch order : pattern.orders(node.slots(), type -> pending.expected(id, type, now))) {
+            if (pattern.mode().allOrNothing()) {
+                request(id, order, now, ENERGY_PER_SUPPLY_ORDER, false);
+            } else {
+                requestUpTo(id, order.type(), order.count(), now);
+            }
+        }
     }
 
     // sends off the first kinds of items in the inventory that some other router wants and the network can pay for

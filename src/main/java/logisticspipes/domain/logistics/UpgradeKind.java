@@ -29,7 +29,13 @@ public enum UpgradeKind {
     // nobody sees what travels through the pipe
     OPAQUE(1),
     // a computer at the pipe gets at the other pipes of the network
-    CC_REMOTE_CONTROL(1);
+    CC_REMOTE_CONTROL(1),
+    // a row of sneaky upgrades of its own, arriving items try their faces one after the other
+    SNEAKY_COMBINATION(1),
+    // a supplier keeps every listed item in a slot of its own
+    PATTERN(1),
+    // marker slots get flags that let similar items pass for the one in them
+    FUZZY(1);
 
     private final int most;
 
@@ -44,8 +50,10 @@ public enum UpgradeKind {
 
     public boolean fitsPipe(PipeKind pipe) {
         return switch (this) {
-            case SNEAKY, SPEED, DISCONNECTION, POWER_SUPPLIER_RF, POWER_TRANSPORTATION, OPAQUE, CC_REMOTE_CONTROL -> true;
+            case SNEAKY, SPEED, DISCONNECTION, POWER_SUPPLIER_RF, POWER_TRANSPORTATION, OPAQUE, CC_REMOTE_CONTROL, SNEAKY_COMBINATION -> true;
             case MODULE_UPGRADE -> pipe == PipeKind.CHASSIS;
+            case PATTERN -> pipe == PipeKind.SUPPLIER;
+            case FUZZY -> pipe == PipeKind.CRAFTING || pipe == PipeKind.BASIC;
             case CRAFTING_BYPRODUCT, CRAFTING_CLEANUP, ADVANCED_SATELLITE -> pipe == PipeKind.CRAFTING;
             default -> false;
         };
@@ -56,6 +64,11 @@ public enum UpgradeKind {
             case ACTION_SPEED, ITEM_EXTRACTION, ITEM_STACK_EXTRACTION ->
                     module == ModuleKind.EXTRACTOR || module == ModuleKind.ADVANCED_EXTRACTOR;
             case CRAFTING_BYPRODUCT, CRAFTING_CLEANUP, ADVANCED_SATELLITE -> module == ModuleKind.CRAFTER;
+            case PATTERN -> module == ModuleKind.ACTIVE_SUPPLIER;
+            case FUZZY -> module == ModuleKind.CRAFTER || module == ModuleKind.ITEM_SINK;
+            case SNEAKY -> module == ModuleKind.ITEM_SINK || module == ModuleKind.POLYMORPHIC_ITEM_SINK
+                    || module == ModuleKind.MOD_ITEM_SINK || module == ModuleKind.TAG_ITEM_SINK
+                    || module == ModuleKind.CREATIVE_TAB_ITEM_SINK;
             default -> false;
         };
     }

@@ -33,6 +33,32 @@ public final class Fixtures {
         }
     }
 
+    // an item with what fuzzy flags look at: how worn it is, what else it carries and the tags it is in
+    public record WornItem(String name, int damage, String data, Set<String> tags) implements ItemType {
+
+        public static WornItem fresh(String name, String... tags) {
+            return new WornItem(name, 0, "", Set.of(tags));
+        }
+
+        public WornItem worn(int by) {
+            return new WornItem(name, by, data, tags);
+        }
+
+        public WornItem carrying(String more) {
+            return new WornItem(name, damage, more, tags);
+        }
+
+        @Override
+        public ItemType plain() {
+            return new WornItem(name, 0, "", tags);
+        }
+
+        @Override
+        public ItemType undamaged() {
+            return new WornItem(name, 0, data, tags);
+        }
+    }
+
     public record TestFluid(String name) implements FluidType {
     }
 

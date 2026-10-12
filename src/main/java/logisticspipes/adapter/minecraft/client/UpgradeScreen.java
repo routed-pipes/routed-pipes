@@ -144,6 +144,10 @@ public class UpgradeScreen extends AbstractContainerScreen<UpgradeMenu> {
 
     private void upgrades(GuiGraphics graphics) {
         graphics.drawString(font, Component.translatable("logisticspipes.gui.upgrades"), 8, 30, TEXT, false);
+        if (menu.sneakyRow()) {
+            graphics.drawString(font, Component.translatable("logisticspipes.gui.sneaky_upgrades"), 8, UpgradeMenu.SNEAKY_ROW_TOP - 12,
+                    TEXT, false);
+        }
         if (!menu.mayUpgrade()) {
             graphics.drawString(font, Component.translatable("logisticspipes.security.denied"), 8, 66, DENIED, false);
         }

@@ -1,8 +1,13 @@
 package logisticspipes.adapter.minecraft;
 
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import logisticspipes.domain.item.ItemBatch;
 import logisticspipes.domain.item.ItemType;
 import net.minecraft.core.component.DataComponentPatch;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
@@ -15,7 +20,8 @@ public record McItemType(Item item, DataComponentPatch components) implements It
     }
 
     public static ItemStack stackOf(ItemBatch batch) {
-        McItemType type = (McItemType) batch.type();
+        // a type with fuzzy flags is shown as the item of its slot
+        McItemType type = (McItemType) batch.type().exact();
         return new ItemStack(type.item.builtInRegistryHolder(), batch.count(), type.components);
     }
 
@@ -41,6 +47,22 @@ public record McItemType(Item item, DataComponentPatch components) implements It
     @Override
     public boolean inTag(String tag) {
         return ItemTraits.inTag(item, tag);
+    }
+
+    @Override
+    public Set<String> tags() {
+        return item.builtInRegistryHolder().tags().map(tag -> tag.location().toString()).collect(Collectors.toSet());
+    }
+
+    @Override
+    public int damage() {
+        Optional<? extends Integer> damage = components.get(DataComponents.DAMAGE);
+        return damage == null || damage.isEmpty() ? 0 : damage.get();
+    }
+
+    @Override
+    public ItemType undamaged() {
+        return damage() == 0 ? this : new McItemType(item, components.forget(type -> type == DataComponents.DAMAGE));
     }
 
     @Override

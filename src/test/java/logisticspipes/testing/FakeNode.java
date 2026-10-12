@@ -23,6 +23,7 @@ import logisticspipes.domain.logistics.FirewallRule;
 import logisticspipes.domain.logistics.ExtractionMode;
 import logisticspipes.domain.logistics.InventoryRef;
 import logisticspipes.domain.logistics.ItemSink;
+import logisticspipes.domain.logistics.PatternSupply;
 import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.domain.logistics.SinkRule;
 import logisticspipes.domain.logistics.Supply;
@@ -54,6 +55,9 @@ public final class FakeNode implements RouterNode {
     public List<CraftingSetup> crafts;
     public List<Supply> supplies;
     public Cleanup cleanup;
+    // set by tests about suppliers with a pattern, with the inventory slot by slot
+    public List<PatternSupply> patternSupplies = List.of();
+    public List<ItemBatch> slots = List.of();
     public FirewallRule firewall;
     // basic pipes take everything by default, like a fresh one in the game
     public SinkRule sink = new ItemSink(Set.of(), true);
@@ -214,6 +218,16 @@ public final class FakeNode implements RouterNode {
     @Override
     public List<Supply> supplies() {
         return supplies == null ? RouterNode.super.supplies() : supplies;
+    }
+
+    @Override
+    public List<PatternSupply> patternSupplies() {
+        return patternSupplies;
+    }
+
+    @Override
+    public List<ItemBatch> slots() {
+        return slots;
     }
 
     @Override
