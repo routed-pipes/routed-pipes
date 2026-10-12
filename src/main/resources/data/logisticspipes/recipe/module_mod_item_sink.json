@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "logisticspipes:module_item_sink"
+    },
+    {
+      "item": "minecraft:bookshelf"
+    }
+  ],
+  "result": {
+    "id": "logisticspipes:module_mod_item_sink",
+    "count": 1
+  }
+}

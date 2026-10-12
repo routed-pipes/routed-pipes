@@ -612,4 +612,20 @@ public class RequestGameTest {
             helper.succeed();
         });
     }
+
+    // nothing may be left that can only be had in creative mode
+    @GameTest(template = EMPTY)
+    public static void everyItemHasARecipe(GameTestHelper helper) {
+        java.util.Set<Item> made = new java.util.HashSet<>();
+        helper.getLevel().getRecipeManager().getRecipes().forEach(recipe ->
+                made.add(recipe.value().getResultItem(helper.getLevel().registryAccess()).getItem()));
+        java.util.List<String> without = new java.util.ArrayList<>();
+        net.minecraft.core.registries.BuiltInRegistries.ITEM.entrySet().forEach(entry -> {
+            if (entry.getKey().location().getNamespace().equals(LogisticsPipes.MODID) && !made.contains(entry.getValue())) {
+                without.add(entry.getKey().location().getPath());
+            }
+        });
+        helper.assertTrue(without.isEmpty(), "no recipe for " + without);
+        helper.succeed();
+    }
 }
