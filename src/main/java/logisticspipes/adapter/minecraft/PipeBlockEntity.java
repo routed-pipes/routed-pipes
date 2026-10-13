@@ -184,6 +184,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         surroundings.neighbourChanged();
         if (announced && level != null && !level.isClientSide && block().routed()) {
             network().powerSourcesChanged();
+            network().inventoriesChanged();
         }
         if (fluids != null) {
             fluids.neighbourChanged();

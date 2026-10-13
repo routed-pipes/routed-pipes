@@ -104,6 +104,7 @@ public final class LogisticsNetwork {
     // newest change per group of connected routers, worked out when asked, a group that changes gets a new number
     private final Map<Integer, Long> lastChangeOfComponent = new HashMap<>();
     private long settledAt = Long.MIN_VALUE;
+    private long lastChangeAnywhere = Long.MIN_VALUE;
     private long tablesTick = Long.MIN_VALUE;
     private int tablesThisTick;
     // nobody in a group of connected routers had room for an item: until when that is believed, how keen a sink had to
@@ -214,6 +215,7 @@ public final class LogisticsNetwork {
                 changedAt.put(other, now);
             }
         }
+        lastChangeAnywhere = now;
         nodes.remove(id);
         routing.remove(id);
         links.remove(id);
@@ -291,6 +293,7 @@ public final class LogisticsNetwork {
 
     private void changed(RouterId id, long now) {
         changedAt.put(id, now);
+        lastChangeAnywhere = now;
     }
 
     // once a tick the groups that changed are put together again, for all of them at once
@@ -306,7 +309,8 @@ public final class LogisticsNetwork {
     // whether something changed in this very tick among the routers this one is connected to, then it waits for the next
     // pipes being built or loaded somewhere else in the world do not count
     private boolean unsettled(RouterId at, long now) {
-        return routing.stale(at) || lastChange(at) == now;
+        // in most ticks nothing changes anywhere
+        return now == lastChangeAnywhere && (routing.stale(at) || lastChange(at) == now);
     }
 
     // the group of a router, empty for one whose group is in pieces right now
@@ -986,6 +990,20 @@ public final class LogisticsNetwork {
         powerSourcesOf.clear();
     }
 
+    // a block next to a router changed, an inventory may have come or gone
+    public void inventoriesChanged() {
+        forgetReaches();
+        noRoom.clear();
+    }
+
+    // items were taken out of the inventory of a router: if it is a sink, it may have room again
+    private void tookFrom(RouterId id) {
+        forgetReaches();
+        if (sinkRules.containsKey(id) && !routing.stale(id)) {
+            routing.component(id).ifPresent(noRoom::remove);
+        }
+    }
+
     // whether the router could use any energy right now, for the look of its pipe
     // every routed pipe keeps asking, so one walk over the routers it is connected to answers for all of them until
     // they change or POWER_LOOK_INTERVAL ticks have passed. empty when there is no telling in this tick
@@ -1039,6 +1057,7 @@ public final class LogisticsNetwork {
                 continue;
             }
             // spare output of a crafting pipe is not held back by any provider setting
+            tookFrom(provision.provider());
             int sent = provider.provides()
                     ? provider.provide(type, provision.batch().count(), provision.destination())
                     : provider.send(type, provision.batch().count(), provision.destination());
@@ -1101,7 +1120,7 @@ public final class LogisticsNetwork {
                 if (ready == 0 || !usePower(id, ready * ENERGY_PER_CRAFTED_ITEM)) {
                     return 0;
                 }
-                forgetReaches();
+                tookFrom(id);
                 return node.send(made, ready, order.destination(),
                         order.isExtra() ? TransportMode.UNCLAIMED : TransportMode.REQUESTED);
             });
@@ -1139,7 +1158,7 @@ public final class LogisticsNetwork {
             if (cleanup.removes(stock.getKey())) {
                 int count = Math.min(CLEANUP_AMOUNT, stock.getValue());
                 if (usePower(id, count * ENERGY_PER_CRAFTED_ITEM)) {
-                    forgetReaches();
+                    tookFrom(id);
                     node.send(stock.getKey(), count, null, TransportMode.UNCLAIMED);
                 }
                 return;
@@ -1191,7 +1210,7 @@ public final class LogisticsNetwork {
             if (!usePower(id, claim.get().energy() + extraction.energyFor(count))) {
                 return;
             }
-            forgetReaches();
+            tookFrom(id);
             int sent = node.send(batch.type(), count, claim.get().router(), TransportMode.SORTED);
             expectCapped(claim.get(), new ItemBatch(batch.type(), sent), now);
             itemsLeft -= sent;

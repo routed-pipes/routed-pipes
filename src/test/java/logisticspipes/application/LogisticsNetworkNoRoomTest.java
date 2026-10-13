@@ -152,4 +152,36 @@ class LogisticsNetworkNoRoomTest {
         assertThat(island.looks).isZero();
         assertThat(extractor.shipments).isEmpty();
     }
+
+    @Test
+    void aBlockChangingNextToAPipeMakesEveryoneAskAgainAtOnce() {
+        connect();
+        network.tick(EXTRACTOR, NOW);
+        far.room = true;
+
+        network.inventoriesChanged();
+        network.tick(EXTRACTOR, NOW + ROUND);
+
+        assertThat(extractor.shipments).containsExactly(new Shipment(batch("junk", 16), FAR));
+    }
+
+    @Test
+    void aSinkThatItemsWereOrderedOutOfIsAskedAgainAtOnce() {
+        connect();
+        FakeNode request = new FakeNode(PipeKind.REQUEST);
+        network.addRouter(ISLAND, request, BUILT);
+        network.updateLinks(ISLAND, List.of(new Link(FAR, Side.WEST, 1)), BUILT);
+        network.updateLinks(FAR, List.of(new Link(NEAR, Side.WEST, 1), new Link(ISLAND, Side.EAST, 1)), BUILT);
+        far.provides = true;
+        far.stock("stone", 64);
+        network.tick(EXTRACTOR, NOW);
+        assertThat(extractor.shipments).isEmpty();
+
+        // a full chest gives up a stack, so it has room now
+        network.request(ISLAND, batch("stone", 64), NOW + 1);
+        far.room = true;
+        network.tick(EXTRACTOR, NOW + ROUND);
+
+        assertThat(extractor.shipments).containsExactly(new Shipment(batch("junk", 16), FAR));
+    }
 }
