@@ -6,10 +6,10 @@
       "item": "minecraft:paper"
     },
     {
-      "item": "minecraft:redstone"
+      "tag": "c:dusts/redstone"
     },
     {
-      "item": "minecraft:iron_ingot"
+      "tag": "c:ingots/iron"
     },
     {
       "item": "minecraft:wheat"

@@ -9,10 +9,10 @@
       "item": "routedpipes:upgrade_sneaky"
     },
     {
-      "item": "minecraft:gold_ingot"
+      "tag": "c:ingots/gold"
     },
     {
-      "item": "minecraft:slime_ball"
+      "tag": "c:slime_balls"
     }
   ],
   "result": {

@@ -6,10 +6,10 @@
       "item": "minecraft:paper"
     },
     {
-      "item": "minecraft:redstone"
+      "tag": "c:dusts/redstone"
     },
     {
-      "item": "minecraft:gold_nugget"
+      "tag": "c:nuggets/gold"
     }
   ],
   "result": {

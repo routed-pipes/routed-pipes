@@ -20,7 +20,7 @@
       "tag": "c:ingots/iron"
     },
     "E": {
-      "item": "minecraft:redstone_block"
+      "tag": "c:storage_blocks/redstone"
     }
   },
   "result": {

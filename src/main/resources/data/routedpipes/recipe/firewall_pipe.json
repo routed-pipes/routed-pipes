@@ -11,7 +11,7 @@
       "item": "routedpipes:logistics_programmer"
     },
     "B": {
-      "item": "minecraft:ender_pearl"
+      "tag": "c:ender_pearls"
     },
     "C": {
       "item": "routedpipes:chip_advanced"

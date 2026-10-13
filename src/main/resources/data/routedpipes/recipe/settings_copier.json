@@ -6,7 +6,7 @@
       "item": "minecraft:paper"
     },
     {
-      "item": "minecraft:redstone"
+      "tag": "c:dusts/redstone"
     },
     {
       "item": "minecraft:ink_sac"

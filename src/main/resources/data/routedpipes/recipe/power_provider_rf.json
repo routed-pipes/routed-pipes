@@ -3,13 +3,13 @@
   "category": "misc",
   "ingredients": [
     {
-      "item": "minecraft:redstone_block"
+      "tag": "c:storage_blocks/redstone"
     },
     {
       "item": "routedpipes:basic_logistics_pipe"
     },
     {
-      "item": "minecraft:copper_block"
+      "tag": "c:storage_blocks/copper"
     }
   ],
   "result": {

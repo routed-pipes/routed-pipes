@@ -16,8 +16,10 @@ NAMES = {
     "lapis": "#c:gems/lapis", "quartz": "#c:gems/quartz", "sand": "#c:sands", "glass": "#c:glass_blocks",
     "planks": "#minecraft:planks", "chest": "#c:chests/wooden", "black_dye": "#c:dyes/black",
     "purple_dye": "#c:dyes/purple", "paper": "minecraft:paper", "crafting_table": "minecraft:crafting_table",
-    "piston": "minecraft:piston", "redstone_block": "minecraft:redstone_block", "bucket": "minecraft:bucket",
-    "ender_pearl": "minecraft:ender_pearl", "blaze_powder": "minecraft:blaze_powder", "sign": "#minecraft:signs", "book": "minecraft:book",
+    "piston": "minecraft:piston", "redstone_block": "#c:storage_blocks/redstone", "bucket": "minecraft:bucket",
+    "ender_pearl": "#c:ender_pearls", "blaze_powder": "minecraft:blaze_powder", "sign": "#minecraft:signs", "book": "minecraft:book",
+    "copper_block": "#c:storage_blocks/copper", "slime_ball": "#c:slime_balls", "ink_sac": "minecraft:ink_sac",
+    "comparator": "minecraft:comparator", "wheat": "minecraft:wheat",
 }
 HAS_COPPER = {"type": "neoforge:not", "value": {"type": "neoforge:tag_empty", "tag": "c:ingots/copper"}}
 NO_COPPER = {"type": "neoforge:tag_empty", "tag": "c:ingots/copper"}
@@ -58,11 +60,11 @@ def programmed(name, layout, base=None, count=1):
     return shaped(name, rows, count, kind="routedpipes:programmed")
 
 
-def shapeless(name, things, file):
+def shapeless(name, things, file=None, count=1):
     """Every entry of things is one ingredient, a list of names for an ingredient that takes any of them."""
     ingredients = [[ingredient(option) for option in thing] if isinstance(thing, list) else ingredient(thing) for thing in things]
-    return file, {"type": "minecraft:crafting_shapeless", "category": "misc", "ingredients": ingredients,
-                  "result": result(name, 1)}
+    return file or name, {"type": "minecraft:crafting_shapeless", "category": "misc", "ingredients": ingredients,
+                          "result": result(name, count)}
 
 
 def smelted(name, raw):
@@ -199,6 +201,17 @@ RECIPES = [
     programmed("module_crafter", MODULE_ADVANCED_1, "module_blank"),
     programmed("module_active_supplier", MODULE_ADVANCED_4, "module_blank"),
     programmed("module_bulk_storage_sink", MODULE_UPGRADE_2, "module_polymorphic_item_sink"),
+
+    # no recipe in the original, or none that needs a program
+    shapeless("frequency_card", ["paper", "redstone", "gold_nugget"], count=2),
+    shapeless("settings_copier", ["paper", "redstone", "ink_sac"]),
+    shapeless("power_provider_rf", ["redstone_block", "basic_logistics_pipe", "copper_block"]),
+    shapeless("upgrade_cc_remote_control", ["paper", "redstone", "gold", "comparator"]),
+    shapeless("upgrade_fuzzy", ["paper", "redstone", "iron", "wheat"]),
+    shapeless("upgrade_opaque", ["paper", "redstone", "iron", "black_dye"]),
+    shapeless("upgrade_pattern", ["paper", "redstone", "gold", "supplier_pipe"]),
+    shapeless("upgrade_power_supplier_rf", ["paper", "redstone", "iron", "copper"]),
+    shapeless("upgrade_sneaky_combination", ["upgrade_sneaky", "upgrade_sneaky", "gold", "slime_ball"]),
 
     shapeless("basic_logistics_pipe", [ITEM_PIPES], file="basic_logistics_pipe_from_pipes"),
     shapeless("fluid_basic_pipe", [FLUID_PIPES], file="fluid_basic_pipe_from_pipes"),
