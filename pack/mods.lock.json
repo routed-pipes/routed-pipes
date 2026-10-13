@@ -11,7 +11,8 @@
       "sha1": "fcbd66eb380e2712c0d00c1c7fb1c55bf0cdc470",
       "sha512": "9323762933ec9d61f229677401019fb1f4ddb5a8bdd15a69a1746c9a7186333aa29b2025abd381736bdf89505b449697bb96db69d8a50c39b430d6ef1efe689b",
       "size": 936602,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": false
     },
     {
       "slug": "ae2",
@@ -24,7 +25,8 @@
       "sha1": "bcd04bc7f181b2ffa314625f284c8eca6fee7fe4",
       "sha512": "39bc4cf733a4321631e2637a1a6dfd3527135fdac1b572534e6fd1f9eab7a6dd92d56c5fa066263c95149c9b20cabdd1fd3dff80bea515381b1d2d754cad26c3",
       "size": 8236552,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": false
     },
     {
       "slug": "appleskin",
@@ -37,7 +39,8 @@
       "sha1": "81cf0e668f991f83ac8820c386fbd6c9c3602246",
       "sha512": "f4ea46273e407334b63e262e2555c9a8204f7b5e60f23f272fbaa83ad9e88800e0ee186aca840710df2dbe0a18b37758695fef2ae1a902c10b3706e3de772937",
       "size": 75804,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": false
     },
     {
       "slug": "applied-mekanistics",
@@ -50,7 +53,8 @@
       "sha1": "bec4a47269ec23bca2329742e13409bfde69c5c3",
       "sha512": "1a693c3c05862805bd88cf1265fd4b9b98b2da4efe986c9ff26efa0e675df14373983ffdf7ededb26f07864b6702fabc299ac1a06fb8fa35de0b341b596dbf9b",
       "size": 149709,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": false
     },
     {
       "slug": "balm",
@@ -63,7 +67,8 @@
       "sha1": "dd3606a349f4a3c8fb5bd0ab22905675c02b0d74",
       "sha512": "0262d51c0e931d10c3dccefb3b5426a1622edecab243d4b15dce07a23309641370184776739765067d292d808242d088c6fbf249762689824eff9ba42c2d1e63",
       "size": 783793,
-      "needed_by": "waystones"
+      "needed_by": "waystones",
+      "client_only": false
     },
     {
       "slug": "brandons-core",
@@ -76,7 +81,8 @@
       "sha1": "ef00bdaaca4e469cc3925d573434d2f84b9d8a14",
       "sha512": "c7ce3d22cca5555aa0a41afd0d6ca4b9f11b9d49f7bfda7595db60ba68b2a96377318bfaf27747ed24d356e79ca796fe0239b5825363110b1a654d26eb2774ad",
       "size": 1385131,
-      "needed_by": "draconic-evolution"
+      "needed_by": "draconic-evolution",
+      "client_only": false
     },
     {
       "slug": "carry-on",
@@ -89,7 +95,8 @@
       "sha1": "2ceb0d9284525b6cb2a214c88cf6511cab91f601",
       "sha512": "e097b11d6f14e0957bab6c0276b81542e786cb86b9c31d9f25975f8c9fb04a734188b8790683298bbc5c695dc3de7d6e947616a20ad26d4a728a3beb0bb78667",
       "size": 361486,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": false
     },
     {
       "slug": "cb-multipart",
@@ -102,7 +109,8 @@
       "sha1": "754cefc13802393862a05142f55d71669e76bc3d",
       "sha512": "43ba1480586db6fac554e4cf5ade2f006a789a509a32f0824277e35310831d3dc7b90cee08d7baf228bb74132174dd4e41d2b1ac9dd23f9877b0969b718fa303",
       "size": 547450,
-      "needed_by": "project-red-core"
+      "needed_by": "project-red-core",
+      "client_only": false
     },
     {
       "slug": "cc-tweaked",
@@ -115,7 +123,8 @@
       "sha1": "f35d4f636c2eb1b30c5d3f5c08e110c6acb8e02f",
       "sha512": "009fcf48b7d123018a61b2c55f0fede7dd1f6a6325226bf9cc926342185ca8a7e059e13662816d24595aac243abf622b682583631cfe42c3757505b2e864ff73",
       "size": 3126327,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": false
     },
     {
       "slug": "chunk-loaders",
@@ -128,7 +137,8 @@
       "sha1": "2023e5176f180e56a6769c7f5518ff3dd2c6ade6",
       "sha512": "3cd043e66f5b8fbbf81ae690d4d76fc9f11088e3b0e1c7a3693d3dee5d089ab10e787eab80132857d0c42b67f08f5566ebc0dd37b89e64063c7d9ba1592b7cee",
       "size": 146058,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": false
     },
     {
       "slug": "cloth-config",
@@ -141,7 +151,8 @@
       "sha1": "c3e5733ba4503b102589a026000fd5ce0212f6f2",
       "sha512": "aaf9b010955b8cd294e5a92f069985b18729fd5e2cf22d351f1dff9680f15488688803ec41e77e941cbde130ceb535014ca4c868047d80ab69c2d508e216654d",
       "size": 1163890,
-      "needed_by": "powah"
+      "needed_by": "powah",
+      "client_only": false
     },
     {
       "slug": "clumps",
@@ -154,7 +165,8 @@
       "sha1": "fa2576297c7bd12b28aa7070e8141792bd66da4c",
       "sha512": "314d8d8e640d73041f27e0f3f2cad7aad8b4c77dbd7fb31700ef7760362261f77085eed5289555c725d99c3f47a114e7290cd608f39c9f0f12ef74958463bdcc",
       "size": 18382,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": false
     },
     {
       "slug": "codechicken-lib",
@@ -167,7 +179,8 @@
       "sha1": "354d850ca72568b88d67e3c903efced7e62dc90f",
       "sha512": "acc300da463672a4091e0f48266df4a5b0704bc23e044e71ca47c3d56390d09eef3690baad8f8744d657bac8d5e02a2b4a2bb77ed0478dba9ad9b8c35901645f",
       "size": 1538382,
-      "needed_by": "project-red-core"
+      "needed_by": "project-red-core",
+      "client_only": false
     },
     {
       "slug": "create",
@@ -180,7 +193,8 @@
       "sha1": "0e97e49837bed766e6f28a4c95b04885d6acc353",
       "sha512": "11cc8fc049d2f67f6548c7abfada6b82a3adb5c7ca410a742de04bbca76e03862c518721b88d806f6e6d768a4d68531fdb903a85859b25d1484d550cc7bafd4b",
       "size": 19123767,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": false
     },
     {
       "slug": "createaddition",
@@ -193,7 +207,8 @@
       "sha1": "87b539d41ed238e98b26c607c0c81a973323147e",
       "sha512": "e3a31eefb15d37bd1a2ba9012d0c00ec92f7c9e57b7a35c993676ea0cc85ba4f35a055a9f98d57636f24a0562d6da18b4e90713f4f46d47959666a097a6a5cea",
       "size": 1661802,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": false
     },
     {
       "slug": "cucumber",
@@ -206,7 +221,8 @@
       "sha1": "0e97553af44d39d1976fe6feb4baf1c30c6b2f06",
       "sha512": "fbc63f23f827061b2a45f33a3867e105268b5a51d9ca92ba3bacd2e2a0af847eb4c367e726a62a455b841e503f8ce73ea9e180285670ddf3ec18a8ba4e72da7d",
       "size": 275588,
-      "needed_by": "iron-jetpacks"
+      "needed_by": "iron-jetpacks",
+      "client_only": false
     },
     {
       "slug": "dimensionaldoors",
@@ -219,7 +235,8 @@
       "sha1": "43c8bec68ecf1197ee4312060dc56f1550c1bfba",
       "sha512": "0e59bc1aeebb959eda7903d53980f013cb568d02e3cdf22886ec676d41e1926e1ee833cbc307a6dcabcdd6854c4490a2c7481a0d35ca6f37de94bb27d1ab4a54",
       "size": 13863897,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": false
     },
     {
       "slug": "draconic-evolution",
@@ -232,7 +249,8 @@
       "sha1": "42ccf634a2a167db9cda533507909dd0524f2798",
       "sha512": "9740f5750a916db8927d8051430b49eba9ebc37e5545aef09b83872a561a721e7eb8fed82e6ed2aad15ba016d6f8ea2ce566a5cafacc4a2879239119cdbaff31",
       "size": 6046229,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": false
     },
     {
       "slug": "ender-storage",
@@ -245,7 +263,8 @@
       "sha1": "5b5fc717242a9eb2d8b4a5e57ea1a38446722864",
       "sha512": "4a65d6c2d098e4db61237ff83b68f7d03d5dcd16572c6c12d159c9c1f2f49c7abcc1792432b0bd88589549cec8a4705b292492fbe1913b624537c2e4fbc968f2",
       "size": 264089,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": false
     },
     {
       "slug": "entityculling",
@@ -258,7 +277,8 @@
       "sha1": "f122f84f329793675b2625d51b77f990d7de3579",
       "sha512": "93e83dd690b91d610be29451b34836c9daa7e08bd952f88ffa07c62d8774bbaac2ff0c6768d2cbf1b14f47d0b86f98cef9fd341e0d29bd37207eaf4aa2abea63",
       "size": 1510075,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": true
     },
     {
       "slug": "extreme-reactors",
@@ -271,7 +291,8 @@
       "sha1": "9a079dfcbb4fa350dfbe76b2674d20f1028cad62",
       "sha512": "4b934d4479751796a8c26327517f6a31a9f8a299023950947768deb7b9d8c77ac106e07024e0b88109f65fbb13d38b28d7d6a9026ae426c0b8f13a7fd0b33dea",
       "size": 2518864,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": false
     },
     {
       "slug": "fallingtree",
@@ -284,7 +305,8 @@
       "sha1": "7e1b3ee0ba89b556d5a468797bb1b5f4e2b8ccb7",
       "sha512": "21876b270ca40e3ad6168423f2aba04460f590be191c5558d53e4f542993efa6070589029cb3218557309b096cd920e4da65e53f19687b86c638ec6c342d83e5",
       "size": 496356,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": false
     },
     {
       "slug": "ferrite-core",
@@ -297,7 +319,8 @@
       "sha1": "9563692efb708b6b568df27a01ec52f6311928ef",
       "sha512": "19af89a2075bb10a63884fa853ebf84b02c79dc3242430ecdad056fd764fdcde367a7303276b329df01b0736e2ef264c5d80c7dc92c6aebd244f556a230bb417",
       "size": 121559,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": false
     },
     {
       "slug": "guideme",
@@ -310,7 +333,8 @@
       "sha1": "e85cd4c266f974dd360c46e8dad7ecf4c7ee96c6",
       "sha512": "4dfa132e5cfd69a86c958867067f1c5ab39bb69ae35b2a62c24bb9924e9c688f1a4930ab75d335b22378d9f98cd7fceae8d030812b8f90c9aa282de8ea129f5a",
       "size": 9311992,
-      "needed_by": "ae2"
+      "needed_by": "ae2",
+      "client_only": false
     },
     {
       "slug": "hammer-lib",
@@ -323,7 +347,8 @@
       "sha1": "0c6314c727d5f3911fbe289eba5101957e5b8860",
       "sha512": "d5de4cecae6fe015b65b0bb53d76be0f3ce6893fb652a54e8e949ad8f3b65e431accbd452d3547373a01b2e6050c670c6ea2a9f4cee3e9020149e3a11e0f7aaa",
       "size": 2427649,
-      "needed_by": "solar-flux-reborn"
+      "needed_by": "solar-flux-reborn",
+      "client_only": false
     },
     {
       "slug": "immediatelyfast",
@@ -336,7 +361,8 @@
       "sha1": "fee59af2f39c66d09c4c09f441c799e76af70f97",
       "sha512": "7d1c2e6ce306f4bb9aa155f64ba87732dc2443d57fde249467a99e0ed90fec89a706252888b97f882efbc55d6044971519db704125f27ae53cd9ae40424f9b2c",
       "size": 365195,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": true
     },
     {
       "slug": "immersiveengineering",
@@ -349,7 +375,8 @@
       "sha1": "a4e90c2df8009040f6d022433c5d76635944dd59",
       "sha512": "862523e84747a8b7eaa65f9b3c337fa832ef9efd0545c27f68e350e01f482c7a1242d0e4bdc2caff3d7eb033508b43a353fcd7150c9b544d0c05765ca2a551b3",
       "size": 14232121,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": false
     },
     {
       "slug": "industrial-foregoing",
@@ -362,7 +389,8 @@
       "sha1": "88ff21e4fa6e5c4cfb7cd5626cbcfdf424e704b5",
       "sha512": "2bbf101c323a71623ec48e745a2b798d83baf1b5d0c146a1816e6d1ecf4dd4299791d2a54a60a70ee8c0293c14029b7c5f1c40bf36e2838f38ff8bffa3326f04",
       "size": 4747295,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": false
     },
     {
       "slug": "inventory-profiles-next",
@@ -375,7 +403,8 @@
       "sha1": "b09d7c0820c233ea34af54d0a3ab7ed510b32dcc",
       "sha512": "521296cc7e4fa48e06eb0c00d430968c7b879946db5b02e632cc724672759ac152e11bd9d320bd09f7418edd6fe4ece521a1a2cac49d7f5687519c69a0bcbf12",
       "size": 1295466,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": true
     },
     {
       "slug": "iron-jetpacks",
@@ -388,7 +417,8 @@
       "sha1": "96bdaf7fa57b73a3c157edfc5d1afbfc2e23a65d",
       "sha512": "944821c20be19c2e55262f606de392ce491ab4998fe3469030fb00fc95d47f3e1c87389c4f132c1accbbc2774692b90dbeae3c168c0301d3f4b52b7a2658705a",
       "size": 154859,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": false
     },
     {
       "slug": "jade",
@@ -401,7 +431,8 @@
       "sha1": "88ee316e68900080b017f60c12162e2731924cf8",
       "sha512": "dad9755dce8d85d914fc4df2baa0211f13e5839a71c1925fdd01f69081a95e30a2934e6273f8b01f0169adebe7a9dae57a8d904de0c4cb36dc17369bb474f0f2",
       "size": 726853,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": false
     },
     {
       "slug": "jei",
@@ -414,7 +445,8 @@
       "sha1": "d19552586f686eae4ef5e7199f31604d1d3cfca7",
       "sha512": "a6ca3abc3080f6f41033a77cb955fefe9f9ebae795c33546227f555b2d31e8d4131cc705126d14a3fbabb31097fc0e876dc0bbeb05ad907a1b796f21e57527bf",
       "size": 1804792,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": false
     },
     {
       "slug": "kotlin-for-forge",
@@ -427,7 +459,8 @@
       "sha1": "d10d062caf1aad9aec82d7852f2fee1781735c1f",
       "sha512": "b8c3942f4d33179edf3f102f3d870b99dd436f8b8236dbbd31aa51b888162c692cfd88927295f24dc8b4375232f4c6c17360c5d6c4823f93cbcd7cf4bdc8bd14",
       "size": 7279264,
-      "needed_by": "inventory-profiles-next"
+      "needed_by": "inventory-profiles-next",
+      "client_only": false
     },
     {
       "slug": "libipn",
@@ -440,7 +473,8 @@
       "sha1": "baab9e8cae3d2b77b5e172b5694e465ee9f30d4a",
       "sha512": "89383465eb8dfa296e7518dd0e6ddc1a242f4537a3183425f2319c79a3e97843ded0f5e13f86b095f2f09beacd2a1f249f554e0f4e18291209720826031a8b93",
       "size": 626146,
-      "needed_by": "inventory-profiles-next"
+      "needed_by": "inventory-profiles-next",
+      "client_only": true
     },
     {
       "slug": "lithium",
@@ -453,7 +487,8 @@
       "sha1": "97212e45c963730bbfc7c44780df99317814c21b",
       "sha512": "2735da2088b88a8bdcd4ad02a2b6fffbfd3925557cefd4fa54b5477dfb9e582ea7f521300c060f57dff1325dd21bff276b7333363ad3371ed6893e3de9eca9cd",
       "size": 774220,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": false
     },
     {
       "slug": "mekanism",
@@ -466,7 +501,8 @@
       "sha1": "b78945c40cfe7640408f3fd1e44da385a8c8b805",
       "sha512": "66745825330a98f3e4a5ea3a44aff8b00870f715c144edc38dd2f61b4240589600b58ae89efac3b54dbb5aa430b1059dac1a28fd71cac5cc9002bbeb5ba3f22b",
       "size": 11976009,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": false
     },
     {
       "slug": "mekanism-generators",
@@ -479,7 +515,8 @@
       "sha1": "44c4d8006597580ff7e4101b5a22f7b426cdcaf6",
       "sha512": "6c3d5b7ea2f67f43c3d169c97de2855a7085f38019cf426e015ccc8ca9bc4f66e96b1cdf4a9afdc92bef7b2e236f16c81415ed5e48736805d5961d29525316d6",
       "size": 1114598,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": false
     },
     {
       "slug": "mekanism-tools",
@@ -492,7 +529,8 @@
       "sha1": "4433b3eec0a5a0bf415d873e710a1cecea5850bc",
       "sha512": "0dccc47efbb9e3bf3b7df886cefff4a6b9a3f683bf0df3e54409dc3a4c6459eef95ce0af93adf345b868e5b7dcb7a2bb0af68f0a94acfa69975bfbb278e4902f",
       "size": 526620,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": false
     },
     {
       "slug": "mffs",
@@ -505,7 +543,8 @@
       "sha1": "2a1b3dfdf2b6385ec56947a8ad1dcb29ef7d40db",
       "sha512": "a62f9d295829a59c90767ae0a626e0942693bbc505c13bebabe5933db73fd59272717c7a1b35c77b483f39994b4a102656ff018b99fb5908cb185c11573251ce",
       "size": 3328937,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": false
     },
     {
       "slug": "modernfix",
@@ -518,7 +557,8 @@
       "sha1": "69d468b70e53f6a014c778a81116a41a38fbab33",
       "sha512": "37c76fc5bc72cfc1035260f891ffeb45b4f32651d2e490c5eb8c60f3b5686deca3145b32d4fab9036f65f5277b0ac66f4ad3855e52cd973e791b09e9c4b896d8",
       "size": 611043,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": false
     },
     {
       "slug": "mouse-tweaks",
@@ -531,7 +571,8 @@
       "sha1": "6dae57f4f50f7808d2ed9a18f6cd1c0d4640c6bc",
       "sha512": "f95c0cc881211ee0442434976775e07aae40b4a2ba4e3a85455bc57ca9d3c991e239cd98374a8abd442dc9c378dcd9001e2caa1bf69991d424b5652dd7f3483b",
       "size": 73938,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": true
     },
     {
       "slug": "polymorph",
@@ -544,7 +585,8 @@
       "sha1": "84f8c539fa326dc723ae62b7a6916d6b01982d07",
       "sha512": "37358e19d8f251b7d435ea5198eded7b1361e90d5728e11fcb15aeb55786f4ee10fd8fecd14b11f34a99bd92aea01a9977c0dbc46ab6bb07af61a6c89455b6ff",
       "size": 174972,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": false
     },
     {
       "slug": "powah",
@@ -557,7 +599,8 @@
       "sha1": "f134ab3e0ace3793abf93129e318eb817898a4e1",
       "sha512": "41d616d3d944faaee2cde4d15b3fc35cdd154690169f43d8436e6432df50db90355ca5fef78bd0f7864d97d9a14039280c8fb78d8c3e1d407618c7ccff47d97f",
       "size": 2737991,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": false
     },
     {
       "slug": "project-red-core",
@@ -570,7 +613,8 @@
       "sha1": "bcc5cb2a7b7fd9acae27280d32d8568369cc6880",
       "sha512": "4880605241bfa4ae6c31cc2af2203ff58d9726a568a87f68f8b27f156d8427038098ca0c5bdc56ee8bdf1767723d7866e7312a9757489bd2f0a21a2be6ca51ff",
       "size": 778546,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": false
     },
     {
       "slug": "project-red-expansion",
@@ -583,7 +627,8 @@
       "sha1": "751480739e68de63a328f2f82bab5a89a79562ad",
       "sha512": "58c8837b516f35ccafce3f771d03a784d093477ccbdc40f7b50655e90ec10d28381ced2cc4e35965ed872c905d77eca33431a8d4c8435f3670ad60e65631353b",
       "size": 1145065,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": false
     },
     {
       "slug": "project-red-exploration",
@@ -596,7 +641,8 @@
       "sha1": "12ed2d2e651292f3a6295fbefbfc72b04897e389",
       "sha512": "96ca3403354aa308b974b4bbf0625daa76c84d079298d768311c988071a0e0408bb9780dbd83dba346176f476260c93d9d0703634745527e1b9b46ed3eba61bb",
       "size": 518695,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": false
     },
     {
       "slug": "project-red-fabrication",
@@ -609,7 +655,8 @@
       "sha1": "5b424bcf3d7912dd4700989abc0964d7015ed226",
       "sha512": "198adcba4bd9ddb9feb1c0470bf0d2d3bc468a2cc4a11ac339917d37c6e6d433575de2e398494c7ec56313689467a09a6aa514c510b02a7111a1dcaa5511a206",
       "size": 790185,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": false
     },
     {
       "slug": "project-red-illumination",
@@ -622,7 +669,8 @@
       "sha1": "1b660f94e181f0e6177925f36537bb0d20183165",
       "sha512": "1a6c1a9070d09c0d1b66be61f3d06a19dfa004c99bc93c4cee40998446fd881f8dbd0aa0860386b389393fd869248df33f8c281e8b4a8d84216a3899ea88d2f7",
       "size": 789249,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": false
     },
     {
       "slug": "project-red-integration",
@@ -635,7 +683,8 @@
       "sha1": "ddaa7d72e9433a215da18f1272627b5eaf5decd6",
       "sha512": "490c2e15e3283b21541252f54e66e52271002c35c3ea1b70099081c4bd7058fddb05aa13bdd9fd4ae90850df2f53d2399fa947d7e08b421391120ba3b8f82006",
       "size": 3569322,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": false
     },
     {
       "slug": "project-red-transmission",
@@ -648,7 +697,8 @@
       "sha1": "107c31ebf56db13150a29f63a6816cc6c7167ffc",
       "sha512": "e5911856eb2e4f4604a47e5bb7b37733171a5889a183e5b72b45c0d1fd9e8edbbae63419d2c07a3d4817c46ee93ad6c3f03fc8deaa642d2bb23d1487fd32edf9",
       "size": 479032,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": false
     },
     {
       "slug": "railcraft-reborn",
@@ -661,7 +711,8 @@
       "sha1": "4652cbc3c97d98f8a2876d0ab60e72e6b9e153f7",
       "sha512": "d8507d185d666b5f11b1c0d720d71acfddf4369557fe304ced0e2396e0fccc5a0f1c74e7793ed8a4067782d9f4fe86d7c2a6565c8686498a8ccc92fec7f3acc8",
       "size": 5292176,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": false
     },
     {
       "slug": "sodium",
@@ -674,7 +725,8 @@
       "sha1": "1757289be21ed18db5b0d90703fa3db1b2de5693",
       "sha512": "4f537696af95411e9daf15795fb5fcbc49913d488a96fa912fa8f1d7db408710995e8a1461190f3cd0f8217bf9e35e9539176592428ed587ca2d7aa84450a390",
       "size": 1292934,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": true
     },
     {
       "slug": "solar-flux-reborn",
@@ -687,7 +739,8 @@
       "sha1": "0326e609d6e8319ac48165cc9bdc708e6b0fac4c",
       "sha512": "114f8b11a22f94a245d021633a66c30cbd3a8f57995f40b7a27fe22f53ac26817bdb63efdae80e546c0049a0f2bbf1881db31075a1fc95311f8bd62d714856de",
       "size": 303598,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": false
     },
     {
       "slug": "sophisticated-backpacks",
@@ -700,7 +753,8 @@
       "sha1": "36c1a14f2dc47c890df9b6b74387e731355d37a6",
       "sha512": "19b503080d0bd0e522e0934fda0b4922f2f0d5ad946103e5daf86be86e01e5e8ec6744f34e915b41fc4d1578fc6cacf004cca5d10ab8bdf76d2f26831e07bb65",
       "size": 1247030,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": false
     },
     {
       "slug": "sophisticated-core",
@@ -713,7 +767,8 @@
       "sha1": "1385b46ecbac757d48cbc48bb3ad8d2072446b96",
       "sha512": "ee0a6a455835d9ca85d5cc6b959f1587a5d36a1173081a38a1ad159ba868eedc5e0dd9a23b5c51b06ab1fb6d5f9b1556b622570fb6c04b98e0ebce56cacf6fd5",
       "size": 1818063,
-      "needed_by": "sophisticated-storage"
+      "needed_by": "sophisticated-storage",
+      "client_only": false
     },
     {
       "slug": "sophisticated-storage",
@@ -726,7 +781,8 @@
       "sha1": "cfcd5fa08087601ac876fe9624505f58b4045ed6",
       "sha512": "c3cec1696fb29846abd9e07b8e8e76367db8c8ee236ad08940d0a7793fd4a6a91e53f6ed04bd65ef384c567be6b014ae40624f3b30ae50644f9cedd9eccdc697",
       "size": 1929974,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": false
     },
     {
       "slug": "storagedrawers",
@@ -739,7 +795,8 @@
       "sha1": "b8e11e3d1fd63fd1a0d9277ec3f966c7e5cff385",
       "sha512": "df97b8b5053a902264a236a71e7585b78d9d48a0bce585033aa8b169896d775f6fda462cfc77431af79cc596ab356eb9642e0c69a205a46b02d4d6f7ab3e74e9",
       "size": 1131420,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": false
     },
     {
       "slug": "supermartijn642s-config-lib",
@@ -752,7 +809,8 @@
       "sha1": "07452242e389975e8a88b97066f4bae6a4ebe574",
       "sha512": "768d8ca178c5e653986f5131b7aeb7fa57ce7d32c16ed399ced01b273565a2b640130c55c7092747efeff40dbb0348876b18b415f59b0d16dd2c7f32f1798ce2",
       "size": 207514,
-      "needed_by": "chunk-loaders"
+      "needed_by": "chunk-loaders",
+      "client_only": false
     },
     {
       "slug": "supermartijn642s-core-lib",
@@ -765,7 +823,8 @@
       "sha1": "60d45feac8cd2f0b497b013c7fd501b3ae8b6f6d",
       "sha512": "c9c4f22ed1657da646331f519e5d40495cc7e92a6683800691823dfcaf858973c8f202285322c095ebeca245c6a512aa8edf83a97c8a65be0080f9b176f5c2e2",
       "size": 562683,
-      "needed_by": "chunk-loaders"
+      "needed_by": "chunk-loaders",
+      "client_only": false
     },
     {
       "slug": "titanium",
@@ -778,7 +837,8 @@
       "sha1": "aeb581ba5bdaac3bf3d48bee78488151e9c3dfd1",
       "sha512": "59a1470b5b3e103f52fa9c0f2f334bb3b28cdbaba74c95234528a40a558596d598227968e5812502a41a9ee24993b00c748cee913abae8fbb4ab7df79d04ab29",
       "size": 608070,
-      "needed_by": "industrial-foregoing"
+      "needed_by": "industrial-foregoing",
+      "client_only": false
     },
     {
       "slug": "waystones",
@@ -791,7 +851,8 @@
       "sha1": "75718161662d9ec957ba22e10e497788ec1687ba",
       "sha512": "ca90b58d884d4bc2b08a870484ae7ede397e71d31eaaf01ff2603ad498d584763e099c2094e57031522385339705d2c011ed4910bf36efae688e64935b49ece9",
       "size": 1223229,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": false
     },
     {
       "slug": "xaeros-minimap",
@@ -804,7 +865,8 @@
       "sha1": "551e8e2aa3498b506cc949a74606cdc0380e5e00",
       "sha512": "d56b93ddb921285624b491d6a85aba23748bec9974867399c881c257eb25a746df92a735473adf3a6875e0928a56ff78245d5238eb9207b0e45c3fec20c896dc",
       "size": 2186351,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": false
     },
     {
       "slug": "xaeros-world-map",
@@ -817,7 +879,8 @@
       "sha1": "2936c9cb9dfbdab145fe6f1e8ae2c68915246a5f",
       "sha512": "4d2d78bc85afa002f682ef344b7284cf1baa4903cc5a11cd1d7bd260ac63952580ae717bab47079540ead633cdd5d8e4fdf230dc99a68bcb7a269500e7dada13",
       "size": 1427078,
-      "needed_by": null
+      "needed_by": null,
+      "client_only": false
     },
     {
       "slug": "zerocore",
@@ -830,7 +893,8 @@
       "sha1": "c7e7f135039df964a704245d05ca41ff2df2f496",
       "sha512": "955cbf2729f03e539e069231d0015f5dcc74cecdf1d5de51cc942bc9397e789cae0e5fd941a6a73bc6ce11d046ba7cb66cca02f6fc4fd7f48fa05fe1bd0f5884",
       "size": 1529900,
-      "needed_by": "extreme-reactors"
+      "needed_by": "extreme-reactors",
+      "client_only": false
     }
   ],
   "curseforge": [

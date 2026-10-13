@@ -18,7 +18,8 @@ index = {
     "name": "Routed Pipes Pack",
     "summary": "A Tekkit of today around Routed Pipes: Mekanism, Project Red, ComputerCraft, Railcraft, AE2, Ender Storage and friends.",
     "files": [{"path": "mods/" + mod["file"], "hashes": {"sha1": mod["sha1"], "sha512": mod["sha512"]},
-               "env": {"client": "required", "server": "required"}, "downloads": [mod["url"]], "fileSize": mod["size"]}
+               "env": {"client": "required", "server": "unsupported" if mod["client_only"] else "required"},
+               "downloads": [mod["url"]], "fileSize": mod["size"]}
               for mod in mods],
     "dependencies": {"minecraft": "1.21.1", "neoforge": neoforge},
 }

@@ -40,7 +40,7 @@ while queue:
     locked[info["id"]] = {"slug": info["slug"], "name": info["title"], "version": version["version_number"],
                           "kind": version["version_type"], "id": version["id"], "file": file["filename"], "url": file["url"],
                           "sha1": file["hashes"]["sha1"], "sha512": file["hashes"]["sha512"], "size": file["size"],
-                          "needed_by": needed_by}
+                          "needed_by": needed_by, "client_only": info["server_side"] == "unsupported"}
     for dependency in version["dependencies"]:
         if dependency["dependency_type"] == "required" and dependency["project_id"]:
             queue.append((dependency["project_id"], info["slug"]))
@@ -51,11 +51,13 @@ if missing:
 mods = sorted(locked.values(), key=lambda mod: mod["slug"])
 (ROOT / "pack/mods.lock.json").write_text(json.dumps({"modrinth": mods, "curseforge": curseforge}, indent=2) + "\n")
 lines = ["// written by scripts/resolve_pack.py from pack/mods.txt, do not edit", "dependencies {"]
-lines += [f"    packMods 'maven.modrinth:{mod['slug']}:{mod['id']}'" for mod in mods]
+# a mod that says it does not run on a server is kept out of the server's folder, some of them crash it
+lines += [f"    {'packClientMods' if mod['client_only'] else 'packMods'} 'maven.modrinth:{mod['slug']}:{mod['id']}'" for mod in mods]
 lines += [f"    packMods 'curse.maven:{mod['slug']}-{mod['project']}:{mod['file']}'" for mod in curseforge]
 (ROOT / "pack/mods.gradle").write_text("\n".join(lines + ["}"]) + "\n")
 for mod in mods:
-    print(f"{mod['slug']:32s} {mod['version'][:30]:30s} {mod['kind']:8s}" + (f" for {mod['needed_by']}" if mod["needed_by"] else ""))
+    print(f"{mod['slug']:32s} {mod['version'][:30]:30s} {mod['kind']:8s}" + (" client only" if mod["client_only"] else "")
+          + (f" for {mod['needed_by']}" if mod["needed_by"] else ""))
 for mod in curseforge:
     print(f"{mod['slug']:32s} file {mod['file']:25s} curseforge")
 print(len(mods) + len(curseforge), "mods")

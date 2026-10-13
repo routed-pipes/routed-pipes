@@ -71,6 +71,10 @@ configurations {
     packMods {
         transitive = false
     }
+    // the ones that only run on a client
+    packClientMods {
+        transitive = false
+    }
 }
 
 base {
@@ -170,7 +174,7 @@ neoForge {
         // the scripted client with every mod of the play pack, started by scripts/visual-test.sh pack
         visualTestPack {
             client()
-            gameDirectory = project.file('run-pack-check')
+            gameDirectory = project.file('run-pack-client-check')
             systemProperty 'routedpipes.visualTest', project.file('build/visual-test-pack').absolutePath
             programArguments.addAll '--width', '854', '--height', '480'
         }
@@ -343,7 +347,7 @@ def quietOptions = tasks.register('quietClientOptions') {
                    (file('run-compat/options.txt')): 'onboardAccessibility:false\nnarrator:0\nsoundCategory_master:0.0\n',
                    (file('run-pack/options.txt')): 'onboardAccessibility:false\nnarrator:0\n',
                    (file('run-visual/options.txt')): 'onboardAccessibility:false\nnarrator:0\nsoundCategory_master:0.0\n',
-                   (file('run-pack-check/options.txt')): 'onboardAccessibility:false\nnarrator:0\nsoundCategory_master:0.0\n']
+                   (file('run-pack-client-check/options.txt')): 'onboardAccessibility:false\nnarrator:0\nsoundCategory_master:0.0\n']
     doLast {
         targets.each { options, content ->
             if (!options.exists()) {
@@ -369,7 +373,7 @@ tasks.matching { it.name in ['runGameTestServerCompat', 'runVisualTestCompat'] }
 // the play pack has its own list of mods, see pack/mods.txt. The folder is kept the same as the list,
 // so a mod dropped in by hand is gone after the next start, add it to the list instead
 def copyPackMods = tasks.register('copyPackMods', Sync) {
-    from configurations.packMods
+    from configurations.packMods, configurations.packClientMods
     into 'run-pack/mods'
 }
 tasks.matching { it.name == 'runClientPack' }.configureEach {
@@ -379,8 +383,15 @@ def copyPackCheckMods = tasks.register('copyPackCheckMods', Sync) {
     from configurations.packMods
     into 'run-pack-check/mods'
 }
-tasks.matching { it.name in ['runGameTestServerPack', 'runVisualTestPack'] }.configureEach {
+tasks.matching { it.name == 'runGameTestServerPack' }.configureEach {
     dependsOn copyPackCheckMods
+}
+def copyPackClientCheckMods = tasks.register('copyPackClientCheckMods', Sync) {
+    from configurations.packMods, configurations.packClientMods
+    into 'run-pack-client-check/mods'
+}
+tasks.matching { it.name == 'runVisualTestPack' }.configureEach {
+    dependsOn copyPackClientCheckMods
 }
 
 // the mods of the play pack, pinned by scripts/resolve_pack.py
