@@ -37,6 +37,8 @@ public final class Benchmark {
     private static final int DRAIN_TICKS = 900;
     private static final int CHUNK_CYCLE = 200;
 
+    private static final java.lang.management.ThreadMXBean THREADS = java.lang.management.ManagementFactory.getThreadMXBean();
+
     private final Path output;
     private final int[] size;
     private final String scenario;
@@ -46,6 +48,9 @@ public final class Benchmark {
     private BenchmarkBase base;
     private int tick;
     private long tickStarted;
+    // processor time the server thread used, which other programs on the machine do not stretch like they do the clock
+    private long cpuStarted;
+    private long cpuUnderLoad;
     private long heapEmpty;
     private long heapBuilt;
     private long returned;
@@ -65,7 +70,10 @@ public final class Benchmark {
         }
         int[] size = Arrays.stream(System.getProperty(SIZE_PROPERTY, "20x20x4").split("x")).mapToInt(Integer::parseInt).toArray();
         Benchmark benchmark = new Benchmark(Path.of(file), size, System.getProperty(SCENARIO_PROPERTY, "sorting"));
-        NeoForge.EVENT_BUS.addListener((ServerTickEvent.Pre event) -> benchmark.tickStarted = System.nanoTime());
+        NeoForge.EVENT_BUS.addListener((ServerTickEvent.Pre event) -> {
+            benchmark.tickStarted = System.nanoTime();
+            benchmark.cpuStarted = THREADS.getCurrentThreadCpuTime();
+        });
         NeoForge.EVENT_BUS.addListener((ServerTickEvent.Post event) -> benchmark.afterTick(event.getServer()));
     }
 
@@ -77,6 +85,7 @@ public final class Benchmark {
 
     private void afterTick(MinecraftServer server) {
         long took = System.nanoTime() - tickStarted;
+        long cpu = THREADS.getCurrentThreadCpuTime() - cpuStarted;
         tick++;
         int idleStart = BUILD_AT + SETTLE_TICKS;
         int loadStart = idleStart + IDLE_TICKS;
@@ -94,6 +103,7 @@ public final class Benchmark {
             idle[tick - idleStart - 1] = took;
         } else if (tick > loadStart && tick <= drainStart) {
             load[tick - loadStart - 1] = took;
+            cpuUnderLoad += cpu;
             underLoad(tick - loadStart);
         } else if (tick == drainStart + 1) {
             // everything is loaded again, nothing new comes in, and what is under way gets time to arrive
@@ -159,6 +169,7 @@ public final class Benchmark {
                         + base.pipes() + " pipes",
                 "tick time idle: " + summary(idle),
                 "tick time under load: " + summary(load),
+                String.format("processor time per tick under load: %.2f ms", cpuUnderLoad / 1e6 / LOAD_TICKS),
                 String.format("items sorted per second: %.0f", base.delivered / (LOAD_TICKS / 20.0)),
                 "items in the wrong chest: " + base.missorted,
                 "items dropped: " + dropped,

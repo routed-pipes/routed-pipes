@@ -88,6 +88,42 @@ class LogisticsNetworkFuzzyTest {
     }
 
     @Test
+    void whatAMachineWithAFuzzyResultHoldsSpareIsThereForTheTaking() {
+        ItemType anySword = new FuzzyType(SWORD, IGNORE_DAMAGE);
+        crafting.crafts = List.of(new CraftingSetup(new Recipe(List.of(batch("iron", 1)), new ItemBatch(anySword, 1)), List.of(), 0, 0));
+        crafting.contents.put(SWORD, 2);
+        crafting.contents.put(SWORD.worn(3), 1);
+
+        assertThat(network.available(REQUEST)).containsEntry(SWORD, 2).containsEntry(SWORD.worn(3), 1);
+        assertThat(network.request(REQUEST, new ItemBatch(SWORD, 2), NOW).started()).isTrue();
+        assertThat(crafting.shipments).containsExactly(new Shipment(new ItemBatch(SWORD, 2), REQUEST));
+    }
+
+    @Test
+    void whatAMachineWithAFuzzyResultOwesIsNotSpare() {
+        provider.stock("iron", 8);
+        ItemType anySword = new FuzzyType(SWORD, IGNORE_DAMAGE);
+        crafting.crafts = List.of(new CraftingSetup(new Recipe(List.of(batch("iron", 1)), new ItemBatch(anySword, 1)), List.of(), 0, 0));
+        network.request(REQUEST, new ItemBatch(SWORD, 2), NOW);
+        crafting.contents.put(SWORD.worn(3), 3);
+
+        assertThat(network.available(REQUEST)).containsEntry(SWORD.worn(3), 1);
+    }
+
+    @Test
+    void aFuzzyResultThatArrivedIsNoLongerOnItsWay() {
+        provider.stock("iron", 8);
+        ItemType anySword = new FuzzyType(SWORD, IGNORE_DAMAGE);
+        crafting.crafts = List.of(new CraftingSetup(new Recipe(List.of(batch("iron", 1)), new ItemBatch(anySword, 1)), List.of(), 0, 0));
+        network.request(REQUEST, new ItemBatch(SWORD, 2), NOW);
+        assertThat(network.onTheWayTo(REQUEST, NOW + 1).values()).containsExactly(2);
+
+        network.chooseExit(REQUEST, new TravellingItem(new ItemBatch(SWORD.worn(3), 2), Side.EAST, REQUEST), NOW + 10);
+
+        assertThat(network.onTheWayTo(REQUEST, NOW + 11)).isEmpty();
+    }
+
+    @Test
     void aSinkWithFlagsTakesWhatMatchesBeforeADefaultRouteDoes() {
         FakeNode fuzzy = new FakeNode(PipeKind.BASIC);
         fuzzy.sink = new FuzzySink(List.of(new FuzzyType(SWORD, IGNORE_DAMAGE)));

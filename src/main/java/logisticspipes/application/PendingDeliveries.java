@@ -2,6 +2,7 @@ package logisticspipes.application;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -21,21 +22,36 @@ final class PendingDeliveries {
         }
     }
 
-    private record Key(RouterId destination, ItemType type) {
-    }
-
-    // in the order they were first expected
-    private final Map<Key, Deque<Expected>> expected = new LinkedHashMap<>();
+    // per router and in the order they were first expected
+    // a crafter with a fuzzy result is expected under its fuzzy type, whatever it makes counts for that
+    private final Map<RouterId, Map<ItemType, Deque<Expected>>> expected = new HashMap<>();
 
     void expect(RouterId destination, ItemType type, int count, long deadline) {
         if (count > 0) {
-            expected.computeIfAbsent(new Key(destination, type), key -> new ArrayDeque<>()).add(new Expected(count, deadline));
+            expected.computeIfAbsent(destination, key -> new LinkedHashMap<>()).computeIfAbsent(type, key -> new ArrayDeque<>())
+                    .add(new Expected(count, deadline));
         }
     }
 
     void arrived(RouterId destination, ItemType type, int count) {
-        Key key = new Key(destination, type);
-        Deque<Expected> queue = expected.get(key);
+        Map<ItemType, Deque<Expected>> here = expected.get(destination);
+        if (here == null) {
+            return;
+        }
+        int left = arrived(here.get(type), count);
+        for (Map.Entry<ItemType, Deque<Expected>> entry : here.entrySet()) {
+            if (left > 0 && !entry.getKey().equals(type) && entry.getKey().accepts(type)) {
+                left = arrived(entry.getValue(), left);
+            }
+        }
+        here.values().removeIf(Deque::isEmpty);
+        if (here.isEmpty()) {
+            expected.remove(destination);
+        }
+    }
+
+    // what is left of the count after the oldest expectations took theirs
+    private static int arrived(Deque<Expected> queue, int count) {
         int left = count;
         while (queue != null && left > 0 && !queue.isEmpty()) {
             Expected oldest = queue.peek();
@@ -46,48 +62,49 @@ final class PendingDeliveries {
                 queue.poll();
             }
         }
-        if (queue != null && queue.isEmpty()) {
-            expected.remove(key);
-        }
+        return left;
     }
 
     int expected(RouterId destination, ItemType type, long now) {
-        Key key = new Key(destination, type);
-        Deque<Expected> queue = expected.get(key);
-        if (queue == null) {
+        Map<ItemType, Deque<Expected>> here = expected.get(destination);
+        if (here == null) {
             return 0;
         }
-        queue.removeIf(entry -> entry.deadline <= now);
-        if (queue.isEmpty()) {
-            expected.remove(key);
-            return 0;
+        int count = 0;
+        for (Map.Entry<ItemType, Deque<Expected>> entry : here.entrySet()) {
+            if (entry.getKey().accepts(type)) {
+                entry.getValue().removeIf(one -> one.deadline <= now);
+                count += entry.getValue().stream().mapToInt(one -> one.count).sum();
+            }
         }
-        return queue.stream().mapToInt(entry -> entry.count).sum();
+        here.values().removeIf(Deque::isEmpty);
+        if (here.isEmpty()) {
+            expected.remove(destination);
+        }
+        return count;
     }
 
     // everything that is still on its way to a router
     Map<ItemType, Integer> expectedAt(RouterId destination, long now) {
         Map<ItemType, Integer> counts = new LinkedHashMap<>();
-        for (Map.Entry<Key, Deque<Expected>> entry : expected.entrySet()) {
-            if (entry.getKey().destination().equals(destination)) {
-                int count = entry.getValue().stream().filter(one -> one.deadline > now).mapToInt(one -> one.count).sum();
-                if (count > 0) {
-                    counts.put(entry.getKey().type(), count);
-                }
+        expected.getOrDefault(destination, Map.of()).forEach((type, queue) -> {
+            int count = queue.stream().filter(one -> one.deadline > now).mapToInt(one -> one.count).sum();
+            if (count > 0) {
+                counts.merge(type.exact(), count, Integer::sum);
             }
-        }
+        });
         return counts;
     }
 
     // what is still expected keeps being expected until at least the deadline
     void extend(RouterId destination, ItemType type, long deadline) {
-        Deque<Expected> queue = expected.get(new Key(destination, type));
+        Deque<Expected> queue = expected.getOrDefault(destination, Map.of()).get(type);
         if (queue != null) {
             queue.forEach(entry -> entry.deadline = Math.max(entry.deadline, deadline));
         }
     }
 
     void forget(RouterId destination) {
-        expected.keySet().removeIf(key -> key.destination().equals(destination));
+        expected.remove(destination);
     }
 }

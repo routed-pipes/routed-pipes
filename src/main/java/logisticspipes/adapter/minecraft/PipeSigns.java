@@ -72,6 +72,7 @@ public final class PipeSigns {
         if (!faces.place(Directions.toDomain(face), kind, pipe.kind())) {
             return false;
         }
+        pipe.signsNeedTicks(true);
         changed();
         return true;
     }
@@ -80,6 +81,7 @@ public final class PipeSigns {
         if (faces.remove(Directions.toDomain(face)).isEmpty()) {
             return false;
         }
+        pipe.signsNeedTicks(!faces.isEmpty());
         items.setItem(face.get3DDataValue(), ItemStack.EMPTY);
         changed();
         return true;
@@ -112,7 +114,7 @@ public final class PipeSigns {
 
     void tick() {
         long now = pipe.getLevel().getGameTime();
-        if (faces.isEmpty() || Math.floorMod(now + pipe.getBlockPos().hashCode(), INTERVAL) != 0) {
+        if (Math.floorMod(now + pipe.getBlockPos().hashCode(), INTERVAL) != 0) {
             return;
         }
         // not when a pipe next to this one has just counted for it
@@ -255,6 +257,7 @@ public final class PipeSigns {
                 views.put(Directions.toMinecraft(side.get()), SignView.load(sign.getCompound("View"), registries));
             }
         }
+        pipe.signsNeedTicks(!faces.isEmpty());
         if (tag.contains("Items")) {
             ContainerTags.load(items, tag.getCompound("Items"), registries);
         }

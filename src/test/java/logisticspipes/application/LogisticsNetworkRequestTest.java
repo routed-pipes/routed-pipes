@@ -900,6 +900,24 @@ class LogisticsNetworkRequestTest {
     }
 
     @Test
+    void whatIsOrderedFromAnotherProviderIsPaidForOnce() {
+        connect();
+        provider.provided = Map.of(item("coal"), 20);
+        provider.contents.put(item("coal"), 8);
+        FakeNode second = new FakeNode(PipeKind.PROVIDER);
+        second.stock("coal", 64);
+        network.addRouter(ISLAND, second, BUILT);
+        network.updateLinks(ISLAND, List.of(new Link(REQUEST, Side.WEST, 9)), BUILT);
+        network.updateLinks(REQUEST, List.of(new Link(PROVIDER, Side.EAST, 1), new Link(ISLAND, Side.WEST, 9)), BUILT);
+        List<FakeNode> all = List.of(request, provider, crafting, satellite, supplier, second);
+        int before = all.stream().mapToInt(node -> node.power).sum();
+
+        assertThat(network.request(REQUEST, batch("coal", 20), 0).started()).isTrue();
+
+        assertThat(before - all.stream().mapToInt(node -> node.power).sum()).isEqualTo(20 * LogisticsNetwork.ENERGY_PER_PROVIDED_ITEM);
+    }
+
+    @Test
     void aSupplierCountsWhatItsInventoryHoldsEvenWhereNothingCanBeTakenOut() {
         connect();
         provider.stock("ore", 64);

@@ -119,6 +119,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     private final SimpleContainer config = new SimpleContainer(CONFIG_SLOTS);
     private final SimpleContainer modules = new SimpleContainer(MODULE_SLOTS);
     private final SimpleContainer upgrades = new SimpleContainer(UPGRADE_SLOTS);
+    private int[] upgradeCounts;
     // two slots for every module slot of a chassis, in the order of the modules
     private final SimpleContainer moduleUpgrades = new SimpleContainer(MODULE_SLOTS * UPGRADES_PER_MODULE);
     // the row of sneaky upgrades a combination upgrade unlocks
@@ -190,6 +191,12 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     // only system entrance and destination pipes have this
     private FrequencySlot frequency;
     private boolean announced;
+    // what the tick asks every time is kept right here and not in the parts it is about
+    // ticks until the pipe looks whether its network has power, negative before the first tick
+    private int lookIn = -1;
+    private boolean lookAgain;
+    private boolean signsNeedTicks;
+    private boolean suppliesPower;
     private LogisticsNetwork network;
     private Map<ItemType, Integer> contentsCache;
     // what the inventories hold, also what cannot be taken out, looked up at most once per tick
@@ -237,6 +244,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         // a crafter that cleans up keeps what is on its list unless told otherwise
         exclude = kind() == PipeKind.CRAFTING;
         config.addListener(container -> settingsChanged());
+        upgrades.addListener(container -> upgradeCounts = null);
         modules.addListener(container -> settingsChanged());
         upgrades.addListener(container -> {
             if (disconnected != 0 && upgradeCount(UpgradeKind.DISCONNECTION) == 0) {
@@ -281,6 +289,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         inventorySidesCache = null;
         junctionsCache = null;
         contentsCache = null;
+        if (announced && level != null && !level.isClientSide && pipe().routed()) {
+            network().powerSourcesChanged();
+        }
         if (fluids != null) {
             fluids.neighbourChanged();
         }
@@ -480,8 +491,30 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         return Math.min(count, kind.most());
     }
 
+    // asked many times a tick, so counted once until the slots change
     private int upgradeCount(UpgradeKind kind) {
-        return count(upgrades, 0, UPGRADE_SLOTS, kind);
+        if (upgradeCounts == null) {
+            upgradeCounts = new int[UpgradeKind.values().length];
+            suppliesPower = false;
+            for (int slot = 0; slot < UPGRADE_SLOTS; slot++) {
+                if (upgrades.getItem(slot).getItem() instanceof UpgradeItem upgrade) {
+                    upgradeCounts[upgrade.kind().ordinal()] += upgrades.getItem(slot).getCount();
+                    suppliesPower |= upgrade.kind() == UpgradeKind.POWER_SUPPLIER_RF;
+                }
+            }
+        }
+        return Math.min(upgradeCounts[kind.ordinal()], kind.most());
+    }
+
+    private boolean suppliesPower() {
+        if (upgradeCounts == null) {
+            upgradeCount(UpgradeKind.POWER_SUPPLIER_RF);
+        }
+        return suppliesPower;
+    }
+
+    void signsNeedTicks(boolean needed) {
+        signsNeedTicks = needed;
     }
 
     boolean hasUpgrade(UpgradeKind kind) {
@@ -1045,8 +1078,14 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             return recipe().map(recipe -> List.of(new CraftingSetup(recipe, bySatellite(), priority, byproduct, fluids)))
                     .orElse(List.of());
         }
+        if (pipe().moduleSlots() == 0) {
+            return List.of();
+        }
         List<CraftingSetup> crafts = new ArrayList<>();
         for (int slot = 0; slot < pipe().moduleSlots(); slot++) {
+            if (!(modules.getItem(slot).getItem() instanceof ModuleItem module) || module.kind() != ModuleKind.CRAFTER) {
+                continue;
+            }
             ModuleItem.craftingOf(modules.getItem(slot), moduleUpgradeCount(slot, UpgradeKind.CRAFTING_BYPRODUCT) > 0,
                     moduleUpgradeCount(slot, UpgradeKind.ADVANCED_SATELLITE) > 0, moduleUpgradeCount(slot, UpgradeKind.FUZZY) > 0,
                     moduleUpgradeCount(slot, UpgradeKind.FLUID_CRAFTING)).ifPresent(crafts::add);
@@ -1199,8 +1238,17 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
             network().subSystemPower().updateStraightLinks(routerId, PipeTopology.straightNeighbours(level, worldPosition));
             look.showLinks(links);
         }
-        if (pipe().routed()) {
-            look.tick();
+        boolean routed = pipe().routed();
+        if (routed) {
+            // once a second, every pipe in a tick of its own so that a large base does not do it all at once
+            if (lookIn < 0) {
+                lookIn = Math.floorMod(-(level.getGameTime() + worldPosition.hashCode()), LogisticsNetwork.POWER_LOOK_INTERVAL);
+            }
+            boolean due = lookIn == 0;
+            lookIn = due ? LogisticsNetwork.POWER_LOOK_INTERVAL - 1 : lookIn - 1;
+            if (due || lookAgain) {
+                lookAgain = look.look();
+            }
         }
         if (table != null) {
             table.tick();
@@ -1214,8 +1262,10 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         if (fluids != null) {
             fluids.serverTick();
         }
-        if (pipe().routed()) {
+        if (routed && suppliesPower()) {
             power.serverTick();
+        }
+        if (signsNeedTicks) {
             signs.tick();
         }
         if (!transport.isEmpty()) {
@@ -1493,6 +1543,9 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     public List<PowerSource> powerSources() {
         if (junctionsCache == null || surroundingsStale()) {
             lookAround();
+        }
+        if (junctionsCache.isEmpty()) {
+            return List.of();
         }
         List<PowerSource> sources = new ArrayList<>();
         for (BlockPos target : junctionsCache) {

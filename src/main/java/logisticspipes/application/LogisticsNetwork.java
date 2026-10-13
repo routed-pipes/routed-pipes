@@ -1,6 +1,8 @@
 package logisticspipes.application;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -114,6 +116,9 @@ public final class LogisticsNetwork {
     // how long the answer to which groups of routers have energy is good for, in ticks
     public static final int POWER_LOOK_INTERVAL = 20;
     private final Set<Integer> poweredComponents = new HashSet<>();
+    // the energy stores of every group of connected routers, forgotten when the network changes and with every look
+    private final Map<Integer, List<PowerSource>> powerSourcesOf = new HashMap<>();
+    private long powerSourcesAfter = Long.MIN_VALUE;
     private long powerLookedAt = Long.MIN_VALUE / 2;
     private long powerLookedAfter = Long.MIN_VALUE / 2;
 
@@ -744,7 +749,9 @@ public final class LogisticsNetwork {
         if (simulate || !plan.complete() && (!partial || nothing)) {
             return new RequestOutcome(plan, true);
         }
-        if (!usePower(requester, providedItems(plan) * ENERGY_PER_PROVIDED_ITEM + extraEnergy)) {
+        // what a provider could not hand out after all was paid for with the first order
+        int forItems = cameShort.isEmpty() ? providedItems(plan) * ENERGY_PER_PROVIDED_ITEM : 0;
+        if (!usePower(requester, forItems + extraEnergy)) {
             return new RequestOutcome(plan, false);
         }
         execute(plan, fluidIngredients, now);
@@ -815,19 +822,43 @@ public final class LogisticsNetwork {
 
     // every energy store the router may draw from, each once however many routers touch it
     private List<PowerSource> powerSourcesFor(RouterId at) {
-        List<RouterNode> routers = new ArrayList<>();
-        if (nodes.containsKey(at)) {
-            routers.add(nodes.get(at));
-        }
-        reachableFrom(at).stream().filter(id -> wired(at, id) && passes(at, id, FirewallRule::blockPower))
-                .forEach(id -> routers.add(nodes.get(id)));
         Map<Object, PowerSource> sources = new LinkedHashMap<>();
-        for (RouterNode router : routers) {
-            for (PowerSource source : router.powerSources()) {
+        if (nodes.containsKey(at)) {
+            // its own come first
+            nodes.get(at).powerSources().forEach(source -> sources.putIfAbsent(source.key(), source));
+        }
+        OptionalInt component = routing.component(at);
+        if (firewalls.isEmpty() && connectors.isEmpty() && component.isPresent()) {
+            // nothing keeps energy apart, so one walk over the routers answers for all that are connected
+            if (powerSourcesAfter != lastChangeAnywhere) {
+                powerSourcesOf.clear();
+                powerSourcesAfter = lastChangeAnywhere;
+            }
+            for (PowerSource source : powerSourcesOf.computeIfAbsent(component.getAsInt(), key -> List.copyOf(powerSourcesNear(at).values()))) {
                 sources.putIfAbsent(source.key(), source);
             }
+        } else {
+            sources.putAll(powerSourcesNear(at));
         }
         return List.copyOf(sources.values());
+    }
+
+    // the energy stores of the routers the given one may draw from, nearest first
+    private Map<Object, PowerSource> powerSourcesNear(RouterId at) {
+        Map<Object, PowerSource> sources = new LinkedHashMap<>();
+        for (RouterId id : reachableFrom(at)) {
+            if (wired(at, id) && passes(at, id, FirewallRule::blockPower)) {
+                for (PowerSource source : nodes.get(id).powerSources()) {
+                    sources.putIfAbsent(source.key(), source);
+                }
+            }
+        }
+        return sources;
+    }
+
+    // an energy store appeared or went away next to a router
+    public void powerSourcesChanged() {
+        powerSourcesOf.clear();
     }
 
     // whether the router could use any energy right now, for the look of its pipe
@@ -844,6 +875,7 @@ public final class LogisticsNetwork {
         }
         if (now - powerLookedAt >= POWER_LOOK_INTERVAL || powerLookedAfter != lastChangeAnywhere) {
             poweredComponents.clear();
+            powerSourcesOf.clear();
             nodes.forEach((id, node) -> routing.component(id).ifPresent(group -> {
                 if (!poweredComponents.contains(group) && node.drawPower(1, true) > 0) {
                     poweredComponents.add(group);
@@ -897,7 +929,7 @@ public final class LogisticsNetwork {
             shortfalls.forEach(shortfall -> cameShort.add(shortfall.provider()));
             try {
                 for (Provision shortfall : shortfalls) {
-                    requestUpTo(shortfall.destination(), shortfall.batch().type(), shortfall.batch().count(), now);
+                    request(shortfall.destination(), shortfall.batch(), now, 0, true);
                 }
             } finally {
                 cameShort.clear();
@@ -919,7 +951,7 @@ public final class LogisticsNetwork {
                     break;
                 }
             }
-            pending.expect(craft.destination(), craft.output().type().exact(), craft.output().count(), now + CRAFT_TIMEOUT);
+            pending.expect(craft.destination(), craft.output().type(), craft.output().count(), now + CRAFT_TIMEOUT);
         }
     }
 
@@ -949,7 +981,7 @@ public final class LogisticsNetwork {
                 // whoever still waits for this crafter waits longer, or a supplier would order the rest a second time
                 for (OutputOrder order : node.outputOrders().all()) {
                     if (!order.isExtra()) {
-                        pending.extend(order.destination(), order.batch().type().exact(), now + CRAFT_TIMEOUT);
+                        pending.extend(order.destination(), order.batch().type(), now + CRAFT_TIMEOUT);
                     }
                 }
             }
@@ -1084,43 +1116,73 @@ public final class LogisticsNetwork {
                 }
             }
         }
+        // most routers of a large base have nothing to give, so the cheap questions come first
         for (RouterId id : routers) {
             RouterNode node = nodes.get(id);
-            Map<ItemType, Integer> owedHere = new HashMap<>();
-            node.inventories().values().forEach(inventory -> owedAt.getOrDefault(inventory, Map.of())
-                    .forEach((type, count) -> owedHere.merge(type, count, Integer::sum)));
-            if (node.inventories().isEmpty()) {
-                // without a known inventory at least its own debts count
-                node.outputOrders().all().forEach(order -> owedHere.merge(order.batch().type().exact(), order.batch().count(), Integer::sum));
-            }
             if (node.provides()) {
-                if (!cameShort.contains(id) && !sharesInventory(node, counted) && passes(requester, id, FirewallRule::blockProviding)) {
-                    Map<ItemType, Integer> provided = new LinkedHashMap<>(node.provided());
-                    owedHere.forEach((type, count) -> provided.computeIfPresent(type, (key, have) -> have > count ? have - count : null));
-                    if (!firewalls.isEmpty()) {
-                        provided.keySet().removeIf(type -> !passes(requester, id, rule -> rule.rejects(type)));
-                    }
-                    stock.add(new Stock(id, provided));
-                    counted.addAll(node.inventories().values());
+                if (cameShort.contains(id) || !passes(requester, id, FirewallRule::blockProviding)) {
+                    continue;
                 }
-            } else if (!sharesInventory(node, counted)) {
+                Collection<InventoryRef> inventories = node.inventories().values();
+                if (!Collections.disjoint(inventories, counted)) {
+                    continue;
+                }
+                Map<ItemType, Integer> provided = new LinkedHashMap<>(node.provided());
+                owedHere(node, inventories, owedAt)
+                        .forEach((type, count) -> provided.computeIfPresent(type, (key, have) -> have > count ? have - count : null));
+                if (!firewalls.isEmpty()) {
+                    provided.keySet().removeIf(type -> !passes(requester, id, rule -> rule.rejects(type)));
+                }
+                stock.add(new Stock(id, provided));
+                counted.addAll(inventories);
+                continue;
+            }
+            List<CraftingSetup> crafts = node.crafts();
+            if (crafts.isEmpty()) {
+                continue;
+            }
+            Collection<InventoryRef> inventories = node.inventories().values();
+            if (Collections.disjoint(inventories, counted)) {
                 // a machine with two crafting pipes on it is counted once, and what any of them owes is not spare
+                Map<ItemType, Integer> owedHere = owedHere(node, inventories, owedAt);
                 Map<ItemType, Integer> spare = new LinkedHashMap<>();
-                for (CraftingSetup craft : node.crafts()) {
+                Map<ItemType, Integer> contents = node.contents();
+                for (CraftingSetup craft : crafts) {
                     ItemType made = craft.recipe().output().type();
-                    int left = node.contents().getOrDefault(made, 0) - owedHere.getOrDefault(made.exact(), 0);
-                    // spare output counts as providing, so a firewall that stops that or the item stops it too
-                    if (left > 0 && passes(requester, id, rule -> rule.blockProviding() || rule.rejects(made))) {
-                        spare.put(made, left);
+                    int owed = owedHere.getOrDefault(made.exact(), 0);
+                    // a fuzzy result is whatever the machine holds that matches it
+                    for (Map.Entry<ItemType, Integer> held : contents.entrySet()) {
+                        if (!made.accepts(held.getKey())) {
+                            continue;
+                        }
+                        int left = Math.max(0, held.getValue() - owed);
+                        owed = Math.max(0, owed - held.getValue());
+                        // spare output counts as providing, so a firewall that stops that or the item stops it too
+                        if (left > 0 && passes(requester, id, rule -> rule.blockProviding() || rule.rejects(held.getKey()))) {
+                            spare.put(held.getKey(), left);
+                        }
                     }
                 }
                 if (!spare.isEmpty()) {
                     stock.add(new Stock(id, spare));
-                    counted.addAll(node.inventories().values());
+                    counted.addAll(inventories);
                 }
             }
         }
         return stock;
+    }
+
+    // what the crafting pipes on the inventories of a router still have to send out of them
+    private static Map<ItemType, Integer> owedHere(RouterNode node, Collection<InventoryRef> inventories,
+            Map<InventoryRef, Map<ItemType, Integer>> owedAt) {
+        Map<ItemType, Integer> owed = new HashMap<>();
+        inventories.forEach(inventory -> owedAt.getOrDefault(inventory, Map.of())
+                .forEach((type, count) -> owed.merge(type, count, Integer::sum)));
+        if (inventories.isEmpty()) {
+            // without a known inventory at least its own debts count
+            node.outputOrders().all().forEach(order -> owed.merge(order.batch().type().exact(), order.batch().count(), Integer::sum));
+        }
+        return owed;
     }
 
     private record Candidate(Crafter crafter, int priority) {
