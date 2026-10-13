@@ -5,7 +5,6 @@
 set -eu
 cd "$(dirname "$0")/.."
 mkdir -p build/benchmark
-scripts/quiet-client.sh run-visual
 for size in "${@:-20x20x4}"; do
     rm -f build/benchmark/client-result.txt
     config=$(mktemp)
