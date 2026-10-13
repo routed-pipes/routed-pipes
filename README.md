@@ -39,7 +39,7 @@ The code is split into layers and tests keep them apart: `domain` is plain Java,
 and its ports, `adapter/minecraft` uses vanilla Minecraft only, and `adapter/neoforge` is the only place that knows
 the mod loader.
 
-`pack/` and the pack scripts describe a mod pack around the mod, see the pack repository.
+`pack/` and the pack scripts describe a mod pack around the mod, see the [pack repository](https://github.com/routed-pipes/pack).
 
 ## Licence
 

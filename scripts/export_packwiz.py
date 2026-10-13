@@ -59,7 +59,7 @@ for file, meta in sorted(files, key=lambda entry: str(entry[0])):
     index += f'\n[[files]]\nfile = "{file.relative_to(target).as_posix()}"\nhash = "{sha256(file)}"\n' + ("metafile = true\n" if meta else "")
 (target / "index.toml").write_text(index)
 (target / "pack.toml").write_text(f'''name = "Routed Pipes Pack"
-author = "larsgrah"
+author = "routed-pipes"
 version = "{properties["mod_version"]}"
 pack-format = "packwiz:1.1.0"
 
