@@ -99,7 +99,7 @@ neoForge {
         visualTest {
             client()
             gameDirectory = project.file('run-visual')
-            systemProperty 'logisticspipes.visualTest', project.file('build/visual-test').absolutePath
+            systemProperty 'routedpipes.visualTest', project.file('build/visual-test').absolutePath
             programArguments.addAll '--width', '854', '--height', '480'
         }
 
@@ -107,8 +107,8 @@ neoForge {
         visualTestResume {
             client()
             gameDirectory = project.file('run-visual')
-            systemProperty 'logisticspipes.visualTest', project.file('build/visual-test').absolutePath
-            systemProperty 'logisticspipes.visualTest.resume', 'true'
+            systemProperty 'routedpipes.visualTest', project.file('build/visual-test').absolutePath
+            systemProperty 'routedpipes.visualTest.resume', 'true'
             programArguments.addAll '--width', '854', '--height', '480'
         }
 
@@ -117,9 +117,9 @@ neoForge {
             server()
             programArgument '--nogui'
             gameDirectory = project.file('run-benchmark')
-            systemProperty 'logisticspipes.benchmark', project.file('build/benchmark/result.txt').absolutePath
-            systemProperty 'logisticspipes.benchmark.size', (project.findProperty('benchmarkSize') ?: '20x20x4')
-            systemProperty 'logisticspipes.benchmark.scenario', (project.findProperty('benchmarkScenario') ?: 'sorting')
+            systemProperty 'routedpipes.benchmark', project.file('build/benchmark/result.txt').absolutePath
+            systemProperty 'routedpipes.benchmark.size', (project.findProperty('benchmarkSize') ?: '20x20x4')
+            systemProperty 'routedpipes.benchmark.scenario', (project.findProperty('benchmarkScenario') ?: 'sorting')
             if (project.hasProperty('benchmarkProfile')) {
                 jvmArguments.add "-XX:StartFlightRecording=filename=${project.file('build/benchmark/profile.jfr')},settings=profile"
             }
@@ -129,8 +129,8 @@ neoForge {
         clientBenchmark {
             client()
             gameDirectory = project.file('run-visual')
-            systemProperty 'logisticspipes.clientBenchmark', project.file('build/benchmark/client-result.txt').absolutePath
-            systemProperty 'logisticspipes.benchmark.size', (project.findProperty('benchmarkSize') ?: '20x20x4')
+            systemProperty 'routedpipes.clientBenchmark', project.file('build/benchmark/client-result.txt').absolutePath
+            systemProperty 'routedpipes.benchmark.size', (project.findProperty('benchmarkSize') ?: '20x20x4')
             programArguments.addAll '--width', '1280', '--height', '720'
         }
 
@@ -144,7 +144,7 @@ neoForge {
         visualTestCompat {
             client()
             gameDirectory = project.file('run-compat')
-            systemProperty 'logisticspipes.visualTest', project.file('build/visual-test-compat').absolutePath
+            systemProperty 'routedpipes.visualTest', project.file('build/visual-test-compat').absolutePath
             programArguments.addAll '--width', '854', '--height', '480'
         }
 

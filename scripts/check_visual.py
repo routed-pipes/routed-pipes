@@ -62,7 +62,7 @@ def log_problems():
     problems = []
     text = LOG.read_text(errors="replace")
     for line in text.splitlines():
-        if ("/ERROR]" in line or "Caught an error" in line) and ("logisticspipes" in line.lower() or "routedpipes" in line.lower()):
+        if ("/ERROR]" in line or "Caught an error" in line) and "routedpipes" in line.lower():
             problems.append("log: " + line.strip()[:200])
     if "mezz.jei" in text:
         if "routedpipes:jei" not in text:

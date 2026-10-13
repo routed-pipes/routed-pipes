@@ -64,7 +64,7 @@ open("server-run.log", "w").writelines(lines)
 expected = ["sorting ok", "powered extraction ok", "unpowered extraction stays ok", "unpowered target empty ok",
             "power used ok", "sorting paid ok", "crafting table data ok"]
 passed = [name for name in expected if any("LPCHECK " + name in line for line in lines)]
-errors = [line.strip()[:200] for line in lines if ("ERROR" in line or "Exception" in line) and ("logisticspipes" in line.lower() or "routedpipes" in line.lower())]
+errors = [line.strip()[:200] for line in lines if ("ERROR" in line or "Exception" in line) and "routedpipes" in line.lower()]
 for name in expected:
     print("ok  " if name in passed else "FAIL", name)
 for error in errors:
