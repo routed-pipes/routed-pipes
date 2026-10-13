@@ -564,7 +564,9 @@ public final class LogisticsNetwork {
             item.giveUp();
         }
         // only here a void pipe counts, for what is in the pipes already and has nowhere else to go
-        Optional<Claim> claim = findDestination(at, item.batch(), item.origin(), true, VoidSink.PRIORITY, now)
+        // not for what somebody ordered and could not be delivered, that waits for room
+        int least = item.mode() == TransportMode.GIVEN_UP ? ItemSink.DEFAULT_ROUTE_PRIORITY : VoidSink.PRIORITY;
+        Optional<Claim> claim = findDestination(at, item.batch(), item.origin(), true, least, now)
                 .filter(found -> usePower(at, found.energy()));
         if (claim.isEmpty()) {
             item.clearDestination();

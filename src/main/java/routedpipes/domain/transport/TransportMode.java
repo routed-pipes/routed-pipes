@@ -4,6 +4,8 @@ package routedpipes.domain.transport;
 public enum TransportMode {
     // nobody has claimed it yet
     UNCLAIMED(24),
+    // was ordered and gave up on where it was going, a sink may still take it but it is never destroyed
+    GIVEN_UP(24),
     // on its way to a sink that takes such items
     SORTED(30),
     // ordered by someone

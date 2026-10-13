@@ -110,6 +110,38 @@ class LogisticsNetworkVoidTest {
     }
 
     @Test
+    void anOrderedItemThatLostItsDestinationIsNotDestroyed() {
+        build();
+        store.room = false;
+        TravellingItem item = new TravellingItem(batch("stone", 8), Side.WEST, router(9));
+        for (int tick = 0; tick < LogisticsNetwork.REROUTE_PATIENCE; tick++) {
+            network.chooseExit(ENTRY, item, NOW);
+            item.waitForExit();
+        }
+
+        // it gives up on where it was going now, and keeps looking on the ticks after that
+        network.chooseExit(ENTRY, item, NOW);
+        network.chooseExit(ENTRY, item, NOW + 1);
+
+        assertThat(item.destination()).isEmpty();
+    }
+
+    @Test
+    void anOrderedItemThatLostItsDestinationStillGoesToADefaultRoute() {
+        build();
+        store.inventories.add(Side.UP);
+        TravellingItem item = new TravellingItem(batch("stone", 8), Side.WEST, router(9));
+        for (int tick = 0; tick < LogisticsNetwork.REROUTE_PATIENCE; tick++) {
+            network.chooseExit(ENTRY, item, NOW);
+            item.waitForExit();
+        }
+
+        network.chooseExit(ENTRY, item, NOW);
+
+        assertThat(item.destination()).contains(STORE);
+    }
+
+    @Test
     void aVoidPipeWithAListTakesOnlyWhatIsListed() {
         build();
         voidPipe.sink = new VoidSink(Set.of(batch("dirt", 1).type()));

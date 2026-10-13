@@ -108,10 +108,14 @@ public final class TravellingItem {
 
     // an ordered item that stops going to its destination, the one waiting for it has to be told
     public void giveUp() {
-        if (mode == TransportMode.REQUESTED && destination != null) {
+        boolean ordered = mode == TransportMode.REQUESTED;
+        if (ordered && destination != null) {
             gaveUpOn = destination;
         }
         clearDestination();
+        if (ordered) {
+            mode = TransportMode.GIVEN_UP;
+        }
     }
 
     // empty unless the item gave up on an ordered destination since the last call
@@ -154,7 +158,9 @@ public final class TravellingItem {
 
     public void clearDestination() {
         destination = null;
-        mode = TransportMode.UNCLAIMED;
+        if (mode != TransportMode.GIVEN_UP) {
+            mode = TransportMode.UNCLAIMED;
+        }
     }
 
     public Optional<RouterId> nextHop() {
