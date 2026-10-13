@@ -118,7 +118,6 @@ public final class LogisticsNetwork {
     private final Set<Integer> poweredComponents = new HashSet<>();
     // the energy stores of every group of connected routers, forgotten when the network changes and with every look
     private final Map<Integer, List<PowerSource>> powerSourcesOf = new HashMap<>();
-    private long powerSourcesAfter = Long.MIN_VALUE;
     private long powerLookedAt = Long.MIN_VALUE / 2;
     private long powerLookedAfter = Long.MIN_VALUE / 2;
 
@@ -146,6 +145,7 @@ public final class LogisticsNetwork {
             firewalls.add(id);
         }
         detours.clear();
+        powerSourcesOf.clear();
         sinksChanged(id);
         changed(id, now);
     }
@@ -165,6 +165,7 @@ public final class LogisticsNetwork {
         links.remove(id);
         firewalls.remove(id);
         detours.clear();
+        powerSourcesOf.clear();
         wired = null;
         relink(connectors.remove(id), now);
         pending.forget(id);
@@ -180,6 +181,7 @@ public final class LogisticsNetwork {
     public void updateLinks(RouterId id, List<Link> links, long now) {
         this.links.put(id, List.copyOf(links));
         detours.clear();
+        powerSourcesOf.clear();
         wired = null;
         if (routing.setLinks(id, withConnectors(id, links))) {
             changed(id, now);
@@ -830,10 +832,6 @@ public final class LogisticsNetwork {
         OptionalInt component = routing.component(at);
         if (firewalls.isEmpty() && connectors.isEmpty() && component.isPresent()) {
             // nothing keeps energy apart, so one walk over the routers answers for all that are connected
-            if (powerSourcesAfter != lastChangeAnywhere) {
-                powerSourcesOf.clear();
-                powerSourcesAfter = lastChangeAnywhere;
-            }
             for (PowerSource source : powerSourcesOf.computeIfAbsent(component.getAsInt(), key -> List.copyOf(powerSourcesNear(at).values()))) {
                 sources.putIfAbsent(source.key(), source);
             }

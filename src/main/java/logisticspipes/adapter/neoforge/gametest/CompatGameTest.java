@@ -206,6 +206,9 @@ public class CompatGameTest {
             tests.add(test("compat.mekanism.container_supplier_keeps_the_emptied_tank",
                     CompatGameTest::containerSupplierKeepsTheEmptiedMekanismTank, 400));
         }
+        if (has("mekanism:basic_universal_cable") && has("createaddition:alternator")) {
+            tests.add(test("compat.mekanism.cable_charges_junction", CompatGameTest::mekanismCableChargesJunction, 400));
+        }
         if (ModList.get().isLoaded("jei")) {
             tests.add(test("compat.jei.table_transfer_links_and_reports", CompatGameTest::jeiTableTransferLinksAndReports));
         }
@@ -434,6 +437,21 @@ public class CompatGameTest {
     }
 
     // a machine of another mod next to a pipe with a supplier upgrade gets energy from the provider behind the pipe
+    // a cable of mekanism between a generator and a junction has to fill the junction
+    // creative motor, alternator, then a cable on each side the alternator may send to
+    private static void mekanismCableChargesJunction(GameTestHelper helper) {
+        helper.setBlock(new BlockPos(0, 1, 1), facing(block("create:creative_motor"), Direction.EAST));
+        helper.setBlock(new BlockPos(1, 1, 1), facing(block("createaddition:alternator"), Direction.WEST));
+        helper.setBlock(new BlockPos(2, 1, 1), block("mekanism:basic_universal_cable"));
+        helper.setBlock(new BlockPos(1, 2, 1), block("mekanism:basic_universal_cable"));
+        PowerJunctionBlockEntity junction = GameTestPower.junction(helper, new BlockPos(3, 1, 1), 0);
+        PowerJunctionBlockEntity above = GameTestPower.junction(helper, new BlockPos(1, 3, 1), 0);
+
+        helper.succeedWhen(() -> helper.assertTrue(junction.stored() > 0 || above.stored() > 0,
+                "no energy arrived, the cables are " + helper.getBlockState(new BlockPos(2, 1, 1)) + " and "
+                        + helper.getBlockState(new BlockPos(1, 2, 1))));
+    }
+
     private static void supplierPipeChargesElectricMotor(GameTestHelper helper) {
         GameTestPower.junction(helper, new BlockPos(1, 1, 2), 10_000);
         PowerProviderBlockEntity provider = GameTestPower.provider(helper, new BlockPos(1, 1, 0), 1_000_000);

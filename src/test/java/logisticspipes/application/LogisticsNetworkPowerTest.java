@@ -67,6 +67,35 @@ class LogisticsNetworkPowerTest {
     }
 
     @Test
+    void aRouterThatJoinsInTheSameTickBringsItsEnergy() {
+        left.power = 0;
+        network.addRouter(LEFT, left, BUILT);
+        assertThat(network.usePower(LEFT, 5)).isFalse();
+
+        network.addRouter(RIGHT, right, BUILT);
+        network.updateLinks(LEFT, List.of(new Link(RIGHT, Side.EAST, 1)), BUILT);
+        network.updateLinks(RIGHT, List.of(new Link(LEFT, Side.WEST, 1)), BUILT);
+
+        assertThat(network.usePower(LEFT, 5)).isTrue();
+    }
+
+    @Test
+    void anEnergyStoreThatAppearsNextToARouterIsFound() {
+        left.power = 0;
+        right.power = 0;
+        network.addRouter(LEFT, left, BUILT);
+        network.addRouter(RIGHT, right, BUILT);
+        network.updateLinks(LEFT, List.of(new Link(RIGHT, Side.EAST, 1)), BUILT);
+        network.updateLinks(RIGHT, List.of(new Link(LEFT, Side.WEST, 1)), BUILT);
+        assertThat(network.usePower(LEFT, 5)).isFalse();
+
+        right.sharedPower = junction;
+        network.powerSourcesChanged();
+
+        assertThat(network.usePower(LEFT, 5)).isTrue();
+    }
+
+    @Test
     void whatTheSharedJunctionHoldsCanStillBeSpent() {
         connect();
 
