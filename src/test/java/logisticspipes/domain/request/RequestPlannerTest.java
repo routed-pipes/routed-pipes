@@ -4,6 +4,7 @@ import static logisticspipes.testing.Fixtures.batch;
 import static logisticspipes.testing.Fixtures.router;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -12,6 +13,7 @@ import logisticspipes.domain.item.ItemType;
 import logisticspipes.domain.routing.RouterId;
 import logisticspipes.testing.Fixtures.TestItem;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 class RequestPlannerTest {
 
@@ -276,5 +278,73 @@ class RequestPlannerTest {
 
         assertThat(plan.complete()).isFalse();
         assertThat(plan.missing().values()).allMatch(count -> count > 0);
+    }
+
+    // every part is made of two of the part below it, with that many crafters for each, part0 is the raw material
+    private static List<Crafter> chain(int depth, int craftersPerPart) {
+        List<Crafter> crafters = new ArrayList<>();
+        for (int level = 1; level <= depth; level++) {
+            Recipe recipe = new Recipe(List.of(batch("part" + (level - 1), 2)), batch("part" + level, 1));
+            for (int copy = 0; copy < craftersPerPart; copy++) {
+                crafters.add(crafter(router(100 + level * 10 + copy), recipe));
+            }
+        }
+        return crafters;
+    }
+
+    // a base full of providers that hold other things, and one with the raw material
+    private static List<Stock> bigBase(int raw) {
+        List<Stock> stock = new ArrayList<>();
+        for (int provider = 0; provider < 1600; provider++) {
+            stock.add(stock(router(1000 + provider), "other" + provider, 64));
+        }
+        stock.add(stock(NEAR, "part0", raw));
+        return stock;
+    }
+
+    // used to try every number of runs again on every level, which took longer than anyone would wait
+    @Test
+    @Timeout(30)
+    void aLongChainThatRunsShortOfRawMaterialIsPlannedQuickly() {
+        // enough for 5 of the 64, and a bit
+        RequestPlan plan = new RequestPlanner(bigBase(4096 * 5 + 100), chain(12, 1)).plan(REQUESTER, batch("part12", 64));
+
+        assertThat(plan.crafts()).contains(new CraftJob(router(220), REQUESTER, batch("part12", 5)));
+        assertThat(plan.missing()).containsExactly(Map.entry(item("part0"), 59 * 4096 - 100));
+    }
+
+    @Test
+    @Timeout(30)
+    void aLongChainWithTwoCraftersForEveryPartIsPlannedQuicklyToo() {
+        RequestPlan plan = new RequestPlanner(bigBase(4096 * 5 + 100), chain(12, 2)).plan(REQUESTER, batch("part12", 64));
+
+        assertThat(plan.crafts().stream().filter(job -> job.output().type().equals(item("part12")))
+                .mapToInt(job -> job.output().count()).sum()).isEqualTo(5);
+        assertThat(plan.missing()).containsExactly(Map.entry(item("part0"), 59 * 4096 - 100));
+    }
+
+    // two ways to make every part that need different things, so neither can stand in for the other
+    // how many runs each could do is then asked level by level, and the planner has to stop asking at some point
+    @Test
+    @Timeout(30)
+    void aLongChainWithTwoRecipesForEveryPartGivesUpOnTheExactAmounts() {
+        List<Crafter> crafters = new ArrayList<>();
+        for (int level = 1; level <= 12; level++) {
+            crafters.add(crafter(router(100 + level * 10), new Recipe(List.of(batch("part" + (level - 1), 2)), batch("part" + level, 1))));
+            crafters.add(crafter(router(101 + level * 10),
+                    new Recipe(List.of(batch("part" + (level - 1), 2), batch("flux", 1)), batch("part" + level, 1))));
+        }
+        List<Stock> stock = bigBase(4096 * 5 + 100);
+        stock.add(stock(FAR, "flux", 1_000_000));
+
+        RequestPlan plan = new RequestPlanner(stock, crafters).plan(REQUESTER, batch("part12", 64));
+
+        assertThat(plan.complete()).isFalse();
+        // whatever it settled for, it does not hand out more than there is
+        assertThat(plan.provisions().stream().filter(provision -> provision.batch().type().equals(item("part0")))
+                .mapToInt(provision -> provision.batch().count()).sum()).isLessThanOrEqualTo(4096 * 5 + 100);
+        int made = plan.crafts().stream().filter(job -> job.output().type().equals(item("part12")))
+                .mapToInt(job -> job.output().count()).sum();
+        assertThat(made).isLessThanOrEqualTo(5);
     }
 }
