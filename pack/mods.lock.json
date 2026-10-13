@@ -113,6 +113,20 @@
       "client_only": false
     },
     {
+      "slug": "bookshelf-lib",
+      "name": "Bookshelf",
+      "version": "21.1.81",
+      "kind": "release",
+      "id": "1sdJl7J1",
+      "file": "bookshelf-neoforge-1.21.1-21.1.81.jar",
+      "url": "https://cdn.modrinth.com/data/uy4Cnpcm/versions/1sdJl7J1/bookshelf-neoforge-1.21.1-21.1.81.jar",
+      "sha1": "efc4cda6da4dd879f24d057ed0a6413764c9ba40",
+      "sha512": "78d4577a8e8fbb241216968475dd73f5b9e5efeb7da802b18a4e6c290e49af6cb4a5676e9855d0d8ff3613f967812e4bd363bbb9196c17c954d19454f84b2214",
+      "size": 328813,
+      "needed_by": "open-loader",
+      "client_only": false
+    },
+    {
       "slug": "brandons-core",
       "name": "Brandons Core",
       "version": "3.2.1.309",
@@ -617,6 +631,20 @@
       "client_only": true
     },
     {
+      "slug": "open-loader",
+      "name": "Open Loader",
+      "version": "21.1.5",
+      "kind": "release",
+      "id": "Szobbnyh",
+      "file": "OpenLoader-neoforge-1.21.1-21.1.5.jar",
+      "url": "https://cdn.modrinth.com/data/KwWsINvD/versions/Szobbnyh/OpenLoader-neoforge-1.21.1-21.1.5.jar",
+      "sha1": "b4b49fa0bbefcecd41aaba60aca38c3658ac2c46",
+      "sha512": "3a4b0b6605f30b98a9d26954f8e211e6422f1f6402d400a9f9eb32a5af065da808dd3648a839dd60e47e50c8075b6a71624e142e50fb61273a6ba505bf6b1d09",
+      "size": 35602,
+      "needed_by": null,
+      "client_only": false
+    },
+    {
       "slug": "polymorph",
       "name": "Polymorph",
       "version": "1.1.0+1.21.1",
@@ -642,6 +670,20 @@
       "sha512": "41d616d3d944faaee2cde4d15b3fc35cdd154690169f43d8436e6432df50db90355ca5fef78bd0f7864d97d9a14039280c8fb78d8c3e1d407618c7ccff47d97f",
       "size": 2737991,
       "needed_by": null,
+      "client_only": false
+    },
+    {
+      "slug": "prickle",
+      "name": "Prickle",
+      "version": "21.1.11",
+      "kind": "release",
+      "id": "EE1FHDyD",
+      "file": "prickle-neoforge-1.21.1-21.1.11.jar",
+      "url": "https://cdn.modrinth.com/data/aaRl8GiW/versions/EE1FHDyD/prickle-neoforge-1.21.1-21.1.11.jar",
+      "sha1": "5174059ecf97340a0de5ef211b938de26c4eaa36",
+      "sha512": "154d42795ccf1f3e07714775cdb82fd5db17574319286ced13d86b0456b64e4cf5bb89ffbcbfcefce67b73ed0b83e4e2944e493d79d9a385ff9de23006ee7bf5",
+      "size": 84812,
+      "needed_by": "open-loader",
       "client_only": false
     },
     {

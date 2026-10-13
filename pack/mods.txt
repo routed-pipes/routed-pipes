@@ -46,6 +46,8 @@ polymorph
 almostunified
 almost-unified-ie
 audrops
+# loads the data pack in pack/overrides that turns off the ores other mods repeat and hands out the starting kit
+open-loader
 waystones
 inventory-profiles-next
 carry-on

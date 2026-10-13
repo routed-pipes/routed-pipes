@@ -1,0 +1,10 @@
+{
+  "criteria": {
+    "joined": {
+      "trigger": "minecraft:tick"
+    }
+  },
+  "rewards": {
+    "function": "routedpipespack:starting_kit"
+  }
+}
