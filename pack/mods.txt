@@ -54,7 +54,10 @@ xaeros-world-map
 fallingtree
 mouse-tweaks
 
-# speed and memory, nothing that changes how blocks are drawn
+# speed and memory. The pictures of the scripted client were compared with and without the three that change drawing
 ferrite-core
 modernfix
 lithium
+sodium
+entityculling
+immediatelyfast

@@ -248,6 +248,19 @@
       "needed_by": null
     },
     {
+      "slug": "entityculling",
+      "name": "Entity Culling",
+      "version": "1.11.3",
+      "kind": "release",
+      "id": "eieYbWYb",
+      "file": "entityculling-neoforge-1.11.3-mc1.21.1.jar",
+      "url": "https://cdn.modrinth.com/data/NNAgCjsB/versions/eieYbWYb/entityculling-neoforge-1.11.3-mc1.21.1.jar",
+      "sha1": "f122f84f329793675b2625d51b77f990d7de3579",
+      "sha512": "93e83dd690b91d610be29451b34836c9daa7e08bd952f88ffa07c62d8774bbaac2ff0c6768d2cbf1b14f47d0b86f98cef9fd341e0d29bd37207eaf4aa2abea63",
+      "size": 1510075,
+      "needed_by": null
+    },
+    {
       "slug": "extreme-reactors",
       "name": "Extreme Reactors",
       "version": "1.21.1-2.4.9",
@@ -311,6 +324,19 @@
       "sha512": "d5de4cecae6fe015b65b0bb53d76be0f3ce6893fb652a54e8e949ad8f3b65e431accbd452d3547373a01b2e6050c670c6ea2a9f4cee3e9020149e3a11e0f7aaa",
       "size": 2427649,
       "needed_by": "solar-flux-reborn"
+    },
+    {
+      "slug": "immediatelyfast",
+      "name": "ImmediatelyFast",
+      "version": "1.6.14+1.21.1-neoforge",
+      "kind": "release",
+      "id": "OUpXxw4n",
+      "file": "ImmediatelyFast-NeoForge-1.6.14+1.21.1.jar",
+      "url": "https://cdn.modrinth.com/data/5ZwdcRci/versions/OUpXxw4n/ImmediatelyFast-NeoForge-1.6.14%2B1.21.1.jar",
+      "sha1": "fee59af2f39c66d09c4c09f441c799e76af70f97",
+      "sha512": "7d1c2e6ce306f4bb9aa155f64ba87732dc2443d57fde249467a99e0ed90fec89a706252888b97f882efbc55d6044971519db704125f27ae53cd9ae40424f9b2c",
+      "size": 365195,
+      "needed_by": null
     },
     {
       "slug": "immersiveengineering",
@@ -635,6 +661,19 @@
       "sha1": "4652cbc3c97d98f8a2876d0ab60e72e6b9e153f7",
       "sha512": "d8507d185d666b5f11b1c0d720d71acfddf4369557fe304ced0e2396e0fccc5a0f1c74e7793ed8a4067782d9f4fe86d7c2a6565c8686498a8ccc92fec7f3acc8",
       "size": 5292176,
+      "needed_by": null
+    },
+    {
+      "slug": "sodium",
+      "name": "Sodium",
+      "version": "mc1.21.1-0.8.13-neoforge",
+      "kind": "release",
+      "id": "uMOpc5uV",
+      "file": "sodium-neoforge-0.8.13+mc1.21.1.jar",
+      "url": "https://cdn.modrinth.com/data/AANobbMI/versions/uMOpc5uV/sodium-neoforge-0.8.13%2Bmc1.21.1.jar",
+      "sha1": "1757289be21ed18db5b0d90703fa3db1b2de5693",
+      "sha512": "4f537696af95411e9daf15795fb5fcbc49913d488a96fa912fa8f1d7db408710995e8a1461190f3cd0f8217bf9e35e9539176592428ed587ca2d7aa84450a390",
+      "size": 1292934,
       "needed_by": null
     },
     {
