@@ -25,6 +25,7 @@
     "routedpipes:fluid_container_supplier_pipe",
     "routedpipes:system_entrance_pipe",
     "routedpipes:system_destination_pipe",
+    "routedpipes:void_pipe",
     "routedpipes:inventory_system_connector_pipe",
     "routedpipes:logistics_crafting_table",
     "routedpipes:power_junction",

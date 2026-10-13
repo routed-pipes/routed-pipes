@@ -29,6 +29,7 @@ import routedpipes.domain.logistics.SinkRule;
 import routedpipes.domain.logistics.Supply;
 import routedpipes.domain.logistics.SupplyMode;
 import routedpipes.domain.logistics.UpgradeKind;
+import routedpipes.domain.logistics.VoidSink;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -309,6 +310,11 @@ final class PipeSettings {
             rules = List.of(sink, new FuzzySink(fuzzy));
         }
         return rules;
+    }
+
+    // what a void pipe destroys when nobody else has room for it, everything while nothing is listed
+    List<SinkRule> voidRules() {
+        return List.of(new VoidSink(supplyTargets().keySet()));
     }
 
     Optional<Recipe> recipe() {

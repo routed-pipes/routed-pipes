@@ -152,6 +152,7 @@ public class RoutedPipes {
         CONFIG_MENUS.put(PipeKind.SUPPLIER, configMenu("supplier", PipeKind.SUPPLIER));
         CONFIG_MENUS.put(PipeKind.CRAFTING, configMenu("crafting", PipeKind.CRAFTING));
         CONFIG_MENUS.put(PipeKind.SATELLITE, configMenu("satellite", PipeKind.SATELLITE));
+        CONFIG_MENUS.put(PipeKind.VOID, configMenu("void", PipeKind.VOID));
     }
 
     public static final Supplier<MenuType<CraftingTableMenu>> CRAFTING_TABLE_MENU = MENUS.register("crafting_table",
@@ -253,6 +254,7 @@ public class RoutedPipes {
         PIPES.put(PipeKind.INVENTORY_SYSTEM_CONNECTOR, connector);
         PIPES.put(PipeKind.SYSTEM_ENTRANCE, pipe("system_entrance_pipe", PipeKind.SYSTEM_ENTRANCE, 0));
         PIPES.put(PipeKind.SYSTEM_DESTINATION, pipe("system_destination_pipe", PipeKind.SYSTEM_DESTINATION, 0));
+        PIPES.put(PipeKind.VOID, pipe("void_pipe", PipeKind.VOID, 0));
     }
 
     // chassis mk1 to mk5 by number of module slots

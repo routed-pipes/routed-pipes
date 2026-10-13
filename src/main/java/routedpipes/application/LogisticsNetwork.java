@@ -40,6 +40,7 @@ import routedpipes.domain.logistics.SinkBid;
 import routedpipes.domain.logistics.SinkRule;
 import routedpipes.domain.logistics.Supply;
 import routedpipes.domain.logistics.SinkOffer;
+import routedpipes.domain.logistics.VoidSink;
 import routedpipes.domain.request.CraftJob;
 import routedpipes.domain.request.Crafter;
 import routedpipes.domain.request.FuzzyMatch;
@@ -552,7 +553,8 @@ public final class LogisticsNetwork {
             // waited long enough, whoever ordered it gets told and it is sorted like anything else
             item.giveUp();
         }
-        Optional<Claim> claim = findDestination(at, item.batch(), item.origin(), true, ItemSink.DEFAULT_ROUTE_PRIORITY, now)
+        // only here a void pipe counts, for what is in the pipes already and has nowhere else to go
+        Optional<Claim> claim = findDestination(at, item.batch(), item.origin(), true, VoidSink.PRIORITY, now)
                 .filter(found -> usePower(at, found.energy()));
         if (claim.isEmpty()) {
             item.clearDestination();
@@ -783,20 +785,27 @@ public final class LogisticsNetwork {
         // firewalls and bulk storage make the answer depend on who asks, then nothing is remembered
         OptionalInt group = firewalls.isEmpty() && !bulkStorageAt(at) ? routing.component(at) : OptionalInt.empty();
         NoRoom known = group.isEmpty() ? null : noRoom.getOrDefault(group.getAsInt(), Map.of()).get(batch.type());
-        if (known != null && (known.until() <= now || minPriority < known.minPriority())) {
+        if (known != null && known.until() <= now) {
             known = null;
         }
-        if (known != null) {
+        NoRoom asked = known;
+        boolean lessKeen = known != null && minPriority < known.minPriority();
+        if (lessKeen) {
+            // whoever was keen enough then has been asked, only the sinks that were not keen enough are new
+            candidates.removeIf(candidate -> !asked.notAsked().contains(candidate) && (!group(candidate).equals(group)
+                    || sinkBid(candidate, batch.type(), now).filter(bid -> bid.priority() < asked.minPriority()).isEmpty()));
+        } else if (known != null) {
             candidates.retainAll(known.notAsked());
         }
         Set<RouterId> notAsked = new HashSet<>();
         Optional<Claim> claim = claimAmong(candidates, at, batch, origin, mayStay, minPriority, now, notAsked);
-        if (claim.isEmpty() && known == null && group.isPresent()) {
+        if (claim.isEmpty() && (known == null || lessKeen) && group.isPresent()) {
             // groups that changed got a new number, what was known about them goes when it is out of date
             noRoom.values().removeIf(entries -> entries.values().stream().allMatch(old -> old.until() <= now));
             Map<ItemType, NoRoom> full = noRoom.computeIfAbsent(group.getAsInt(), key -> new HashMap<>());
             full.values().removeIf(old -> old.until() <= now);
-            full.put(batch.type(), new NoRoom(now + NO_ROOM_TICKS, minPriority, notAsked));
+            // asking less keen sinks as well does not make what was learned earlier good for longer
+            full.put(batch.type(), new NoRoom(known == null ? now + NO_ROOM_TICKS : known.until(), minPriority, notAsked));
         }
         return claim;
     }

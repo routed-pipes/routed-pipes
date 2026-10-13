@@ -222,7 +222,8 @@ public final class FakeNode implements RouterNode {
 
     @Override
     public List<SinkRule> sinkRules() {
-        return sink != null && (kind == PipeKind.BASIC || kind == PipeKind.CHASSIS) ? List.of(sink) : List.of();
+        return sink != null && (kind == PipeKind.BASIC || kind == PipeKind.CHASSIS || kind == PipeKind.VOID)
+                ? List.of(sink) : List.of();
     }
 
     @Override

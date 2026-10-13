@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import routedpipes.domain.logistics.PatternSupply;
+import routedpipes.domain.logistics.PipeKind;
 import routedpipes.domain.routing.RouterId;
 import routedpipes.domain.routing.Side;
 import routedpipes.domain.transport.Departure;
@@ -63,6 +64,10 @@ final class PipeDepartures {
         PipeSurroundings surroundings = pipe.surroundings();
         TravellingItem item = departure.item();
         if (FluidPipe.ended(pipe, departure)) {
+            return;
+        }
+        if (pipe.kind() == PipeKind.VOID && item.destination().filter(routerId::equals).isPresent()) {
+            // sent here to be destroyed, so this is the end of it
             return;
         }
         ItemStack stack = McItemType.stackOf(item.batch());

@@ -212,6 +212,7 @@ RECIPES = [
     shapeless("upgrade_pattern", ["paper", "redstone", "gold", "supplier_pipe"]),
     shapeless("upgrade_power_supplier_rf", ["paper", "redstone", "iron", "copper"]),
     shapeless("upgrade_sneaky_combination", ["upgrade_sneaky", "upgrade_sneaky", "gold", "slime_ball"]),
+    shapeless("void_pipe", ["basic_logistics_pipe", "ink_sac", "redstone"]),
 
     shapeless("basic_logistics_pipe", [ITEM_PIPES], file="basic_logistics_pipe_from_pipes"),
     shapeless("fluid_basic_pipe", [FLUID_PIPES], file="fluid_basic_pipe_from_pipes"),

@@ -1,6 +1,7 @@
 package routedpipes.adapter.minecraft;
 
 import routedpipes.domain.logistics.UpgradeKind;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -765,6 +766,10 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
 
     @Override
     public Set<Side> inventoriesAccepting(ItemBatch batch) {
+        if (kind() == PipeKind.VOID) {
+            // a void pipe has room for anything and needs no inventory for it
+            return EnumSet.allOf(Side.class);
+        }
         return surroundings.inventoriesAccepting(batch);
     }
 
@@ -810,7 +815,8 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     @Override
     public List<SinkRule> sinkRules() {
         if (sinkRulesCache == null) {
-            sinkRulesCache = kind() == PipeKind.BASIC ? settings.sinkRules() : modules.sinkRules();
+            sinkRulesCache = kind() == PipeKind.BASIC ? settings.sinkRules()
+                    : kind() == PipeKind.VOID ? settings.voidRules() : modules.sinkRules();
         }
         return sinkRulesCache;
     }

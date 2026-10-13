@@ -26,7 +26,7 @@ import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
-// settings of basic, provider, supplier, crafting and satellite pipes: marker slots that only remember an item and a count
+// settings of basic, void, provider, supplier, crafting and satellite pipes: marker slots that only remember an item and a count
 // a satellite has its name typed in, a crafter is told the name of the satellite to use, both as text
 public class PipeConfigMenu extends AbstractContainerMenu implements MarkerMenu, TextMenu {
 

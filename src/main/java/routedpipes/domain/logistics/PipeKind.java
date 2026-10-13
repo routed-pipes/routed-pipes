@@ -45,7 +45,9 @@ public enum PipeKind {
     // sends what comes in without a destination to the destination pipe with the same frequency card
     SYSTEM_ENTRANCE,
     // takes what the entrance pipes with its frequency card send
-    SYSTEM_DESTINATION;
+    SYSTEM_DESTINATION,
+    // destroys what the network has no other place for
+    VOID;
 
     // the pipes players order items at
     public boolean requestPipe() {

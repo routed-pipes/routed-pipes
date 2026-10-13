@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "routedpipes:basic_logistics_pipe"
+    },
+    {
+      "item": "minecraft:ink_sac"
+    },
+    {
+      "tag": "c:dusts/redstone"
+    }
+  ],
+  "result": {
+    "id": "routedpipes:void_pipe",
+    "count": 1
+  }
+}

@@ -350,6 +350,8 @@
   "block.routedpipes.system_entrance_pipe.description": "Sends everything that comes in without a destination to the nearest System Destination pipe that holds a frequency card with the same id.",
   "block.routedpipes.system_destination_pipe": "System Destination Logistics Pipe",
   "block.routedpipes.system_destination_pipe.description": "Puts what the System Entrance pipes with its frequency card send into the inventory next to it.",
+  "block.routedpipes.void_pipe": "Void Logistics Pipe",
+  "block.routedpipes.void_pipe.description": "Destroys what is in the pipes and finds no room anywhere else in the network: everything, or only the listed items once some are listed.",
   "item.routedpipes.frequency_card": "Frequency Card",
   "item.routedpipes.frequency_card.description": "Pairs a System Entrance pipe with a System Destination pipe. Use a stack of blank cards to give them all the same id, then put one into each pipe.",
   "routedpipes.frequency.blank": "Blank, use it to give it an id",
