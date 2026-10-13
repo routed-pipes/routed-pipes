@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/block",
+  "loader": "neoforge:obj",
+  "model": "routedpipes:models/block/pipe/gain_tube_item.obj",
+  "flip_v": true,
+  "automatic_culling": false,
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "frame": "routedpipes:block/tube",
+    "particle": "routedpipes:block/tube"
+  }
+}

@@ -91,7 +91,7 @@ public class SignCreatorItem extends Item {
         if (signs.at(face).isEmpty()) {
             if (!signs.place(face, modeOf(creator))) {
                 if (player != null) {
-                    player.displayClientMessage(Component.translatable("logisticspipes.sign.not_allowed"), true);
+                    player.displayClientMessage(Component.translatable("routedpipes.sign.not_allowed"), true);
                 }
                 return;
             }

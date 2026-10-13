@@ -26,6 +26,7 @@ public final class GuideBookGift {
     }
 
     static void register(IEventBus modEventBus) {
+        LogisticsPipes.keepOldIds(ATTACHMENTS);
         ATTACHMENTS.register(modEventBus);
         NeoForge.EVENT_BUS.addListener(PlayerEvent.ItemCraftedEvent.class, GuideBookGift::crafted);
     }

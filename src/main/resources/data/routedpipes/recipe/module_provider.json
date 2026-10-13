@@ -1,0 +1,33 @@
+{
+  "type": "routedpipes:programmed",
+  "category": "misc",
+  "pattern": [
+    "ABA",
+    "CDC",
+    "EFE"
+  ],
+  "key": {
+    "A": {
+      "item": "routedpipes:chip_fpga"
+    },
+    "B": {
+      "item": "routedpipes:logistics_programmer"
+    },
+    "C": {
+      "tag": "c:gems/lapis"
+    },
+    "D": {
+      "item": "routedpipes:chip_basic"
+    },
+    "E": {
+      "tag": "c:ingots/iron"
+    },
+    "F": {
+      "item": "routedpipes:module_blank"
+    }
+  },
+  "result": {
+    "id": "routedpipes:module_provider",
+    "count": 1
+  }
+}

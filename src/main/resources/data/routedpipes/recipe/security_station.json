@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " A ",
+    "BCB",
+    "DBD"
+  ],
+  "key": {
+    "A": {
+      "item": "routedpipes:chip_advanced"
+    },
+    "B": {
+      "tag": "c:dusts/redstone"
+    },
+    "C": {
+      "item": "routedpipes:frame"
+    },
+    "D": {
+      "tag": "c:ingots/iron"
+    }
+  },
+  "result": {
+    "id": "routedpipes:security_station",
+    "count": 1
+  }
+}

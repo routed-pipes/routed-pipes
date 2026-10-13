@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "routedpipes:block/logistics_crafting_table"
+    }
+  }
+}

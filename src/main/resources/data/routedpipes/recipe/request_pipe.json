@@ -1,0 +1,30 @@
+{
+  "type": "routedpipes:programmed",
+  "category": "misc",
+  "pattern": [
+    " A ",
+    "BCB",
+    "DED"
+  ],
+  "key": {
+    "A": {
+      "item": "routedpipes:logistics_programmer"
+    },
+    "B": {
+      "tag": "c:dusts/redstone"
+    },
+    "C": {
+      "item": "routedpipes:chip_basic"
+    },
+    "D": {
+      "tag": "c:ingots/iron"
+    },
+    "E": {
+      "item": "routedpipes:basic_logistics_pipe"
+    }
+  },
+  "result": {
+    "id": "routedpipes:request_pipe",
+    "count": 1
+  }
+}

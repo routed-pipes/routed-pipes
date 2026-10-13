@@ -281,7 +281,7 @@ public class StatisticsTableMenu extends AbstractContainerMenu implements TextMe
             data.set(DATA_ITEMS_PAGE, table.tracking().items().indexOf(picked) / TRACKED_SLOTS);
         } else {
             player.displayClientMessage(Component.translatable(table.pipe().isPresent()
-                    ? "logisticspipes.statistics.already_tracked" : "logisticspipes.statistics.no_pipe")
+                    ? "routedpipes.statistics.already_tracked" : "routedpipes.statistics.no_pipe")
                     .withStyle(ChatFormatting.RED), false);
         }
     }

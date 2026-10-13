@@ -1,0 +1,26 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:tag_empty",
+      "tag": "c:ingots/copper"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "AB",
+    "BA"
+  ],
+  "key": {
+    "A": {
+      "tag": "c:sands"
+    },
+    "B": {
+      "tag": "c:ingots/gold"
+    }
+  },
+  "result": {
+    "id": "routedpipes:chip_basic_raw",
+    "count": 2
+  }
+}

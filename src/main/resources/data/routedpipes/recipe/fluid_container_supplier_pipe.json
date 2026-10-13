@@ -1,0 +1,30 @@
+{
+  "type": "routedpipes:programmed",
+  "category": "misc",
+  "pattern": [
+    " A ",
+    "BCB",
+    "DED"
+  ],
+  "key": {
+    "A": {
+      "item": "routedpipes:logistics_programmer"
+    },
+    "B": {
+      "item": "routedpipes:chip_basic"
+    },
+    "C": {
+      "item": "routedpipes:basic_logistics_pipe"
+    },
+    "D": {
+      "tag": "c:ingots/iron"
+    },
+    "E": {
+      "item": "minecraft:bucket"
+    }
+  },
+  "result": {
+    "id": "routedpipes:fluid_container_supplier_pipe",
+    "count": 1
+  }
+}

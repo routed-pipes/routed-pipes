@@ -97,7 +97,7 @@ public final class PipeSigns {
         player.openMenu(new SimpleMenuProvider((id, inventory, user) -> new SignItemMenu(type, id, inventory, items,
                 face.get3DDataValue(), someone -> Container.stillValidBlockEntity(pipe, someone)
                         && at(face).filter(kind -> kind == SignKind.ITEM_AMOUNT).isPresent()),
-                Component.translatable("logisticspipes.gui.sign_item")));
+                Component.translatable("routedpipes.gui.sign_item")));
     }
 
     private void changed() {
@@ -190,7 +190,7 @@ public final class PipeSigns {
     }
 
     private static SignView empty() {
-        return new SignView(ItemStack.EMPTY, List.of(Component.translatable("logisticspipes.sign.empty")));
+        return new SignView(ItemStack.EMPTY, List.of(Component.translatable("routedpipes.sign.empty")));
     }
 
     // what the crafting pipe makes and the satellite it sends ingredients to
@@ -202,7 +202,7 @@ public final class PipeSigns {
         List<Component> lines = new ArrayList<>();
         if (!pipe.satelliteName().isEmpty()) {
             // as text, a number does not come back the same from the way to the client
-            lines.add(Component.translatable("logisticspipes.sign.satellite", pipe.satelliteName()));
+            lines.add(Component.translatable("routedpipes.sign.satellite", pipe.satelliteName()));
         }
         lines.add(result.getHoverName());
         return new SignView(result, lines);
@@ -214,7 +214,7 @@ public final class PipeSigns {
             return empty();
         }
         int count = amounts.getOrDefault(McItemType.batchOf(item).type(), 0);
-        return new SignView(item.copy(), List.of(Component.translatable("logisticspipes.sign.amount"),
+        return new SignView(item.copy(), List.of(Component.translatable("routedpipes.sign.amount"),
                 Component.literal(AmountText.of(count)), item.getHoverName()));
     }
 

@@ -25,7 +25,7 @@ public class RequestTableScreen extends AbstractContainerScreen<RequestTableMenu
         addRenderableWidget(Button.builder(Component.literal(label),
                 pressed -> minecraft.gameMode.handleInventoryButtonClick(menu.containerId, id))
                 .bounds(leftPos + x, topPos + y, width, 14)
-                .tooltip(Tooltip.create(Component.translatable("logisticspipes.gui.request_table." + tooltip))).build());
+                .tooltip(Tooltip.create(Component.translatable("routedpipes.gui.request_table." + tooltip))).build());
     }
 
     @Override
@@ -36,11 +36,11 @@ public class RequestTableScreen extends AbstractContainerScreen<RequestTableMenu
         button("+", "one", RequestTableMenu.BUTTON_ORDER_ONE, 114, 18, 26);
         button("++", "ten", RequestTableMenu.BUTTON_ORDER_TEN, 114, 34, 26);
         button("+++", "stack", RequestTableMenu.BUTTON_ORDER_STACK, 114, 50, 26);
-        addRenderableWidget(Button.builder(Component.translatable("logisticspipes.gui.request_table.list"),
+        addRenderableWidget(Button.builder(Component.translatable("routedpipes.gui.request_table.list"),
                 pressed -> minecraft.gameMode.handleInventoryButtonClick(menu.containerId, RequestTableMenu.BUTTON_LIST))
                 .bounds(leftPos + 142, topPos + 50, 28, 14).build());
         // the macros on the disk in the slot beside it
-        disk = addRenderableWidget(Button.builder(Component.translatable("logisticspipes.gui.disk"),
+        disk = addRenderableWidget(Button.builder(Component.translatable("routedpipes.gui.disk"),
                 pressed -> minecraft.gameMode.handleInventoryButtonClick(menu.containerId, RequestTableMenu.BUTTON_DISK))
                 .bounds(leftPos + 62, topPos + 57, 28, 14).build());
         disk.active = menu.holdsDisk();
@@ -66,7 +66,7 @@ public class RequestTableScreen extends AbstractContainerScreen<RequestTableMenu
     @Override
     protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
         super.renderLabels(graphics, mouseX, mouseY);
-        graphics.drawString(font, Component.translatable("logisticspipes.gui.request_table.sort"), 146, 38, TEXT, false);
+        graphics.drawString(font, Component.translatable("routedpipes.gui.request_table.sort"), 146, 38, TEXT, false);
     }
 
     @Override

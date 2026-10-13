@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " A ",
+    "BCD",
+    " E "
+  ],
+  "key": {
+    "A": {
+      "item": "routedpipes:chip_advanced"
+    },
+    "B": {
+      "item": "routedpipes:request_pipe_mk2"
+    },
+    "C": {
+      "item": "routedpipes:frame"
+    },
+    "D": {
+      "item": "routedpipes:crafting_pipe"
+    },
+    "E": {
+      "tag": "c:chests/wooden"
+    }
+  },
+  "result": {
+    "id": "routedpipes:request_table",
+    "count": 1
+  }
+}

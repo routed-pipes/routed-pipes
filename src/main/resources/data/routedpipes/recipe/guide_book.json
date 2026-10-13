@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "AB"
+  ],
+  "key": {
+    "A": {
+      "item": "minecraft:book"
+    },
+    "B": {
+      "item": "routedpipes:transport_pipe"
+    }
+  },
+  "result": {
+    "id": "routedpipes:guide_book",
+    "count": 1
+  }
+}

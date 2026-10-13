@@ -198,15 +198,15 @@ public class FluidRequestMenu extends AbstractContainerMenu implements TextMenu 
         }
         RequestOutcome outcome = pipe.request(new FluidBatch(selected, amount()));
         if (outcome.started()) {
-            player.displayClientMessage(Component.translatable("logisticspipes.request.fluid.started", amount(), name(selected)), false);
+            player.displayClientMessage(Component.translatable("routedpipes.request.fluid.started", amount(), name(selected)), false);
         } else if (!outcome.powered()) {
-            player.displayClientMessage(Component.translatable("logisticspipes.request.no_power")
+            player.displayClientMessage(Component.translatable("routedpipes.request.no_power")
                     .withStyle(ChatFormatting.RED), false);
         } else {
             MutableComponent missing = Component.empty();
             outcome.missing().forEach((type, amount) -> missing.append("\n").append(
-                    Component.translatable("logisticspipes.request.fluid.missing_entry", amount, name(((PackedFluid) type).fluid()))));
-            player.displayClientMessage(Component.translatable("logisticspipes.request.missing")
+                    Component.translatable("routedpipes.request.fluid.missing_entry", amount, name(((PackedFluid) type).fluid()))));
+            player.displayClientMessage(Component.translatable("routedpipes.request.missing")
                     .withStyle(ChatFormatting.RED).append(missing), false);
         }
         refresh();

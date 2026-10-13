@@ -24,8 +24,8 @@ TUBES = {"line_tube": ("tube_line", "line_tube", 0), "speedup_tube": ("tube_spee
          "curve_tube": ("tube_turn", "tube", 2), "s_curve_tube": ("tube_gain", "tube", 0), "gain_tube": ("tube_gain", "tube", 0)}
 FACINGS = ["north", "east", "south", "west"]
 OPPOSITE = {"north": "south", "south": "north", "east": "west", "west": "east"}
-ASSETS = "src/main/resources/assets/logisticspipes/"
-DATA = "src/main/resources/data/logisticspipes/"
+ASSETS = "src/main/resources/assets/routedpipes/"
+DATA = "src/main/resources/data/routedpipes/"
 
 # The pipe model of the original mod, about 500 named meshes. Which of them are drawn depends on the sides
 # a pipe is connected on, the rules below are the ones of the original renderer.
@@ -137,7 +137,7 @@ def write_part(path, vertices, coords, mesh_lists, material, icon=False, flip=Fa
 
 
 def part_model(name, textures):
-    return {"loader": "neoforge:obj", "model": f"logisticspipes:models/block/pipe/{name}.obj", "flip_v": True,
+    return {"loader": "neoforge:obj", "model": f"routedpipes:models/block/pipe/{name}.obj", "flip_v": True,
             "automatic_culling": False, "render_type": "minecraft:cutout", "textures": textures}
 
 
@@ -146,8 +146,8 @@ def write_parts(vertices, coords, meshes):
     folder = ASSETS + "models/block/pipe/"
     with open(folder + "pipe.mtl", "w") as file:
         file.write("newmtl frame\nmap_Kd #frame\nnewmtl icon\nmap_Kd #icon\n")
-    frame = {"frame": "logisticspipes:block/pipe_frame", "particle": "logisticspipes:block/pipe_frame"}
-    dark = {"frame": "logisticspipes:block/pipe_frame_inactive", "particle": "logisticspipes:block/pipe_frame_inactive"}
+    frame = {"frame": "routedpipes:block/pipe_frame", "particle": "routedpipes:block/pipe_frame"}
+    dark = {"frame": "routedpipes:block/pipe_frame_inactive", "particle": "routedpipes:block/pipe_frame_inactive"}
     shared, item_frame = [], []
 
     def frame_part(name, mesh_lists, when, corner=False):
@@ -156,7 +156,7 @@ def write_parts(vertices, coords, meshes):
         if corner:
             # the pieces around the corners go dark with the pipe
             write(folder + name + "_dark.json", part_model(name, dark))
-        shared.append({"when": when, "apply": {"model": f"logisticspipes:block/pipe/{name}"}, "corner": corner})
+        shared.append({"when": when, "apply": {"model": f"routedpipes:block/pipe/{name}"}, "corner": corner})
 
     for first, second in EDGES:
         if first in ("up", "down"):
@@ -232,14 +232,14 @@ def blockstate(name, shared):
             parts.append({"when": {**arms(entry["when"]), "powered": "true"}, "apply": {"model": model}})
             parts.append({"when": {**arms(entry["when"]), "powered": "false"}, "apply": {"model": model + "_dark"}})
     for side in SIDES:
-        arm = {"model": f"logisticspipes:block/{name}_side_{side}"}
+        arm = {"model": f"routedpipes:block/{name}_side_{side}"}
         if name == "transport_pipe":
             parts.append({"when": arms({side: "true"}), "apply": arm})
         else:
             # green where the arm leads to another routed pipe, red where it does not
             parts.append({"when": {side: "routed"}, "apply": arm})
-            parts.append({"when": {side: "unrouted"}, "apply": {"model": f"logisticspipes:block/pipe/side_{side}_unrouted"}})
-        parts.append({"when": arms({side: "false"}), "apply": {"model": f"logisticspipes:block/{name}_plate_{side}"}})
+            parts.append({"when": {side: "unrouted"}, "apply": {"model": f"routedpipes:block/pipe/side_{side}_unrouted"}})
+        parts.append({"when": arms({side: "false"}), "apply": {"model": f"routedpipes:block/{name}_plate_{side}"}})
     return {"multipart": parts}
 
 
@@ -249,12 +249,12 @@ def connector_blockstate(shared):
     for part in blockstate(CONNECTOR, shared)["multipart"]:
         model = part["apply"]["model"]
         side = model.rsplit("_", 1)[-1]
-        if model != f"logisticspipes:block/{CONNECTOR}_plate_{side}":
+        if model != f"routedpipes:block/{CONNECTOR}_plate_{side}":
             parts.append(part)
             continue
         for link in LINKS:
             parts.append({"when": {**part["when"], "link": link},
-                          "apply": {"model": f"logisticspipes:block/{CONNECTOR}_plate_{link}_{side}"}})
+                          "apply": {"model": f"routedpipes:block/{CONNECTOR}_plate_{link}_{side}"}})
     return {"multipart": parts}
 
 
@@ -278,7 +278,7 @@ def pipe_end(shared, facing):
     back = OPPOSITE[facing]
     state = {side: "true" if side in (facing, back) else "false" for side in SIDES}
     models = [entry["apply"] for entry in shared if all(state[side] == value for side, value in entry["when"].items())]
-    models.append({"model": f"logisticspipes:block/transport_pipe_side_{back}"})
+    models.append({"model": f"routedpipes:block/transport_pipe_side_{back}"})
     return [{"when": {"facing": facing}, "apply": model} for model in models]
 
 
@@ -291,7 +291,7 @@ def write_tubes(shared):
         if name == "s_curve_tube":
             # the gain tube laid on its side, what went up now goes east
             vertices = [(y, 1 - x, z) for x, y, z in vertices]
-        textures = {"frame": f"logisticspipes:block/{texture}", "particle": f"logisticspipes:block/{texture}"}
+        textures = {"frame": f"routedpipes:block/{texture}", "particle": f"routedpipes:block/{texture}"}
         parts = []
         for turns, facing in enumerate(FACINGS):
             write_part(folder + f"{name}_{facing}.obj", turned(vertices, turns), coords, meshes.values(), "frame")
@@ -304,17 +304,17 @@ def write_tubes(shared):
                            flip=True)
                 write(ASSETS + f"models/block/{name}_{facing}_mirrored.json", part_model(f"{name}_{facing}_mirrored", textures))
                 parts.append({"when": {"facing": facing, "mirrored": "true"},
-                              "apply": {"model": f"logisticspipes:block/{name}_{facing}_mirrored"}})
+                              "apply": {"model": f"routedpipes:block/{name}_{facing}_mirrored"}})
                 when = {"facing": facing, "mirrored": "false"}
-            parts.append({"when": when, "apply": {"model": f"logisticspipes:block/{name}_{facing}"}})
+            parts.append({"when": when, "apply": {"model": f"routedpipes:block/{name}_{facing}"}})
             if name == "speedup_tube":
                 parts += pipe_end(shared, facing)
         write(ASSETS + f"blockstates/{name}.json", {"multipart": parts})
         write_part(folder + f"{name}_item.obj", fitted(vertices), coords, meshes.values(), "frame")
         write(ASSETS + f"models/item/{name}.json", {"parent": "minecraft:block/block", **part_model(f"{name}_item", textures)})
     # the other blocks of a tube are not drawn, this is only for the bits flying off when one breaks
-    write(ASSETS + "models/block/tube_part.json", {"textures": {"particle": "logisticspipes:block/line_tube"}})
-    write(ASSETS + "blockstates/tube_part.json", {"variants": {"": {"model": "logisticspipes:block/tube_part"}}})
+    write(ASSETS + "models/block/tube_part.json", {"textures": {"particle": "routedpipes:block/line_tube"}})
+    write(ASSETS + "blockstates/tube_part.json", {"variants": {"": {"model": "routedpipes:block/tube_part"}}})
 
 
 def main():
@@ -327,7 +327,7 @@ def main():
         # the red lights are the same piece of the texture 37 of 100 pixels further down
         write_part(folder + f"side_{side}_unrouted.obj", vertices, coords, named(meshes, "Side_" + LETTER[side]), "frame",
                    shift=RED_LIGHTS)
-        routed = {"frame": "logisticspipes:block/pipe_frame_routed", "particle": "logisticspipes:block/pipe_frame_routed"}
+        routed = {"frame": "routedpipes:block/pipe_frame_routed", "particle": "routedpipes:block/pipe_frame_routed"}
         write(folder + f"side_{side}_unrouted.json", part_model(f"side_{side}_unrouted", routed))
         plates = [faces for name, faces in meshes.items() if " Texture_Plate_" + LETTER[side] in name]
         write_part(folder + f"plate_{side}.obj", vertices, coords, plates, "icon", icon=True)
@@ -335,29 +335,29 @@ def main():
     write_part(folder + "item_frame.obj", vertices, coords, item_frame, "frame")
     for name in PIPES:
         # the arms of routed pipes carry the green routing lights
-        frame = "logisticspipes:block/pipe_frame" if name == "transport_pipe" else "logisticspipes:block/pipe_frame_routed"
-        icon = f"logisticspipes:block/{name}_icon"
+        frame = "routedpipes:block/pipe_frame" if name == "transport_pipe" else "routedpipes:block/pipe_frame_routed"
+        icon = f"routedpipes:block/{name}_icon"
         for side in SIDES:
             write(ASSETS + f"models/block/{name}_side_{side}.json", part_model(f"side_{side}", {"frame": frame, "particle": frame}))
             write(ASSETS + f"models/block/{name}_plate_{side}.json", part_model(f"plate_{side}", {"icon": icon, "particle": icon}))
         write(ASSETS + f"models/item/{name}.json", {"parent": "minecraft:block/block", "loader": "neoforge:composite", "children": {
-            "frame": part_model("item_frame", {"frame": "logisticspipes:block/pipe_frame"}),
+            "frame": part_model("item_frame", {"frame": "routedpipes:block/pipe_frame"}),
             **{f"plate_{side}": part_model(f"plate_{side}", {"icon": icon}) for side in SIDES}},
-            "textures": {"particle": "logisticspipes:block/pipe_frame"}})
+            "textures": {"particle": "routedpipes:block/pipe_frame"}})
         write(ASSETS + f"blockstates/{name}.json", blockstate(name, shared))
-    routed = "logisticspipes:block/pipe_frame_routed"
+    routed = "routedpipes:block/pipe_frame_routed"
     for side in SIDES:
         write(ASSETS + f"models/block/{CONNECTOR}_side_{side}.json", part_model(f"side_{side}", {"frame": routed, "particle": routed}))
         for link in LINKS:
-            icon = f"logisticspipes:block/{CONNECTOR}_{link}_icon"
+            icon = f"routedpipes:block/{CONNECTOR}_{link}_icon"
             write(ASSETS + f"models/block/{CONNECTOR}_plate_{link}_{side}.json",
                   part_model(f"plate_{side}", {"icon": icon, "particle": icon}))
     # in the hand it looks connected
-    icon = f"logisticspipes:block/{CONNECTOR}_connected_icon"
+    icon = f"routedpipes:block/{CONNECTOR}_connected_icon"
     write(ASSETS + f"models/item/{CONNECTOR}.json", {"parent": "minecraft:block/block", "loader": "neoforge:composite", "children": {
-        "frame": part_model("item_frame", {"frame": "logisticspipes:block/pipe_frame"}),
+        "frame": part_model("item_frame", {"frame": "routedpipes:block/pipe_frame"}),
         **{f"plate_{side}": part_model(f"plate_{side}", {"icon": icon}) for side in SIDES}},
-        "textures": {"particle": "logisticspipes:block/pipe_frame"}})
+        "textures": {"particle": "routedpipes:block/pipe_frame"}})
     write(ASSETS + f"blockstates/{CONNECTOR}.json", connector_blockstate(shared))
     write_tubes(shared)
     upgrades = ["sneaky", "speed", "module_upgrade", "action_speed", "item_extraction", "item_stack_extraction",
@@ -368,38 +368,38 @@ def main():
              "logistics_programmer"]
     for module in MODULES + ["remote_orderer", "pipe_controller", "settings_copier", "security_card", "disk", "frequency_card", "guide_book", "hud_glasses"] + ["upgrade_" + upgrade for upgrade in upgrades] + parts:
         write(ASSETS + f"models/item/{module}.json",
-              {"parent": "minecraft:item/generated", "textures": {"layer0": f"logisticspipes:item/{module}"}})
+              {"parent": "minecraft:item/generated", "textures": {"layer0": f"routedpipes:item/{module}"}})
     # the sign creator looks like the kind of sign it makes
     write(ASSETS + "models/item/sign_creator.json", {"parent": "minecraft:item/generated",
-          "textures": {"layer0": "logisticspipes:item/sign_creator_crafting"},
-          "overrides": [{"predicate": {"logisticspipes:sign_mode": 1}, "model": "logisticspipes:item/sign_creator_item_amount"}]})
+          "textures": {"layer0": "routedpipes:item/sign_creator_crafting"},
+          "overrides": [{"predicate": {"routedpipes:sign_mode": 1}, "model": "routedpipes:item/sign_creator_item_amount"}]})
     write(ASSETS + "models/item/sign_creator_item_amount.json", {"parent": "minecraft:item/generated",
-          "textures": {"layer0": "logisticspipes:item/sign_creator_item_amount"}})
+          "textures": {"layer0": "routedpipes:item/sign_creator_item_amount"}})
     # the window of the container is tinted with the colour of the fluid in it
     write(ASSETS + "models/item/fluid_container.json", {"parent": "minecraft:item/generated", "textures": {
-        "layer0": "logisticspipes:item/fluid_container", "layer1": "logisticspipes:item/fluid_container_window"}})
+        "layer0": "routedpipes:item/fluid_container", "layer1": "routedpipes:item/fluid_container_window"}})
     cubes = ["logistics_crafting_table", "power_junction", "power_provider_rf", "security_station", "statistics_table",
              "frame", "program_compiler"]
     for cube in cubes:
         write(ASSETS + f"models/block/{cube}.json", {"parent": "minecraft:block/cube_bottom_top", "textures": {
-            "top": f"logisticspipes:block/{cube}_top", "side": f"logisticspipes:block/{cube}_side",
-            "bottom": f"logisticspipes:block/{cube}_bottom"}})
-        write(ASSETS + f"models/item/{cube}.json", {"parent": f"logisticspipes:block/{cube}"})
-        write(ASSETS + f"blockstates/{cube}.json", {"variants": {"": {"model": f"logisticspipes:block/{cube}"}}})
+            "top": f"routedpipes:block/{cube}_top", "side": f"routedpipes:block/{cube}_side",
+            "bottom": f"routedpipes:block/{cube}_bottom"}})
+        write(ASSETS + f"models/item/{cube}.json", {"parent": f"routedpipes:block/{cube}"})
+        write(ASSETS + f"blockstates/{cube}.json", {"variants": {"": {"model": f"routedpipes:block/{cube}"}}})
     # the request table is a pipe underneath, so its state has the connection properties and one model for all of them
     table = "request_table"
     write(ASSETS + f"models/block/{table}.json", {"parent": "minecraft:block/cube_bottom_top", "textures": {
-        "top": f"logisticspipes:block/{table}_top", "side": f"logisticspipes:block/{table}_side",
-        "bottom": f"logisticspipes:block/{table}_bottom"}})
-    write(ASSETS + f"models/item/{table}.json", {"parent": f"logisticspipes:block/{table}"})
-    write(ASSETS + f"blockstates/{table}.json", {"multipart": [{"apply": {"model": f"logisticspipes:block/{table}"}}]})
+        "top": f"routedpipes:block/{table}_top", "side": f"routedpipes:block/{table}_side",
+        "bottom": f"routedpipes:block/{table}_bottom"}})
+    write(ASSETS + f"models/item/{table}.json", {"parent": f"routedpipes:block/{table}"})
+    write(ASSETS + f"blockstates/{table}.json", {"multipart": [{"apply": {"model": f"routedpipes:block/{table}"}}]})
     cubes.append(table)
     for name in PIPES + [CONNECTOR] + cubes + list(TUBES):
         write(DATA + f"loot_table/blocks/{name}.json", {"type": "minecraft:block", "pools": [{
-            "rolls": 1, "entries": [{"type": "minecraft:item", "name": f"logisticspipes:{name}"}],
+            "rolls": 1, "entries": [{"type": "minecraft:item", "name": f"routedpipes:{name}"}],
             "conditions": [{"condition": "minecraft:survives_explosion"}]}]})
     write("src/main/resources/data/minecraft/tags/block/mineable/pickaxe.json",
-          {"values": [f"logisticspipes:{name}" for name in PIPES + [CONNECTOR] + cubes + list(TUBES) + ["tube_part"]]})
+          {"values": [f"routedpipes:{name}" for name in PIPES + [CONNECTOR] + cubes + list(TUBES) + ["tube_part"]]})
 
 
 if __name__ == "__main__":

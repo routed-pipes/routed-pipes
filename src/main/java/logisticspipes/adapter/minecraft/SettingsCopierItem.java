@@ -86,17 +86,17 @@ public class SettingsCopierItem extends Item {
         }
         settings.put("Modules", modules);
         CustomData.update(DataComponents.CUSTOM_DATA, copier, tag -> tag.put(SETTINGS_TAG, settings));
-        return Component.translatable("logisticspipes.settings_copier.copied", pipe.getBlockState().getBlock().getName());
+        return Component.translatable("routedpipes.settings_copier.copied", pipe.getBlockState().getBlock().getName());
     }
 
     // everything goes through the setters of the pipe, so it forgets what it worked out and tells the network
     private static Component paste(ItemStack copier, PipeBlockEntity pipe) {
         CompoundTag settings = settingsOf(copier);
         if (settings.isEmpty()) {
-            return Component.translatable("logisticspipes.settings_copier.empty");
+            return Component.translatable("routedpipes.settings_copier.empty");
         }
         if (!settings.getString("Kind").equals(pipe.kind().name())) {
-            return Component.translatable("logisticspipes.settings_copier.wrong_kind", Component.translatable(settings.getString("Name")));
+            return Component.translatable("routedpipes.settings_copier.wrong_kind", Component.translatable(settings.getString("Name")));
         }
         HolderLookup.Provider registries = pipe.getLevel().registryAccess();
         ContainerTags.load(pipe.config(), settings.getCompound("Config"), registries);
@@ -110,7 +110,7 @@ public class SettingsCopierItem extends Item {
             pipe.pastePerSlotSettings(settings.getCompound("PerSlot"));
         }
         if (pipe.kind() != PipeKind.CHASSIS) {
-            return Component.translatable("logisticspipes.settings_copier.pasted");
+            return Component.translatable("routedpipes.settings_copier.pasted");
         }
         ListTag modules = settings.getList("Modules", Tag.TAG_COMPOUND);
         List<ModuleKind> copied = new ArrayList<>(Collections.nCopies(pipe.modules().getContainerSize(), null));
@@ -133,7 +133,7 @@ public class SettingsCopierItem extends Item {
             ModuleItem.loadSettings(module, copiedSettings.get(slot), registries);
             pipe.modules().setItem(slot, module);
         }
-        return Component.translatable("logisticspipes.settings_copier.pasted_modules", slots.size());
+        return Component.translatable("routedpipes.settings_copier.pasted_modules", slots.size());
     }
 
     // null for a kind this version does not know
@@ -155,23 +155,23 @@ public class SettingsCopierItem extends Item {
         }
         String kind = settings.getString("Kind");
         int mode = settings.getInt("Mode");
-        lines.add(Component.translatable("logisticspipes.settings_copier.stored", Component.translatable(settings.getString("Name"))));
+        lines.add(Component.translatable("routedpipes.settings_copier.stored", Component.translatable(settings.getString("Name"))));
         int markers = settings.getCompound("Config").getList("Items", Tag.TAG_COMPOUND).size();
         if (markers > 0) {
-            lines.add(Component.translatable("logisticspipes.settings_copier.markers", markers));
+            lines.add(Component.translatable("routedpipes.settings_copier.markers", markers));
         }
         if (kind.equals(PipeKind.BASIC.name()) && settings.getBoolean("DefaultRoute")) {
-            lines.add(Component.translatable("logisticspipes.status.default_route"));
+            lines.add(Component.translatable("routedpipes.status.default_route"));
         }
         if (!settings.getString("Satellite").isEmpty()) {
-            lines.add(Component.translatable("logisticspipes.settings_copier.satellite", settings.getString("Satellite")));
+            lines.add(Component.translatable("routedpipes.settings_copier.satellite", settings.getString("Satellite")));
         }
         if (kind.equals(PipeKind.PROVIDER.name())) {
-            lines.add(Component.translatable("logisticspipes.gui.provider_mode." + mode));
-            lines.add(Component.translatable(settings.getBoolean("Exclude") ? "logisticspipes.gui.exclude" : "logisticspipes.gui.include"));
+            lines.add(Component.translatable("routedpipes.gui.provider_mode." + mode));
+            lines.add(Component.translatable(settings.getBoolean("Exclude") ? "routedpipes.gui.exclude" : "routedpipes.gui.include"));
         }
         if (kind.equals(PipeKind.SUPPLIER.name())) {
-            lines.add(Component.translatable("logisticspipes.gui.supply_mode." + mode));
+            lines.add(Component.translatable("routedpipes.gui.supply_mode." + mode));
         }
         ListTag modules = settings.getList("Modules", Tag.TAG_COMPOUND);
         if (!modules.isEmpty()) {
@@ -182,9 +182,9 @@ public class SettingsCopierItem extends Item {
             Shortened<Component> shortened = Shortened.of(names, MAX_MODULES_SHOWN);
             List<Component> parts = new ArrayList<>(shortened.shown());
             if (shortened.more() > 0) {
-                parts.add(Component.translatable("logisticspipes.status.more", shortened.more()));
+                parts.add(Component.translatable("routedpipes.status.more", shortened.more()));
             }
-            lines.add(Component.translatable("logisticspipes.status.modules", ComponentUtils.formatList(parts, Component.literal(", "))));
+            lines.add(Component.translatable("routedpipes.status.modules", ComponentUtils.formatList(parts, Component.literal(", "))));
         }
         return lines;
     }

@@ -1,0 +1,33 @@
+{
+  "type": "routedpipes:programmed",
+  "category": "misc",
+  "pattern": [
+    "ABA",
+    "CDC",
+    "EFE"
+  ],
+  "key": {
+    "A": {
+      "tag": "c:dusts/redstone"
+    },
+    "B": {
+      "item": "routedpipes:logistics_programmer"
+    },
+    "C": {
+      "tag": "c:ingots/gold"
+    },
+    "D": {
+      "item": "routedpipes:chip_basic"
+    },
+    "E": {
+      "item": "minecraft:paper"
+    },
+    "F": {
+      "tag": "c:nuggets/gold"
+    }
+  },
+  "result": {
+    "id": "routedpipes:upgrade_item_extraction",
+    "count": 1
+  }
+}

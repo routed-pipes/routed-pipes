@@ -39,8 +39,8 @@ public class MacroEditScreen extends RequestScreen<MacroEditMenu> {
     protected void init() {
         super.init();
         String typed = name == null ? "" : name.getValue();
-        name = new EditBox(font, leftPos + 8, topPos + 206, 132, 12, Component.translatable("logisticspipes.gui.macro.name"));
-        name.setHint(Component.translatable("logisticspipes.gui.macro.name"));
+        name = new EditBox(font, leftPos + 8, topPos + 206, 132, 12, Component.translatable("routedpipes.gui.macro.name"));
+        name.setHint(Component.translatable("routedpipes.gui.macro.name"));
         name.setMaxLength(DiskMenu.MAX_NAME);
         name.setValue(typed);
         name.setResponder(text -> ClientMenuLink.setText(menu.containerId, MacroEditMenu.TEXT_NAME, text));
@@ -49,15 +49,15 @@ public class MacroEditScreen extends RequestScreen<MacroEditMenu> {
                 .bounds(leftPos + 144, topPos + 206, 12, 12).build());
         addRenderableWidget(Button.builder(Component.literal(">"), button -> first += CELLS)
                 .bounds(leftPos + 156, topPos + 206, 12, 12).build());
-        save = addRenderableWidget(Button.builder(Component.translatable("logisticspipes.gui.macro.save"),
+        save = addRenderableWidget(Button.builder(Component.translatable("routedpipes.gui.macro.save"),
                 button -> press(MacroEditMenu.BUTTON_SAVE)).bounds(leftPos + 8, topPos + 222, 78, 16).build());
-        addRenderableWidget(Button.builder(Component.translatable("logisticspipes.gui.disk.back"),
+        addRenderableWidget(Button.builder(Component.translatable("routedpipes.gui.disk.back"),
                 button -> press(MacroEditMenu.BUTTON_BACK)).bounds(leftPos + 90, topPos + 222, 78, 16).build());
     }
 
     @Override
     protected Component requestLabel() {
-        return Component.translatable("logisticspipes.gui.macro.add");
+        return Component.translatable("routedpipes.gui.macro.add");
     }
 
     @Override
@@ -114,7 +114,7 @@ public class MacroEditScreen extends RequestScreen<MacroEditMenu> {
             }
         }
         if (entries.isEmpty()) {
-            graphics.drawString(font, Component.translatable("logisticspipes.gui.macro.no_items"), ROW_X + 4, ROW_Y + 4, TEXT, false);
+            graphics.drawString(font, Component.translatable("routedpipes.gui.macro.no_items"), ROW_X + 4, ROW_Y + 4, TEXT, false);
         }
     }
 

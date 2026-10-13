@@ -1,0 +1,33 @@
+{
+  "type": "routedpipes:programmed",
+  "category": "misc",
+  "pattern": [
+    " A ",
+    "BCD",
+    "EFE"
+  ],
+  "key": {
+    "A": {
+      "item": "routedpipes:logistics_programmer"
+    },
+    "B": {
+      "item": "minecraft:ender_pearl"
+    },
+    "C": {
+      "item": "routedpipes:chip_basic"
+    },
+    "D": {
+      "tag": "c:dusts/redstone"
+    },
+    "E": {
+      "tag": "c:ingots/iron"
+    },
+    "F": {
+      "item": "routedpipes:basic_logistics_pipe"
+    }
+  },
+  "result": {
+    "id": "routedpipes:inventory_system_connector_pipe",
+    "count": 1
+  }
+}

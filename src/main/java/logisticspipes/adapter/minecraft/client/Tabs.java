@@ -23,7 +23,7 @@ final class Tabs {
     record Tab(ResourceLocation texture, ItemStack item, Component name) {
 
         static Tab texture(String name, Component label) {
-            return new Tab(ResourceLocation.fromNamespaceAndPath("logisticspipes", "textures/gui/" + name + ".png"),
+            return new Tab(ResourceLocation.fromNamespaceAndPath("routedpipes", "textures/gui/" + name + ".png"),
                     ItemStack.EMPTY, label);
         }
 

@@ -10,7 +10,7 @@ import sys
 
 from PIL import Image
 
-ASSETS = "src/main/resources/assets/logisticspipes/"
+ASSETS = "src/main/resources/assets/routedpipes/"
 SIDES = ["down", "up", "north", "south", "west", "east"]
 OPPOSITE = {"down": "up", "up": "down", "north": "south", "south": "north", "west": "east", "east": "west"}
 ARMS = ["none", "unrouted", "routed"]

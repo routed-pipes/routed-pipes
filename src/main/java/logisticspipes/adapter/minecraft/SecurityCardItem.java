@@ -40,7 +40,7 @@ public class SecurityCardItem extends Item {
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         tooltip.add(Component.translatable(getDescriptionId() + ".description").withStyle(ChatFormatting.GRAY));
-        stationOf(stack).ifPresent(station -> tooltip.add(Component.translatable("logisticspipes.security.id", station.toString())
+        stationOf(stack).ifPresent(station -> tooltip.add(Component.translatable("routedpipes.security.id", station.toString())
                 .withStyle(ChatFormatting.DARK_GRAY)));
     }
 }

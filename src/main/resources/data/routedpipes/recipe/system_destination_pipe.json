@@ -1,0 +1,27 @@
+{
+  "type": "routedpipes:programmed",
+  "category": "misc",
+  "pattern": [
+    " A ",
+    "BCB",
+    " D "
+  ],
+  "key": {
+    "A": {
+      "item": "routedpipes:logistics_programmer"
+    },
+    "B": {
+      "tag": "c:dusts/redstone"
+    },
+    "C": {
+      "item": "routedpipes:chip_fpga"
+    },
+    "D": {
+      "item": "routedpipes:provider_pipe"
+    }
+  },
+  "result": {
+    "id": "routedpipes:system_destination_pipe",
+    "count": 1
+  }
+}

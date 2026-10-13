@@ -130,10 +130,10 @@ public class NamesScreen extends AbstractContainerScreen<NamesMenu> implements M
         List<String> offered = offered();
         scroll = Math.max(0, Math.min(scroll, offered.size() - OFFERED_ROWS));
         if (menu.item().isEmpty()) {
-            graphics.drawWordWrap(font, Component.translatable("logisticspipes.gui.names.hint"), LIST_X, OFFERED_Y, LIST_WIDTH, TEXT);
+            graphics.drawWordWrap(font, Component.translatable("routedpipes.gui.names.hint"), LIST_X, OFFERED_Y, LIST_WIDTH, TEXT);
         }
         drawRows(graphics, offered, scroll, OFFERED_ROWS, LIST_X, OFFERED_Y, LIST_WIDTH, offeredRowAt(mouseX, mouseY));
-        graphics.drawString(font, Component.translatable("logisticspipes.gui.names.taken"), TAKEN_X, TAKEN_Y - 12, TEXT, false);
+        graphics.drawString(font, Component.translatable("routedpipes.gui.names.taken"), TAKEN_X, TAKEN_Y - 12, TEXT, false);
         drawRows(graphics, menu.names(), 0, NamesMenu.MAX_NAMES, TAKEN_X, TAKEN_Y, TAKEN_WIDTH, takenRowAt(mouseX, mouseY));
     }
 

@@ -22,7 +22,7 @@ class HudPanelsTest {
     private static final ItemBatch SINK = new ItemBatch(new TestItem("item sink module"), 1);
 
     private static Label label(String name, Object... args) {
-        return new Label(HudText.of("logisticspipes.hud." + name, args), false);
+        return new Label(HudText.of("routedpipes.hud." + name, args), false);
     }
 
     @Test
@@ -70,7 +70,7 @@ class HudPanelsTest {
         HudPanel panel = HudPanels.of(new HudSource.Crafting(Optional.of(STONE), List.of())).orElseThrow();
 
         assertThat(panel).isEqualTo(new HudPanel(HudCategory.CRAFTING, 60, 47,
-                List.of(new Entry(HudText.of("logisticspipes.hud.result"), STONE))));
+                List.of(new Entry(HudText.of("routedpipes.hud.result"), STONE))));
     }
 
     @Test
@@ -78,7 +78,7 @@ class HudPanelsTest {
         HudPanel panel = HudPanels.of(new HudSource.Crafting(Optional.of(STONE), List.of(COAL, STONE))).orElseThrow();
 
         assertThat(panel).isEqualTo(new HudPanel(HudCategory.CRAFTING, 100, 58,
-                List.of(new Entry(HudText.of("logisticspipes.hud.result"), STONE), new Entry(HudText.of("logisticspipes.hud.todo"), COAL))));
+                List.of(new Entry(HudText.of("routedpipes.hud.result"), STONE), new Entry(HudText.of("routedpipes.hud.todo"), COAL))));
     }
 
     @Test
@@ -91,7 +91,7 @@ class HudPanelsTest {
         HudPanel panel = HudPanels.of(new HudSource.Satellite("7", List.of())).orElseThrow();
 
         assertThat(panel).isEqualTo(new HudPanel(HudCategory.SATELLITE, 100, 35,
-                List.of(new Label(HudText.of("logisticspipes.hud.satellite", 7), true))));
+                List.of(new Label(HudText.of("routedpipes.hud.satellite", 7), true))));
     }
 
     @Test

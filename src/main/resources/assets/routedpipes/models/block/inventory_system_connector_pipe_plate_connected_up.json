@@ -1,0 +1,11 @@
+{
+  "loader": "neoforge:obj",
+  "model": "routedpipes:models/block/pipe/plate_up.obj",
+  "flip_v": true,
+  "automatic_culling": false,
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "icon": "routedpipes:block/inventory_system_connector_pipe_connected_icon",
+    "particle": "routedpipes:block/inventory_system_connector_pipe_connected_icon"
+  }
+}

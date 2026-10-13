@@ -45,8 +45,8 @@ public class RequestScreen<M extends RequestMenu> extends AbstractContainerScree
     protected void init() {
         super.init();
         String typed = search == null ? "" : search.getValue();
-        search = new EditBox(font, leftPos + 8, topPos + 4, 100, 12, Component.translatable("logisticspipes.gui.search"));
-        search.setHint(Component.translatable("logisticspipes.gui.search"));
+        search = new EditBox(font, leftPos + 8, topPos + 4, 100, 12, Component.translatable("routedpipes.gui.search"));
+        search.setHint(Component.translatable("routedpipes.gui.search"));
         search.setMaxLength(32);
         search.setValue(typed);
         search.setResponder(text -> ClientMenuLink.setText(menu.containerId, RequestMenu.TEXT_SEARCH, text));
@@ -68,23 +68,23 @@ public class RequestScreen<M extends RequestMenu> extends AbstractContainerScree
         }
         request = addRenderableWidget(Button.builder(requestLabel(),
                 button -> press(RequestMenu.BUTTON_REQUEST)).bounds(leftPos + 8, topPos + 162, 160, 16).build());
-        disk = addRenderableWidget(Button.builder(Component.translatable("logisticspipes.gui.disk"),
+        disk = addRenderableWidget(Button.builder(Component.translatable("routedpipes.gui.disk"),
                 button -> press(RequestMenu.BUTTON_DISK)).bounds(leftPos + 112, topPos + 162, 36, 16).build());
-        preview = addRenderableWidget(Button.builder(Component.translatable("logisticspipes.gui.preview"),
+        preview = addRenderableWidget(Button.builder(Component.translatable("routedpipes.gui.preview"),
                 button -> press(RequestMenu.BUTTON_PREVIEW)).bounds(leftPos + 122, topPos + 162, PREVIEW_WIDTH, 16).build());
         makeRoomForDisk();
         makeRoomForPreview();
     }
 
     protected Component requestLabel() {
-        return Component.translatable("logisticspipes.gui.request");
+        return Component.translatable("routedpipes.gui.request");
     }
 
     private void showCancel() {
         cancel.visible = menu.openOrders() > 0;
         if (shownOpenOrders != menu.openOrders()) {
             shownOpenOrders = menu.openOrders();
-            cancel.setTooltip(Tooltip.create(Component.translatable("logisticspipes.gui.cancel_orders", shownOpenOrders)));
+            cancel.setTooltip(Tooltip.create(Component.translatable("routedpipes.gui.cancel_orders", shownOpenOrders)));
         }
     }
 
@@ -103,7 +103,7 @@ public class RequestScreen<M extends RequestMenu> extends AbstractContainerScree
         }
         request.setWidth(request.getWidth() - PREVIEW_WIDTH - 2);
         preview.setX(request.getX() + request.getWidth() + 2);
-        preview.setMessage(Component.translatable(menu.previewing() ? "logisticspipes.gui.preview.back" : "logisticspipes.gui.preview"));
+        preview.setMessage(Component.translatable(menu.previewing() ? "routedpipes.gui.preview.back" : "routedpipes.gui.preview"));
     }
 
     @Override
@@ -187,7 +187,7 @@ public class RequestScreen<M extends RequestMenu> extends AbstractContainerScree
         graphics.drawString(font, page, 147 - font.width(page) / 2, 6, TEXT, false);
         int selected = menu.selectedSlot();
         ItemStack stack = selected >= 0 && selected < menu.slots.size() ? menu.slots.get(selected).getItem() : ItemStack.EMPTY;
-        Component name = stack.isEmpty() ? Component.translatable("logisticspipes.gui.nothing_selected") : stack.getHoverName();
+        Component name = stack.isEmpty() ? Component.translatable("routedpipes.gui.nothing_selected") : stack.getHoverName();
         graphics.drawString(font, font.plainSubstrByWidth(name.getString(), 160), 8, 130, TEXT, false);
         String amount = Integer.toString(menu.amount());
         graphics.drawString(font, amount, 86 - font.width(amount) / 2, 146, TEXT, false);
@@ -202,18 +202,18 @@ public class RequestScreen<M extends RequestMenu> extends AbstractContainerScree
         for (int index = 0; index < sources.length; index++) {
             int x = LEGEND_X[index];
             graphics.fill(x, LEGEND_Y, x + 7, LEGEND_Y + 7, SOURCE_COLOURS[index]);
-            graphics.drawString(font, Component.translatable("logisticspipes.gui.preview.legend."
+            graphics.drawString(font, Component.translatable("routedpipes.gui.preview.legend."
                     + sources[index].name().toLowerCase(Locale.ROOT)), x + 9, LEGEND_Y, TEXT, false);
         }
         String energy = String.format(Locale.ROOT, "%,d", menu.previewEnergy()).replace(',', ' ');
-        graphics.drawString(font, Component.translatable("logisticspipes.gui.preview.energy", energy), 8, LEGEND_Y + 10, TEXT, false);
+        graphics.drawString(font, Component.translatable("routedpipes.gui.preview.energy", energy), 8, LEGEND_Y + 10, TEXT, false);
     }
 
     // a previewed item says in words where it comes from
     @Override
     protected List<Component> getTooltipFromContainerItem(ItemStack stack) {
         List<Component> tooltip = new ArrayList<>(super.getTooltipFromContainerItem(stack));
-        RequestMenu.sourceOf(stack).ifPresent(source -> tooltip.add(Component.translatable("logisticspipes.gui.preview."
+        RequestMenu.sourceOf(stack).ifPresent(source -> tooltip.add(Component.translatable("routedpipes.gui.preview."
                 + source.name().toLowerCase(Locale.ROOT), RequestMenu.listedCount(stack)).withStyle(ChatFormatting.GRAY)));
         return tooltip;
     }

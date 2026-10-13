@@ -18,7 +18,7 @@ public final class HudPanels {
     // a connector that just handed everything over keeps its panel a little longer, two seconds
     public static final int CONNECTOR_LINGER = 40;
 
-    private static final String KEY = "logisticspipes.hud.";
+    private static final String KEY = "routedpipes.hud.";
 
     private HudPanels() {
     }

@@ -68,7 +68,7 @@ class HudLayoutTest {
 
         assertThat(buttons(shapes)).containsExactly(
                 new Button(35, -40, 10, 9, ">", Optional.empty(), new HudAction(Kind.TURN_PAGE, 1, 1), false));
-        assertThat(shapes).contains(new Text(0, -39, 70, HudText.of("logisticspipes.hud.page", 1, 3), true));
+        assertThat(shapes).contains(new Text(0, -39, 70, HudText.of("routedpipes.hud.page", 1, 3), true));
         assertThat(stacks(shapes)).isEqualTo(items(30).subList(0, 12));
         assertThat(shapes).contains(new Stack(-35, -28, item(0)));
     }

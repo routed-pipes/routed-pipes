@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " A ",
+    "BCB",
+    "DED"
+  ],
+  "key": {
+    "A": {
+      "item": "routedpipes:chip_advanced"
+    },
+    "B": {
+      "tag": "c:ingots/iron"
+    },
+    "C": {
+      "item": "routedpipes:chip_fpga"
+    },
+    "D": {
+      "tag": "c:ingots/gold"
+    },
+    "E": {
+      "item": "routedpipes:module_blank"
+    }
+  },
+  "result": {
+    "id": "routedpipes:logistics_programmer",
+    "count": 1
+  }
+}

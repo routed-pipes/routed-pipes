@@ -1,0 +1,24 @@
+{
+  "type": "routedpipes:programmed",
+  "category": "misc",
+  "pattern": [
+    "A",
+    "B",
+    "C"
+  ],
+  "key": {
+    "A": {
+      "item": "routedpipes:logistics_programmer"
+    },
+    "B": {
+      "item": "routedpipes:chip_fpga"
+    },
+    "C": {
+      "item": "routedpipes:module_extractor"
+    }
+  },
+  "result": {
+    "id": "routedpipes:module_advanced_extractor",
+    "count": 1
+  }
+}

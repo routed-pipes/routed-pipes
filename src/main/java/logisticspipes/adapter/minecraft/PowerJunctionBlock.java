@@ -33,7 +33,7 @@ public class PowerJunctionBlock extends Block implements EntityBlock {
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         if (!level.isClientSide && level.getBlockEntity(pos) instanceof PowerJunctionBlockEntity junction) {
-            player.displayClientMessage(Component.translatable("logisticspipes.power_junction.stored",
+            player.displayClientMessage(Component.translatable("routedpipes.power_junction.stored",
                     junction.stored(), PowerJunctionBlockEntity.CAPACITY), true);
         }
         return InteractionResult.sidedSuccess(level.isClientSide);

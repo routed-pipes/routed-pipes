@@ -1,0 +1,36 @@
+{
+  "multipart": [
+    {
+      "when": {
+        "facing": "north"
+      },
+      "apply": {
+        "model": "routedpipes:block/gain_tube_north"
+      }
+    },
+    {
+      "when": {
+        "facing": "east"
+      },
+      "apply": {
+        "model": "routedpipes:block/gain_tube_east"
+      }
+    },
+    {
+      "when": {
+        "facing": "south"
+      },
+      "apply": {
+        "model": "routedpipes:block/gain_tube_south"
+      }
+    },
+    {
+      "when": {
+        "facing": "west"
+      },
+      "apply": {
+        "model": "routedpipes:block/gain_tube_west"
+      }
+    }
+  ]
+}

@@ -84,9 +84,9 @@ final class SatellitePicker {
         graphics.pose().translate(0, 0, DEPTH);
         graphics.fill(left, top, left + WIDTH, top + HEIGHT, BORDER);
         graphics.fill(left + 1, top + 1, left + WIDTH - 1, top + HEIGHT - 1, BACKGROUND);
-        line(graphics, font, 0, Component.translatable("logisticspipes.gui.satellite.off").getString(), chosen.isEmpty(), hovered == 0, TEXT);
+        line(graphics, font, 0, Component.translatable("routedpipes.gui.satellite.off").getString(), chosen.isEmpty(), hovered == 0, TEXT);
         if (offered.isEmpty()) {
-            line(graphics, font, 1, Component.translatable("logisticspipes.gui.satellite.none_in_reach").getString(), false, false, TEXT_DIM);
+            line(graphics, font, 1, Component.translatable("routedpipes.gui.satellite.none_in_reach").getString(), false, false, TEXT_DIM);
         }
         for (int row = 0; row < ROWS && scroll + row < offered.size(); row++) {
             String name = offered.get(scroll + row);

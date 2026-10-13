@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "routedpipes:upgrade_sneaky"
+    },
+    {
+      "item": "routedpipes:upgrade_sneaky"
+    },
+    {
+      "item": "minecraft:gold_ingot"
+    },
+    {
+      "item": "minecraft:slime_ball"
+    }
+  ],
+  "result": {
+    "id": "routedpipes:upgrade_sneaky_combination",
+    "count": 1
+  }
+}

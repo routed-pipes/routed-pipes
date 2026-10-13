@@ -1,0 +1,11 @@
+{
+  "loader": "neoforge:obj",
+  "model": "routedpipes:models/block/pipe/plate_down.obj",
+  "flip_v": true,
+  "automatic_culling": false,
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "icon": "routedpipes:block/chassis_pipe_mk4_icon",
+    "particle": "routedpipes:block/chassis_pipe_mk4_icon"
+  }
+}

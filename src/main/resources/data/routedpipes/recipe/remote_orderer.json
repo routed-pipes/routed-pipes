@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "ABA",
+    "CDE",
+    "CCE"
+  ],
+  "key": {
+    "A": {
+      "item": "routedpipes:chip_advanced"
+    },
+    "B": {
+      "tag": "c:ingots/gold"
+    },
+    "C": {
+      "tag": "c:dusts/redstone"
+    },
+    "D": {
+      "tag": "c:glass_blocks"
+    },
+    "E": {
+      "tag": "c:gems/lapis"
+    }
+  },
+  "result": {
+    "id": "routedpipes:remote_orderer",
+    "count": 1
+  }
+}

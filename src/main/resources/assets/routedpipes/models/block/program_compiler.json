@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "routedpipes:block/program_compiler_top",
+    "side": "routedpipes:block/program_compiler_side",
+    "bottom": "routedpipes:block/program_compiler_bottom"
+  }
+}

@@ -25,7 +25,7 @@ public class HudSettingsScreen extends AbstractContainerScreen<HudSettingsMenu> 
     }
 
     private static Component label(HudCategory category) {
-        return Component.translatable("logisticspipes.hud.setting." + category.name().toLowerCase(Locale.ROOT));
+        return Component.translatable("routedpipes.hud.setting." + category.name().toLowerCase(Locale.ROOT));
     }
 
     @Override

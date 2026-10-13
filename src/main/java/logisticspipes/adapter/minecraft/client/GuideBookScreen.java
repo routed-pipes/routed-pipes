@@ -54,7 +54,7 @@ public class GuideBookScreen extends Screen {
     private Button contents;
 
     public GuideBookScreen() {
-        super(Component.translatable("item.logisticspipes.guide_book"));
+        super(Component.translatable("item.routedpipes.guide_book"));
     }
 
     private int left() {
@@ -68,7 +68,7 @@ public class GuideBookScreen extends Screen {
         }
         addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, button -> onClose())
                 .bounds(width / 2 + 2, TOP + BOOK_HEIGHT, 98, 20).build());
-        contents = addRenderableWidget(Button.builder(Component.translatable("logisticspipes.guide.contents"), button -> {
+        contents = addRenderableWidget(Button.builder(Component.translatable("routedpipes.guide.contents"), button -> {
             chapter = -1;
             page = 0;
             updateButtons();
@@ -101,13 +101,13 @@ public class GuideBookScreen extends Screen {
             }
             List<List<GuidePages.Piece>> pages = GuidePages.layout(entries.stream().map(entry -> entry.lines().size()).toList(),
                     LINES_PER_PAGE);
-            chapters.add(new Chapter(Component.translatable("logisticspipes.guide.chapter." + kind.name().toLowerCase(Locale.ROOT)),
+            chapters.add(new Chapter(Component.translatable("routedpipes.guide.chapter." + kind.name().toLowerCase(Locale.ROOT)),
                     entries, pages));
         }
     }
 
     private static String startKey(int paragraph) {
-        return "logisticspipes.guide.start." + paragraph;
+        return "routedpipes.guide.start." + paragraph;
     }
 
     private void turn(int by) {
@@ -177,7 +177,7 @@ public class GuideBookScreen extends Screen {
         }
         Chapter shown = chapters.get(chapter);
         graphics.drawString(font, shown.title(), x, TOP + 16, INK, false);
-        Component number = Component.translatable("logisticspipes.guide.page", page + 1, shown.pages().size());
+        Component number = Component.translatable("routedpipes.guide.page", page + 1, shown.pages().size());
         graphics.drawString(font, number, x + TEXT_WIDTH - font.width(number), TOP + 16, INK, false);
         int line = 0;
         for (GuidePages.Piece piece : shown.pages().get(page)) {

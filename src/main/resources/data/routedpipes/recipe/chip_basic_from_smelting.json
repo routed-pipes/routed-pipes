@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:smelting",
+  "category": "misc",
+  "ingredient": {
+    "item": "routedpipes:chip_basic_raw"
+  },
+  "result": {
+    "id": "routedpipes:chip_basic",
+    "count": 1
+  },
+  "experience": 0.0,
+  "cookingtime": 200
+}

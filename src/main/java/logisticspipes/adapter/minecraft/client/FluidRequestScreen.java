@@ -28,8 +28,8 @@ public class FluidRequestScreen extends AbstractContainerScreen<FluidRequestMenu
     protected void init() {
         super.init();
         String typed = search == null ? "" : search.getValue();
-        search = new EditBox(font, leftPos + 8, topPos + 4, 100, 12, Component.translatable("logisticspipes.gui.search"));
-        search.setHint(Component.translatable("logisticspipes.gui.search"));
+        search = new EditBox(font, leftPos + 8, topPos + 4, 100, 12, Component.translatable("routedpipes.gui.search"));
+        search.setHint(Component.translatable("routedpipes.gui.search"));
         search.setMaxLength(32);
         search.setValue(typed);
         search.setResponder(text -> ClientMenuLink.setText(menu.containerId, FluidRequestMenu.TEXT_SEARCH, text));
@@ -47,7 +47,7 @@ public class FluidRequestScreen extends AbstractContainerScreen<FluidRequestMenu
                     button -> press(id)).bounds(leftPos + 8 + step % perRow * (STEP_WIDTH + 2), topPos + 152 + step / perRow * 18,
                     STEP_WIDTH, 16).build());
         }
-        addRenderableWidget(Button.builder(Component.translatable("logisticspipes.gui.request"),
+        addRenderableWidget(Button.builder(Component.translatable("routedpipes.gui.request"),
                 button -> press(FluidRequestMenu.BUTTON_REQUEST)).bounds(leftPos + 8, topPos + 190, 158, 16).build());
     }
 
@@ -112,9 +112,9 @@ public class FluidRequestScreen extends AbstractContainerScreen<FluidRequestMenu
         graphics.drawString(font, page, 147 - font.width(page) / 2, 6, TEXT, false);
         int selected = menu.selectedSlot();
         ItemStack stack = selected >= 0 && selected < menu.slots.size() ? menu.slots.get(selected).getItem() : ItemStack.EMPTY;
-        Component name = stack.isEmpty() ? Component.translatable("logisticspipes.gui.fluid.nothing_selected") : stack.getHoverName();
+        Component name = stack.isEmpty() ? Component.translatable("routedpipes.gui.fluid.nothing_selected") : stack.getHoverName();
         graphics.drawString(font, font.plainSubstrByWidth(name.getString(), 160), 8, 129, TEXT, false);
-        graphics.drawString(font, Component.translatable("logisticspipes.gui.fluid.amount", menu.amount(),
+        graphics.drawString(font, Component.translatable("routedpipes.gui.fluid.amount", menu.amount(),
                 menu.amount() / FluidRequestMenu.BUCKET, menu.amount() % FluidRequestMenu.BUCKET), 8, 140, TEXT, false);
     }
 }

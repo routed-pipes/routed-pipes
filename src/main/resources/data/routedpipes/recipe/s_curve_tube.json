@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "AA ",
+    " AA"
+  ],
+  "key": {
+    "A": {
+      "item": "routedpipes:line_tube"
+    }
+  },
+  "result": {
+    "id": "routedpipes:s_curve_tube",
+    "count": 1
+  }
+}

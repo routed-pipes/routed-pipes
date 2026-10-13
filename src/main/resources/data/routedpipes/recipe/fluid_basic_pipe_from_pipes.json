@@ -1,0 +1,36 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    [
+      {
+        "item": "routedpipes:fluid_insertion_pipe"
+      },
+      {
+        "item": "routedpipes:fluid_extractor_pipe"
+      },
+      {
+        "item": "routedpipes:fluid_provider_pipe"
+      },
+      {
+        "item": "routedpipes:fluid_terminus_pipe"
+      },
+      {
+        "item": "routedpipes:fluid_request_pipe"
+      },
+      {
+        "item": "routedpipes:fluid_satellite_pipe"
+      },
+      {
+        "item": "routedpipes:fluid_supplier_pipe"
+      },
+      {
+        "item": "routedpipes:fluid_container_supplier_pipe"
+      }
+    ]
+  ],
+  "result": {
+    "id": "routedpipes:fluid_basic_pipe",
+    "count": 1
+  }
+}

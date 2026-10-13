@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "ABA",
+    "CDC",
+    "AEA"
+  ],
+  "key": {
+    "A": {
+      "tag": "c:sands"
+    },
+    "B": {
+      "tag": "c:gems/diamond"
+    },
+    "C": {
+      "tag": "c:ingots/gold"
+    },
+    "D": {
+      "tag": "c:dusts/redstone"
+    },
+    "E": {
+      "tag": "c:gems/lapis"
+    }
+  },
+  "result": {
+    "id": "routedpipes:chip_fpga_raw",
+    "count": 16
+  }
+}

@@ -104,7 +104,7 @@ public class SecurityStationBlockEntity extends BlockEntity {
     public MenuProvider channelMenuProvider() {
         return new SimpleMenuProvider((containerId, inventory, player) -> new ChannelMenu(block().services().channelMenu().get(),
                 containerId, inventory, null, id, user -> Container.stillValidBlockEntity(this, user)),
-                Component.translatable("logisticspipes.channel.title"));
+                Component.translatable("routedpipes.channel.title"));
     }
 
     @Override

@@ -9,7 +9,7 @@ import itertools
 import os
 import sys
 
-MODELS = "src/main/resources/assets/logisticspipes/models/block/pipe/"
+MODELS = "src/main/resources/assets/routedpipes/models/block/pipe/"
 TABLE = "src/test/resources/mounts.txt"
 # the order the original goes through directions and through mounts
 SIDES = ["down", "up", "north", "south", "west", "east"]

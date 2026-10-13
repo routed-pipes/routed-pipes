@@ -1,0 +1,30 @@
+{
+  "type": "routedpipes:programmed",
+  "category": "misc",
+  "pattern": [
+    " A ",
+    "BCB",
+    "DED"
+  ],
+  "key": {
+    "A": {
+      "item": "routedpipes:logistics_programmer"
+    },
+    "B": {
+      "tag": "c:dusts/redstone"
+    },
+    "C": {
+      "item": "routedpipes:chip_basic"
+    },
+    "D": {
+      "tag": "c:ingots/iron"
+    },
+    "E": {
+      "item": "routedpipes:module_item_sink"
+    }
+  },
+  "result": {
+    "id": "routedpipes:module_enchantment_sink",
+    "count": 1
+  }
+}

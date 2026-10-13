@@ -1,0 +1,57 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    [
+      {
+        "item": "routedpipes:provider_pipe"
+      },
+      {
+        "item": "routedpipes:request_pipe"
+      },
+      {
+        "item": "routedpipes:request_pipe_mk2"
+      },
+      {
+        "item": "routedpipes:supplier_pipe"
+      },
+      {
+        "item": "routedpipes:crafting_pipe"
+      },
+      {
+        "item": "routedpipes:satellite_pipe"
+      },
+      {
+        "item": "routedpipes:firewall_pipe"
+      },
+      {
+        "item": "routedpipes:chassis_pipe_mk1"
+      },
+      {
+        "item": "routedpipes:chassis_pipe_mk2"
+      },
+      {
+        "item": "routedpipes:chassis_pipe_mk3"
+      },
+      {
+        "item": "routedpipes:chassis_pipe_mk4"
+      },
+      {
+        "item": "routedpipes:chassis_pipe_mk5"
+      },
+      {
+        "item": "routedpipes:inventory_system_connector_pipe"
+      },
+      {
+        "item": "routedpipes:system_entrance_pipe"
+      },
+      {
+        "item": "routedpipes:system_destination_pipe"
+      }
+    ]
+  ],
+  "result": {
+    "id": "routedpipes:basic_logistics_pipe",
+    "count": 1
+  }
+}

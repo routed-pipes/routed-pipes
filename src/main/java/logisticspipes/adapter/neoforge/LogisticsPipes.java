@@ -125,7 +125,8 @@ import org.slf4j.Logger;
 @Mod(LogisticsPipes.MODID)
 public class LogisticsPipes {
 
-    public static final String MODID = "logisticspipes";
+    public static final String MODID = "routedpipes";
+    private static final String OLD_MODID = "logisticspipes";
     private static final Logger LOGGER = LogUtils.getLogger();
 
     private static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(MODID);
@@ -465,7 +466,7 @@ public class LogisticsPipes {
 
     static {
         TABS.register("main", () -> CreativeModeTab.builder()
-                .title(Component.translatable("itemGroup.logisticspipes"))
+                .title(Component.translatable("itemGroup.routedpipes"))
                 .icon(() -> new ItemStack(pipe(PipeKind.BASIC)))
                 .displayItems((parameters, output) -> ITEMS.getEntries().stream()
                         .filter(item -> item != FLUID_CONTAINER).forEach(item -> output.accept(item.get())))
@@ -473,6 +474,10 @@ public class LogisticsPipes {
     }
 
     public LogisticsPipes(IEventBus modEventBus) {
+        keepOldIds(BLOCKS);
+        keepOldIds(ITEMS);
+        keepOldIds(BLOCK_ENTITIES);
+        keepOldIds(DATA_COMPONENTS);
         BLOCKS.register(modEventBus);
         ITEMS.register(modEventBus);
         BLOCK_ENTITIES.register(modEventBus);
@@ -494,6 +499,12 @@ public class LogisticsPipes {
         ComputerCraftSupport.registerIfInstalled(modEventBus);
         Benchmark.registerIfRequested();
         TestsWaitForTicking.register();
+    }
+
+    // the mod had the id of the original once, worlds saved then still name everything by it
+    public static void keepOldIds(DeferredRegister<?> register) {
+        register.getEntries().forEach(entry -> register.addAlias(
+                ResourceLocation.fromNamespaceAndPath(OLD_MODID, entry.getId().getPath()), entry.getId()));
     }
 
     public static LogisticsPipeBlock pipe(PipeKind kind) {

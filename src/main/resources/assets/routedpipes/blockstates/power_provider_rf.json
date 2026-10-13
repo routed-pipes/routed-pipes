@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "routedpipes:block/power_provider_rf"
+    }
+  }
+}

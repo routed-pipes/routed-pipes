@@ -81,7 +81,7 @@ public class HudGameTest {
     }
 
     private static HudElement.Label label(String name, Object... args) {
-        return new HudElement.Label(HudText.of("logisticspipes.hud." + name, args), false);
+        return new HudElement.Label(HudText.of("routedpipes.hud." + name, args), false);
     }
 
     @GameTest(template = EMPTY)
@@ -167,7 +167,7 @@ public class HudGameTest {
         CraftingTableBlockEntity table = helper.getBlockEntity(new BlockPos(2, 2, 1));
         table.pattern().setItem(0, new ItemStack(Items.OAK_LOG));
         crafting.importRecipe();
-        HudElement.Entry result = new HudElement.Entry(HudText.of("logisticspipes.hud.result"), batch(Items.OAK_PLANKS, 4));
+        HudElement.Entry result = new HudElement.Entry(HudText.of("routedpipes.hud.result"), batch(Items.OAK_PLANKS, 4));
 
         helper.runAfterDelay(SETTLE, () -> {
             helper.assertTrue(new HudPanel(HudCategory.CRAFTING, 60, 47, List.of(result)).equals(panelAt(helper, player, 2)),
@@ -175,7 +175,7 @@ public class HudGameTest {
             helper.assertTrue(request.request(batch(Items.OAK_PLANKS, 8)).started(), "planks can be ordered");
 
             helper.assertTrue(new HudPanel(HudCategory.CRAFTING, 100, 58, List.of(result,
-                    new HudElement.Entry(HudText.of("logisticspipes.hud.todo"), batch(Items.OAK_PLANKS, 8))))
+                    new HudElement.Entry(HudText.of("routedpipes.hud.todo"), batch(Items.OAK_PLANKS, 8))))
                     .equals(panelAt(helper, player, 2)), "the big panel with the open order, got " + panelAt(helper, player, 2));
             helper.succeedWhen(() -> helper.assertTrue(panelAt(helper, player, 2).height() == 47, "small again once all is shipped"));
         });
@@ -187,7 +187,7 @@ public class HudGameTest {
         TestPlayer player = wearer(helper);
         PipeBlockEntity satellite = pipe(helper, PipeKind.SATELLITE, 2);
         satellite.setSatelliteName("7");
-        HudElement.Label name = new HudElement.Label(HudText.of("logisticspipes.hud.satellite", 7), true);
+        HudElement.Label name = new HudElement.Label(HudText.of("routedpipes.hud.satellite", 7), true);
 
         helper.assertTrue(new HudPanel(HudCategory.SATELLITE, 100, 35, List.of(name)).equals(panelAt(helper, player, 2)),
                 "a satellite always shows its number, got " + panelAt(helper, player, 2));
@@ -380,7 +380,7 @@ public class HudGameTest {
         ModuleItem.configureSink(sink, List.of(new ItemStack(Items.DIAMOND)), true);
         HudElement.Grid grid = new HudElement.Grid(List.of(batch(Items.STONE, 100_000), batch(Items.COAL, 1)), 4, 12);
         HudPanel panel = new HudPanel(HudCategory.CHASSIS, 100, 110, List.of(label("satellite", 7),
-                new HudElement.Entry(HudText.of("logisticspipes.hud.result"), batch(Items.OAK_PLANKS, 4)), grid,
+                new HudElement.Entry(HudText.of("routedpipes.hud.result"), batch(Items.OAK_PLANKS, 4)), grid,
                 new HudElement.Bar(5_000_000_000L, 10_000_000_000L),
                 new HudElement.Modules(List.of(new HudElement.Module(McItemType.batchOf(sink), List.of(grid))), List.of(label("nothing")))));
         RegistryFriendlyByteBuf buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), helper.getLevel().registryAccess());

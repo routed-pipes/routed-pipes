@@ -94,16 +94,16 @@ public record PipeDetails(Shortened<Entry> listed, boolean defaultRoute, Shorten
     public List<Component> lines() {
         List<Component> lines = new ArrayList<>();
         if (!modules.isEmpty()) {
-            lines.add(Component.translatable("logisticspipes.status.modules", joined(modules, false)));
+            lines.add(Component.translatable("routedpipes.status.modules", joined(modules, false)));
         }
         if (!listed.isEmpty()) {
-            lines.add(Component.translatable("logisticspipes.status.takes", joined(listed, false)));
+            lines.add(Component.translatable("routedpipes.status.takes", joined(listed, false)));
         }
         if (defaultRoute) {
-            lines.add(Component.translatable("logisticspipes.status.default_route"));
+            lines.add(Component.translatable("routedpipes.status.default_route"));
         }
         if (!orders.isEmpty()) {
-            lines.add(Component.translatable("logisticspipes.status.orders", joined(orders, true)));
+            lines.add(Component.translatable("routedpipes.status.orders", joined(orders, true)));
         }
         return lines;
     }
@@ -112,11 +112,11 @@ public record PipeDetails(Shortened<Entry> listed, boolean defaultRoute, Shorten
         List<Component> parts = new ArrayList<>();
         for (Entry entry : entries.shown()) {
             parts.add(counted
-                    ? Component.translatable("logisticspipes.status.order_entry", entry.count(), entry.stack().getHoverName())
+                    ? Component.translatable("routedpipes.status.order_entry", entry.count(), entry.stack().getHoverName())
                     : entry.stack().getHoverName());
         }
         if (entries.more() > 0) {
-            parts.add(Component.translatable("logisticspipes.status.more", entries.more()));
+            parts.add(Component.translatable("routedpipes.status.more", entries.more()));
         }
         return ComponentUtils.formatList(parts, Component.literal(", "));
     }

@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "routedpipes:block/security_station_top",
+    "side": "routedpipes:block/security_station_side",
+    "bottom": "routedpipes:block/security_station_bottom"
+  }
+}

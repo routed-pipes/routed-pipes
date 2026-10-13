@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "routedpipes:block/statistics_table_top",
+    "side": "routedpipes:block/statistics_table_side",
+    "bottom": "routedpipes:block/statistics_table_bottom"
+  }
+}

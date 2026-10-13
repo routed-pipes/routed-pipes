@@ -76,7 +76,7 @@ final class FuzzyPanel {
                 graphics.fill(left + 1, y, left + WIDTH - 1, y + LINE, ACTIVE);
             }
             graphics.fill(left + 3, y + 3, left + 7, y + 7, COLOURS[flag]);
-            graphics.drawString(font, Component.translatable("logisticspipes.gui.fuzzy." + flag), left + 10, y + 1, on ? TEXT_ON : TEXT_OFF, false);
+            graphics.drawString(font, Component.translatable("routedpipes.gui.fuzzy." + flag), left + 10, y + 1, on ? TEXT_ON : TEXT_OFF, false);
         }
         graphics.pose().popPose();
     }

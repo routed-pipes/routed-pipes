@@ -5,7 +5,7 @@ Usage: check_pipe_overlaps.py [blockstate name]"""
 import json,itertools,os,sys
 sys.dont_write_bytecode=True
 import check_pipe_mounts as M
-A='src/main/resources/assets/logisticspipes/'
+A='src/main/resources/assets/routedpipes/'
 def load(path):
     V=[];F=[]
     for l in open(path):

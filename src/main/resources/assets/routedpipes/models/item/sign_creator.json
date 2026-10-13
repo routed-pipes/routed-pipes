@@ -1,0 +1,14 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "routedpipes:item/sign_creator_crafting"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "routedpipes:sign_mode": 1
+      },
+      "model": "routedpipes:item/sign_creator_item_amount"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "ABA",
+    "C C",
+    "ABA"
+  ],
+  "key": {
+    "A": {
+      "tag": "c:ingots/iron"
+    },
+    "B": {
+      "tag": "c:dusts/redstone"
+    },
+    "C": {
+      "tag": "c:glass_blocks"
+    }
+  },
+  "result": {
+    "id": "routedpipes:transport_pipe",
+    "count": 8
+  }
+}

@@ -195,33 +195,33 @@ public final class VisualTest {
             command("gamerule doWeatherCycle false");
             command("time set noon");
             command("weather clear");
-            command("setblock 0 -59 2 logisticspipes:request_pipe");
-            command("fill 0 -59 3 0 -59 5 logisticspipes:transport_pipe");
-            command("setblock 0 -59 6 logisticspipes:basic_logistics_pipe");
-            command("setblock -1 -59 2 logisticspipes:request_table");
-            command("setblock -1 -59 6 logisticspipes:firewall_pipe");
-            command("fill 0 -59 7 0 -59 10 logisticspipes:transport_pipe");
-            command("setblock 0 -59 11 logisticspipes:provider_pipe");
+            command("setblock 0 -59 2 routedpipes:request_pipe");
+            command("fill 0 -59 3 0 -59 5 routedpipes:transport_pipe");
+            command("setblock 0 -59 6 routedpipes:basic_logistics_pipe");
+            command("setblock -1 -59 2 routedpipes:request_table");
+            command("setblock -1 -59 6 routedpipes:firewall_pipe");
+            command("fill 0 -59 7 0 -59 10 routedpipes:transport_pipe");
+            command("setblock 0 -59 11 routedpipes:provider_pipe");
             command("setblock 0 -58 11 chest{Items:[{Slot:0b,id:\"minecraft:cobblestone\",count:64},"
                     + "{Slot:1b,id:\"minecraft:diamond\",count:12},{Slot:2b,id:\"minecraft:raw_iron\",count:32},"
                     + "{Slot:3b,id:\"minecraft:coal\",count:64}]}");
-            command("setblock 1 -59 6 logisticspipes:transport_pipe");
-            command("setblock 2 -59 6 logisticspipes:supplier_pipe");
+            command("setblock 1 -59 6 routedpipes:transport_pipe");
+            command("setblock 2 -59 6 routedpipes:supplier_pipe");
             command("setblock 2 -58 6 chest");
-            command("setblock 0 -59 12 logisticspipes:transport_pipe");
-            command("setblock 0 -59 13 logisticspipes:crafting_pipe");
+            command("setblock 0 -59 12 routedpipes:transport_pipe");
+            command("setblock 0 -59 13 routedpipes:crafting_pipe");
             command("setblock 0 -58 13 furnace{Items:[{Slot:1b,id:\"minecraft:coal\",count:8}]}");
             command("setblock 0 -58 2 chest");
-            command("setblock 0 -57 13 logisticspipes:satellite_pipe");
-            command("fill 1 -59 13 1 -57 13 logisticspipes:transport_pipe");
-            command("fill 0 -59 14 0 -59 16 logisticspipes:transport_pipe");
-            command("setblock 0 -59 17 logisticspipes:crafting_pipe");
-            command("setblock 0 -58 17 logisticspipes:logistics_crafting_table");
-            command("setblock 1 -59 2 logisticspipes:power_junction");
-            command("setblock 0 -59 1 logisticspipes:transport_pipe");
-            command("setblock 0 -59 21 logisticspipes:logistics_crafting_table");
-            command("setblock 0 -59 23 logisticspipes:crafting_pipe");
-            command("setblock 0 -59 0 logisticspipes:chassis_pipe_mk5");
+            command("setblock 0 -57 13 routedpipes:satellite_pipe");
+            command("fill 1 -59 13 1 -57 13 routedpipes:transport_pipe");
+            command("fill 0 -59 14 0 -59 16 routedpipes:transport_pipe");
+            command("setblock 0 -59 17 routedpipes:crafting_pipe");
+            command("setblock 0 -58 17 routedpipes:logistics_crafting_table");
+            command("setblock 1 -59 2 routedpipes:power_junction");
+            command("setblock 0 -59 1 routedpipes:transport_pipe");
+            command("setblock 0 -59 21 routedpipes:logistics_crafting_table");
+            command("setblock 0 -59 23 routedpipes:crafting_pipe");
+            command("setblock 0 -59 0 routedpipes:chassis_pipe_mk5");
             command("setblock 0 -58 0 chest");
         });
         step(20, () -> onServer(server -> {
@@ -250,7 +250,7 @@ public final class VisualTest {
                     logisticspipes.domain.tube.TubeKind.S_CURVE, logisticspipes.domain.tube.TubeKind.GAIN};
             for (int row = 0; row < kinds.length; row++) {
                 int z = 30 + row * 7;
-                command("setblock 0 -59 " + z + " logisticspipes:basic_logistics_pipe");
+                command("setblock 0 -59 " + z + " routedpipes:basic_logistics_pipe");
                 LogisticsPipes.TUBES.get(logisticspipes.domain.tube.TubeKind.SPEEDUP).get().build(level, new BlockPos(1, -59, z),
                         new logisticspipes.domain.tube.TubeShape(logisticspipes.domain.tube.TubeKind.SPEEDUP, logisticspipes.domain.routing.Side.EAST),
                         pos -> true);
@@ -262,19 +262,19 @@ public final class VisualTest {
         shotFrom("tubes_side", "5.5 -57.5 26.5 0 12");
         // a row of the newer blocks on the ground with no power near them, so pipes show mounts and the dark frame
         step(5, () -> {
-            command("setblock 0 -60 50 logisticspipes:security_station");
-            command("setblock 2 -60 50 logisticspipes:statistics_table");
-            command("setblock 4 -60 50 logisticspipes:program_compiler");
-            command("setblock 6 -60 50 logisticspipes:fluid_request_pipe");
-            command("setblock 8 -60 50 logisticspipes:fluid_basic_pipe");
-            command("setblock 10 -60 50 logisticspipes:fluid_supplier_pipe");
-            command("setblock 12 -60 50 logisticspipes:request_pipe_mk2");
-            command("setblock 14 -60 50 logisticspipes:inventory_system_connector_pipe");
-            command("setblock 16 -60 50 logisticspipes:system_entrance_pipe");
-            command("setblock 18 -60 50 logisticspipes:power_provider_rf");
-            command("setblock 20 -60 50 logisticspipes:basic_logistics_pipe");
-            command("setblock 21 -60 50 logisticspipes:transport_pipe");
-            command("setblock 22 -60 50 logisticspipes:basic_logistics_pipe");
+            command("setblock 0 -60 50 routedpipes:security_station");
+            command("setblock 2 -60 50 routedpipes:statistics_table");
+            command("setblock 4 -60 50 routedpipes:program_compiler");
+            command("setblock 6 -60 50 routedpipes:fluid_request_pipe");
+            command("setblock 8 -60 50 routedpipes:fluid_basic_pipe");
+            command("setblock 10 -60 50 routedpipes:fluid_supplier_pipe");
+            command("setblock 12 -60 50 routedpipes:request_pipe_mk2");
+            command("setblock 14 -60 50 routedpipes:inventory_system_connector_pipe");
+            command("setblock 16 -60 50 routedpipes:system_entrance_pipe");
+            command("setblock 18 -60 50 routedpipes:power_provider_rf");
+            command("setblock 20 -60 50 routedpipes:basic_logistics_pipe");
+            command("setblock 21 -60 50 routedpipes:transport_pipe");
+            command("setblock 22 -60 50 routedpipes:basic_logistics_pipe");
             command("setblock 22 -60 49 stone");
         });
         shotFrom("pipes_on_the_ground", "21.5 -59.5 53.5 180 15");
@@ -286,7 +286,7 @@ public final class VisualTest {
         }));
         shotFrom("sign_crafting", "-1.5 -59 13.5 -90 10");
         // panels float at the pipes near a player who wears the glasses
-        step(5, () -> command("item replace entity @p armor.head with logisticspipes:hud_glasses"));
+        step(5, () -> command("item replace entity @p armor.head with routedpipes:hud_glasses"));
         // panels hide with the rest of the interface, which the world shots switch off
         step(10, () -> {
             command("tp @p 3.5 -59 8.5 50 15");
@@ -294,7 +294,7 @@ public final class VisualTest {
         });
         step(40, () -> shot("hud_panels"));
         // looking at a free spot next to a pipe with a pipe in the hand shows where it would go
-        step(5, () -> command("item replace entity @p weapon.mainhand with logisticspipes:basic_logistics_pipe"));
+        step(5, () -> command("item replace entity @p weapon.mainhand with routedpipes:basic_logistics_pipe"));
         step(10, () -> command("tp @p 2.5 -58.4 7.5 90 50"));
         step(10, () -> shot("placement_ghost"));
         step(5, () -> command("item replace entity @p weapon.mainhand with air"));
@@ -326,12 +326,12 @@ public final class VisualTest {
         step(0, () -> minecraft.options.hideGui = false);
         // pipes in the hotbar, to see what they look like as items
         step(5, () -> {
-            command("item replace entity @p hotbar.2 with logisticspipes:transport_pipe 16");
-            command("item replace entity @p hotbar.3 with logisticspipes:basic_logistics_pipe 16");
-            command("item replace entity @p hotbar.4 with logisticspipes:provider_pipe");
-            command("item replace entity @p hotbar.5 with logisticspipes:chassis_pipe_mk5");
-            command("item replace entity @p hotbar.6 with logisticspipes:logistics_crafting_table");
-            command("item replace entity @p hotbar.7 with logisticspipes:power_junction");
+            command("item replace entity @p hotbar.2 with routedpipes:transport_pipe 16");
+            command("item replace entity @p hotbar.3 with routedpipes:basic_logistics_pipe 16");
+            command("item replace entity @p hotbar.4 with routedpipes:provider_pipe");
+            command("item replace entity @p hotbar.5 with routedpipes:chassis_pipe_mk5");
+            command("item replace entity @p hotbar.6 with routedpipes:logistics_crafting_table");
+            command("item replace entity @p hotbar.7 with routedpipes:power_junction");
         });
         // with a block info mod installed this shows its tooltip for a pipe
         shotFrom("hud_looking_at_pipe", "2.5 -60 0.5 90 0");
@@ -373,7 +373,7 @@ public final class VisualTest {
         screenShot("gui_inventory_system_connector_pipe", new BlockPos(14, -60, 50), "14.5 -60 53.5 180 0");
         screenShot("gui_system_entrance_pipe", new BlockPos(16, -60, 50), "16.5 -60 53.5 180 0");
         step(10, () -> command("tp @p 2.5 -60 12.5 90 0"));
-        step(5, () -> command("item replace entity @p weapon.mainhand with logisticspipes:pipe_controller"));
+        step(5, () -> command("item replace entity @p weapon.mainhand with routedpipes:pipe_controller"));
         step(15, () -> onServer(server -> {
             ServerPlayer player = server.getPlayerList().getPlayers().get(0);
             BlockPos pos = new BlockPos(0, -59, 13);
@@ -386,7 +386,7 @@ public final class VisualTest {
         screenShot("gui_crafting", CRAFTING, "2.5 -60 12.5 90 0");
         screenShot("gui_satellite", SATELLITE, "2.5 -60 12.5 90 0");
         screenShot("gui_chassis", CHASSIS, "2.5 -60 0.5 90 0");
-        step(5, () -> command("item replace entity @p weapon.mainhand with logisticspipes:module_item_sink"));
+        step(5, () -> command("item replace entity @p weapon.mainhand with routedpipes:module_item_sink"));
         step(15, () -> onServer(server -> {
             ServerPlayer player = server.getPlayerList().getPlayers().get(0);
             ItemStack module = player.getMainHandItem();
@@ -395,7 +395,7 @@ public final class VisualTest {
         }));
         step(2, () -> shot("gui_module_item_sink"));
         step(5, () -> onServer(server -> server.getPlayerList().getPlayers().get(0).closeContainer()));
-        step(5, () -> command("item replace entity @p weapon.mainhand with logisticspipes:module_tag_item_sink"));
+        step(5, () -> command("item replace entity @p weapon.mainhand with routedpipes:module_tag_item_sink"));
         step(15, () -> onServer(server -> {
             ServerPlayer player = server.getPlayerList().getPlayers().get(0);
             ItemStack module = player.getMainHandItem();

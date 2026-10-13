@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "ABA",
+    "BCB",
+    "ABA"
+  ],
+  "key": {
+    "A": {
+      "tag": "c:ingots/iron"
+    },
+    "B": {
+      "tag": "c:dusts/redstone"
+    },
+    "C": {
+      "tag": "c:nuggets/gold"
+    }
+  },
+  "result": {
+    "id": "routedpipes:disk",
+    "count": 1
+  }
+}

@@ -39,7 +39,7 @@ public class FirewallScreen extends AbstractContainerScreen<FirewallMenu> implem
 
     // every switch says whether its thing is stopped
     private Component label(int flag) {
-        return Component.translatable(menu.flag(flag) ? "logisticspipes.gui.firewall.blocked" : "logisticspipes.gui.firewall.allowed");
+        return Component.translatable(menu.flag(flag) ? "routedpipes.gui.firewall.blocked" : "routedpipes.gui.firewall.allowed");
     }
 
     @Override
@@ -64,7 +64,7 @@ public class FirewallScreen extends AbstractContainerScreen<FirewallMenu> implem
     protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
         super.renderLabels(graphics, mouseX, mouseY);
         for (int flag = 0; flag < FirewallSettings.FLAGS; flag++) {
-            graphics.drawString(font, Component.translatable("logisticspipes.gui.firewall." + LABELS[flag]), 120, 16 + flag * 22, TEXT, false);
+            graphics.drawString(font, Component.translatable("routedpipes.gui.firewall." + LABELS[flag]), 120, 16 + flag * 22, TEXT, false);
         }
     }
 

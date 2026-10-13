@@ -269,7 +269,7 @@ public class ProgramCompilerGameTest {
         ProgrammerItem.flash(programmer, CRAFTER);
         List<Component> lines = tooltip(programmer);
         helper.assertTrue(lines.size() == 2 && lines.get(0).equals(Component.translatable(
-                "item.logisticspipes.logistics_programmer.loaded.module").withStyle(ChatFormatting.GRAY)), "the kind, got " + lines);
+                "item.routedpipes.logistics_programmer.loaded.module").withStyle(ChatFormatting.GRAY)), "the kind, got " + lines);
         helper.assertTrue(lines.get(1).getString().equals(new ItemStack(ProgrammerItem.itemOf(CRAFTER)).getHoverName().getString()),
                 "the name, got " + lines);
         helper.succeed();

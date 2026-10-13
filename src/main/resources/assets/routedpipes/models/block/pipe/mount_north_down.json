@@ -1,0 +1,11 @@
+{
+  "loader": "neoforge:obj",
+  "model": "routedpipes:models/block/pipe/mount_north_down.obj",
+  "flip_v": true,
+  "automatic_culling": false,
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "frame": "routedpipes:block/pipe_frame",
+    "particle": "routedpipes:block/pipe_frame"
+  }
+}

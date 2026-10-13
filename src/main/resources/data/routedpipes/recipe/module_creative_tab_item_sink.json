@@ -1,0 +1,30 @@
+{
+  "type": "routedpipes:programmed",
+  "category": "misc",
+  "pattern": [
+    " A ",
+    "BCB",
+    "DED"
+  ],
+  "key": {
+    "A": {
+      "item": "routedpipes:logistics_programmer"
+    },
+    "B": {
+      "tag": "c:dusts/redstone"
+    },
+    "C": {
+      "item": "routedpipes:chip_fpga"
+    },
+    "D": {
+      "tag": "c:ingots/gold"
+    },
+    "E": {
+      "item": "routedpipes:module_blank"
+    }
+  },
+  "result": {
+    "id": "routedpipes:module_creative_tab_item_sink",
+    "count": 1
+  }
+}

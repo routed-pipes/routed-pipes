@@ -18,7 +18,7 @@ import net.minecraft.world.item.TooltipFlag;
 // flashed in a program compiler for one thing, then it is what the recipe of that thing asks for
 public class ProgrammerItem extends Item {
 
-    private static final String NAMESPACE = "logisticspipes";
+    private static final String NAMESPACE = "routedpipes";
 
     // the id of the item the programmer is flashed for, the loader has to register this as a data component
     public static final DataComponentType<ResourceLocation> PROGRAM = DataComponentType.<ResourceLocation>builder()

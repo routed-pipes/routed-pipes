@@ -7,7 +7,7 @@ A grid is a list of rows, the things in a row are separated by spaces and a dot 
 import json
 import os
 
-RECIPES_DIR = "src/main/resources/data/logisticspipes/recipe/"
+RECIPES_DIR = "src/main/resources/data/routedpipes/recipe/"
 
 # short names for what is not from this mod, everything else is the id of one of our items
 NAMES = {
@@ -24,12 +24,12 @@ NO_COPPER = {"type": "neoforge:tag_empty", "tag": "c:ingots/copper"}
 
 
 def ingredient(name):
-    target = NAMES.get(name, "logisticspipes:" + name)
+    target = NAMES.get(name, "routedpipes:" + name)
     return {"tag": target[1:]} if target.startswith("#") else {"item": target}
 
 
 def result(name, count):
-    return {"id": "logisticspipes:" + name, "count": count}
+    return {"id": "routedpipes:" + name, "count": count}
 
 
 def shaped(name, rows, count=1, file=None, when=None, kind="minecraft:crafting_shaped"):
@@ -55,7 +55,7 @@ def programmed(name, layout, base=None, count=1):
 
     In a layout P is the programmer and BASE the pipe or module that is built on."""
     rows = [" ".join({"P": "logistics_programmer", "BASE": base}.get(thing, thing) for thing in row.split()) for row in layout]
-    return shaped(name, rows, count, kind="logisticspipes:programmed")
+    return shaped(name, rows, count, kind="routedpipes:programmed")
 
 
 def shapeless(name, things, file):

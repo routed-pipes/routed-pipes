@@ -7,7 +7,9 @@ modId="${mod_id}"
 version="${mod_version}"
 displayName="${mod_name}"
 description='''
-Routed item transport, requesting and autocrafting. A rewrite of Logistics Pipes for modern Minecraft.
+Routed item transport, requesting and autocrafting.
+Based on the design of Logistics Pipes by Krapht and the RS485 team and uses its original textures under the MMPL.
+Not affiliated with or endorsed by them.
 '''
 
 [[dependencies.${mod_id}]]

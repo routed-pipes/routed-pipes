@@ -199,9 +199,9 @@ public class ChannelMenu extends AbstractContainerMenu implements TextMenu {
         ItemStack paper = new ItemStack(Items.PAPER);
         paper.set(DataComponents.ITEM_NAME, Component.literal(channel.name()));
         paper.set(DataComponents.LORE, new ItemLore(List.of(
-                Component.translatable("logisticspipes.channel.access." + channel.access().name().toLowerCase(Locale.ROOT))
+                Component.translatable("routedpipes.channel.access." + channel.access().name().toLowerCase(Locale.ROOT))
                         .withStyle(style -> style.withItalic(false).withColor(ChatFormatting.GRAY)),
-                Component.translatable("logisticspipes.channel.owner", channel.ownerName())
+                Component.translatable("routedpipes.channel.owner", channel.ownerName())
                         .withStyle(style -> style.withItalic(false).withColor(ChatFormatting.GRAY)))));
         return paper;
     }

@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " A ",
+    "BCB",
+    "DED"
+  ],
+  "key": {
+    "A": {
+      "item": "routedpipes:chip_basic"
+    },
+    "B": {
+      "tag": "c:dusts/redstone"
+    },
+    "C": {
+      "item": "routedpipes:frame"
+    },
+    "D": {
+      "tag": "c:ingots/iron"
+    },
+    "E": {
+      "item": "minecraft:redstone_block"
+    }
+  },
+  "result": {
+    "id": "routedpipes:power_junction",
+    "count": 1
+  }
+}

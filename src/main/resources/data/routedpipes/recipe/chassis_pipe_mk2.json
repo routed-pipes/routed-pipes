@@ -1,0 +1,30 @@
+{
+  "type": "routedpipes:programmed",
+  "category": "misc",
+  "pattern": [
+    " A ",
+    "BCB",
+    "DED"
+  ],
+  "key": {
+    "A": {
+      "item": "routedpipes:logistics_programmer"
+    },
+    "B": {
+      "item": "routedpipes:chip_basic"
+    },
+    "C": {
+      "item": "routedpipes:chassis_pipe_mk1"
+    },
+    "D": {
+      "tag": "c:ingots/iron"
+    },
+    "E": {
+      "tag": "c:gems/lapis"
+    }
+  },
+  "result": {
+    "id": "routedpipes:chassis_pipe_mk2",
+    "count": 1
+  }
+}

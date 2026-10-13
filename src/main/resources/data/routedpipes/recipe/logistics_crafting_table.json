@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " A ",
+    "BCB",
+    " D "
+  ],
+  "key": {
+    "A": {
+      "item": "minecraft:crafting_table"
+    },
+    "B": {
+      "tag": "minecraft:planks"
+    },
+    "C": {
+      "item": "routedpipes:frame"
+    },
+    "D": {
+      "item": "minecraft:piston"
+    }
+  },
+  "result": {
+    "id": "routedpipes:logistics_crafting_table",
+    "count": 1
+  }
+}

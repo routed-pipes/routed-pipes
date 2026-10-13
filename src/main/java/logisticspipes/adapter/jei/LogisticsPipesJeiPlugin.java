@@ -61,7 +61,7 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 @JeiPlugin
 public class LogisticsPipesJeiPlugin implements IModPlugin {
 
-    private static final String NAMESPACE = "logisticspipes";
+    private static final String NAMESPACE = "routedpipes";
 
     @Override
     public ResourceLocation getPluginUid() {
@@ -119,9 +119,9 @@ public class LogisticsPipesJeiPlugin implements IModPlugin {
 
             @Override
             public void getTooltip(ITooltipBuilder tooltip) {
-                tooltip.add(Component.translatable("logisticspipes.jei.network_cannot_supply").withStyle(ChatFormatting.RED));
+                tooltip.add(Component.translatable("routedpipes.jei.network_cannot_supply").withStyle(ChatFormatting.RED));
                 for (ItemStack stack : shortfall) {
-                    tooltip.add(Component.translatable("logisticspipes.request.missing_entry",
+                    tooltip.add(Component.translatable("routedpipes.request.missing_entry",
                             CraftingTableMenu.shortfallCount(stack), stack.getHoverName()));
                 }
             }
@@ -198,7 +198,7 @@ public class LogisticsPipesJeiPlugin implements IModPlugin {
             List<ItemStack> inputs = merged(recipeSlots.getSlotViews(RecipeIngredientRole.INPUT));
             List<ItemStack> outputs = merged(recipeSlots.getSlotViews(RecipeIngredientRole.OUTPUT));
             if (inputs.isEmpty() || outputs.isEmpty() || inputs.size() > PipeBlockEntity.OUTPUT_SLOT) {
-                return helper.createUserErrorWithTooltip(Component.translatable("logisticspipes.jei.recipe_does_not_fit"));
+                return helper.createUserErrorWithTooltip(Component.translatable("routedpipes.jei.recipe_does_not_fit"));
             }
             if (doTransfer) {
                 for (int slot = 0; slot < PipeBlockEntity.OUTPUT_SLOT; slot++) {

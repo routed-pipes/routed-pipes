@@ -1,0 +1,33 @@
+{
+  "type": "routedpipes:programmed",
+  "category": "misc",
+  "pattern": [
+    " A ",
+    "BCD",
+    "EFE"
+  ],
+  "key": {
+    "A": {
+      "item": "routedpipes:logistics_programmer"
+    },
+    "B": {
+      "tag": "c:dyes/black"
+    },
+    "C": {
+      "item": "routedpipes:fluid_basic_pipe"
+    },
+    "D": {
+      "tag": "c:dyes/purple"
+    },
+    "E": {
+      "tag": "c:ingots/iron"
+    },
+    "F": {
+      "item": "routedpipes:chip_basic"
+    }
+  },
+  "result": {
+    "id": "routedpipes:fluid_terminus_pipe",
+    "count": 1
+  }
+}

@@ -133,7 +133,7 @@ public class CraftingTableMenu extends AbstractContainerMenu implements MarkerMe
         answer.set(DATA_NETWORK, outcome.isEmpty() ? NETWORK_NONE : missing.isEmpty() ? NETWORK_SUPPLIES : NETWORK_MISSING);
         answer.set(DATA_QUESTION, question);
         if (order && outcome.isPresent() && !outcome.get().powered()) {
-            player.displayClientMessage(Component.translatable("logisticspipes.request.no_power").withStyle(ChatFormatting.RED), false);
+            player.displayClientMessage(Component.translatable("routedpipes.request.no_power").withStyle(ChatFormatting.RED), false);
         }
     }
 

@@ -1,0 +1,580 @@
+{
+  "multipart": [
+    {
+      "when": {
+        "facing": "north"
+      },
+      "apply": {
+        "model": "routedpipes:block/speedup_tube_north"
+      }
+    },
+    {
+      "when": {
+        "facing": "north"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/edge_up_east"
+      }
+    },
+    {
+      "when": {
+        "facing": "north"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/edge_up_west"
+      }
+    },
+    {
+      "when": {
+        "facing": "north"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/edge_down_east"
+      }
+    },
+    {
+      "when": {
+        "facing": "north"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/edge_down_west"
+      }
+    },
+    {
+      "when": {
+        "facing": "north"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/spacer_up_north_west_north"
+      }
+    },
+    {
+      "when": {
+        "facing": "north"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/spacer_up_north_east_north"
+      }
+    },
+    {
+      "when": {
+        "facing": "north"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/spacer_up_south_west_south"
+      }
+    },
+    {
+      "when": {
+        "facing": "north"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/spacer_up_south_east_south"
+      }
+    },
+    {
+      "when": {
+        "facing": "north"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/spacer_down_north_west_north"
+      }
+    },
+    {
+      "when": {
+        "facing": "north"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/spacer_down_north_east_north"
+      }
+    },
+    {
+      "when": {
+        "facing": "north"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/spacer_down_south_west_south"
+      }
+    },
+    {
+      "when": {
+        "facing": "north"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/spacer_down_south_east_south"
+      }
+    },
+    {
+      "when": {
+        "facing": "north"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/support_north_e_u"
+      }
+    },
+    {
+      "when": {
+        "facing": "north"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/support_north_w_u"
+      }
+    },
+    {
+      "when": {
+        "facing": "north"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/support_north_u_s"
+      }
+    },
+    {
+      "when": {
+        "facing": "north"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/support_north_d_s"
+      }
+    },
+    {
+      "when": {
+        "facing": "north"
+      },
+      "apply": {
+        "model": "routedpipes:block/transport_pipe_side_south"
+      }
+    },
+    {
+      "when": {
+        "facing": "east"
+      },
+      "apply": {
+        "model": "routedpipes:block/speedup_tube_east"
+      }
+    },
+    {
+      "when": {
+        "facing": "east"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/edge_up_north"
+      }
+    },
+    {
+      "when": {
+        "facing": "east"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/edge_up_south"
+      }
+    },
+    {
+      "when": {
+        "facing": "east"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/edge_down_north"
+      }
+    },
+    {
+      "when": {
+        "facing": "east"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/edge_down_south"
+      }
+    },
+    {
+      "when": {
+        "facing": "east"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/spacer_up_north_west_west"
+      }
+    },
+    {
+      "when": {
+        "facing": "east"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/spacer_up_north_east_east"
+      }
+    },
+    {
+      "when": {
+        "facing": "east"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/spacer_up_south_west_west"
+      }
+    },
+    {
+      "when": {
+        "facing": "east"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/spacer_up_south_east_east"
+      }
+    },
+    {
+      "when": {
+        "facing": "east"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/spacer_down_north_west_west"
+      }
+    },
+    {
+      "when": {
+        "facing": "east"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/spacer_down_north_east_east"
+      }
+    },
+    {
+      "when": {
+        "facing": "east"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/spacer_down_south_west_west"
+      }
+    },
+    {
+      "when": {
+        "facing": "east"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/spacer_down_south_east_east"
+      }
+    },
+    {
+      "when": {
+        "facing": "east"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/support_west_u_u"
+      }
+    },
+    {
+      "when": {
+        "facing": "east"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/support_west_d_u"
+      }
+    },
+    {
+      "when": {
+        "facing": "east"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/support_west_n_u"
+      }
+    },
+    {
+      "when": {
+        "facing": "east"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/support_west_s_u"
+      }
+    },
+    {
+      "when": {
+        "facing": "east"
+      },
+      "apply": {
+        "model": "routedpipes:block/transport_pipe_side_west"
+      }
+    },
+    {
+      "when": {
+        "facing": "south"
+      },
+      "apply": {
+        "model": "routedpipes:block/speedup_tube_south"
+      }
+    },
+    {
+      "when": {
+        "facing": "south"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/edge_up_east"
+      }
+    },
+    {
+      "when": {
+        "facing": "south"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/edge_up_west"
+      }
+    },
+    {
+      "when": {
+        "facing": "south"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/edge_down_east"
+      }
+    },
+    {
+      "when": {
+        "facing": "south"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/edge_down_west"
+      }
+    },
+    {
+      "when": {
+        "facing": "south"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/spacer_up_north_west_north"
+      }
+    },
+    {
+      "when": {
+        "facing": "south"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/spacer_up_north_east_north"
+      }
+    },
+    {
+      "when": {
+        "facing": "south"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/spacer_up_south_west_south"
+      }
+    },
+    {
+      "when": {
+        "facing": "south"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/spacer_up_south_east_south"
+      }
+    },
+    {
+      "when": {
+        "facing": "south"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/spacer_down_north_west_north"
+      }
+    },
+    {
+      "when": {
+        "facing": "south"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/spacer_down_north_east_north"
+      }
+    },
+    {
+      "when": {
+        "facing": "south"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/spacer_down_south_west_south"
+      }
+    },
+    {
+      "when": {
+        "facing": "south"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/spacer_down_south_east_south"
+      }
+    },
+    {
+      "when": {
+        "facing": "south"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/support_north_e_u"
+      }
+    },
+    {
+      "when": {
+        "facing": "south"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/support_north_w_u"
+      }
+    },
+    {
+      "when": {
+        "facing": "south"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/support_north_u_s"
+      }
+    },
+    {
+      "when": {
+        "facing": "south"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/support_north_d_s"
+      }
+    },
+    {
+      "when": {
+        "facing": "south"
+      },
+      "apply": {
+        "model": "routedpipes:block/transport_pipe_side_north"
+      }
+    },
+    {
+      "when": {
+        "facing": "west"
+      },
+      "apply": {
+        "model": "routedpipes:block/speedup_tube_west"
+      }
+    },
+    {
+      "when": {
+        "facing": "west"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/edge_up_north"
+      }
+    },
+    {
+      "when": {
+        "facing": "west"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/edge_up_south"
+      }
+    },
+    {
+      "when": {
+        "facing": "west"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/edge_down_north"
+      }
+    },
+    {
+      "when": {
+        "facing": "west"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/edge_down_south"
+      }
+    },
+    {
+      "when": {
+        "facing": "west"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/spacer_up_north_west_west"
+      }
+    },
+    {
+      "when": {
+        "facing": "west"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/spacer_up_north_east_east"
+      }
+    },
+    {
+      "when": {
+        "facing": "west"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/spacer_up_south_west_west"
+      }
+    },
+    {
+      "when": {
+        "facing": "west"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/spacer_up_south_east_east"
+      }
+    },
+    {
+      "when": {
+        "facing": "west"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/spacer_down_north_west_west"
+      }
+    },
+    {
+      "when": {
+        "facing": "west"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/spacer_down_north_east_east"
+      }
+    },
+    {
+      "when": {
+        "facing": "west"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/spacer_down_south_west_west"
+      }
+    },
+    {
+      "when": {
+        "facing": "west"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/spacer_down_south_east_east"
+      }
+    },
+    {
+      "when": {
+        "facing": "west"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/support_west_u_u"
+      }
+    },
+    {
+      "when": {
+        "facing": "west"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/support_west_d_u"
+      }
+    },
+    {
+      "when": {
+        "facing": "west"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/support_west_n_u"
+      }
+    },
+    {
+      "when": {
+        "facing": "west"
+      },
+      "apply": {
+        "model": "routedpipes:block/pipe/support_west_s_u"
+      }
+    },
+    {
+      "when": {
+        "facing": "west"
+      },
+      "apply": {
+        "model": "routedpipes:block/transport_pipe_side_east"
+      }
+    }
+  ]
+}

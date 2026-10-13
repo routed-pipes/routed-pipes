@@ -65,7 +65,7 @@ public class RemoteOrdererItem extends Item {
                 tag.put(LINK_TAG, link);
             });
             if (context.getPlayer() != null) {
-                context.getPlayer().displayClientMessage(Component.translatable("logisticspipes.remote_orderer.linked"), true);
+                context.getPlayer().displayClientMessage(Component.translatable("routedpipes.remote_orderer.linked"), true);
             }
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
@@ -86,16 +86,16 @@ public class RemoteOrdererItem extends Item {
         Level level = player.level();
         Optional<Link> link = linkOf(stack);
         if (link.isEmpty()) {
-            player.displayClientMessage(Component.translatable("logisticspipes.remote_orderer.not_linked"), true);
+            player.displayClientMessage(Component.translatable("routedpipes.remote_orderer.not_linked"), true);
         } else if (!link.get().dimension().equals(level.dimension().location().toString())) {
-            player.displayClientMessage(Component.translatable("logisticspipes.remote_orderer.other_dimension"), true);
+            player.displayClientMessage(Component.translatable("routedpipes.remote_orderer.other_dimension"), true);
         } else if (level.isLoaded(link.get().pos()) && level.getBlockEntity(link.get().pos()) instanceof PipeBlockEntity pipe
                 && pipe.kind().requestPipe()) {
             if (pipe.security().allows(player, Permission.ACTIVE_REQUESTING)) {
                 pipe.openRequestScreen(player, true);
             }
         } else {
-            player.displayClientMessage(Component.translatable("logisticspipes.remote_orderer.pipe_missing"), true);
+            player.displayClientMessage(Component.translatable("routedpipes.remote_orderer.pipe_missing"), true);
         }
     }
 
@@ -116,8 +116,8 @@ public class RemoteOrdererItem extends Item {
 
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        tooltip.add(Component.translatable("item.logisticspipes.remote_orderer.description").withStyle(ChatFormatting.GRAY));
-        linkOf(stack).ifPresent(link -> tooltip.add(Component.translatable("logisticspipes.remote_orderer.link",
+        tooltip.add(Component.translatable("item.routedpipes.remote_orderer.description").withStyle(ChatFormatting.GRAY));
+        linkOf(stack).ifPresent(link -> tooltip.add(Component.translatable("routedpipes.remote_orderer.link",
                 link.pos().getX(), link.pos().getY(), link.pos().getZ()).withStyle(ChatFormatting.DARK_GRAY)));
     }
 }

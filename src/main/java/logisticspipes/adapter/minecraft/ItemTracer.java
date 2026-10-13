@@ -134,10 +134,10 @@ public final class ItemTracer {
     public static Component message(Level level, Trace trace) {
         ItemStack item = trace.item();
         if (trace.destination().isEmpty()) {
-            return Component.translatable("logisticspipes.trace.unclaimed", item.getCount(), item.getHoverName());
+            return Component.translatable("routedpipes.trace.unclaimed", item.getCount(), item.getHoverName());
         }
         BlockPos destination = trace.destination().get();
-        return Component.translatable("logisticspipes.trace.headed", item.getCount(), item.getHoverName(),
+        return Component.translatable("routedpipes.trace.headed", item.getCount(), item.getHoverName(),
                 level.getBlockState(destination).getBlock().getName(), destination.getX(), destination.getY(), destination.getZ());
     }
 }

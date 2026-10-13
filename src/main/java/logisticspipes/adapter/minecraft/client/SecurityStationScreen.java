@@ -33,9 +33,9 @@ public class SecurityStationScreen extends AbstractContainerScreen<SecurityStati
     private static final int COMPUTER_COLUMNS = 3;
 
     private static final List<Tabs.Tab> TABS = List.of(
-            Tabs.Tab.texture("lock", Component.translatable("logisticspipes.gui.tab.station")),
-            Tabs.Tab.item(Items.PLAYER_HEAD, Component.translatable("logisticspipes.gui.tab.players")),
-            Tabs.Tab.item(Items.COMPARATOR, Component.translatable("logisticspipes.gui.tab.computers")));
+            Tabs.Tab.texture("lock", Component.translatable("routedpipes.gui.tab.station")),
+            Tabs.Tab.item(Items.PLAYER_HEAD, Component.translatable("routedpipes.gui.tab.players")),
+            Tabs.Tab.item(Items.COMPARATOR, Component.translatable("routedpipes.gui.tab.computers")));
     private final List<Button> stationButtons = new ArrayList<>();
     private final List<Button> playerButtons = new ArrayList<>();
     private final List<Button> computerButtons = new ArrayList<>();
@@ -67,7 +67,7 @@ public class SecurityStationScreen extends AbstractContainerScreen<SecurityStati
                 .bounds(leftPos + 8, topPos + 106, 20, 18).build());
         station(Button.builder(Component.literal("+"), button -> press(SecurityStationMenu.BUTTON_ADD_CARD))
                 .bounds(leftPos + 30, topPos + 106, 20, 18).build());
-        station(Button.builder(Component.translatable("logisticspipes.channel.title"),
+        station(Button.builder(Component.translatable("routedpipes.channel.title"),
                 button -> minecraft.gameMode.handleInventoryButtonClick(menu.containerId, SecurityStationMenu.BUTTON_CHANNELS))
                 .bounds(leftPos + 88, topPos + 106, 80, 18).build());
         players(Button.builder(Component.literal("<"), button -> press(SecurityStationMenu.BUTTON_PREVIOUS_PAGE))
@@ -80,11 +80,11 @@ public class SecurityStationScreen extends AbstractContainerScreen<SecurityStati
                     .bounds(leftPos + 8, topPos + 76 + permission.ordinal() * 15, 160, 14).build()));
         }
         String typed = name == null ? "" : name.getValue();
-        name = new EditBox(font, leftPos + 8, topPos + 167, 110, 14, Component.translatable("logisticspipes.security.add_player"));
+        name = new EditBox(font, leftPos + 8, topPos + 167, 110, 14, Component.translatable("routedpipes.security.add_player"));
         name.setMaxLength(16);
         name.setValue(typed);
         addRenderableWidget(name);
-        players(Button.builder(Component.translatable("logisticspipes.security.add"), button -> {
+        players(Button.builder(Component.translatable("routedpipes.security.add"), button -> {
             ClientMenuLink.setText(menu.containerId, SecurityStationMenu.TEXT_ADD_PLAYER, name.getValue());
             name.setValue("");
         }).bounds(leftPos + 122, topPos + 166, 46, 16).build());
@@ -95,15 +95,15 @@ public class SecurityStationScreen extends AbstractContainerScreen<SecurityStati
         computers(Button.builder(Component.literal(">"), button -> press(SecurityStationMenu.BUTTON_NEXT_COMPUTERS))
                 .bounds(leftPos + 156, topPos + 27, 12, 12).build());
         String number = computer == null ? "" : computer.getValue();
-        computer = new EditBox(font, leftPos + 8, topPos + 141, 62, 14, Component.translatable("logisticspipes.security.computer_id"));
+        computer = new EditBox(font, leftPos + 8, topPos + 141, 62, 14, Component.translatable("routedpipes.security.computer_id"));
         computer.setMaxLength(10);
         computer.setFilter(text -> text.matches("-?\\d*"));
         computer.setValue(number);
         addRenderableWidget(computer);
-        computers(Button.builder(Component.translatable("logisticspipes.security.add"),
+        computers(Button.builder(Component.translatable("routedpipes.security.add"),
                 button -> ClientMenuLink.setText(menu.containerId, SecurityStationMenu.TEXT_ADD_COMPUTER, computer.getValue()))
                 .bounds(leftPos + 74, topPos + 140, 40, 16).build());
-        computers(Button.builder(Component.translatable("logisticspipes.security.remove"),
+        computers(Button.builder(Component.translatable("routedpipes.security.remove"),
                 button -> ClientMenuLink.setText(menu.containerId, SecurityStationMenu.TEXT_REMOVE_COMPUTER, computer.getValue()))
                 .bounds(leftPos + 118, topPos + 140, 50, 16).build());
         update();
@@ -130,7 +130,7 @@ public class SecurityStationScreen extends AbstractContainerScreen<SecurityStati
     }
 
     private static Component onOff(String key, boolean on) {
-        return Component.translatable(key, Component.translatable(on ? "logisticspipes.gui.yes" : "logisticspipes.gui.no"));
+        return Component.translatable(key, Component.translatable(on ? "routedpipes.gui.yes" : "routedpipes.gui.no"));
     }
 
     // shows the widgets of the open tab with what the server last said
@@ -147,13 +147,13 @@ public class SecurityStationScreen extends AbstractContainerScreen<SecurityStati
         if (!computer.visible) {
             computer.setFocused(false);
         }
-        computersAllowed.setMessage(onOff("logisticspipes.security.computers_allowed", menu.computersAllowed()));
-        automatedRemoval.setMessage(onOff("logisticspipes.security.automated_removal", menu.automatedRemoval()));
-        authorized.setMessage(onOff("logisticspipes.security.cards_valid", menu.authorized()));
+        computersAllowed.setMessage(onOff("routedpipes.security.computers_allowed", menu.computersAllowed()));
+        automatedRemoval.setMessage(onOff("routedpipes.security.automated_removal", menu.automatedRemoval()));
+        authorized.setMessage(onOff("routedpipes.security.cards_valid", menu.authorized()));
         for (Permission permission : Permission.values()) {
             Button button = permissions.get(permission.ordinal());
             button.active = menu.selectedSlot() >= 0;
-            button.setMessage(onOff("logisticspipes.security.permission." + permission.name().toLowerCase(Locale.ROOT),
+            button.setMessage(onOff("routedpipes.security.permission." + permission.name().toLowerCase(Locale.ROOT),
                     menu.allowed(permission)));
         }
     }
@@ -255,17 +255,17 @@ public class SecurityStationScreen extends AbstractContainerScreen<SecurityStati
 
     // the switch, and under it the ids it does not go for
     private void computers(GuiGraphics graphics) {
-        graphics.drawString(font, Component.translatable("logisticspipes.gui.tab.computers"), 8, 30, TEXT, false);
+        graphics.drawString(font, Component.translatable("routedpipes.gui.tab.computers"), 8, 30, TEXT, false);
         String page = (menu.computerPage() + 1) + "/" + menu.computerPages();
         graphics.drawString(font, page, 139 - font.width(page) / 2, 29, TEXT, false);
         graphics.drawString(font, Component.translatable(menu.computersAllowed()
-                ? "logisticspipes.security.computers_except" : "logisticspipes.security.computers_only"), 8, 70, TEXT, false);
+                ? "routedpipes.security.computers_except" : "routedpipes.security.computers_only"), 8, 70, TEXT, false);
         List<Integer> computers = menu.computers();
         for (int index = 0; index < computers.size(); index++) {
             graphics.drawString(font, String.valueOf(computers.get(index)), 8 + index % COMPUTER_COLUMNS * 54,
                     COMPUTERS_TOP + index / COMPUTER_COLUMNS * 12, ID, false);
         }
-        graphics.drawString(font, Component.translatable("logisticspipes.security.computer_id"), 8, 130, TEXT, false);
+        graphics.drawString(font, Component.translatable("routedpipes.security.computer_id"), 8, 130, TEXT, false);
     }
 
     private void station(GuiGraphics graphics) {
@@ -276,19 +276,19 @@ public class SecurityStationScreen extends AbstractContainerScreen<SecurityStati
         graphics.pose().scale(0.75f, 0.75f, 1);
         graphics.drawString(font, menu.stationId().toString(), 0, 0, ID, false);
         graphics.pose().popPose();
-        graphics.drawString(font, Component.translatable("logisticspipes.security.cards"), 8, 95, TEXT, false);
+        graphics.drawString(font, Component.translatable("routedpipes.security.cards"), 8, 95, TEXT, false);
         graphics.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, TEXT, false);
     }
 
     private void players(GuiGraphics graphics) {
-        graphics.drawString(font, Component.translatable("logisticspipes.gui.tab.players"), 8, 30, TEXT, false);
+        graphics.drawString(font, Component.translatable("routedpipes.gui.tab.players"), 8, 30, TEXT, false);
         String page = (menu.page() + 1) + "/" + menu.pages();
         graphics.drawString(font, page, 139 - font.width(page) / 2, 29, TEXT, false);
         int selected = menu.selectedSlot();
         ItemStack head = selected < 0 ? ItemStack.EMPTY : menu.getSlot(SecurityStationMenu.FIRST_PLAYER_SLOT + selected).getItem();
-        Component who = head.isEmpty() ? Component.translatable("logisticspipes.security.select_player") : head.getHoverName();
+        Component who = head.isEmpty() ? Component.translatable("routedpipes.security.select_player") : head.getHoverName();
         graphics.drawString(font, font.plainSubstrByWidth(who.getString(), 160), 8, 64, TEXT, false);
-        graphics.drawString(font, Component.translatable("logisticspipes.security.add_player"), 8, 156, TEXT, false);
+        graphics.drawString(font, Component.translatable("routedpipes.security.add_player"), 8, 156, TEXT, false);
         List<String> suggestions = suggestions();
         List<String> shown = shown(suggestions);
         for (int line = 0; line < shown.size(); line++) {

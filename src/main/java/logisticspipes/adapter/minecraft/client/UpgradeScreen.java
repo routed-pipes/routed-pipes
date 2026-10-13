@@ -34,13 +34,13 @@ public class UpgradeScreen extends AbstractContainerScreen<UpgradeMenu> {
     private static final int TEXT_WIDTH = 138;
 
     private final List<Tabs.Tab> tabs = List.of(
-            Tabs.Tab.texture("stats", Component.translatable("logisticspipes.gui.tab.statistics")),
-            Tabs.Tab.item(BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath("logisticspipes", "upgrade_sneaky")),
-                    Component.translatable("logisticspipes.gui.upgrades")),
-            Tabs.Tab.texture("lock", Component.translatable("logisticspipes.gui.tab.security")),
-            Tabs.Tab.texture("lines", Component.translatable("logisticspipes.gui.tab.tasks")),
-            Tabs.Tab.item(BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath("logisticspipes", "basic_logistics_pipe")),
-                    Component.translatable("logisticspipes.gui.tab.network")));
+            Tabs.Tab.texture("stats", Component.translatable("routedpipes.gui.tab.statistics")),
+            Tabs.Tab.item(BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath("routedpipes", "upgrade_sneaky")),
+                    Component.translatable("routedpipes.gui.upgrades")),
+            Tabs.Tab.texture("lock", Component.translatable("routedpipes.gui.tab.security")),
+            Tabs.Tab.texture("lines", Component.translatable("routedpipes.gui.tab.tasks")),
+            Tabs.Tab.item(BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath("routedpipes", "basic_logistics_pipe")),
+                    Component.translatable("routedpipes.gui.tab.network")));
     private Button previousPage;
     private Button nextPage;
 
@@ -128,38 +128,38 @@ public class UpgradeScreen extends AbstractContainerScreen<UpgradeMenu> {
 
     private void statistics(GuiGraphics graphics) {
         centred(graphics, font.plainSubstrByWidth(title.getString(), 160), imageWidth / 2, 30, PIPE_NAME);
-        centred(graphics, Component.translatable("logisticspipes.gui.statistics.session").getString(), SESSION_X, 44, TEXT);
-        centred(graphics, Component.translatable("logisticspipes.gui.statistics.lifetime").getString(), LIFETIME_X, 44, TEXT);
+        centred(graphics, Component.translatable("routedpipes.gui.statistics.session").getString(), SESSION_X, 44, TEXT);
+        centred(graphics, Component.translatable("routedpipes.gui.statistics.lifetime").getString(), LIFETIME_X, 44, TEXT);
         PipeStatistics.Kind[] kinds = PipeStatistics.Kind.values();
         for (int row = 0; row < kinds.length; row++) {
             int y = 58 + row * 14;
             String name = kinds[row].name().toLowerCase(Locale.ROOT);
-            graphics.drawString(font, Component.translatable("logisticspipes.gui.statistics." + name), 8, y, TEXT, false);
+            graphics.drawString(font, Component.translatable("routedpipes.gui.statistics." + name), 8, y, TEXT, false);
             centred(graphics, number(menu.session(kinds[row])), SESSION_X, y, TEXT);
             centred(graphics, number(menu.lifetime(kinds[row])), LIFETIME_X, y, TEXT);
         }
-        graphics.drawString(font, Component.translatable("logisticspipes.gui.statistics.routing_table",
+        graphics.drawString(font, Component.translatable("routedpipes.gui.statistics.routing_table",
                 number(menu.routingTableSize())), 8, 106, TEXT, false);
     }
 
     private void upgrades(GuiGraphics graphics) {
-        graphics.drawString(font, Component.translatable("logisticspipes.gui.upgrades"), 8, 30, TEXT, false);
+        graphics.drawString(font, Component.translatable("routedpipes.gui.upgrades"), 8, 30, TEXT, false);
         if (menu.sneakyRow()) {
-            graphics.drawString(font, Component.translatable("logisticspipes.gui.sneaky_upgrades"), 8, UpgradeMenu.SNEAKY_ROW_TOP - 12,
+            graphics.drawString(font, Component.translatable("routedpipes.gui.sneaky_upgrades"), 8, UpgradeMenu.SNEAKY_ROW_TOP - 12,
                     TEXT, false);
         }
         if (!menu.mayUpgrade()) {
-            graphics.drawString(font, Component.translatable("logisticspipes.security.denied"), 8, 66, DENIED, false);
+            graphics.drawString(font, Component.translatable("routedpipes.security.denied"), 8, 66, DENIED, false);
         }
     }
 
     private void security(GuiGraphics graphics) {
-        graphics.drawString(font, Component.translatable("logisticspipes.gui.tab.security"), 8, 30, TEXT, false);
+        graphics.drawString(font, Component.translatable("routedpipes.gui.tab.security"), 8, 30, TEXT, false);
         Optional<UUID> station = SecurityCardItem.stationOf(menu.getSlot(UpgradeMenu.SECURITY_SLOT).getItem());
         if (station.isEmpty()) {
             return;
         }
-        graphics.drawString(font, Component.translatable("logisticspipes.security.id", ""), 8, 66, TEXT, false);
+        graphics.drawString(font, Component.translatable("routedpipes.security.id", ""), 8, 66, TEXT, false);
         // the id is too long for the window at full size
         graphics.pose().pushPose();
         graphics.pose().translate(8, 78, 0);
@@ -167,12 +167,12 @@ public class UpgradeScreen extends AbstractContainerScreen<UpgradeMenu> {
         graphics.drawString(font, station.get().toString(), 0, 0, ID, false);
         graphics.pose().popPose();
         graphics.drawString(font, Component.translatable(menu.cardAuthorized()
-                ? "logisticspipes.security.authorized" : "logisticspipes.security.unauthorized"), 8, 92,
+                ? "routedpipes.security.authorized" : "routedpipes.security.unauthorized"), 8, 92,
                 menu.cardAuthorized() ? AUTHORIZED : DENIED, false);
     }
 
     private void tasks(GuiGraphics graphics) {
-        graphics.drawString(font, Component.translatable("logisticspipes.gui.tab.tasks"), 8, 30, TEXT, false);
+        graphics.drawString(font, Component.translatable("routedpipes.gui.tab.tasks"), 8, 30, TEXT, false);
         centred(graphics, (menu.page() + 1) + "/" + menu.pages(), 139, 28, TEXT);
         boolean any = false;
         for (int row = 0; row < UpgradeMenu.TASK_ROWS; row++) {
@@ -183,22 +183,22 @@ public class UpgradeScreen extends AbstractContainerScreen<UpgradeMenu> {
             }
             any = true;
             int y = UpgradeMenu.TASKS_TOP + row * UpgradeMenu.TASK_ROW_HEIGHT;
-            String entry = Component.translatable("logisticspipes.gui.tasks.entry", task.get().number(), task.get().count(),
+            String entry = Component.translatable("routedpipes.gui.tasks.entry", task.get().number(), task.get().count(),
                     stack.getHoverName()).getString();
             graphics.drawString(font, font.plainSubstrByWidth(entry, TEXT_WIDTH), 30, y, TEXT, false);
             Component target = task.get().target()
-                    .<Component>map(pos -> Component.translatable("logisticspipes.gui.tasks.target", pos.getX(), pos.getY(), pos.getZ()))
-                    .orElse(Component.translatable("logisticspipes.gui.tasks.no_target"));
+                    .<Component>map(pos -> Component.translatable("routedpipes.gui.tasks.target", pos.getX(), pos.getY(), pos.getZ()))
+                    .orElse(Component.translatable("routedpipes.gui.tasks.no_target"));
             graphics.drawString(font, font.plainSubstrByWidth(target.getString(), TEXT_WIDTH), 30, y + 9, TEXT, false);
         }
         if (!any) {
-            graphics.drawString(font, Component.translatable("logisticspipes.gui.tasks.none"), 30, UpgradeMenu.TASKS_TOP + 4, TEXT, false);
+            graphics.drawString(font, Component.translatable("routedpipes.gui.tasks.none"), 30, UpgradeMenu.TASKS_TOP + 4, TEXT, false);
         }
     }
 
     // the energy of the network on top, then a pipe per row: what it is and where, and below that what it moved
     private void network(GuiGraphics graphics) {
-        String energy = Component.translatable("logisticspipes.gui.network.energy", number(menu.networkEnergy())).getString();
+        String energy = Component.translatable("routedpipes.gui.network.energy", number(menu.networkEnergy())).getString();
         graphics.drawString(font, font.plainSubstrByWidth(energy, 100), 8, 30, TEXT, false);
         centred(graphics, (menu.page() + 1) + "/" + menu.pages(), 139, 28, TEXT);
         for (int row = 0; row < UpgradeMenu.PIPE_ROWS; row++) {
@@ -209,10 +209,10 @@ public class UpgradeScreen extends AbstractContainerScreen<UpgradeMenu> {
             }
             int y = UpgradeMenu.TASKS_TOP + row * UpgradeMenu.PIPE_ROW_HEIGHT;
             BlockPos pos = pipe.get().pos();
-            String where = Component.translatable("logisticspipes.gui.network.pipe", stack.getHoverName(), pos.getX(), pos.getY(),
+            String where = Component.translatable("routedpipes.gui.network.pipe", stack.getHoverName(), pos.getX(), pos.getY(),
                     pos.getZ()).getString();
             graphics.drawString(font, font.plainSubstrByWidth(where, TEXT_WIDTH), 30, y, PIPE_NAME, false);
-            String counts = Component.translatable("logisticspipes.gui.network.counts", number(pipe.get().sent()),
+            String counts = Component.translatable("routedpipes.gui.network.counts", number(pipe.get().sent()),
                     number(pipe.get().received()), number(pipe.get().relayed()), pipe.get().orders()).getString();
             // four numbers in a row need smaller letters
             graphics.pose().pushPose();

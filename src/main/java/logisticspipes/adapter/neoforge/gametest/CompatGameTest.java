@@ -519,7 +519,7 @@ public class CompatGameTest {
                         .invoke(registration, basic.getBlockState().getBlock(), basic);
                 Class<?> providerType = Class.forName("snownee.jade.api.IServerDataProvider");
                 for (Object provider : providers) {
-                    if (providerType.getMethod("getUid").invoke(provider).toString().equals("logisticspipes:pipe_status")) {
+                    if (providerType.getMethod("getUid").invoke(provider).toString().equals("routedpipes:pipe_status")) {
                         providerType.getMethod("appendServerData", CompoundTag.class, Class.forName("snownee.jade.api.Accessor"))
                                 .invoke(provider, data, accessor);
                     }

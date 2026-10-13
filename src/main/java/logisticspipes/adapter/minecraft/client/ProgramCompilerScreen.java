@@ -25,9 +25,9 @@ import org.lwjgl.glfw.GLFW;
 // the locked categories on the left, the programs of the unlocked ones on the right, or the task that is running
 public class ProgramCompilerScreen extends AbstractContainerScreen<ProgramCompilerMenu> {
 
-    private static final ResourceLocation DISK_SLOT = ResourceLocation.fromNamespaceAndPath("logisticspipes", "textures/gui/slot_disk.png");
+    private static final ResourceLocation DISK_SLOT = ResourceLocation.fromNamespaceAndPath("routedpipes", "textures/gui/slot_disk.png");
     private static final ResourceLocation PROGRAMMER_SLOT =
-            ResourceLocation.fromNamespaceAndPath("logisticspipes", "textures/gui/slot_programmer.png");
+            ResourceLocation.fromNamespaceAndPath("routedpipes", "textures/gui/slot_programmer.png");
     private static final int ROWS = 5;
     private static final int ROW_HEIGHT = 10;
     private static final int LIST_TOP = 28;
@@ -67,13 +67,13 @@ public class ProgramCompilerScreen extends AbstractContainerScreen<ProgramCompil
         categoryUp = button("/\\", LEFT, 14, () -> categoryScroll--);
         categoryDown = button("\\/", LEFT + 15, 14, () -> categoryScroll++);
         unlock = button("", LEFT + 30, 38, this::unlock);
-        unlock.setMessage(Component.translatable("logisticspipes.compiler.unlock"));
+        unlock.setMessage(Component.translatable("routedpipes.compiler.unlock"));
         programUp = button("/\\", MIDDLE + 2, 14, () -> programScroll--);
         programDown = button("\\/", MIDDLE + 17, 14, () -> programScroll++);
         run = button("", MIDDLE + 32, 58, this::run);
         String typed = search == null ? "" : search.getValue();
-        search = new EditBox(font, leftPos + 30, topPos + 9, 116, 14, Component.translatable("logisticspipes.gui.search"));
-        search.setHint(Component.translatable("logisticspipes.gui.search"));
+        search = new EditBox(font, leftPos + 30, topPos + 9, 116, 14, Component.translatable("routedpipes.gui.search"));
+        search.setHint(Component.translatable("routedpipes.gui.search"));
         search.setMaxLength(32);
         search.setValue(typed);
         search.setResponder(text -> programScroll = 0);
@@ -125,7 +125,7 @@ public class ProgramCompilerScreen extends AbstractContainerScreen<ProgramCompil
     }
 
     private static Component name(ProgramCategory category) {
-        return Component.translatable("logisticspipes.compiler.category." + category.name().toLowerCase(Locale.ROOT));
+        return Component.translatable("routedpipes.compiler.category." + category.name().toLowerCase(Locale.ROOT));
     }
 
     // with every category unlocked the programs get the whole width
@@ -159,7 +159,7 @@ public class ProgramCompilerScreen extends AbstractContainerScreen<ProgramCompil
         programDown.visible = idle;
         run.visible = idle;
         boolean flash = selectedProgram != null && compiled(selectedProgram);
-        run.setMessage(Component.translatable(flash ? "logisticspipes.compiler.flash" : "logisticspipes.compiler.compile"));
+        run.setMessage(Component.translatable(flash ? "routedpipes.compiler.flash" : "routedpipes.compiler.compile"));
         run.active = selectedProgram != null && (!flash || menu.holdsProgrammer());
         search.visible = idle;
         if (!idle) {
@@ -273,10 +273,10 @@ public class ProgramCompilerScreen extends AbstractContainerScreen<ProgramCompil
 
     private void running(GuiGraphics graphics, CompilerTask task) {
         if (!menu.powered()) {
-            centred(graphics, Component.translatable("logisticspipes.compiler.no_power"), 8);
-            centred(graphics, Component.translatable("logisticspipes.compiler.connect"), 18);
+            centred(graphics, Component.translatable("routedpipes.compiler.no_power"), 8);
+            centred(graphics, Component.translatable("routedpipes.compiler.connect"), 18);
         }
-        graphics.drawString(font, Component.translatable("logisticspipes.compiler.processing"), LEFT + 2, 39, TEXT, false);
+        graphics.drawString(font, Component.translatable("routedpipes.compiler.processing"), LEFT + 2, 39, TEXT, false);
         graphics.fill(LEFT, 50, RIGHT, 66, 0xFF000000);
         graphics.fill(LEFT + 1, 51, RIGHT - 1, 65, 0xFFFFFFFF);
         graphics.fill(LEFT + 1, 51, LEFT + 1 + (int) ((RIGHT - LEFT - 2) * menu.progress()), 65, 0xFF00AA00);

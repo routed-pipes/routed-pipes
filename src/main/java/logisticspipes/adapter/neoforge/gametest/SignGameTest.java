@@ -186,7 +186,7 @@ public class SignGameTest {
 
         use(helper, player, PIPE, Direction.NORTH, false);
         SignView blank = crafting.signs().views().get(Direction.NORTH);
-        helper.assertTrue(blank.icon().isEmpty() && keys(blank).equals(List.of("logisticspipes.sign.empty")),
+        helper.assertTrue(blank.icon().isEmpty() && keys(blank).equals(List.of("routedpipes.sign.empty")),
                 "without a recipe the sign says so, got " + keys(blank));
 
         setRecipe(crafting);
@@ -200,7 +200,7 @@ public class SignGameTest {
         });
         helper.runAfterDelay(2 * A_LOOK, () -> {
             SignView view = crafting.signs().views().get(Direction.NORTH);
-            helper.assertTrue(view.lines().equals(List.of(Component.translatable("logisticspipes.sign.satellite", "7"),
+            helper.assertTrue(view.lines().equals(List.of(Component.translatable("routedpipes.sign.satellite", "7"),
                     new ItemStack(Items.STICK).getHoverName())), "the satellite is named above the item, got " + view.lines());
             helper.succeed();
         });
@@ -238,7 +238,7 @@ public class SignGameTest {
         SignView view = viewed.signs().views().get(Direction.NORTH);
         helper.assertTrue(view != null && viewed.signs().views().size() == 1, "the client knows the one sign");
         helper.assertTrue(view.icon().is(Items.STICK), "its picture, got " + view.icon());
-        helper.assertTrue(view.lines().equals(List.of(Component.translatable("logisticspipes.sign.satellite", "3"),
+        helper.assertTrue(view.lines().equals(List.of(Component.translatable("routedpipes.sign.satellite", "3"),
                 new ItemStack(Items.STICK).getHoverName())), "and its lines, got " + view.lines());
 
         // a sign that is taken off has to go on the client too
@@ -271,7 +271,7 @@ public class SignGameTest {
         use(helper, player, PIPE, Direction.NORTH, false);
         helper.assertTrue(basic.signs().at(Direction.NORTH).equals(Optional.of(SignKind.ITEM_AMOUNT)), "the sign is up");
         helper.assertTrue(player.containerMenu instanceof SignItemMenu, "and its screen is open");
-        helper.assertTrue(keys(basic.signs().views().get(Direction.NORTH)).equals(List.of("logisticspipes.sign.empty")),
+        helper.assertTrue(keys(basic.signs().views().get(Direction.NORTH)).equals(List.of("routedpipes.sign.empty")),
                 "without an item it says so");
 
         ItemStack held = new ItemStack(Items.COBBLESTONE, 32);
@@ -341,10 +341,10 @@ public class SignGameTest {
             SignView cobblestone = basic.signs().views().get(Direction.NORTH);
             helper.assertTrue(cobblestone.icon().is(Items.COBBLESTONE), "the item is the picture");
             // 27 stacks are 1728
-            helper.assertTrue(keys(cobblestone).equals(List.of("logisticspipes.sign.amount", "1.72K", "block.minecraft.cobblestone")),
+            helper.assertTrue(keys(cobblestone).equals(List.of("routedpipes.sign.amount", "1.72K", "block.minecraft.cobblestone")),
                     "the amount in three digits above the name, got " + keys(cobblestone));
             SignView diamonds = basic.signs().views().get(Direction.SOUTH);
-            helper.assertTrue(keys(diamonds).equals(List.of("logisticspipes.sign.amount", "0", "item.minecraft.diamond")),
+            helper.assertTrue(keys(diamonds).equals(List.of("routedpipes.sign.amount", "0", "item.minecraft.diamond")),
                     "what the network does not have is counted as none, got " + keys(diamonds));
         });
     }
@@ -383,7 +383,7 @@ public class SignGameTest {
         viewed.loadWithComponents(original.getUpdateTag(helper.getLevel().registryAccess()), helper.getLevel().registryAccess());
         SignView view = viewed.signs().views().get(Direction.EAST);
         helper.assertTrue(view.icon().is(Items.COBBLESTONE) && keys(view).equals(
-                List.of("logisticspipes.sign.amount", "0", "block.minecraft.cobblestone")), "the client draws it, got " + keys(view));
+                List.of("routedpipes.sign.amount", "0", "block.minecraft.cobblestone")), "the client draws it, got " + keys(view));
         helper.assertTrue(viewed.signs().counted(Direction.EAST).isEmpty(), "without being told the item apart from that");
 
         use(helper, player, PIPE, Direction.EAST, true);

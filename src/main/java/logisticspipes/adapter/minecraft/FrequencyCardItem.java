@@ -53,7 +53,7 @@ public class FrequencyCardItem extends Item {
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         tooltip.add(Component.translatable(getDescriptionId() + ".description").withStyle(ChatFormatting.GRAY));
         tooltip.add(frequencyOf(stack)
-                .map(id -> Component.translatable("logisticspipes.security.id", id.toString()))
-                .orElseGet(() -> Component.translatable("logisticspipes.frequency.blank")).withStyle(ChatFormatting.DARK_GRAY));
+                .map(id -> Component.translatable("routedpipes.security.id", id.toString()))
+                .orElseGet(() -> Component.translatable("routedpipes.frequency.blank")).withStyle(ChatFormatting.DARK_GRAY));
     }
 }

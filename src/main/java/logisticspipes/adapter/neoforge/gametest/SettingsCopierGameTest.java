@@ -106,8 +106,8 @@ public class SettingsCopierGameTest {
 
         use(helper, player, 0, true);
         helper.assertTrue(SettingsCopierItem.hasSettings(copier), "sneak use copies");
-        helper.assertTrue(storedKeys(copier).equals(List.of("logisticspipes.settings_copier.stored", "logisticspipes.settings_copier.markers",
-                "logisticspipes.gui.provider_mode." + ProviderMode.LEAVE_ONE_PER_STACK.ordinal(), "logisticspipes.gui.exclude")),
+        helper.assertTrue(storedKeys(copier).equals(List.of("routedpipes.settings_copier.stored", "routedpipes.settings_copier.markers",
+                "routedpipes.gui.provider_mode." + ProviderMode.LEAVE_ONE_PER_STACK.ordinal(), "routedpipes.gui.exclude")),
                 "the tooltip says what is stored, got " + storedKeys(copier));
         helper.assertTrue(source.config().getItem(0).is(Items.IRON_INGOT) && source.mode() == ProviderMode.LEAVE_ONE_PER_STACK.ordinal(),
                 "copying leaves the pipe as it was");
@@ -136,7 +136,7 @@ public class SettingsCopierGameTest {
         helper.assertTrue(target.satelliteName().equals("Ore"), "satellite name");
         helper.assertTrue(target.recipe().isPresent() && target.recipe().equals(source.recipe()), "recipe");
         helper.assertTrue(target.satelliteInputs().equals(source.satelliteInputs()), "satellite row");
-        helper.assertTrue(storedKeys(player.getMainHandItem()).contains("logisticspipes.settings_copier.satellite"), "tooltip names the satellite");
+        helper.assertTrue(storedKeys(player.getMainHandItem()).contains("routedpipes.settings_copier.satellite"), "tooltip names the satellite");
         helper.succeed();
     }
 
@@ -186,7 +186,7 @@ public class SettingsCopierGameTest {
         player.setShiftKeyDown(true);
         copier.useOn(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, copier,
                 new BlockHitResult(Vec3.atCenterOf(plain), Direction.UP, plain, false)));
-        helper.assertTrue(storedKeys(copier).contains("logisticspipes.status.default_route"), "a plain pipe has no settings to copy over the old ones");
+        helper.assertTrue(storedKeys(copier).contains("routedpipes.status.default_route"), "a plain pipe has no settings to copy over the old ones");
         helper.succeed();
     }
 
@@ -237,8 +237,8 @@ public class SettingsCopierGameTest {
         TestPlayer player = playerWithCopier(helper);
 
         use(helper, player, 0, true);
-        helper.assertTrue(storedKeys(player.getMainHandItem()).equals(List.of("logisticspipes.settings_copier.stored",
-                "logisticspipes.status.modules")), "the tooltip names the modules, got " + storedKeys(player.getMainHandItem()));
+        helper.assertTrue(storedKeys(player.getMainHandItem()).equals(List.of("routedpipes.settings_copier.stored",
+                "routedpipes.status.modules")), "the tooltip names the modules, got " + storedKeys(player.getMainHandItem()));
         Component modules = SettingsCopierItem.stored(player.getMainHandItem()).get(1);
         helper.assertTrue(((Component) ((TranslatableContents) modules.getContents()).getArgs()[0]).getSiblings().size() == 7,
                 "three module names and the count of the rest, with commas between");

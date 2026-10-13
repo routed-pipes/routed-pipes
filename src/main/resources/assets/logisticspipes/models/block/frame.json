@@ -1,8 +1,0 @@
-{
-  "parent": "minecraft:block/cube_bottom_top",
-  "textures": {
-    "top": "logisticspipes:block/frame_top",
-    "side": "logisticspipes:block/frame_side",
-    "bottom": "logisticspipes:block/frame_bottom"
-  }
-}

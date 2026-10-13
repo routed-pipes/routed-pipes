@@ -37,7 +37,7 @@ public class GuideBookGameTest {
 
     // the english texts as the client gets them
     private static Set<String> langKeys() {
-        try (InputStream in = GuideBookGameTest.class.getResourceAsStream("/assets/logisticspipes/lang/en_us.json")) {
+        try (InputStream in = GuideBookGameTest.class.getResourceAsStream("/assets/routedpipes/lang/en_us.json")) {
             JsonObject lang = JsonParser.parseReader(new InputStreamReader(in, StandardCharsets.UTF_8)).getAsJsonObject();
             return lang.keySet();
         } catch (IOException e) {
@@ -81,7 +81,7 @@ public class GuideBookGameTest {
         helper.assertTrue(book.get(GuideChapter.BLOCKS).contains(LogisticsPipes.POWER_JUNCTION.get().asItem()), "blocks");
         helper.assertTrue(book.get(GuideChapter.TOOLS).contains(LogisticsPipes.SIGN_CREATOR.get())
                 && book.get(GuideChapter.TOOLS).contains(LogisticsPipes.GUIDE_BOOK.get()), "tools");
-        helper.assertTrue(langKeys().contains("logisticspipes.guide.start.1"), "and there is a chapter to start with");
+        helper.assertTrue(langKeys().contains("routedpipes.guide.start.1"), "and there is a chapter to start with");
         helper.succeed();
     }
 

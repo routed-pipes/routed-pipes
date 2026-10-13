@@ -339,7 +339,7 @@ public class RequestMenu extends AbstractContainerMenu implements TextMenu {
         } else if (id == BUTTON_CANCEL) {
             int cancelled = pipe.cancelOrders();
             if (cancelled > 0) {
-                player.displayClientMessage(Component.translatable("logisticspipes.request.cancelled", cancelled), false);
+                player.displayClientMessage(Component.translatable("routedpipes.request.cancelled", cancelled), false);
             }
             refresh();
         } else if (id == BUTTON_DISK && drive != null && drive.holdsDisk()) {
@@ -356,16 +356,16 @@ public class RequestMenu extends AbstractContainerMenu implements TextMenu {
         }
         RequestOutcome outcome = pipe.request(new ItemBatch(selected, data.get(DATA_AMOUNT)));
         if (outcome.started()) {
-            player.displayClientMessage(Component.translatable("logisticspipes.request.started",
+            player.displayClientMessage(Component.translatable("routedpipes.request.started",
                     data.get(DATA_AMOUNT), name(selected)), false);
         } else if (!outcome.powered()) {
-            player.displayClientMessage(Component.translatable("logisticspipes.request.no_power")
+            player.displayClientMessage(Component.translatable("routedpipes.request.no_power")
                     .withStyle(ChatFormatting.RED), false);
         } else {
             MutableComponent missing = Component.empty();
             outcome.missing().forEach((type, count) -> missing.append("\n").append(
-                    Component.translatable("logisticspipes.request.missing_entry", count, name(type))));
-            player.displayClientMessage(Component.translatable("logisticspipes.request.missing")
+                    Component.translatable("routedpipes.request.missing_entry", count, name(type))));
+            player.displayClientMessage(Component.translatable("routedpipes.request.missing")
                     .withStyle(ChatFormatting.RED).append(missing), false);
         }
         refresh();

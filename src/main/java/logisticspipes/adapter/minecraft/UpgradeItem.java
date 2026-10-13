@@ -59,7 +59,7 @@ public class UpgradeItem extends Item {
     }
 
     private static Component sideText(Direction side) {
-        return Component.translatable("logisticspipes.upgrade.sneaky.side", Component.translatable("logisticspipes.side." + side.getName()));
+        return Component.translatable("routedpipes.upgrade.sneaky.side", Component.translatable("routedpipes.side." + side.getName()));
     }
 
     @Override

@@ -124,7 +124,7 @@ public final class PipeSecurity {
     static boolean told(Player player, Access access) {
         if (!access.allowed()) {
             player.displayClientMessage(Component.translatable(access == Access.NO_ENERGY
-                    ? "logisticspipes.security.no_energy" : "logisticspipes.security.denied").withStyle(ChatFormatting.RED), false);
+                    ? "routedpipes.security.no_energy" : "routedpipes.security.denied").withStyle(ChatFormatting.RED), false);
         }
         return access.allowed();
     }

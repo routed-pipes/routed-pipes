@@ -44,8 +44,8 @@ public class StatisticsTableScreen extends AbstractContainerScreen<StatisticsTab
     }
 
     private final List<Tabs.Tab> tabs = List.of(
-            Tabs.Tab.texture("stats", Component.translatable("logisticspipes.statistics.track_amount")),
-            Tabs.Tab.item(Items.CRAFTING_TABLE, Component.translatable("logisticspipes.statistics.crafting_tasks")));
+            Tabs.Tab.texture("stats", Component.translatable("routedpipes.statistics.track_amount")),
+            Tabs.Tab.item(Items.CRAFTING_TABLE, Component.translatable("routedpipes.statistics.crafting_tasks")));
     private final List<Button> amountButtons = new ArrayList<>();
     private final List<Button> listButtons = new ArrayList<>();
     private final List<Button> addButtons = new ArrayList<>();
@@ -71,18 +71,18 @@ public class StatisticsTableScreen extends AbstractContainerScreen<StatisticsTab
         listButtons.clear();
         addButtons.clear();
         amountButtons.add(button("<", StatisticsTableMenu.BUTTON_PREVIOUS_ITEMS, 8, 64, 16, 16));
-        amountButtons.add(button(Component.translatable("logisticspipes.statistics.add"), StatisticsTableMenu.BUTTON_ADD, 28, 64, 40, 16));
-        remove = button(Component.translatable("logisticspipes.statistics.remove"), StatisticsTableMenu.BUTTON_REMOVE, 72, 64, 56, 16);
+        amountButtons.add(button(Component.translatable("routedpipes.statistics.add"), StatisticsTableMenu.BUTTON_ADD, 28, 64, 40, 16));
+        remove = button(Component.translatable("routedpipes.statistics.remove"), StatisticsTableMenu.BUTTON_REMOVE, 72, 64, 56, 16);
         amountButtons.add(remove);
         amountButtons.add(button(">", StatisticsTableMenu.BUTTON_NEXT_ITEMS, 152, 64, 16, 16));
         listButtons.add(button("<", StatisticsTableMenu.BUTTON_PREVIOUS_PAGE, 110, 28, 12, 12));
         listButtons.add(button(">", StatisticsTableMenu.BUTTON_NEXT_PAGE, 156, 28, 12, 12));
-        acquire = button(Component.translatable("logisticspipes.statistics.acquire_tasks"), StatisticsTableMenu.BUTTON_REFRESH, 8, 43, 160, 16);
-        addButtons.add(button(Component.translatable("logisticspipes.statistics.refresh"), StatisticsTableMenu.BUTTON_REFRESH, 8, 196, 76, 16));
-        addButtons.add(button(Component.translatable("logisticspipes.statistics.add"), StatisticsTableMenu.BUTTON_CONFIRM, 92, 196, 76, 16));
+        acquire = button(Component.translatable("routedpipes.statistics.acquire_tasks"), StatisticsTableMenu.BUTTON_REFRESH, 8, 43, 160, 16);
+        addButtons.add(button(Component.translatable("routedpipes.statistics.refresh"), StatisticsTableMenu.BUTTON_REFRESH, 8, 196, 76, 16));
+        addButtons.add(button(Component.translatable("routedpipes.statistics.add"), StatisticsTableMenu.BUTTON_CONFIRM, 92, 196, 76, 16));
         String typed = search == null ? "" : search.getValue();
-        search = new EditBox(font, leftPos + 8, topPos + 44, 160, 14, Component.translatable("logisticspipes.gui.search"));
-        search.setHint(Component.translatable("logisticspipes.gui.search"));
+        search = new EditBox(font, leftPos + 8, topPos + 44, 160, 14, Component.translatable("routedpipes.gui.search"));
+        search.setHint(Component.translatable("routedpipes.gui.search"));
         search.setMaxLength(32);
         search.setValue(typed);
         search.setResponder(text -> ClientMenuLink.setText(menu.containerId, StatisticsTableMenu.TEXT_SEARCH, text));
@@ -332,23 +332,23 @@ public class StatisticsTableScreen extends AbstractContainerScreen<StatisticsTab
     protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
         switch (menu.view()) {
             case AMOUNTS -> amounts(graphics);
-            case TASKS -> list(graphics, "logisticspipes.statistics.crafting_tasks");
-            case ADD -> list(graphics, "logisticspipes.statistics.pick_item");
+            case TASKS -> list(graphics, "routedpipes.statistics.crafting_tasks");
+            case ADD -> list(graphics, "routedpipes.statistics.pick_item");
         }
     }
 
     private void amounts(GuiGraphics graphics) {
-        graphics.drawString(font, Component.translatable("logisticspipes.statistics.track_amount"), 8, 30, TEXT, false);
+        graphics.drawString(font, Component.translatable("routedpipes.statistics.track_amount"), 8, 30, TEXT, false);
         String page = (menu.itemsPage() + 1) + "/" + menu.itemsPages();
         graphics.drawString(font, page, 140 - font.width(page) / 2, 68, TEXT, false);
         if (!shownStack.isEmpty()) {
             graphics.drawString(font, font.plainSubstrByWidth(shownStack.getHoverName().getString(), 136), 30, 90, TEXT, false);
         }
         if (!menu.hasPipe()) {
-            graphics.drawString(font, font.plainSubstrByWidth(Component.translatable("logisticspipes.statistics.no_pipe").getString(), 160),
+            graphics.drawString(font, font.plainSubstrByWidth(Component.translatable("routedpipes.statistics.no_pipe").getString(), 160),
                     8, 208, WARNING, false);
         } else if (!shownStack.isEmpty() && samples.length == 0) {
-            graphics.drawString(font, Component.translatable("logisticspipes.statistics.no_samples"), PLOT_LEFT + 4, PLOT_TOP + 4, TEXT, false);
+            graphics.drawString(font, Component.translatable("routedpipes.statistics.no_samples"), PLOT_LEFT + 4, PLOT_TOP + 4, TEXT, false);
         }
     }
 

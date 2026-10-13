@@ -31,7 +31,7 @@ public class LogisticsPipesJadePlugin implements IWailaPlugin {
 
         @Override
         public ResourceLocation getUid() {
-            return ResourceLocation.fromNamespaceAndPath("logisticspipes", "pipe_status");
+            return ResourceLocation.fromNamespaceAndPath("routedpipes", "pipe_status");
         }
 
         @Override
@@ -52,12 +52,12 @@ public class LogisticsPipesJadePlugin implements IWailaPlugin {
             CompoundTag data = accessor.getServerData();
             if (data.contains(ROUTERS)) {
                 tooltip.add(data.getInt(ROUTERS) == 0
-                        ? Component.translatable("logisticspipes.status.alone")
-                        : Component.translatable("logisticspipes.status.routers", data.getInt(ROUTERS)));
-                tooltip.add(Component.translatable("logisticspipes.status.energy", data.getInt(ENERGY)));
+                        ? Component.translatable("routedpipes.status.alone")
+                        : Component.translatable("routedpipes.status.routers", data.getInt(ROUTERS)));
+                tooltip.add(Component.translatable("routedpipes.status.energy", data.getInt(ENERGY)));
             }
             if (data.getInt(ITEMS) > 0) {
-                tooltip.add(Component.translatable("logisticspipes.status.items", data.getInt(ITEMS)));
+                tooltip.add(Component.translatable("routedpipes.status.items", data.getInt(ITEMS)));
             }
             if (data.contains(DETAILS)) {
                 PipeDetails.load(data.getCompound(DETAILS), accessor.getLevel().registryAccess()).lines().forEach(tooltip::add);

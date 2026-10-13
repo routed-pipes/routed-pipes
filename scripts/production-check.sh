@@ -19,7 +19,7 @@ if [ ! -f "$server/run.sh" ]; then
     (cd "$server" && java -jar installer.jar --installServer . > install.log 2>&1)
 fi
 rm -rf "$server/world" "$server"/mods/*.jar
-cp "build/libs/logisticspipes-$mod_version.jar" run-compat/mods/*.jar "$server/mods/"
+cp "build/libs/routedpipes-$mod_version.jar" run-compat/mods/*.jar "$server/mods/"
 echo "eula=true" > "$server/eula.txt"
 printf 'server-port=25599\nonline-mode=false\nlevel-type=minecraft\\:flat\nspawn-protection=0\nmax-tick-time=-1\n' > "$server/server.properties"
 echo "-Xmx3G" > "$server/user_jvm_args.txt"

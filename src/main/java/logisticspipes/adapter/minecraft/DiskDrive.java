@@ -65,7 +65,7 @@ public final class DiskDrive {
     public RequestOutcome request(Player player, Macro macro) {
         RequestOutcome outcome = pipe.requestList(macro.entries());
         if (outcome.started()) {
-            player.displayClientMessage(Component.translatable("logisticspipes.request.macro_started", macro.name()), false);
+            player.displayClientMessage(Component.translatable("routedpipes.request.macro_started", macro.name()), false);
         } else {
             PipeMenus.tellWhatIsMissing(player, outcome);
         }
@@ -80,14 +80,14 @@ public final class DiskDrive {
     public void open(Player player) {
         player.openMenu(new SimpleMenuProvider((id, inventory, user) -> new DiskMenu(
                 pipe.services().diskMenus().disk().get(), id, this, usable(), user),
-                Component.translatable("logisticspipes.gui.disk")));
+                Component.translatable("routedpipes.gui.disk")));
     }
 
     // the request screen of the pipe, set up to put together a macro
     public void openEditor(Player player, Macro macro) {
         player.openMenu(new SimpleMenuProvider((id, inventory, user) -> new MacroEditMenu(
                 pipe.services().diskMenus().editor().get(), id, pipe, usable(), this, macro),
-                Component.translatable("logisticspipes.gui.macro")));
+                Component.translatable("routedpipes.gui.macro")));
     }
 
     // back to the screen of the pipe itself

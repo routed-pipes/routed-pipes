@@ -45,22 +45,22 @@ public class DiskScreen extends AbstractContainerScreen<DiskMenu> {
     protected void init() {
         super.init();
         String typed = name == null ? "" : name.getValue();
-        name = new EditBox(font, leftPos + 8, topPos + 18, 138, 12, Component.translatable("logisticspipes.gui.disk.name"));
-        name.setHint(Component.translatable("logisticspipes.gui.disk.name"));
+        name = new EditBox(font, leftPos + 8, topPos + 18, 138, 12, Component.translatable("routedpipes.gui.disk.name"));
+        name.setHint(Component.translatable("routedpipes.gui.disk.name"));
         name.setMaxLength(DiskMenu.MAX_NAME);
         name.setValue(typed);
         name.setResponder(text -> ClientMenuLink.setText(menu.containerId, DiskMenu.TEXT_DISK_NAME, text));
         addRenderableWidget(name);
-        request = addRenderableWidget(Button.builder(Component.translatable("logisticspipes.gui.disk.request"),
+        request = addRenderableWidget(Button.builder(Component.translatable("routedpipes.gui.disk.request"),
                 button -> ClientMenuLink.setText(menu.containerId, DiskMenu.TEXT_REQUEST, selected))
                 .bounds(leftPos + 8, topPos + 130, 78, 16).build());
-        edit = addRenderableWidget(Button.builder(Component.translatable("logisticspipes.gui.disk.add"),
+        edit = addRenderableWidget(Button.builder(Component.translatable("routedpipes.gui.disk.add"),
                 button -> ClientMenuLink.setText(menu.containerId, DiskMenu.TEXT_EDIT, selected == null ? "" : selected))
                 .bounds(leftPos + 90, topPos + 130, 78, 16).build());
-        delete = addRenderableWidget(Button.builder(Component.translatable("logisticspipes.gui.disk.delete"),
+        delete = addRenderableWidget(Button.builder(Component.translatable("routedpipes.gui.disk.delete"),
                 button -> ClientMenuLink.setText(menu.containerId, DiskMenu.TEXT_DELETE, selected))
                 .bounds(leftPos + 8, topPos + 148, 78, 16).build());
-        addRenderableWidget(Button.builder(Component.translatable("logisticspipes.gui.disk.back"),
+        addRenderableWidget(Button.builder(Component.translatable("routedpipes.gui.disk.back"),
                 button -> minecraft.gameMode.handleInventoryButtonClick(menu.containerId, DiskMenu.BUTTON_BACK))
                 .bounds(leftPos + 90, topPos + 148, 78, 16).build());
         updateButtons();
@@ -69,7 +69,7 @@ public class DiskScreen extends AbstractContainerScreen<DiskMenu> {
     private void updateButtons() {
         request.active = selected != null;
         delete.active = selected != null;
-        edit.setMessage(Component.translatable(selected == null ? "logisticspipes.gui.disk.add" : "logisticspipes.gui.disk.edit"));
+        edit.setMessage(Component.translatable(selected == null ? "routedpipes.gui.disk.add" : "routedpipes.gui.disk.edit"));
     }
 
     @Override
@@ -149,7 +149,7 @@ public class DiskScreen extends AbstractContainerScreen<DiskMenu> {
     protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
         graphics.drawString(font, title, titleLabelX, titleLabelY, TEXT, false);
         if (macros.isEmpty()) {
-            graphics.drawString(font, Component.translatable("logisticspipes.gui.disk.empty"), LIST_X + 2, LIST_Y + 2, LIST_TEXT, false);
+            graphics.drawString(font, Component.translatable("routedpipes.gui.disk.empty"), LIST_X + 2, LIST_Y + 2, LIST_TEXT, false);
         }
         for (int row = 0; row < ROWS && scroll + row < macros.size(); row++) {
             String macro = font.plainSubstrByWidth(macros.get(scroll + row), LIST_WIDTH - 4);

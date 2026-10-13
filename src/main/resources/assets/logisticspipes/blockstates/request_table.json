@@ -1,9 +1,0 @@
-{
-  "multipart": [
-    {
-      "apply": {
-        "model": "logisticspipes:block/request_table"
-      }
-    }
-  ]
-}

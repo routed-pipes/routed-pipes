@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "A",
+    "B"
+  ],
+  "key": {
+    "A": {
+      "item": "routedpipes:chip_fpga"
+    },
+    "B": {
+      "item": "routedpipes:transport_pipe"
+    }
+  },
+  "result": {
+    "id": "routedpipes:basic_logistics_pipe",
+    "count": 1
+  }
+}

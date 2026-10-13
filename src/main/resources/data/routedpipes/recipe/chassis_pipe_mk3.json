@@ -1,0 +1,30 @@
+{
+  "type": "routedpipes:programmed",
+  "category": "misc",
+  "pattern": [
+    " A ",
+    "BCB",
+    "DED"
+  ],
+  "key": {
+    "A": {
+      "item": "routedpipes:logistics_programmer"
+    },
+    "B": {
+      "tag": "c:dusts/glowstone"
+    },
+    "C": {
+      "item": "routedpipes:chassis_pipe_mk2"
+    },
+    "D": {
+      "tag": "c:ingots/iron"
+    },
+    "E": {
+      "item": "routedpipes:chip_advanced"
+    }
+  },
+  "result": {
+    "id": "routedpipes:chassis_pipe_mk3",
+    "count": 1
+  }
+}

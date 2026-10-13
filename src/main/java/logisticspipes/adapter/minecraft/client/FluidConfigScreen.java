@@ -47,11 +47,11 @@ public class FluidConfigScreen extends AbstractContainerScreen<FluidConfigMenu> 
     }
 
     private Component partialLabel() {
-        return Component.translatable(menu.partial() ? "logisticspipes.gui.fluid.partial.on" : "logisticspipes.gui.fluid.partial.off");
+        return Component.translatable(menu.partial() ? "routedpipes.gui.fluid.partial.on" : "routedpipes.gui.fluid.partial.off");
     }
 
     private Component minimumLabel() {
-        return Component.translatable("logisticspipes.gui.fluid.minimum." + menu.minimum());
+        return Component.translatable("routedpipes.gui.fluid.minimum." + menu.minimum());
     }
 
     @Override
@@ -94,14 +94,14 @@ public class FluidConfigScreen extends AbstractContainerScreen<FluidConfigMenu> 
         if (menu.kind() == PipeKind.FLUID_BASIC) {
             // the name of the fluid next to its slot
             ItemStack marker = menu.getSlot(0).getItem();
-            Component name = marker.isEmpty() ? Component.translatable("logisticspipes.gui.fluid.none") : marker.getHoverName();
+            Component name = marker.isEmpty() ? Component.translatable("routedpipes.gui.fluid.none") : marker.getHoverName();
             graphics.drawString(font, font.plainSubstrByWidth(name.getString(), 120), 48, 39, TEXT, false);
         }
         if (menu.kind() == PipeKind.FLUID_SUPPLIER) {
-            graphics.drawString(font, Component.translatable("logisticspipes.gui.fluid.stock", menu.amount()), 48, 22, TEXT, false);
+            graphics.drawString(font, Component.translatable("routedpipes.gui.fluid.stock", menu.amount()), 48, 22, TEXT, false);
         }
         if (menu.kind() == PipeKind.FLUID_SATELLITE) {
-            Component label = Component.translatable("logisticspipes.gui.satellite");
+            Component label = Component.translatable("routedpipes.gui.satellite");
             graphics.drawString(font, label, imageWidth / 2 - font.width(label) / 2, 26, TEXT, false);
         }
     }

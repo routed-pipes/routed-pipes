@@ -1,0 +1,11 @@
+{
+  "loader": "neoforge:obj",
+  "model": "routedpipes:models/block/pipe/corner_inner_down_south_east_east.obj",
+  "flip_v": true,
+  "automatic_culling": false,
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "frame": "routedpipes:block/pipe_frame_inactive",
+    "particle": "routedpipes:block/pipe_frame_inactive"
+  }
+}

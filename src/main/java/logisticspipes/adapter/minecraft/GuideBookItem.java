@@ -22,7 +22,7 @@ import net.minecraft.world.level.Level;
 // opens the book about the mod, the book itself only exists on the client
 public class GuideBookItem extends Item {
 
-    private static final String NAMESPACE = "logisticspipes";
+    private static final String NAMESPACE = "routedpipes";
 
     // the client plugs in how the book is opened
     private static Runnable opener = () -> {

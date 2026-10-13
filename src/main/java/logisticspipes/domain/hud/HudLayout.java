@@ -109,7 +109,7 @@ public final class HudLayout {
                 shapes.add(pager(">", left + width - PAGER_WIDTH, y, new HudAction(Kind.TURN_PAGE, id, page.number() + 1)));
             }
             shapes.add(new Text(left + width / 2, y + 1, width - 2 * PAGER_WIDTH,
-                    HudText.of("logisticspipes.hud.page", page.number() + 1, page.pages()), true));
+                    HudText.of("routedpipes.hud.page", page.number() + 1, page.pages()), true));
             y += PAGER_HEIGHT + 2;
         }
         int gridLeft = left + (width - grid.columns() * CELL) / 2;

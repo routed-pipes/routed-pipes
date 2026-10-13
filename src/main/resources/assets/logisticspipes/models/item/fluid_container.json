@@ -1,7 +1,0 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "logisticspipes:item/fluid_container",
-    "layer1": "logisticspipes:item/fluid_container_window"
-  }
-}

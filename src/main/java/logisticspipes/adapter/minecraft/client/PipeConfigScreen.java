@@ -105,13 +105,13 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> im
         if (menu.kind() == PipeKind.CRAFTING) {
             exclude = addRenderableWidget(Button.builder(excludeLabel(), button -> press(PipeConfigMenu.BUTTON_EXCLUDE))
                     .bounds(leftPos + 120, topPos + 95, 48, 16).build());
-            importCleanup = addRenderableWidget(Button.builder(Component.translatable("logisticspipes.gui.import"),
+            importCleanup = addRenderableWidget(Button.builder(Component.translatable("routedpipes.gui.import"),
                     button -> press(PipeConfigMenu.BUTTON_IMPORT_CLEANUP)).bounds(leftPos + 120, topPos + 114, 48, 16).build());
             addRenderableWidget(Button.builder(Component.literal("<"), button -> press(PipeConfigMenu.BUTTON_PRIORITY_DOWN))
                     .bounds(leftPos + 96, topPos + 74, 14, 14).build());
             addRenderableWidget(Button.builder(Component.literal(">"), button -> press(PipeConfigMenu.BUTTON_PRIORITY_UP))
                     .bounds(leftPos + 132, topPos + 74, 14, 14).build());
-            addRenderableWidget(Button.builder(Component.translatable("logisticspipes.gui.import"),
+            addRenderableWidget(Button.builder(Component.translatable("routedpipes.gui.import"),
                     button -> press(PipeConfigMenu.BUTTON_IMPORT_RECIPE)).bounds(leftPos + 85, topPos + 25, 38, 14).build());
         }
         if (!hasSatelliteControls()) {
@@ -159,7 +159,7 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> im
     }
 
     private static Component satelliteLabel(String name, int width, net.minecraft.client.gui.Font font) {
-        return name.isEmpty() ? Component.translatable("logisticspipes.gui.satellite.off") : Component.literal(font.plainSubstrByWidth(name, width - 6));
+        return name.isEmpty() ? Component.translatable("routedpipes.gui.satellite.off") : Component.literal(font.plainSubstrByWidth(name, width - 6));
     }
 
     // a column takes changes to its amount once it has a fluid and a satellite to send it to
@@ -218,7 +218,7 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> im
     }
 
     private Component limitedLabel() {
-        return Component.translatable(menu.limited() ? "logisticspipes.gui.pattern.limited" : "logisticspipes.gui.pattern.unlimited");
+        return Component.translatable(menu.limited() ? "routedpipes.gui.pattern.limited" : "routedpipes.gui.pattern.unlimited");
     }
 
     private void showPatternControls() {
@@ -242,25 +242,25 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> im
 
     private Component selectLabel() {
         String name = shownSatellite();
-        return name.isEmpty() ? Component.translatable("logisticspipes.gui.satellite.off")
+        return name.isEmpty() ? Component.translatable("routedpipes.gui.satellite.off")
                 : Component.literal(font.plainSubstrByWidth(name, SELECT_WIDTH - 6));
     }
 
     private Component defaultRouteLabel() {
-        return Component.translatable(menu.defaultRoute() ? "logisticspipes.gui.default_route.on" : "logisticspipes.gui.default_route.off");
+        return Component.translatable(menu.defaultRoute() ? "routedpipes.gui.default_route.on" : "routedpipes.gui.default_route.off");
     }
 
     private Component modeLabel() {
         String group = menu.kind() == PipeKind.PROVIDER ? "provider_mode" : "supply_mode";
-        return Component.translatable("logisticspipes.gui." + group + "." + menu.shownMode());
+        return Component.translatable("routedpipes.gui." + group + "." + menu.shownMode());
     }
 
     // for a crafter the list is what stays in the machine or what goes
     private Component excludeLabel() {
         if (menu.kind() == PipeKind.CRAFTING) {
-            return Component.translatable(menu.exclude() ? "logisticspipes.gui.cleanup.keep" : "logisticspipes.gui.cleanup.remove");
+            return Component.translatable(menu.exclude() ? "routedpipes.gui.cleanup.keep" : "routedpipes.gui.cleanup.remove");
         }
-        return Component.translatable(menu.exclude() ? "logisticspipes.gui.exclude" : "logisticspipes.gui.include");
+        return Component.translatable(menu.exclude() ? "routedpipes.gui.exclude" : "routedpipes.gui.include");
     }
 
     @Override
@@ -400,7 +400,7 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> im
         if (menu.fluidSlots() == 0) {
             return;
         }
-        Component title = Component.translatable("logisticspipes.gui.fluid_crafting");
+        Component title = Component.translatable("routedpipes.gui.fluid_crafting");
         graphics.drawString(font, title, fluidPanelLeft() - leftPos + 6, 6, TEXT, false);
         for (int slot = 0; slot < menu.fluidSlots(); slot++) {
             int middle = PipeConfigMenu.fluidColumnLeft(slot) + PipeConfigMenu.FLUID_COLUMN / 2;
@@ -415,7 +415,7 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> im
 
     // inventory slots are shown counted from 1, the way players count them
     private void patternLabels(GuiGraphics graphics) {
-        graphics.drawString(font, Component.translatable("logisticspipes.gui.pattern.into"), 8, 19, TEXT, false);
+        graphics.drawString(font, Component.translatable("routedpipes.gui.pattern.into"), 8, 19, TEXT, false);
         String target = Integer.toString(menu.patternSlot(patternMarker) + 1);
         graphics.drawString(font, target, 32 - font.width(target) / 2, 32, TEXT, false);
         String marker = Integer.toString(patternMarker + 1);
@@ -436,10 +436,10 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> im
     protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
         super.renderLabels(graphics, mouseX, mouseY);
         if (menu.kind() == PipeKind.CRAFTING && menu.hasByproduct()) {
-            graphics.drawString(font, Component.translatable("logisticspipes.gui.byproduct"), 144, 16, TEXT, false);
+            graphics.drawString(font, Component.translatable("routedpipes.gui.byproduct"), 144, 16, TEXT, false);
         }
         if (menu.kind() == PipeKind.CRAFTING) {
-            graphics.drawString(font, Component.translatable("logisticspipes.gui.priority"), 30, 77, TEXT, false);
+            graphics.drawString(font, Component.translatable("routedpipes.gui.priority"), 30, 77, TEXT, false);
             String priority = Integer.toString(menu.priority());
             graphics.drawString(font, priority, 121 - font.width(priority) / 2, 77, TEXT, false);
         }
@@ -453,10 +453,10 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> im
         if (!hasSatelliteControls()) {
             return;
         }
-        Component label = Component.translatable("logisticspipes.gui.satellite");
+        Component label = Component.translatable("routedpipes.gui.satellite");
         graphics.drawString(font, label, satelliteX() - font.width(label) / 2, satelliteY() - 14, TEXT, false);
         if (menu.kind() == PipeKind.CRAFTING && menu.advancedSatellite()) {
-            Component slot = Component.translatable("logisticspipes.gui.satellite.slot", satelliteSlot + 1);
+            Component slot = Component.translatable("routedpipes.gui.satellite.slot", satelliteSlot + 1);
             graphics.drawString(font, slot, satelliteX() - font.width(slot) / 2, satelliteY() + 13, TEXT, false);
         }
     }

@@ -154,12 +154,12 @@ final class PipeMenus {
             return;
         }
         if (!outcome.powered()) {
-            player.displayClientMessage(Component.translatable("logisticspipes.request.no_power"), false);
+            player.displayClientMessage(Component.translatable("routedpipes.request.no_power"), false);
             return;
         }
-        MutableComponent missing = Component.translatable("logisticspipes.request.missing");
+        MutableComponent missing = Component.translatable("routedpipes.request.missing");
         outcome.missing().forEach((type, count) -> missing.append("\n").append(Component.translatable(
-                "logisticspipes.request.missing_entry", count, McItemType.stackOf(new ItemBatch(type, 1)).getHoverName())));
+                "routedpipes.request.missing_entry", count, McItemType.stackOf(new ItemBatch(type, 1)).getHoverName())));
         player.displayClientMessage(missing, false);
     }
 }

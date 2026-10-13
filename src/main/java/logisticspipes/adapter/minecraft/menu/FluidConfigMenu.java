@@ -113,7 +113,7 @@ public class FluidConfigMenu extends AbstractContainerMenu implements TextMenu {
         }
         SatelliteName.Verdict verdict = names.setName(field, text);
         if (verdict != SatelliteName.Verdict.ACCEPTED) {
-            player.displayClientMessage(Component.translatable("logisticspipes.gui.satellite.name."
+            player.displayClientMessage(Component.translatable("routedpipes.gui.satellite.name."
                     + verdict.name().toLowerCase(Locale.ROOT)), false);
         }
     }

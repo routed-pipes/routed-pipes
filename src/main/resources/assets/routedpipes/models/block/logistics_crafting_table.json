@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "routedpipes:block/logistics_crafting_table_top",
+    "side": "routedpipes:block/logistics_crafting_table_side",
+    "bottom": "routedpipes:block/logistics_crafting_table_bottom"
+  }
+}

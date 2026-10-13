@@ -42,7 +42,7 @@ public class PowerProviderBlock extends Block implements EntityBlock {
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         if (!level.isClientSide && level.getBlockEntity(pos) instanceof PowerProviderBlockEntity provider) {
-            player.displayClientMessage(Component.translatable("logisticspipes.power_provider.stored",
+            player.displayClientMessage(Component.translatable("routedpipes.power_provider.stored",
                     provider.stored(), ProviderStore.CAPACITY), true);
         }
         return InteractionResult.sidedSuccess(level.isClientSide);

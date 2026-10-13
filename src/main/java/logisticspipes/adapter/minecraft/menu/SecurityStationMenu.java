@@ -352,7 +352,7 @@ public class SecurityStationMenu extends AbstractContainerMenu implements TextMe
             settings.setAutomatedRemoval(!settings.automatedRemoval());
         } else if (button == BUTTON_ADD_CARD) {
             if (station.hasRoomForCard() && !station.makeCard()) {
-                player.displayClientMessage(Component.translatable("logisticspipes.security.no_energy")
+                player.displayClientMessage(Component.translatable("routedpipes.security.no_energy")
                         .withStyle(ChatFormatting.RED), false);
             }
         } else if (button == BUTTON_REMOVE_CARD) {

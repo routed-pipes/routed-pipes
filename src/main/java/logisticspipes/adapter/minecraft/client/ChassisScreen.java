@@ -41,10 +41,10 @@ public class ChassisScreen extends AbstractContainerScreen<ChassisMenu> {
 
     private Component pointedLabel() {
         if (menu.pointed() < 0) {
-            return Component.translatable("logisticspipes.gui.pointed.none");
+            return Component.translatable("routedpipes.gui.pointed.none");
         }
         Direction side = Direction.from3DDataValue(menu.pointed());
-        return Component.translatable("logisticspipes.gui.pointed", Component.translatable("logisticspipes.side." + side.getName()));
+        return Component.translatable("routedpipes.gui.pointed", Component.translatable("routedpipes.side." + side.getName()));
     }
 
     @Override

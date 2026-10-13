@@ -1,0 +1,33 @@
+{
+  "type": "routedpipes:programmed",
+  "category": "misc",
+  "pattern": [
+    "ABA",
+    "CDC",
+    "EFE"
+  ],
+  "key": {
+    "A": {
+      "item": "routedpipes:chip_basic"
+    },
+    "B": {
+      "item": "routedpipes:logistics_programmer"
+    },
+    "C": {
+      "item": "minecraft:blaze_powder"
+    },
+    "D": {
+      "item": "routedpipes:chip_advanced"
+    },
+    "E": {
+      "tag": "c:ingots/gold"
+    },
+    "F": {
+      "item": "routedpipes:module_blank"
+    }
+  },
+  "result": {
+    "id": "routedpipes:module_active_supplier",
+    "count": 1
+  }
+}

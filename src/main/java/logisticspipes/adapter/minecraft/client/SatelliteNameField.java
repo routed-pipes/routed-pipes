@@ -22,9 +22,9 @@ final class SatelliteNameField {
     // centre is the middle of the box
     SatelliteNameField(Font font, int centre, int top, int containerId) {
         this.containerId = containerId;
-        box = new EditBox(font, centre - WIDTH / 2, top, WIDTH, 14, Component.translatable("logisticspipes.gui.satellite.name"));
+        box = new EditBox(font, centre - WIDTH / 2, top, WIDTH, 14, Component.translatable("routedpipes.gui.satellite.name"));
         box.setMaxLength(SatelliteName.MAX_LENGTH);
-        save = Button.builder(Component.translatable("logisticspipes.gui.satellite.save"), button -> send())
+        save = Button.builder(Component.translatable("routedpipes.gui.satellite.save"), button -> send())
                 .bounds(centre - 24, top + 18, 48, 14).build();
     }
 

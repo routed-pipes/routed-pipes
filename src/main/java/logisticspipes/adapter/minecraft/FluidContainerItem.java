@@ -17,7 +17,7 @@ import net.minecraft.world.item.TooltipFlag;
 // players never get to hold one
 public class FluidContainerItem extends Item {
 
-    private static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath("logisticspipes", "fluid_container");
+    private static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath("routedpipes", "fluid_container");
 
     private final FluidStorage fluids;
 
@@ -58,6 +58,6 @@ public class FluidContainerItem extends Item {
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         fluidIn(stack).filter(batch -> batch.amount() > 1).ifPresent(batch -> tooltip.add(
-                Component.translatable("logisticspipes.fluid.amount", batch.amount()).withStyle(ChatFormatting.GRAY)));
+                Component.translatable("routedpipes.fluid.amount", batch.amount()).withStyle(ChatFormatting.GRAY)));
     }
 }

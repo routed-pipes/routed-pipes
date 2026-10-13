@@ -92,7 +92,7 @@ public class ItemTraceGameTest {
             helper.assertTrue(trace.destination().equals(Optional.of(absolute.get(4))),
                     "it is headed for the request pipe: " + trace.destination());
             helper.assertTrue(trace.path().equals(absolute), "its way is " + absolute + " but the trace says " + trace.path());
-            helper.assertTrue(key(helper, trace).equals("logisticspipes.trace.headed"), "the message tells where it is headed");
+            helper.assertTrue(key(helper, trace).equals("routedpipes.trace.headed"), "the message tells where it is headed");
         });
 
         helper.succeedWhen(() -> {
@@ -117,7 +117,7 @@ public class ItemTraceGameTest {
         helper.assertTrue(trace.destination().isEmpty(), "it is not headed anywhere: " + trace.destination());
         helper.assertTrue(trace.path().equals(List.of(helper.absolutePos(new BlockPos(0, 1, 1)))),
                 "only the pipe it is in is on its way: " + trace.path());
-        helper.assertTrue(key(helper, trace).equals("logisticspipes.trace.unclaimed"), "the message says so");
+        helper.assertTrue(key(helper, trace).equals("routedpipes.trace.unclaimed"), "the message says so");
         helper.succeed();
     }
 

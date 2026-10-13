@@ -40,7 +40,7 @@ public class ChannelScreen extends AbstractContainerScreen<ChannelMenu> {
         super.init();
         button("<", ChannelMenu.BUTTON_PREVIOUS_PAGE, 110, 15, 12, 12);
         button(">", ChannelMenu.BUTTON_NEXT_PAGE, 156, 15, 12, 12);
-        use = addRenderableWidget(Button.builder(Component.translatable("logisticspipes.channel.use"),
+        use = addRenderableWidget(Button.builder(Component.translatable("routedpipes.channel.use"),
                 button -> press(ChannelMenu.BUTTON_USE)).bounds(leftPos + 8, topPos + 62, 38, 14).build());
         use.visible = menu.onPipe();
         access = addRenderableWidget(Button.builder(Component.empty(), button -> press(ChannelMenu.BUTTON_ACCESS))
@@ -53,15 +53,15 @@ public class ChannelScreen extends AbstractContainerScreen<ChannelMenu> {
             }
         }).bounds(leftPos + 122, topPos + 62, 46, 14).build());
         String typed = name == null ? "" : name.getValue();
-        name = new EditBox(font, leftPos + 8, topPos + 80, 160, 14, Component.translatable("logisticspipes.channel.name"));
+        name = new EditBox(font, leftPos + 8, topPos + 80, 160, 14, Component.translatable("routedpipes.channel.name"));
         name.setMaxLength(Channels.MAX_NAME);
         name.setValue(typed);
         addRenderableWidget(name);
-        addRenderableWidget(Button.builder(Component.translatable("logisticspipes.channel.add"),
+        addRenderableWidget(Button.builder(Component.translatable("routedpipes.channel.add"),
                 button -> send(ChannelMenu.TEXT_ADD)).bounds(leftPos + 8, topPos + 98, 38, 14).build());
         newAccess = addRenderableWidget(Button.builder(Component.empty(), button -> press(ChannelMenu.BUTTON_NEW_ACCESS))
                 .bounds(leftPos + 48, topPos + 98, 72, 14).build());
-        rename = addRenderableWidget(Button.builder(Component.translatable("logisticspipes.channel.rename"),
+        rename = addRenderableWidget(Button.builder(Component.translatable("routedpipes.channel.rename"),
                 button -> send(ChannelMenu.TEXT_RENAME)).bounds(leftPos + 122, topPos + 98, 46, 14).build());
         if (menu.onPipe()) {
             // with shift held the resistance changes by ten
@@ -91,7 +91,7 @@ public class ChannelScreen extends AbstractContainerScreen<ChannelMenu> {
     }
 
     private static Component accessLabel(ChannelAccess access) {
-        return Component.translatable("logisticspipes.channel.access." + access.name().toLowerCase(Locale.ROOT));
+        return Component.translatable("routedpipes.channel.access." + access.name().toLowerCase(Locale.ROOT));
     }
 
     // shows the buttons with what the server last said
@@ -104,7 +104,7 @@ public class ChannelScreen extends AbstractContainerScreen<ChannelMenu> {
         access.active = selected && menu.ownsSelected();
         access.setMessage(selected ? accessLabel(menu.selectedAccess()) : Component.empty());
         delete.active = selected && menu.ownsSelected();
-        delete.setMessage(Component.translatable(deleting >= 0 ? "logisticspipes.channel.confirm" : "logisticspipes.channel.delete"));
+        delete.setMessage(Component.translatable(deleting >= 0 ? "routedpipes.channel.confirm" : "routedpipes.channel.delete"));
         rename.active = selected && menu.ownsSelected();
         newAccess.setMessage(accessLabel(menu.newAccess()));
     }
@@ -146,24 +146,24 @@ public class ChannelScreen extends AbstractContainerScreen<ChannelMenu> {
     @Override
     protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
         graphics.drawString(font, shortened(title.getString(), 160), 8, 6, TEXT, false);
-        graphics.drawString(font, Component.translatable("logisticspipes.channel.title"), 8, 18, TEXT, false);
+        graphics.drawString(font, Component.translatable("routedpipes.channel.title"), 8, 18, TEXT, false);
         String page = (menu.page() + 1) + "/" + menu.pages();
         graphics.drawString(font, page, 139 - font.width(page) / 2, 17, TEXT, false);
         int selected = menu.selectedSlot();
         ItemStack paper = selected < 0 ? ItemStack.EMPTY : menu.getSlot(ChannelMenu.FIRST_CHANNEL_SLOT + selected).getItem();
-        Component which = paper.isEmpty() ? Component.translatable("logisticspipes.channel.select") : paper.getHoverName();
+        Component which = paper.isEmpty() ? Component.translatable("routedpipes.channel.select") : paper.getHoverName();
         graphics.drawString(font, shortened(which.getString(), 160), 8, 51, TEXT, false);
         if (!menu.onPipe()) {
             return;
         }
         int top = ChannelMenu.CONNECTOR_TOP;
         ItemStack current = menu.getSlot(ChannelMenu.CURRENT_SLOT).getItem();
-        Component channel = current.isEmpty() ? Component.translatable("logisticspipes.channel.none")
-                : Component.translatable("logisticspipes.channel.current", current.getHoverName());
+        Component channel = current.isEmpty() ? Component.translatable("routedpipes.channel.none")
+                : Component.translatable("routedpipes.channel.current", current.getHoverName());
         graphics.drawString(font, shortened(channel.getString(), 140), 28, top + 4, TEXT, false);
-        graphics.drawString(font, Component.translatable("logisticspipes.channel.resistance"), 8, top + 23, TEXT, false);
+        graphics.drawString(font, Component.translatable("routedpipes.channel.resistance"), 8, top + 23, TEXT, false);
         String resistance = Integer.toString(menu.resistance());
         graphics.drawString(font, resistance, 139 - font.width(resistance) / 2, top + 23, TEXT, false);
-        graphics.drawString(font, Component.translatable("logisticspipes.channel.waiting"), 8, top + 39, TEXT, false);
+        graphics.drawString(font, Component.translatable("routedpipes.channel.waiting"), 8, top + 39, TEXT, false);
     }
 }
