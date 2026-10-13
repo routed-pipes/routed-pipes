@@ -48,6 +48,8 @@ public class RequestMenu extends AbstractContainerMenu implements TextMenu {
     public static final int BUTTON_DISK = 9;
     // shows what the picked request would take without making it, and goes back to the list
     public static final int BUTTON_PREVIEW = 10;
+    // gives up on the crafted items the pipe is still waiting for
+    public static final int BUTTON_CANCEL = 11;
     // shows the disk of a pipe that takes one, a click on it throws the disk out
     public static final int DISK_SLOT = PAGE_SIZE;
     // the preview takes the place of the list while it is on show
@@ -69,6 +71,7 @@ public class RequestMenu extends AbstractContainerMenu implements TextMenu {
     private static final int DATA_PAGE = 2;
     private static final int DATA_PAGES = 3;
     private static final int DATA_TAKES_DISK = 4;
+    private static final int DATA_OPEN_ORDERS = 5;
     private static final int PREVIEW_SHOWING = 0;
     private static final int PREVIEW_PAGE = 1;
     private static final int PREVIEW_PAGES = 2;
@@ -79,7 +82,7 @@ public class RequestMenu extends AbstractContainerMenu implements TextMenu {
     }
 
     private final Container listing = new SimpleContainer(PAGE_SIZE);
-    private final ContainerData data = new SimpleContainerData(5);
+    private final ContainerData data = new SimpleContainerData(6);
     private final Container previewed = new SimpleContainer(PREVIEW_SIZE);
     private final ContainerData preview = new SimpleContainerData(3);
     private final LongData previewEnergy;
@@ -167,6 +170,11 @@ public class RequestMenu extends AbstractContainerMenu implements TextMenu {
                 ? Optional.of(Source.values()[Math.floorMod(tag.getInt(SOURCE_TAG), Source.values().length)]) : Optional.empty();
     }
 
+    // how many crafted items the pipe is still waiting for, counted no further than a data slot holds
+    public int openOrders() {
+        return data.get(DATA_OPEN_ORDERS);
+    }
+
     public boolean takesDisk() {
         return data.get(DATA_TAKES_DISK) != 0;
     }
@@ -192,6 +200,7 @@ public class RequestMenu extends AbstractContainerMenu implements TextMenu {
     }
 
     private void refresh() {
+        data.set(DATA_OPEN_ORDERS, Math.min(pipe.openOrders(), Short.MAX_VALUE));
         List<Map.Entry<ItemType, Integer>> entries = new ArrayList<>(pipe.available().entrySet());
         entries.removeIf(entry -> !matchesSearch(entry.getKey()));
         entries.sort(Comparator.comparing(entry -> BuiltInRegistries.ITEM.getKey(((McItemType) entry.getKey()).item())));
@@ -326,6 +335,12 @@ public class RequestMenu extends AbstractContainerMenu implements TextMenu {
             showPreviewPage();
         } else if (id == BUTTON_PREVIOUS_PAGE || id == BUTTON_NEXT_PAGE) {
             data.set(DATA_PAGE, data.get(DATA_PAGE) + (id == BUTTON_NEXT_PAGE ? 1 : -1));
+            refresh();
+        } else if (id == BUTTON_CANCEL) {
+            int cancelled = pipe.cancelOrders();
+            if (cancelled > 0) {
+                player.displayClientMessage(Component.translatable("logisticspipes.request.cancelled", cancelled), false);
+            }
             refresh();
         } else if (id == BUTTON_DISK && drive != null && drive.holdsDisk()) {
             drive.open(player);

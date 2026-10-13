@@ -939,6 +939,57 @@ public final class LogisticsNetwork {
         return backlog;
     }
 
+    // how many crafted items the router is still waiting for
+    public int openOrders(RouterId requester) {
+        int open = 0;
+        for (RouterNode node : nodes.values()) {
+            if (!node.outputOrders().isEmpty()) {
+                for (OutputOrder order : node.outputOrders().all()) {
+                    if (requester.equals(order.destination())) {
+                        open += order.batch().count();
+                    }
+                }
+            }
+        }
+        return open;
+    }
+
+    // drops the crafting orders the router is still waiting for, with the orders for the parts that were to go into them
+    // returns how many crafted items it will not get. what is on its way already arrives, and ingredients that reach a
+    // machine after this are turned into things nobody waits for, which the next request can have
+    public int cancelOrders(RouterId requester) {
+        Set<Long> requests = new HashSet<>();
+        for (RouterNode node : nodes.values()) {
+            if (!node.outputOrders().isEmpty()) {
+                for (OutputOrder order : node.outputOrders().all()) {
+                    if (requester.equals(order.destination())) {
+                        requests.add(order.request());
+                    }
+                }
+            }
+        }
+        int cancelled = 0;
+        for (RouterNode node : nodes.values()) {
+            if (node.outputOrders().isEmpty()) {
+                continue;
+            }
+            for (OutputOrder order : node.outputOrders().all()) {
+                // orders from before requests had numbers go one by one
+                boolean own = requester.equals(order.destination());
+                if (own || order.request() != 0 && requests.contains(order.request())) {
+                    node.outputOrders().cancel(order);
+                    if (!order.isExtra()) {
+                        // nobody expects it any more, so nobody holds back from ordering it again either
+                        pending.arrived(order.destination(), order.batch().type(), order.batch().count());
+                    }
+                    cancelled += own ? order.batch().count() : 0;
+                }
+            }
+        }
+        forgetReaches();
+        return cancelled;
+    }
+
     // plans the request and starts it right away if nothing is missing and there is power to move the items
     public RequestOutcome request(RouterId requester, ItemBatch wanted, long now) {
         return request(requester, wanted, now, 0, false);
@@ -1208,7 +1259,7 @@ public final class LogisticsNetwork {
                     int perRun = setup.recipe().output().count();
                     int runs = (craft.output().count() + perRun - 1) / perRun;
                     ItemBatch extra = setup.byproduct().get();
-                    crafter.outputOrders().add(OutputOrder.extra(new ItemBatch(extra.type(), extra.count() * runs), now));
+                    crafter.outputOrders().add(new OutputOrder(null, new ItemBatch(extra.type(), extra.count() * runs), now, stamp(now), request));
                     break;
                 }
             }

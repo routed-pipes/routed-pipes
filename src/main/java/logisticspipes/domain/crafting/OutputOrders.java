@@ -55,11 +55,8 @@ public final class OutputOrders {
                 .mapToLong(OutputOrder::placed).min();
     }
 
-    // drops everything that was ordered with that request, returns what was dropped
-    public List<OutputOrder> cancel(long request) {
-        List<OutputOrder> cancelled = orders.stream().filter(order -> order.request() == request).toList();
-        orders.removeAll(cancelled);
-        return cancelled;
+    public void cancel(OutputOrder order) {
+        orders.remove(order);
     }
 
     // offers every order to the shipper, which says how many items it managed to send, true if any items went out

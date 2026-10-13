@@ -29,6 +29,8 @@
   "logisticspipes.gui.preview.energy": "Energy: %s FE",
   "logisticspipes.gui.nothing_selected": "Select an item",
   "logisticspipes.request.started": "Requested %s x %s",
+  "logisticspipes.request.cancelled": "Cancelled the crafting of %s items",
+  "logisticspipes.gui.cancel_orders": "Cancel crafting: %s items are still being made for this pipe",
   "logisticspipes.request.missing": "Request failed, missing:",
   "logisticspipes.request.missing_entry": "%s x %s",
   "block.logisticspipes.line_tube": "High Speed Line Tube",

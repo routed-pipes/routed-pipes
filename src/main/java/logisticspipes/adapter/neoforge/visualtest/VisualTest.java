@@ -15,6 +15,7 @@ import logisticspipes.adapter.minecraft.CraftingTableBlockEntity;
 import logisticspipes.adapter.minecraft.McItemType;
 import logisticspipes.adapter.minecraft.ModuleItem;
 import logisticspipes.adapter.minecraft.PipeBlockEntity;
+import logisticspipes.domain.crafting.OutputOrder;
 import logisticspipes.adapter.minecraft.PowerJunctionBlockEntity;
 import logisticspipes.adapter.minecraft.client.RecipeViewerCheck;
 import logisticspipes.adapter.neoforge.LogisticsPipes;
@@ -345,6 +346,18 @@ public final class VisualTest {
         });
         step(2, () -> shot("gui_request_search"));
         step(5, () -> onServer(server -> server.getPlayerList().getPlayers().get(0).closeContainer()));
+        // and once more while something is being crafted for the pipe, which shows the button that cancels it
+        step(5, () -> onServer(server -> {
+            PipeBlockEntity request = pipe(server, REQUEST);
+            request.outputOrders().add(new OutputOrder(request.routerId(),
+                    McItemType.batchOf(new ItemStack(Items.OAK_PLANKS, 8)), server.overworld().getGameTime()));
+            request.openRequestScreen(server.getPlayerList().getPlayers().get(0), true);
+        }));
+        step(25, () -> shot("gui_request_cancel"));
+        step(5, () -> onServer(server -> {
+            pipe(server, REQUEST).cancelOrders();
+            server.getPlayerList().getPlayers().get(0).closeContainer();
+        }));
         screenShot("gui_supplier", SUPPLIER, "4.5 -60 6.5 90 0");
         screenShot("gui_basic", new BlockPos(0, -59, 6), "2.5 -60 6.5 90 0");
         screenShot("gui_provider", new BlockPos(0, -59, 11), "2.5 -60 11.5 90 0");

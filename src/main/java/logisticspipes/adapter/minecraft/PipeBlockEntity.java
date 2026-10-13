@@ -506,6 +506,16 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         return network().craftingBacklog(routerId);
     }
 
+    // how many crafted items this pipe is still waiting for
+    public int openOrders() {
+        return network().openOrders(routerId);
+    }
+
+    // gives up on the crafted items this pipe is still waiting for, returns how many that was
+    public int cancelOrders() {
+        return network().cancelOrders(routerId);
+    }
+
     public RequestOutcome request(ItemBatch wanted) {
         return network().request(routerId, wanted, level.getGameTime());
     }

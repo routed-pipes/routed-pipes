@@ -9,6 +9,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
@@ -32,6 +33,8 @@ public class RequestScreen<M extends RequestMenu> extends AbstractContainerScree
     private Button request;
     private Button disk;
     private Button preview;
+    private Button cancel;
+    private int shownOpenOrders = -1;
 
     public RequestScreen(M menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
@@ -48,6 +51,11 @@ public class RequestScreen<M extends RequestMenu> extends AbstractContainerScree
         search.setValue(typed);
         search.setResponder(text -> ClientMenuLink.setText(menu.containerId, RequestMenu.TEXT_SEARCH, text));
         addRenderableWidget(search);
+        // only there while the pipe waits for something to be crafted
+        cancel = addRenderableWidget(Button.builder(Component.literal("x"), button -> press(RequestMenu.BUTTON_CANCEL))
+                .bounds(leftPos + 111, topPos + 4, 12, 12).build());
+        shownOpenOrders = -1;
+        showCancel();
         addRenderableWidget(Button.builder(Component.literal("<"), button -> press(RequestMenu.BUTTON_PREVIOUS_PAGE))
                 .bounds(leftPos + 126, topPos + 4, 12, 12).build());
         addRenderableWidget(Button.builder(Component.literal(">"), button -> press(RequestMenu.BUTTON_NEXT_PAGE))
@@ -72,6 +80,14 @@ public class RequestScreen<M extends RequestMenu> extends AbstractContainerScree
         return Component.translatable("logisticspipes.gui.request");
     }
 
+    private void showCancel() {
+        cancel.visible = menu.openOrders() > 0;
+        if (shownOpenOrders != menu.openOrders()) {
+            shownOpenOrders = menu.openOrders();
+            cancel.setTooltip(Tooltip.create(Component.translatable("logisticspipes.gui.cancel_orders", shownOpenOrders)));
+        }
+    }
+
     // a pipe that takes a disk shows it in the corner, with a button for what is on it
     private void makeRoomForDisk() {
         request.setWidth(menu.takesDisk() ? 100 : 160);
@@ -93,6 +109,7 @@ public class RequestScreen<M extends RequestMenu> extends AbstractContainerScree
     @Override
     protected void containerTick() {
         super.containerTick();
+        showCancel();
         makeRoomForDisk();
         makeRoomForPreview();
     }
