@@ -28,7 +28,7 @@ final class ComputerCraftSupport {
     private static final class Peripherals {
 
         private static void register(RegisterCapabilitiesEvent event) {
-            event.registerBlockEntity(PeripheralCapability.get(), LogisticsPipes.PIPE_BLOCK_ENTITY.get(),
+            event.registerBlockEntity(PeripheralCapability.get(), RoutedPipes.PIPE_BLOCK_ENTITY.get(),
                     (pipe, side) -> PipePeripheral.of(pipe));
         }
     }

@@ -25,7 +25,7 @@ public final class PipeMounts {
         Set<Side> solid = EnumSet.noneOf(Side.class);
         for (Direction direction : Direction.values()) {
             BlockPos neighbour = pos.relative(direction);
-            if (LogisticsPipeBlock.connected(pipe, direction)) {
+            if (PipeBlock.connected(pipe, direction)) {
                 connected.add(Directions.toDomain(direction));
             } else if (level.getBlockState(neighbour).isFaceSturdy(level, neighbour, direction.getOpposite())) {
                 solid.add(Directions.toDomain(direction));

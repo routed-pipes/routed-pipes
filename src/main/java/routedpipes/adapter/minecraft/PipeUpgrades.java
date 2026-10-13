@@ -147,7 +147,7 @@ final class PipeUpgrades {
         pipe.block().refreshConnections(pipe.getBlockState(), level, pos);
         for (Direction side : Direction.values()) {
             BlockPos neighbour = pos.relative(side);
-            if (level.getBlockState(neighbour).getBlock() instanceof LogisticsPipeBlock other) {
+            if (level.getBlockState(neighbour).getBlock() instanceof PipeBlock other) {
                 other.refreshConnections(level.getBlockState(neighbour), level, neighbour);
             }
         }

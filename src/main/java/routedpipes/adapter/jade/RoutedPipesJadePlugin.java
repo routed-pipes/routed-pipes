@@ -1,6 +1,6 @@
 package routedpipes.adapter.jade;
 
-import routedpipes.adapter.minecraft.LogisticsPipeBlock;
+import routedpipes.adapter.minecraft.PipeBlock;
 import routedpipes.adapter.minecraft.PipeBlockEntity;
 import routedpipes.adapter.minecraft.PipeDetails;
 import net.minecraft.nbt.CompoundTag;
@@ -19,7 +19,7 @@ import snownee.jade.api.config.IPluginConfig;
 // only loaded when Jade is installed: looking at a pipe shows what it is connected to, what is inside,
 // what it takes and what it still has to craft
 @WailaPlugin
-public class LogisticsPipesJadePlugin implements IWailaPlugin {
+public class RoutedPipesJadePlugin implements IWailaPlugin {
 
     private enum PipeStatus implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
         INSTANCE;
@@ -72,6 +72,6 @@ public class LogisticsPipesJadePlugin implements IWailaPlugin {
 
     @Override
     public void registerClient(IWailaClientRegistration registration) {
-        registration.registerBlockComponent(PipeStatus.INSTANCE, LogisticsPipeBlock.class);
+        registration.registerBlockComponent(PipeStatus.INSTANCE, PipeBlock.class);
     }
 }

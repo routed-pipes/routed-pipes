@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import routedpipes.adapter.minecraft.LogisticsPipeBlock;
+import routedpipes.adapter.minecraft.PipeBlock;
 import routedpipes.adapter.minecraft.PipeBlockEntity;
 import routedpipes.adapter.minecraft.PipeSigns;
 import routedpipes.adapter.minecraft.SignView;
@@ -65,7 +65,7 @@ final class PipeSignRenderer {
         }
         signs.views().forEach((face, view) -> {
             // a sign on a face something is connected to stays out of sight
-            if (LogisticsPipeBlock.connected(pipe.getBlockState(), face)) {
+            if (PipeBlock.connected(pipe.getBlockState(), face)) {
                 return;
             }
             pose.pushPose();

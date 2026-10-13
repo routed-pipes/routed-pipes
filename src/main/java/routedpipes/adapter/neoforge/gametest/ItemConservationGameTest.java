@@ -1,7 +1,7 @@
 package routedpipes.adapter.neoforge.gametest;
 
 import routedpipes.adapter.minecraft.PipeBlockEntity;
-import routedpipes.adapter.neoforge.LogisticsPipes;
+import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.domain.logistics.PipeKind;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
@@ -13,7 +13,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-@GameTestHolder(LogisticsPipes.MODID)
+@GameTestHolder(RoutedPipes.MODID)
 @PrefixGameTestTemplate(false)
 public class ItemConservationGameTest {
 
@@ -23,15 +23,15 @@ public class ItemConservationGameTest {
     @GameTest(template = EMPTY, timeoutTicks = 400)
     public static void supplierOrdersAgainWhenAPipeWithItsItemsIsBroken(GameTestHelper helper) {
         GameTestPower.supply(helper);
-        helper.setBlock(new BlockPos(0, 1, 1), LogisticsPipes.pipe(PipeKind.SUPPLIER));
+        helper.setBlock(new BlockPos(0, 1, 1), RoutedPipes.pipe(PipeKind.SUPPLIER));
         PipeBlockEntity supplier = helper.getBlockEntity(new BlockPos(0, 1, 1));
         supplier.config().setItem(0, new ItemStack(Items.COAL, 16));
         BlockPos target = new BlockPos(0, 2, 1);
         helper.setBlock(target, Blocks.CHEST);
         for (int x = 1; x <= 8; x++) {
-            helper.setBlock(new BlockPos(x, 1, 1), LogisticsPipes.TRANSPORT_PIPE.get());
+            helper.setBlock(new BlockPos(x, 1, 1), RoutedPipes.TRANSPORT_PIPE.get());
         }
-        helper.setBlock(new BlockPos(9, 1, 1), LogisticsPipes.pipe(PipeKind.PROVIDER));
+        helper.setBlock(new BlockPos(9, 1, 1), RoutedPipes.pipe(PipeKind.PROVIDER));
         BlockPos source = new BlockPos(9, 2, 1);
         helper.setBlock(source, Blocks.CHEST);
         Container stock = helper.getBlockEntity(source);
@@ -44,7 +44,7 @@ public class ItemConservationGameTest {
                 // the coal falls out, the pipe is put back right away
                 broken[0] = true;
                 helper.destroyBlock(middle);
-                helper.setBlock(middle, LogisticsPipes.TRANSPORT_PIPE.get());
+                helper.setBlock(middle, RoutedPipes.TRANSPORT_PIPE.get());
             }
         });
 

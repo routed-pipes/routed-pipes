@@ -9,7 +9,7 @@ import routedpipes.adapter.minecraft.PipeBlockEntity;
 import routedpipes.adapter.minecraft.menu.CraftingTableMenu;
 import routedpipes.adapter.minecraft.menu.IngredientQuestions;
 import routedpipes.adapter.minecraft.menu.MenuRequests;
-import routedpipes.adapter.neoforge.LogisticsPipes;
+import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.domain.logistics.PipeKind;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -26,7 +26,7 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 // what the server does when a recipe viewer moves a recipe into a crafting table that has a pipe next to it
-@GameTestHolder(LogisticsPipes.MODID)
+@GameTestHolder(RoutedPipes.MODID)
 @PrefixGameTestTemplate(false)
 public class CraftingTableOrderGameTest {
 
@@ -38,7 +38,7 @@ public class CraftingTableOrderGameTest {
 
     private static PipeBlockEntity pipe(GameTestHelper helper, PipeKind kind, int x) {
         BlockPos pos = new BlockPos(x, 1, 1);
-        helper.setBlock(pos, LogisticsPipes.pipe(kind));
+        helper.setBlock(pos, RoutedPipes.pipe(kind));
         return helper.getBlockEntity(pos);
     }
 
@@ -54,7 +54,7 @@ public class CraftingTableOrderGameTest {
 
     private static CraftingTableBlockEntity table(GameTestHelper helper, int x) {
         BlockPos pos = new BlockPos(x, 2, 1);
-        helper.setBlock(pos, LogisticsPipes.CRAFTING_TABLE.get());
+        helper.setBlock(pos, RoutedPipes.CRAFTING_TABLE.get());
         return helper.getBlockEntity(pos);
     }
 
@@ -284,12 +284,12 @@ public class CraftingTableOrderGameTest {
         PipeBlockEntity crafting = pipe(helper, PipeKind.CRAFTING, 1);
         table(helper, 1);
         BlockPos stationPos = new BlockPos(3, 1, 1);
-        helper.setBlock(stationPos, LogisticsPipes.SECURITY_STATION.get());
+        helper.setBlock(stationPos, RoutedPipes.SECURITY_STATION.get());
         routedpipes.adapter.minecraft.SecurityStationBlockEntity station = helper.getBlockEntity(stationPos);
         TestPlayer owner = TestPlayer.in(helper);
         helper.getBlockState(stationPos).getBlock().setPlacedBy(helper.getLevel(), helper.absolutePos(stationPos),
                 helper.getBlockState(stationPos), owner, ItemStack.EMPTY);
-        ItemStack card = LogisticsPipes.SECURITY_CARD.get().cardFor(station.id());
+        ItemStack card = RoutedPipes.SECURITY_CARD.get().cardFor(station.id());
         provider.security().card().setItem(0, card.copy());
         crafting.security().card().setItem(0, card.copy());
 

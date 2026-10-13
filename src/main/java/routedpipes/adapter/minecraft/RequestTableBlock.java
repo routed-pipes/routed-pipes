@@ -9,7 +9,7 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 // a routed pipe in the shape of a whole block
-public class RequestTableBlock extends LogisticsPipeBlock {
+public class RequestTableBlock extends PipeBlock {
 
     public RequestTableBlock(Properties properties, PipeServices services) {
         super(properties, PipeKind.REQUEST_TABLE, 0, services);

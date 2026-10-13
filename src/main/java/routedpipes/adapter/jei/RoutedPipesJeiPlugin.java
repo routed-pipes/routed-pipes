@@ -59,7 +59,7 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 // only loaded when JEI is installed: drag items onto marker slots, move recipes into tables and crafting pipes,
 // and an info page for every item of the mod
 @JeiPlugin
-public class LogisticsPipesJeiPlugin implements IModPlugin {
+public class RoutedPipesJeiPlugin implements IModPlugin {
 
     private static final String NAMESPACE = "routedpipes";
 

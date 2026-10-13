@@ -4,7 +4,7 @@ import java.util.List;
 
 import routedpipes.adapter.minecraft.ModuleItem;
 import routedpipes.adapter.minecraft.PipeBlockEntity;
-import routedpipes.adapter.neoforge.LogisticsPipes;
+import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.domain.logistics.ModuleKind;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
@@ -17,14 +17,14 @@ import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-@GameTestHolder(LogisticsPipes.MODID)
+@GameTestHolder(RoutedPipes.MODID)
 @PrefixGameTestTemplate(false)
 public class BulkStorageGameTest {
 
     private static final String EMPTY = "empty";
 
     private static ItemStack module(ModuleKind kind) {
-        return new ItemStack(LogisticsPipes.MODULES.get(kind).get());
+        return new ItemStack(RoutedPipes.MODULES.get(kind).get());
     }
 
     private static ItemStack defaultRoute() {
@@ -35,7 +35,7 @@ public class BulkStorageGameTest {
 
     private static PipeBlockEntity chassis(GameTestHelper helper, int x, ItemStack module) {
         BlockPos pos = new BlockPos(x, 1, 1);
-        helper.setBlock(pos, LogisticsPipes.CHASSIS_PIPES.get(1).get());
+        helper.setBlock(pos, RoutedPipes.CHASSIS_PIPES.get(1).get());
         PipeBlockEntity pipe = helper.getBlockEntity(pos);
         pipe.modules().setItem(0, module);
         return pipe;

@@ -2,11 +2,11 @@ package routedpipes.adapter.neoforge.gametest;
 
 import java.util.List;
 
-import routedpipes.adapter.minecraft.LogisticsPipeBlock;
+import routedpipes.adapter.minecraft.PipeBlock;
 import routedpipes.adapter.minecraft.PipeArm;
 import routedpipes.adapter.minecraft.PipeBlockEntity;
 import routedpipes.adapter.minecraft.PipeMounts;
-import routedpipes.adapter.neoforge.LogisticsPipes;
+import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.domain.logistics.PipeKind;
 import routedpipes.domain.look.Mount;
 import routedpipes.domain.routing.Side;
@@ -22,7 +22,7 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 // what the block state of a pipe tells clients to draw
-@GameTestHolder(LogisticsPipes.MODID)
+@GameTestHolder(RoutedPipes.MODID)
 @PrefixGameTestTemplate(false)
 public class PipeLookGameTest {
 
@@ -32,15 +32,15 @@ public class PipeLookGameTest {
     private static final BlockPos SECOND = new BlockPos(5, 1, 1);
 
     private static void assertArm(GameTestHelper helper, BlockPos pos, Direction side, PipeArm expected) {
-        PipeArm arm = helper.getBlockState(pos).getValue(LogisticsPipeBlock.ARMS.get(side));
+        PipeArm arm = helper.getBlockState(pos).getValue(PipeBlock.ARMS.get(side));
         helper.assertTrue(arm == expected, "expected " + expected + " to the " + side + " of " + pos + " but found " + arm);
     }
 
     // two routed pipes with a plain pipe between them
     private static void twoRouters(GameTestHelper helper) {
-        helper.setBlock(FIRST, LogisticsPipes.pipe(PipeKind.BASIC));
-        helper.setBlock(BETWEEN, LogisticsPipes.TRANSPORT_PIPE.get());
-        helper.setBlock(SECOND, LogisticsPipes.pipe(PipeKind.BASIC));
+        helper.setBlock(FIRST, RoutedPipes.pipe(PipeKind.BASIC));
+        helper.setBlock(BETWEEN, RoutedPipes.TRANSPORT_PIPE.get());
+        helper.setBlock(SECOND, RoutedPipes.pipe(PipeKind.BASIC));
     }
 
     @GameTest(template = EMPTY)
@@ -48,8 +48,8 @@ public class PipeLookGameTest {
         twoRouters(helper);
         // an inventory, a power junction and a plain pipe that leads nowhere
         helper.setBlock(FIRST.above(), Blocks.CHEST);
-        helper.setBlock(FIRST.west(), LogisticsPipes.POWER_JUNCTION.get());
-        helper.setBlock(FIRST.south(), LogisticsPipes.TRANSPORT_PIPE.get());
+        helper.setBlock(FIRST.west(), RoutedPipes.POWER_JUNCTION.get());
+        helper.setBlock(FIRST.south(), RoutedPipes.TRANSPORT_PIPE.get());
 
         helper.runAfterDelay(5, () -> {
             assertArm(helper, FIRST, Direction.EAST, PipeArm.ROUTED);
@@ -84,7 +84,7 @@ public class PipeLookGameTest {
         });
         helper.runAfterDelay(10, () -> {
             assertArm(helper, FIRST, Direction.EAST, PipeArm.UNROUTED);
-            helper.setBlock(SECOND, LogisticsPipes.pipe(PipeKind.BASIC));
+            helper.setBlock(SECOND, RoutedPipes.pipe(PipeKind.BASIC));
         });
         helper.runAfterDelay(15, () -> {
             assertArm(helper, FIRST, Direction.EAST, PipeArm.ROUTED);
@@ -93,7 +93,7 @@ public class PipeLookGameTest {
     }
 
     private static void assertPowered(GameTestHelper helper, BlockPos pos, boolean expected) {
-        helper.assertTrue(helper.getBlockState(pos).getValue(LogisticsPipeBlock.POWERED) == expected,
+        helper.assertTrue(helper.getBlockState(pos).getValue(PipeBlock.POWERED) == expected,
                 "the frame of " + pos + " should be " + (expected ? "lit" : "dark"));
     }
 
@@ -149,10 +149,10 @@ public class PipeLookGameTest {
     public static void pipeOnASolidBlockStandsOnTwoFeetBesideItsArms(GameTestHelper helper) {
         BlockPos pipe = new BlockPos(3, 2, 1);
         helper.setBlock(pipe.below(), Blocks.STONE);
-        helper.setBlock(pipe, LogisticsPipes.TRANSPORT_PIPE.get());
+        helper.setBlock(pipe, RoutedPipes.TRANSPORT_PIPE.get());
         assertMounts(helper, pipe, new Mount(Side.DOWN, Side.NORTH), new Mount(Side.DOWN, Side.SOUTH));
 
-        helper.setBlock(pipe.south(), LogisticsPipes.TRANSPORT_PIPE.get());
+        helper.setBlock(pipe.south(), RoutedPipes.TRANSPORT_PIPE.get());
         assertMounts(helper, pipe, new Mount(Side.DOWN, Side.EAST), new Mount(Side.DOWN, Side.WEST));
 
         helper.setBlock(pipe.below(), Blocks.AIR);
@@ -163,7 +163,7 @@ public class PipeLookGameTest {
     @GameTest(template = EMPTY)
     public static void pipeHoldsOnToAWallButNotToBlocksWithoutAFullFace(GameTestHelper helper) {
         BlockPos pipe = new BlockPos(3, 2, 1);
-        helper.setBlock(pipe, LogisticsPipes.TRANSPORT_PIPE.get());
+        helper.setBlock(pipe, RoutedPipes.TRANSPORT_PIPE.get());
         helper.setBlock(pipe.south(), Blocks.OAK_FENCE);
         helper.setBlock(pipe.east(), Blocks.CHEST);
         helper.assertTrue(mounts(helper, pipe).isEmpty(), "nothing to hold on to at a fence or a chest");
@@ -179,7 +179,7 @@ public class PipeLookGameTest {
         BlockPos pipe = new BlockPos(3, 2, 1);
         helper.setBlock(pipe.below(), Blocks.CHEST);
         helper.setBlock(pipe.above(), Blocks.STONE);
-        helper.setBlock(pipe, LogisticsPipes.pipe(PipeKind.BASIC));
+        helper.setBlock(pipe, RoutedPipes.pipe(PipeKind.BASIC));
 
         helper.runAfterDelay(3, () -> {
             assertArm(helper, pipe, Direction.DOWN, PipeArm.UNROUTED);
@@ -209,7 +209,7 @@ public class PipeLookGameTest {
         helper.setBlock(pos.above(), Blocks.CHEST);
         Container chest = helper.getBlockEntity(pos.above());
         chest.setItem(0, new ItemStack(Items.COBBLESTONE, 64));
-        helper.setBlock(pos, LogisticsPipes.pipe(PipeKind.PROVIDER));
+        helper.setBlock(pos, RoutedPipes.pipe(PipeKind.PROVIDER));
         PipeBlockEntity provider = helper.getBlockEntity(pos);
         helper.assertTrue(provider.provided().isEmpty(), "no arm to the chest before the first tick, arms are " + provider.getBlockState());
 

@@ -5,7 +5,7 @@ import routedpipes.adapter.minecraft.McItemType;
 import routedpipes.adapter.minecraft.PipeBlockEntity;
 import routedpipes.adapter.minecraft.menu.CraftingTableMenu;
 import routedpipes.adapter.minecraft.menu.MenuRequests;
-import routedpipes.adapter.neoforge.LogisticsPipes;
+import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.domain.logistics.PipeKind;
 import routedpipes.application.RequestOutcome;
 import routedpipes.adapter.minecraft.ModuleItem;
@@ -32,7 +32,7 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
 
-@GameTestHolder(LogisticsPipes.MODID)
+@GameTestHolder(RoutedPipes.MODID)
 @PrefixGameTestTemplate(false)
 public class CraftingTableGameTest {
 
@@ -41,7 +41,7 @@ public class CraftingTableGameTest {
 
     private static CraftingTableBlockEntity table(GameTestHelper helper, int x, int y, Item... pattern) {
         BlockPos pos = new BlockPos(x, y, 1);
-        helper.setBlock(pos, LogisticsPipes.CRAFTING_TABLE.get());
+        helper.setBlock(pos, RoutedPipes.CRAFTING_TABLE.get());
         CraftingTableBlockEntity table = helper.getBlockEntity(pos);
         for (int slot = 0; slot < pattern.length; slot++) {
             if (pattern[slot] != null) {
@@ -53,7 +53,7 @@ public class CraftingTableGameTest {
 
     private static PipeBlockEntity pipe(GameTestHelper helper, PipeKind kind, int x) {
         BlockPos pos = new BlockPos(x, 1, 1);
-        helper.setBlock(pos, LogisticsPipes.pipe(kind));
+        helper.setBlock(pos, RoutedPipes.pipe(kind));
         PipeBlockEntity pipe = helper.getBlockEntity(pos);
         // in these tests a basic pipe takes everything unless the test says otherwise
         pipe.setDefaultRoute(kind == PipeKind.BASIC);
@@ -162,7 +162,7 @@ public class CraftingTableGameTest {
         GameTestPower.supply(helper);
         CraftingTableBlockEntity table = table(helper, 0, 1);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        CraftingTableMenu menu = new CraftingTableMenu(LogisticsPipes.CRAFTING_TABLE_MENU.get(), 1, player.getInventory(), table);
+        CraftingTableMenu menu = new CraftingTableMenu(RoutedPipes.CRAFTING_TABLE_MENU.get(), 1, player.getInventory(), table);
 
         menu.setCarried(new ItemStack(Items.OAK_LOG, 16));
         menu.clicked(4, 0, ClickType.PICKUP, player);
@@ -186,7 +186,7 @@ public class CraftingTableGameTest {
         CraftingTableBlockEntity table = table(helper, 0, 1);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.getInventory().setItem(0, new ItemStack(Items.OAK_LOG, 10));
-        CraftingTableMenu menu = new CraftingTableMenu(LogisticsPipes.CRAFTING_TABLE_MENU.get(), 1, player.getInventory(), table);
+        CraftingTableMenu menu = new CraftingTableMenu(RoutedPipes.CRAFTING_TABLE_MENU.get(), 1, player.getInventory(), table);
         int hotbar = menu.slots.size() - 9;
 
         menu.quickMoveStack(player, hotbar);
@@ -274,7 +274,7 @@ public class CraftingTableGameTest {
         GameTestPower.supply(helper);
         CraftingTableBlockEntity table = table(helper, 0, 1);
         TestPlayer player = TestPlayer.in(helper);
-        player.containerMenu = new CraftingTableMenu(LogisticsPipes.CRAFTING_TABLE_MENU.get(), 7, player.getInventory(), table);
+        player.containerMenu = new CraftingTableMenu(RoutedPipes.CRAFTING_TABLE_MENU.get(), 7, player.getInventory(), table);
 
         MenuRequests.apply(player, 7, 0, new ItemStack(Items.OAK_PLANKS, 30));
         MenuRequests.apply(player, 7, 3, new ItemStack(Items.OAK_PLANKS, 30));
@@ -329,9 +329,9 @@ public class CraftingTableGameTest {
         pipe(helper, PipeKind.PROVIDER, 1);
         chest(helper, 1, new ItemStack(Items.OAK_LOG, 16));
         BlockPos chassisPos = new BlockPos(2, 1, 1);
-        helper.setBlock(chassisPos, LogisticsPipes.CHASSIS_PIPES.get(1).get());
+        helper.setBlock(chassisPos, RoutedPipes.CHASSIS_PIPES.get(1).get());
         PipeBlockEntity chassis = helper.getBlockEntity(chassisPos);
-        ItemStack crafter = new ItemStack(LogisticsPipes.MODULES.get(ModuleKind.CRAFTER).get());
+        ItemStack crafter = new ItemStack(RoutedPipes.MODULES.get(ModuleKind.CRAFTER).get());
         ModuleItem.configureCrafter(crafter, List.of(new ItemStack(Items.OAK_LOG)), new ItemStack(Items.OAK_PLANKS, 4), "", 0);
         chassis.modules().setItem(0, crafter);
         table(helper, 2, 2, Items.OAK_LOG);
@@ -351,9 +351,9 @@ public class CraftingTableGameTest {
     @GameTest(template = EMPTY)
     public static void crafterModuleIsSetUpInsideTheChassis(GameTestHelper helper) {
         BlockPos chassisPos = new BlockPos(2, 1, 1);
-        helper.setBlock(chassisPos, LogisticsPipes.CHASSIS_PIPES.get(1).get());
+        helper.setBlock(chassisPos, RoutedPipes.CHASSIS_PIPES.get(1).get());
         PipeBlockEntity chassis = helper.getBlockEntity(chassisPos);
-        chassis.modules().setItem(0, new ItemStack(LogisticsPipes.MODULES.get(ModuleKind.CRAFTER).get()));
+        chassis.modules().setItem(0, new ItemStack(RoutedPipes.MODULES.get(ModuleKind.CRAFTER).get()));
         table(helper, 2, 2, Items.OAK_LOG);
         TestPlayer player = TestPlayer.in(helper);
 

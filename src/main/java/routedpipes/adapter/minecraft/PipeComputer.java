@@ -27,7 +27,7 @@ public final class PipeComputer implements ComputerPipe {
 
     // empty for plain pipes and on the client
     public static Optional<PipeComputer> of(PipeBlockEntity pipe) {
-        boolean routed = pipe.getBlockState().getBlock() instanceof LogisticsPipeBlock block && block.routed();
+        boolean routed = pipe.getBlockState().getBlock() instanceof PipeBlock block && block.routed();
         return routed && pipe.getLevel() != null && !pipe.getLevel().isClientSide ? Optional.of(new PipeComputer(pipe)) : Optional.empty();
     }
 
@@ -76,7 +76,7 @@ public final class PipeComputer implements ComputerPipe {
     @Override
     public List<Optional<ModuleInfo>> modules() {
         List<Optional<ModuleInfo>> modules = new ArrayList<>();
-        int slots = ((LogisticsPipeBlock) pipe.getBlockState().getBlock()).moduleSlots();
+        int slots = ((PipeBlock) pipe.getBlockState().getBlock()).moduleSlots();
         for (int slot = 0; slot < slots; slot++) {
             ItemStack stack = pipe.modules().getItem(slot);
             modules.add(stack.getItem() instanceof ModuleItem module

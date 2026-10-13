@@ -12,7 +12,7 @@ import routedpipes.adapter.minecraft.menu.MacroEditMenu;
 import routedpipes.adapter.minecraft.menu.MenuRequests;
 import routedpipes.adapter.minecraft.menu.RequestMenu;
 import routedpipes.adapter.minecraft.menu.RequestTableMenu;
-import routedpipes.adapter.neoforge.LogisticsPipes;
+import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.domain.item.ItemBatch;
 import routedpipes.domain.logistics.PipeKind;
 import routedpipes.domain.macro.Macro;
@@ -38,7 +38,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-@GameTestHolder(LogisticsPipes.MODID)
+@GameTestHolder(RoutedPipes.MODID)
 @PrefixGameTestTemplate(false)
 public class DiskGameTest {
 
@@ -52,13 +52,13 @@ public class DiskGameTest {
     }
 
     private static ItemStack disk(MacroDisk contents) {
-        ItemStack disk = new ItemStack(LogisticsPipes.DISK.get());
+        ItemStack disk = new ItemStack(RoutedPipes.DISK.get());
         DiskItem.write(disk, contents);
         return disk;
     }
 
     private static PipeBlockEntity pipe(GameTestHelper helper, PipeKind kind, BlockPos pos) {
-        helper.setBlock(pos, LogisticsPipes.pipe(kind));
+        helper.setBlock(pos, RoutedPipes.pipe(kind));
         return helper.getBlockEntity(pos);
     }
 
@@ -97,7 +97,7 @@ public class DiskGameTest {
         chest(helper, PIPE.above());
         pipe(helper, PipeKind.PROVIDER, PIPE.east());
         chest(helper, PIPE.east().above(), new ItemStack(Items.COBBLESTONE, 64), new ItemStack(Items.DIAMOND, 3));
-        request.diskDrive().slot().setItem(0, new ItemStack(LogisticsPipes.DISK.get()));
+        request.diskDrive().slot().setItem(0, new ItemStack(RoutedPipes.DISK.get()));
         return request;
     }
 
@@ -115,14 +115,14 @@ public class DiskGameTest {
         helper.assertTrue(DiskItem.read(loaded).equals(contents), "the disk should come back as it was saved");
         helper.assertTrue(ItemStack.isSameItemSameComponents(disk, loaded), "and be the same stack");
         helper.assertTrue(disk.getMaxStackSize() == 1, "disks do not stack");
-        helper.assertTrue(DiskItem.read(new ItemStack(LogisticsPipes.DISK.get())).equals(MacroDisk.EMPTY), "a new disk is empty");
+        helper.assertTrue(DiskItem.read(new ItemStack(RoutedPipes.DISK.get())).equals(MacroDisk.EMPTY), "a new disk is empty");
         helper.succeed();
     }
 
     @GameTest(template = EMPTY)
     public static void diskShowsItsNameInTheTooltip(GameTestHelper helper) {
         List<Component> blank = new ArrayList<>();
-        new ItemStack(LogisticsPipes.DISK.get()).getItem().appendHoverText(new ItemStack(LogisticsPipes.DISK.get()),
+        new ItemStack(RoutedPipes.DISK.get()).getItem().appendHoverText(new ItemStack(RoutedPipes.DISK.get()),
                 Item.TooltipContext.EMPTY, blank, TooltipFlag.NORMAL);
         List<Component> named = new ArrayList<>();
         ItemStack disk = disk(MacroDisk.EMPTY.named("spares"));
@@ -155,7 +155,7 @@ public class DiskGameTest {
 
         player.containerMenu.clicked(RequestMenu.DISK_SLOT, 0, ClickType.PICKUP, player);
         helper.assertTrue(!drive.holdsDisk() && player.containerMenu.getCarried().isEmpty(), "a click throws the disk out");
-        helper.assertItemEntityPresent(LogisticsPipes.DISK.get(), PIPE, 2);
+        helper.assertItemEntityPresent(RoutedPipes.DISK.get(), PIPE, 2);
         helper.assertTrue(!player.containerMenu.clickMenuButton(player, RequestMenu.BUTTON_DISK)
                 && player.containerMenu instanceof RequestMenu, "without a disk there are no macros to look at");
         helper.succeed();
@@ -187,7 +187,7 @@ public class DiskGameTest {
         loaded.diskDrive().slot().clearContent();
 
         helper.setBlock(PIPE, Blocks.AIR);
-        helper.assertItemEntityPresent(LogisticsPipes.DISK.get(), PIPE, 2);
+        helper.assertItemEntityPresent(RoutedPipes.DISK.get(), PIPE, 2);
         helper.succeed();
     }
 
@@ -321,7 +321,7 @@ public class DiskGameTest {
         helper.assertTrue(menu.getCarried().isEmpty() && table.diskDrive().disk().equals(contents), "a disk does");
 
         menu.quickMoveStack(player, RequestTableMenu.DISK_SLOT);
-        helper.assertTrue(!menu.holdsDisk() && player.getInventory().countItem(LogisticsPipes.DISK.get()) == 1,
+        helper.assertTrue(!menu.holdsDisk() && player.getInventory().countItem(RoutedPipes.DISK.get()) == 1,
                 "a shift click takes the disk back out");
         table.diskDrive().slot().setItem(0, disk(contents));
 
@@ -331,7 +331,7 @@ public class DiskGameTest {
         loaded.diskDrive().slot().clearContent();
 
         helper.setBlock(PIPE, Blocks.AIR);
-        helper.assertItemEntityPresent(LogisticsPipes.DISK.get(), PIPE, 2);
+        helper.assertItemEntityPresent(RoutedPipes.DISK.get(), PIPE, 2);
         helper.succeed();
     }
 

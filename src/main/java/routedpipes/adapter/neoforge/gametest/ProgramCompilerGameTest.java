@@ -9,7 +9,7 @@ import routedpipes.adapter.minecraft.PowerJunctionBlockEntity;
 import routedpipes.adapter.minecraft.ProgramCompilerBlockEntity;
 import routedpipes.adapter.minecraft.ProgrammerItem;
 import routedpipes.adapter.minecraft.menu.ProgramCompilerMenu;
-import routedpipes.adapter.neoforge.LogisticsPipes;
+import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.domain.logistics.PipeKind;
 import routedpipes.domain.program.CompilerKnowledge;
 import routedpipes.domain.program.CompilerTask;
@@ -34,7 +34,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-@GameTestHolder(LogisticsPipes.MODID)
+@GameTestHolder(RoutedPipes.MODID)
 @PrefixGameTestTemplate(false)
 public class ProgramCompilerGameTest {
 
@@ -53,26 +53,26 @@ public class ProgramCompilerGameTest {
 
     private static ProgramCompilerBlockEntity compiler(GameTestHelper helper, BlockPos pos, CompilerKnowledge disk,
             boolean programmer) {
-        helper.setBlock(pos, LogisticsPipes.PROGRAM_COMPILER.get());
+        helper.setBlock(pos, RoutedPipes.PROGRAM_COMPILER.get());
         ProgramCompilerBlockEntity compiler = helper.getBlockEntity(pos);
         if (disk != null) {
             compiler.slots().setItem(ProgramCompilerBlockEntity.DISK_SLOT, disk(disk));
         }
         if (programmer) {
-            compiler.slots().setItem(ProgramCompilerBlockEntity.PROGRAMMER_SLOT, new ItemStack(LogisticsPipes.LOGISTICS_PROGRAMMER.get()));
+            compiler.slots().setItem(ProgramCompilerBlockEntity.PROGRAMMER_SLOT, new ItemStack(RoutedPipes.LOGISTICS_PROGRAMMER.get()));
         }
         return compiler;
     }
 
     private static ItemStack disk(CompilerKnowledge knowledge) {
-        ItemStack disk = new ItemStack(LogisticsPipes.DISK.get());
+        ItemStack disk = new ItemStack(RoutedPipes.DISK.get());
         CompilerDiskContents.write(disk, knowledge);
         return disk;
     }
 
     // a pipe with a junction on top that holds that much
     private static PowerJunctionBlockEntity poweredPipe(GameTestHelper helper, PipeKind kind, BlockPos pos, int energy) {
-        helper.setBlock(pos, LogisticsPipes.pipe(kind));
+        helper.setBlock(pos, RoutedPipes.pipe(kind));
         return GameTestPower.junction(helper, pos.above(), energy);
     }
 
@@ -105,9 +105,9 @@ public class ProgramCompilerGameTest {
         helper.runAfterDelay(SETTLE + 105, () -> {
             ItemStack programmer = compiler.slots().getItem(ProgramCompilerBlockEntity.PROGRAMMER_SLOT);
             helper.assertTrue(ProgrammerItem.programOf(programmer).equals(Optional.of(REQUEST)), "flashed for the request pipe");
-            helper.assertTrue(ProgrammerItem.flashedFor(programmer, LogisticsPipes.pipe(PipeKind.REQUEST).asItem()),
+            helper.assertTrue(ProgrammerItem.flashedFor(programmer, RoutedPipes.pipe(PipeKind.REQUEST).asItem()),
                     "good for crafting a request pipe");
-            helper.assertTrue(!ProgrammerItem.flashedFor(programmer, LogisticsPipes.pipe(PipeKind.PROVIDER).asItem()),
+            helper.assertTrue(!ProgrammerItem.flashedFor(programmer, RoutedPipes.pipe(PipeKind.PROVIDER).asItem()),
                     "and for nothing else");
             helper.assertTrue(junction.stored() == 0, "1000 energy used, left " + junction.stored());
             helper.assertTrue(menu.task().isEmpty(), "the task is over");
@@ -150,7 +150,7 @@ public class ProgramCompilerGameTest {
 
         helper.assertTrue(loaded.compiler().task().equals(Optional.of(CompilerTask.unlock(ProgramCategory.FLUID))),
                 "the task is still running after loading");
-        helper.assertTrue(loaded.slots().getItem(ProgramCompilerBlockEntity.PROGRAMMER_SLOT).is(LogisticsPipes.LOGISTICS_PROGRAMMER.get()),
+        helper.assertTrue(loaded.slots().getItem(ProgramCompilerBlockEntity.PROGRAMMER_SLOT).is(RoutedPipes.LOGISTICS_PROGRAMMER.get()),
                 "the programmer is still in its slot");
         helper.runAfterDelay(SETTLE, () -> {
             helper.assertTrue(knowledge(loaded).unlocked(ProgramCategory.FLUID), "the category is unlocked");
@@ -188,7 +188,7 @@ public class ProgramCompilerGameTest {
     public static void withoutABasicPipeBesideItNothingMoves(GameTestHelper helper) {
         ProgramCompilerBlockEntity compiler = compiler(helper, BASIC, false);
         PowerJunctionBlockEntity beside = poweredPipe(helper, PipeKind.PROVIDER, PIPE, 1000);
-        helper.setBlock(COMPILER.above(), LogisticsPipes.pipe(PipeKind.BASIC));
+        helper.setBlock(COMPILER.above(), RoutedPipes.pipe(PipeKind.BASIC));
         PowerJunctionBlockEntity above = GameTestPower.junction(helper, COMPILER.above().north(), 1000);
         ProgramCompilerMenu menu = open(helper, TestPlayer.in(helper));
 
@@ -228,8 +228,8 @@ public class ProgramCompilerGameTest {
         compiler(helper, null, false);
         Player player = TestPlayer.in(helper);
         ProgramCompilerMenu menu = open(helper, player);
-        ItemStack disk = new ItemStack(LogisticsPipes.DISK.get());
-        ItemStack programmer = new ItemStack(LogisticsPipes.LOGISTICS_PROGRAMMER.get());
+        ItemStack disk = new ItemStack(RoutedPipes.DISK.get());
+        ItemStack programmer = new ItemStack(RoutedPipes.LOGISTICS_PROGRAMMER.get());
 
         helper.assertTrue(menu.getSlot(ProgramCompilerMenu.DISK_SLOT).mayPlace(disk)
                 && !menu.getSlot(ProgramCompilerMenu.DISK_SLOT).mayPlace(programmer), "the left slot is for a disk");
@@ -241,11 +241,11 @@ public class ProgramCompilerGameTest {
         for (int slot = 2; slot <= 4; slot++) {
             menu.quickMoveStack(player, slot);
         }
-        helper.assertTrue(menu.getSlot(ProgramCompilerMenu.DISK_SLOT).getItem().is(LogisticsPipes.DISK.get())
+        helper.assertTrue(menu.getSlot(ProgramCompilerMenu.DISK_SLOT).getItem().is(RoutedPipes.DISK.get())
                 && menu.holdsProgrammer(), "shift clicking fills both slots");
         helper.assertTrue(player.getInventory().getItem(11).is(Items.STICK), "a stick stays where it is");
         menu.quickMoveStack(player, ProgramCompilerMenu.DISK_SLOT);
-        helper.assertTrue(menu.disk().isEmpty() && player.getInventory().countItem(LogisticsPipes.DISK.get()) == 1,
+        helper.assertTrue(menu.disk().isEmpty() && player.getInventory().countItem(RoutedPipes.DISK.get()) == 1,
                 "and the disk comes back out");
         helper.succeed();
     }
@@ -256,15 +256,15 @@ public class ProgramCompilerGameTest {
 
         helper.setBlock(COMPILER, Blocks.AIR);
 
-        helper.assertItemEntityPresent(LogisticsPipes.DISK.get(), COMPILER, 2);
-        helper.assertItemEntityPresent(LogisticsPipes.LOGISTICS_PROGRAMMER.get(), COMPILER, 2);
+        helper.assertItemEntityPresent(RoutedPipes.DISK.get(), COMPILER, 2);
+        helper.assertItemEntityPresent(RoutedPipes.LOGISTICS_PROGRAMMER.get(), COMPILER, 2);
         helper.killAllEntities();
         helper.succeed();
     }
 
     @GameTest(template = EMPTY)
     public static void theProgrammerSaysWhatItIsFlashedFor(GameTestHelper helper) {
-        ItemStack programmer = new ItemStack(LogisticsPipes.LOGISTICS_PROGRAMMER.get());
+        ItemStack programmer = new ItemStack(RoutedPipes.LOGISTICS_PROGRAMMER.get());
         helper.assertTrue(tooltip(programmer).size() == 3, "three lines of warning on a blank programmer");
         ProgrammerItem.flash(programmer, CRAFTER);
         List<Component> lines = tooltip(programmer);

@@ -121,7 +121,7 @@ public final class FluidPipe implements FluidNode {
     }
 
     private FluidServices services() {
-        return ((LogisticsPipeBlock) pipe.getBlockState().getBlock()).services().fluids();
+        return ((PipeBlock) pipe.getBlockState().getBlock()).services().fluids();
     }
 
     private FluidLogistics logistics() {
@@ -179,7 +179,7 @@ public final class FluidPipe implements FluidNode {
             Map<Side, TankAccess> found = new EnumMap<>(Side.class);
             for (Direction direction : Direction.values()) {
                 BlockPos target = pipe.getBlockPos().relative(direction);
-                if (level().isLoaded(target) && !(level().getBlockState(target).getBlock() instanceof LogisticsPipeBlock)) {
+                if (level().isLoaded(target) && !(level().getBlockState(target).getBlock() instanceof PipeBlock)) {
                     services().storage().tanks(level(), target, direction.getOpposite())
                             .ifPresent(access -> found.put(Directions.toDomain(direction), access));
                 }

@@ -11,7 +11,7 @@ import net.minecraft.world.item.ItemStack;
 public record SetMarkerPayload(int containerId, int slot, ItemStack stack) implements CustomPacketPayload {
 
     public static final Type<SetMarkerPayload> TYPE =
-            new Type<>(ResourceLocation.fromNamespaceAndPath(LogisticsPipes.MODID, "set_marker"));
+            new Type<>(ResourceLocation.fromNamespaceAndPath(RoutedPipes.MODID, "set_marker"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, SetMarkerPayload> CODEC = StreamCodec.composite(
             ByteBufCodecs.VAR_INT, SetMarkerPayload::containerId,

@@ -87,7 +87,7 @@ public final class PowerPipe implements PowerNode {
     private List<EnergyReceiver> machines() {
         List<EnergyReceiver> machines = new ArrayList<>();
         Level level = pipe.getLevel();
-        EnergyAccess energy = ((LogisticsPipeBlock) pipe.getBlockState().getBlock()).services().energy();
+        EnergyAccess energy = ((PipeBlock) pipe.getBlockState().getBlock()).services().energy();
         for (Direction side : Direction.values()) {
             BlockPos target = pipe.getBlockPos().relative(side);
             if (pipe.isDisconnected(side) || !level.isLoaded(target)) {

@@ -10,7 +10,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 
 // the inventory system connector shows on its sides whether it has found the others on its channel
-public class ConnectorPipeBlock extends LogisticsPipeBlock {
+public class ConnectorPipeBlock extends PipeBlock {
 
     // same order as ConnectorLinks.State
     public enum LinkState implements StringRepresentable {

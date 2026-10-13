@@ -9,7 +9,7 @@ import net.minecraft.resources.ResourceLocation;
 public record OpenRemoteOrdererPayload() implements CustomPacketPayload {
 
     public static final Type<OpenRemoteOrdererPayload> TYPE =
-            new Type<>(ResourceLocation.fromNamespaceAndPath(LogisticsPipes.MODID, "open_remote_orderer"));
+            new Type<>(ResourceLocation.fromNamespaceAndPath(RoutedPipes.MODID, "open_remote_orderer"));
 
     public static final StreamCodec<ByteBuf, OpenRemoteOrdererPayload> CODEC = StreamCodec.unit(new OpenRemoteOrdererPayload());
 

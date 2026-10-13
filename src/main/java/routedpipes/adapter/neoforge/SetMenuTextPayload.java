@@ -10,7 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 public record SetMenuTextPayload(int containerId, int field, String text) implements CustomPacketPayload {
 
     public static final Type<SetMenuTextPayload> TYPE =
-            new Type<>(ResourceLocation.fromNamespaceAndPath(LogisticsPipes.MODID, "set_menu_text"));
+            new Type<>(ResourceLocation.fromNamespaceAndPath(RoutedPipes.MODID, "set_menu_text"));
 
     public static final StreamCodec<ByteBuf, SetMenuTextPayload> CODEC = StreamCodec.composite(
             ByteBufCodecs.VAR_INT, SetMenuTextPayload::containerId,

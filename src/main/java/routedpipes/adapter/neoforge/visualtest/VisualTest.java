@@ -18,7 +18,7 @@ import routedpipes.adapter.minecraft.PipeBlockEntity;
 import routedpipes.domain.crafting.OutputOrder;
 import routedpipes.adapter.minecraft.PowerJunctionBlockEntity;
 import routedpipes.adapter.minecraft.client.RecipeViewerCheck;
-import routedpipes.adapter.neoforge.LogisticsPipes;
+import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.domain.logistics.ModuleKind;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Screenshot;
@@ -238,9 +238,9 @@ public final class VisualTest {
             ((PowerJunctionBlockEntity) server.overworld().getBlockEntity(new BlockPos(1, -59, 2)))
                     .receive(PowerJunctionBlockEntity.CAPACITY, false);
             PipeBlockEntity chassis = pipe(server, CHASSIS);
-            chassis.modules().setItem(0, new ItemStack(LogisticsPipes.MODULES.get(ModuleKind.ITEM_SINK).get()));
-            chassis.modules().setItem(1, new ItemStack(LogisticsPipes.MODULES.get(ModuleKind.EXTRACTOR).get()));
-            chassis.modules().setItem(2, new ItemStack(LogisticsPipes.MODULES.get(ModuleKind.PROVIDER).get()));
+            chassis.modules().setItem(0, new ItemStack(RoutedPipes.MODULES.get(ModuleKind.ITEM_SINK).get()));
+            chassis.modules().setItem(1, new ItemStack(RoutedPipes.MODULES.get(ModuleKind.EXTRACTOR).get()));
+            chassis.modules().setItem(2, new ItemStack(RoutedPipes.MODULES.get(ModuleKind.PROVIDER).get()));
         }));
 
         // one of every tube, each between two speedup tubes
@@ -251,10 +251,10 @@ public final class VisualTest {
             for (int row = 0; row < kinds.length; row++) {
                 int z = 30 + row * 7;
                 command("setblock 0 -59 " + z + " routedpipes:basic_logistics_pipe");
-                LogisticsPipes.TUBES.get(routedpipes.domain.tube.TubeKind.SPEEDUP).get().build(level, new BlockPos(1, -59, z),
+                RoutedPipes.TUBES.get(routedpipes.domain.tube.TubeKind.SPEEDUP).get().build(level, new BlockPos(1, -59, z),
                         new routedpipes.domain.tube.TubeShape(routedpipes.domain.tube.TubeKind.SPEEDUP, routedpipes.domain.routing.Side.EAST),
                         pos -> true);
-                LogisticsPipes.TUBES.get(kinds[row]).get().build(level, new BlockPos(5, -59, z),
+                RoutedPipes.TUBES.get(kinds[row]).get().build(level, new BlockPos(5, -59, z),
                         new routedpipes.domain.tube.TubeShape(kinds[row], routedpipes.domain.routing.Side.EAST), pos -> true);
             }
         }));

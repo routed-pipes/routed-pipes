@@ -43,7 +43,7 @@ final class PipeTopology {
                 ? self.security().station() : Optional.empty();
         for (Direction direction : Direction.values()) {
             // a side can be cut off from the pipe next to it
-            if (state.getBlock() instanceof LogisticsPipeBlock && !LogisticsPipeBlock.connected(state, direction)) {
+            if (state.getBlock() instanceof PipeBlock && !PipeBlock.connected(state, direction)) {
                 continue;
             }
             explore(level, routerPos, direction, false).forEach((router, distance) -> {
@@ -61,17 +61,17 @@ final class PipeTopology {
     static Set<RouterId> straightNeighbours(Level level, BlockPos routerPos) {
         Set<RouterId> routers = new HashSet<>();
         BlockState own = level.getBlockState(routerPos);
-        if (!(own.getBlock() instanceof LogisticsPipeBlock) || !(level.getBlockEntity(routerPos) instanceof PipeBlockEntity self)) {
+        if (!(own.getBlock() instanceof PipeBlock) || !(level.getBlockEntity(routerPos) instanceof PipeBlockEntity self)) {
             return routers;
         }
         for (Direction direction : Direction.values()) {
-            if (!LogisticsPipeBlock.connected(own, direction)) {
+            if (!PipeBlock.connected(own, direction)) {
                 continue;
             }
             BlockPos pos = routerPos.relative(direction);
             for (int pipes = 0; pipes < MAX_PIPES && level.isLoaded(pos); pipes++) {
                 BlockState state = level.getBlockState(pos);
-                if (!(state.getBlock() instanceof LogisticsPipeBlock pipe)) {
+                if (!(state.getBlock() instanceof PipeBlock pipe)) {
                     break;
                 }
                 if (pipe.routed()) {
@@ -81,7 +81,7 @@ final class PipeTopology {
                     }
                     break;
                 }
-                if (!LogisticsPipeBlock.connected(state, direction)) {
+                if (!PipeBlock.connected(state, direction)) {
                     break;
                 }
                 pos = pos.relative(direction);
@@ -120,7 +120,7 @@ final class PipeTopology {
         Direction best = null;
         int shortest = Integer.MAX_VALUE;
         for (Direction direction : Direction.values()) {
-            if (!LogisticsPipeBlock.connected(level.getBlockState(fork), direction)) {
+            if (!PipeBlock.connected(level.getBlockState(fork), direction)) {
                 continue;
             }
             for (Map.Entry<PipeBlockEntity, Integer> found : explore(level, fork, direction, false).entrySet()) {
@@ -149,7 +149,7 @@ final class PipeTopology {
                 continue;
             }
             BlockState state = level.getBlockState(step.pos());
-            if (!(state.getBlock() instanceof LogisticsPipeBlock pipe)) {
+            if (!(state.getBlock() instanceof PipeBlock pipe)) {
                 Optional<Step> out = throughTube(level, step, order);
                 if (out.isPresent()) {
                     open.add(out.get());
@@ -164,7 +164,7 @@ final class PipeTopology {
                 continue;
             }
             for (Direction side : Direction.values()) {
-                if (LogisticsPipeBlock.connected(state, side)) {
+                if (PipeBlock.connected(state, side)) {
                     open.add(new Step(step.pos().relative(side), step.distance() + TubeKind.PIPE_WEIGHT, side.getOpposite(),
                             false, order++));
                 }
@@ -188,7 +188,7 @@ final class PipeTopology {
             return Optional.empty();
         }
         boolean onward = Tubes.entryAt(level, beyond, side.getOpposite()).isPresent()
-                || shape.kind().pipeEnd(out) && level.getBlockState(beyond).getBlock() instanceof LogisticsPipeBlock;
+                || shape.kind().pipeEnd(out) && level.getBlockState(beyond).getBlock() instanceof PipeBlock;
         // what was counted for the step into the tube now stands for the step out of it
         int distance = step.distance() + shape.kind().weight();
         return onward ? Optional.of(new Step(beyond, distance, side.getOpposite(), true, order)) : Optional.empty();

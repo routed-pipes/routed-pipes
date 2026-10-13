@@ -26,9 +26,9 @@ import routedpipes.domain.routing.RouterId;
 // results are strings, numbers, booleans, lists and maps, so that they turn into plain tables in a script
 public final class PipeCommands {
 
-    public static final String NORMAL = "LogisticsPipes:Normal";
-    public static final String REQUEST = "LogisticsPipes:Request";
-    public static final String CRAFTING = "LogisticsPipes:Crafting";
+    public static final String NORMAL = "RoutedPipes:Normal";
+    public static final String REQUEST = "RoutedPipes:Request";
+    public static final String CRAFTING = "RoutedPipes:Crafting";
     public static final String CHASSIS = "LogisticsChassiePipe";
 
     public static final String MESSAGE_EVENT = "LP_MESSAGE";

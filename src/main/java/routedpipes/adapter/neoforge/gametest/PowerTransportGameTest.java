@@ -3,7 +3,7 @@ package routedpipes.adapter.neoforge.gametest;
 import routedpipes.adapter.minecraft.FirewallSettings;
 import routedpipes.adapter.minecraft.PipeBlockEntity;
 import routedpipes.adapter.minecraft.PowerProviderBlockEntity;
-import routedpipes.adapter.neoforge.LogisticsPipes;
+import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.domain.logistics.PipeKind;
 import routedpipes.domain.logistics.UpgradeKind;
 import net.minecraft.core.BlockPos;
@@ -15,7 +15,7 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 // a provider on top of the pipe at 0 1 1, the supplying pipe with its battery further along
-@GameTestHolder(LogisticsPipes.MODID)
+@GameTestHolder(RoutedPipes.MODID)
 @PrefixGameTestTemplate(false)
 public class PowerTransportGameTest {
 
@@ -43,8 +43,8 @@ public class PowerTransportGameTest {
         GameTestPower.supply(helper);
         PowerProviderBlockEntity provider = GameTestPower.provider(helper, PROVIDER, 1_000_000);
         PowerSupplierGameTest.pipe(helper, FIRST, UpgradeKind.POWER_TRANSPORTATION);
-        helper.setBlock(new BlockPos(1, 1, 1), LogisticsPipes.TRANSPORT_PIPE.get());
-        helper.setBlock(new BlockPos(2, 1, 1), LogisticsPipes.TRANSPORT_PIPE.get());
+        helper.setBlock(new BlockPos(1, 1, 1), RoutedPipes.TRANSPORT_PIPE.get());
+        helper.setBlock(new BlockPos(2, 1, 1), RoutedPipes.TRANSPORT_PIPE.get());
         BlockPos last = new BlockPos(3, 1, 1);
         PowerSupplierGameTest.pipe(helper, last, UpgradeKind.POWER_SUPPLIER_RF);
         EnergyStorage battery = batteryAbove(helper, last);
@@ -95,7 +95,7 @@ public class PowerTransportGameTest {
         GameTestPower.supply(helper);
         PowerProviderBlockEntity provider = GameTestPower.provider(helper, PROVIDER, 1_000_000);
         PowerSupplierGameTest.pipe(helper, FIRST, UpgradeKind.POWER_TRANSPORTATION);
-        helper.setBlock(new BlockPos(1, 1, 1), LogisticsPipes.TRANSPORT_PIPE.get());
+        helper.setBlock(new BlockPos(1, 1, 1), RoutedPipes.TRANSPORT_PIPE.get());
         BlockPos last = new BlockPos(1, 1, 0);
         PipeBlockEntity supplier = PowerSupplierGameTest.pipe(helper, last, UpgradeKind.POWER_SUPPLIER_RF);
 
@@ -109,9 +109,9 @@ public class PowerTransportGameTest {
         PowerProviderBlockEntity provider = GameTestPower.provider(helper, PROVIDER, 1_000_000);
         PowerSupplierGameTest.pipe(helper, FIRST, UpgradeKind.POWER_TRANSPORTATION);
         BlockPos wall = new BlockPos(1, 1, 1);
-        helper.setBlock(wall, LogisticsPipes.pipe(PipeKind.FIREWALL));
+        helper.setBlock(wall, RoutedPipes.pipe(PipeKind.FIREWALL));
         PipeBlockEntity firewall = helper.getBlockEntity(wall);
-        firewall.installUpgrade(new ItemStack(LogisticsPipes.UPGRADES.get(UpgradeKind.POWER_TRANSPORTATION).get()));
+        firewall.installUpgrade(new ItemStack(RoutedPipes.UPGRADES.get(UpgradeKind.POWER_TRANSPORTATION).get()));
         BlockPos last = new BlockPos(2, 1, 1);
         GameTestPower.junction(helper, new BlockPos(2, 1, 2), 10_000);
         PowerSupplierGameTest.pipe(helper, last, UpgradeKind.POWER_SUPPLIER_RF);

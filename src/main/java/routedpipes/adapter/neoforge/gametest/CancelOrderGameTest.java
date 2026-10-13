@@ -4,7 +4,7 @@ import routedpipes.adapter.minecraft.CraftingTableBlockEntity;
 import routedpipes.adapter.minecraft.McItemType;
 import routedpipes.adapter.minecraft.PipeBlockEntity;
 import routedpipes.adapter.minecraft.menu.RequestMenu;
-import routedpipes.adapter.neoforge.LogisticsPipes;
+import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.domain.item.ItemType;
 import routedpipes.domain.logistics.PipeKind;
 import net.minecraft.core.BlockPos;
@@ -20,7 +20,7 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 // the request screen gives up on what is still being crafted for its pipe
-@GameTestHolder(LogisticsPipes.MODID)
+@GameTestHolder(RoutedPipes.MODID)
 @PrefixGameTestTemplate(false)
 public class CancelOrderGameTest {
 
@@ -29,7 +29,7 @@ public class CancelOrderGameTest {
 
     private static PipeBlockEntity pipe(GameTestHelper helper, PipeKind kind, int x) {
         BlockPos pos = new BlockPos(x, 1, 1);
-        helper.setBlock(pos, LogisticsPipes.pipe(kind));
+        helper.setBlock(pos, RoutedPipes.pipe(kind));
         return helper.getBlockEntity(pos);
     }
 
@@ -52,7 +52,7 @@ public class CancelOrderGameTest {
         Container source = chest(helper, 1, new ItemStack(Items.OAK_LOG, 16));
         PipeBlockEntity crafting = pipe(helper, PipeKind.CRAFTING, 2);
         BlockPos tablePos = new BlockPos(2, 2, 1);
-        helper.setBlock(tablePos, LogisticsPipes.CRAFTING_TABLE.get());
+        helper.setBlock(tablePos, RoutedPipes.CRAFTING_TABLE.get());
         CraftingTableBlockEntity table = helper.getBlockEntity(tablePos);
         table.pattern().setItem(0, new ItemStack(Items.OAK_LOG));
         crafting.importRecipe();
@@ -60,10 +60,10 @@ public class CancelOrderGameTest {
         ItemType planks = McItemType.batchOf(new ItemStack(Items.OAK_PLANKS)).type();
 
         helper.runAfterDelay(SETTLE, () -> {
-            RequestMenu menu = new RequestMenu(LogisticsPipes.REQUEST_MENU.get(), 1, request, user -> true);
+            RequestMenu menu = new RequestMenu(RoutedPipes.REQUEST_MENU.get(), 1, request, user -> true);
             helper.assertTrue(menu.openOrders() == 0, "nothing is being crafted yet");
             helper.assertTrue(request.request(McItemType.batchOf(new ItemStack(Items.OAK_PLANKS, 8))).started(), "planks can be crafted");
-            menu = new RequestMenu(LogisticsPipes.REQUEST_MENU.get(), 1, request, user -> true);
+            menu = new RequestMenu(RoutedPipes.REQUEST_MENU.get(), 1, request, user -> true);
             helper.assertTrue(menu.openOrders() == 8, "the screen knows that 8 planks are being crafted, says " + menu.openOrders());
 
             helper.assertTrue(menu.clickMenuButton(player, RequestMenu.BUTTON_CANCEL), "the button is taken");

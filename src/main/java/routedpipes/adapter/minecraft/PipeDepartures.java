@@ -37,7 +37,7 @@ final class PipeDepartures {
         }
         Set<Side> connections = EnumSet.noneOf(Side.class);
         for (Direction side : Direction.values()) {
-            if (LogisticsPipeBlock.connected(pipe.getBlockState(), side)) {
+            if (PipeBlock.connected(pipe.getBlockState(), side)) {
                 connections.add(Directions.toDomain(side));
             }
         }

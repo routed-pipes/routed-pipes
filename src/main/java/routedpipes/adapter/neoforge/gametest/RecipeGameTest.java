@@ -10,7 +10,7 @@ import java.util.Set;
 import io.netty.buffer.Unpooled;
 import routedpipes.adapter.minecraft.ProgrammedRecipe;
 import routedpipes.adapter.minecraft.ProgrammerItem;
-import routedpipes.adapter.neoforge.LogisticsPipes;
+import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.domain.program.ProgramCatalog;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
@@ -32,14 +32,14 @@ import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-@GameTestHolder(LogisticsPipes.MODID)
+@GameTestHolder(RoutedPipes.MODID)
 @PrefixGameTestTemplate(false)
 public class RecipeGameTest {
 
     private static final String EMPTY = "empty";
 
     static Item item(String name) {
-        return BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath(LogisticsPipes.MODID, name));
+        return BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath(RoutedPipes.MODID, name));
     }
 
     // what a crafting grid filled row by row makes, an empty stack when nothing
@@ -62,7 +62,7 @@ public class RecipeGameTest {
     }
 
     private static ItemStack programmer(String flashedFor) {
-        ItemStack programmer = new ItemStack(LogisticsPipes.LOGISTICS_PROGRAMMER.get());
+        ItemStack programmer = new ItemStack(RoutedPipes.LOGISTICS_PROGRAMMER.get());
         if (flashedFor != null) {
             ProgrammerItem.flash(programmer, ProgramCatalog.byId(flashedFor).orElseThrow());
         }
@@ -189,7 +189,7 @@ public class RecipeGameTest {
     public static void everyIngredientCanBeHad(GameTestHelper helper) {
         List<String> broken = new ArrayList<>();
         helper.getLevel().getRecipeManager().getRecipes().forEach(recipe -> {
-            if (recipe.id().getNamespace().equals(LogisticsPipes.MODID) && recipe.value().getIngredients().stream()
+            if (recipe.id().getNamespace().equals(RoutedPipes.MODID) && recipe.value().getIngredients().stream()
                     .anyMatch(ingredient -> !ingredient.isEmpty() && ingredient.getItems().length == 0)) {
                 broken.add(recipe.id().getPath());
             }

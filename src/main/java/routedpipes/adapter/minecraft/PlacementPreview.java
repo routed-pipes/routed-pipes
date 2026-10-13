@@ -24,7 +24,7 @@ public final class PlacementPreview {
         public Set<Direction> sides() {
             Set<Direction> sides = EnumSet.noneOf(Direction.class);
             for (Direction direction : Direction.values()) {
-                if (LogisticsPipeBlock.connected(state, direction)) {
+                if (PipeBlock.connected(state, direction)) {
                     sides.add(direction);
                 }
             }
@@ -39,14 +39,14 @@ public final class PlacementPreview {
     public static Optional<Preview> of(Player player, BlockHitResult hit) {
         for (InteractionHand hand : InteractionHand.values()) {
             ItemStack stack = player.getItemInHand(hand);
-            if (stack.getItem() instanceof BlockItem item && item.getBlock() instanceof LogisticsPipeBlock pipe) {
+            if (stack.getItem() instanceof BlockItem item && item.getBlock() instanceof PipeBlock pipe) {
                 return of(pipe, new BlockPlaceContext(player, hand, stack, hit));
             }
         }
         return Optional.empty();
     }
 
-    private static Optional<Preview> of(LogisticsPipeBlock pipe, BlockPlaceContext context) {
+    private static Optional<Preview> of(PipeBlock pipe, BlockPlaceContext context) {
         if (!context.canPlace()) {
             return Optional.empty();
         }

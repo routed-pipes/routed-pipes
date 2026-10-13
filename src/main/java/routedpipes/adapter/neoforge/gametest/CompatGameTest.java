@@ -20,7 +20,7 @@ import routedpipes.adapter.minecraft.PowerProviderBlockEntity;
 import routedpipes.adapter.minecraft.menu.CraftingTableMenu;
 import routedpipes.adapter.minecraft.menu.MenuRequests;
 import routedpipes.adapter.neoforge.CapabilityItemStorage;
-import routedpipes.adapter.neoforge.LogisticsPipes;
+import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.domain.fluid.FluidBatch;
 import routedpipes.domain.logistics.PipeKind;
 import routedpipes.domain.logistics.UpgradeKind;
@@ -65,7 +65,7 @@ import net.neoforged.neoforge.items.ItemHandlerHelper;
 // the same delivery and ordering checks against inventories of vanilla and of other mods
 // blocks of mods that are not installed are skipped, so the normal test run only covers the vanilla ones
 // hoppers are left out, one on top of a pipe empties itself into the pipe
-@GameTestHolder(LogisticsPipes.MODID)
+@GameTestHolder(RoutedPipes.MODID)
 @PrefixGameTestTemplate(false)
 public class CompatGameTest {
 
@@ -275,7 +275,7 @@ public class CompatGameTest {
 
     private static PipeBlockEntity pipe(GameTestHelper helper, PipeKind kind, int x, int y) {
         BlockPos pos = new BlockPos(x, y, 1);
-        helper.setBlock(pos, LogisticsPipes.pipe(kind));
+        helper.setBlock(pos, RoutedPipes.pipe(kind));
         PipeBlockEntity pipe = helper.getBlockEntity(pos);
         // in these tests a basic pipe takes everything unless the test says otherwise
         pipe.setDefaultRoute(kind == PipeKind.BASIC);
@@ -312,7 +312,7 @@ public class CompatGameTest {
         GameTestPower.supply(helper);
         PipeBlockEntity start = pipe(helper, PipeKind.BASIC, 0);
         start.setDefaultRoute(false);
-        helper.setBlock(new BlockPos(1, 1, 1), LogisticsPipes.TRANSPORT_PIPE.get());
+        helper.setBlock(new BlockPos(1, 1, 1), RoutedPipes.TRANSPORT_PIPE.get());
         pipe(helper, PipeKind.BASIC, 2);
         helper.setBlock(new BlockPos(2, 2, 1), block("ae2:interface"));
         BlockPos drive = new BlockPos(3, 2, 1);
@@ -337,7 +337,7 @@ public class CompatGameTest {
         GameTestPower.supply(helper);
         PipeBlockEntity start = pipe(helper, PipeKind.BASIC, 0);
         start.setDefaultRoute(false);
-        helper.setBlock(new BlockPos(1, 1, 1), LogisticsPipes.TRANSPORT_PIPE.get());
+        helper.setBlock(new BlockPos(1, 1, 1), RoutedPipes.TRANSPORT_PIPE.get());
         pipe(helper, PipeKind.BASIC, 2);
         BlockPos chest = new BlockPos(2, 2, 1);
         helper.setBlock(chest, block("ae2:chest"));
@@ -478,7 +478,7 @@ public class CompatGameTest {
         helper.setBlock(source, Blocks.CHEST);
         Container stock = helper.getBlockEntity(source);
         stock.setItem(0, new ItemStack(Items.COBBLESTONE, 16));
-        helper.setBlock(new BlockPos(2, 2, 1), LogisticsPipes.TRANSPORT_PIPE.get());
+        helper.setBlock(new BlockPos(2, 2, 1), RoutedPipes.TRANSPORT_PIPE.get());
         PipeBlockEntity crafting = pipe(helper, PipeKind.CRAFTING, 3, 2);
         BlockPos millstone = new BlockPos(4, 2, 1);
         helper.setBlock(millstone, block("create:millstone"));
@@ -543,7 +543,7 @@ public class CompatGameTest {
         GameTestPower.supply(helper);
         pipe(helper, PipeKind.CRAFTING, 1);
         BlockPos tablePos = new BlockPos(1, 2, 1);
-        helper.setBlock(tablePos, LogisticsPipes.CRAFTING_TABLE.get());
+        helper.setBlock(tablePos, RoutedPipes.CRAFTING_TABLE.get());
         CraftingTableBlockEntity table = helper.getBlockEntity(tablePos);
         table.pattern().setItem(4, new ItemStack(Items.OAK_LOG));
 
@@ -578,7 +578,7 @@ public class CompatGameTest {
                         }
                         throw new UnsupportedOperationException(method.getName());
                     });
-                    Class<?> handlerType = Class.forName("routedpipes.adapter.jei.LogisticsPipesJeiPlugin$TableTransfer");
+                    Class<?> handlerType = Class.forName("routedpipes.adapter.jei.RoutedPipesJeiPlugin$TableTransfer");
                     Constructor<?> constructor = handlerType.getDeclaredConstructor();
                     constructor.setAccessible(true);
                     Object handler = constructor.newInstance();
@@ -596,7 +596,7 @@ public class CompatGameTest {
 
                     // the error for a recipe the network cannot serve, with what the server really reports as missing
                     MenuRequests.askIngredients(player, menu.containerId, 5, List.of(new ItemStack(Items.OAK_PLANKS), new ItemStack(Items.OAK_PLANKS)), false);
-                    Constructor<?> errorConstructor = Class.forName("routedpipes.adapter.jei.LogisticsPipesJeiPlugin$TableTransfer$NetworkShortfall")
+                    Constructor<?> errorConstructor = Class.forName("routedpipes.adapter.jei.RoutedPipesJeiPlugin$TableTransfer$NetworkShortfall")
                             .getDeclaredConstructor(List.class);
                     errorConstructor.setAccessible(true);
                     Object error = errorConstructor.newInstance(menu.shortfall());
@@ -628,16 +628,16 @@ public class CompatGameTest {
     }
 
     private static TestFunction test(String name, Consumer<GameTestHelper> body, int maxTicks) {
-        return new TestFunction("defaultBatch", name, LogisticsPipes.MODID + ":empty", maxTicks, 0, true, body);
+        return new TestFunction("defaultBatch", name, RoutedPipes.MODID + ":empty", maxTicks, 0, true, body);
     }
 
     private static TestFunction test(String name, Consumer<GameTestHelper> body) {
-        return new TestFunction("defaultBatch", name, LogisticsPipes.MODID + ":empty", 300, 0, true, body);
+        return new TestFunction("defaultBatch", name, RoutedPipes.MODID + ":empty", 300, 0, true, body);
     }
 
     private static PipeBlockEntity pipe(GameTestHelper helper, PipeKind kind, int x) {
         BlockPos pos = new BlockPos(x, 1, 1);
-        helper.setBlock(pos, LogisticsPipes.pipe(kind));
+        helper.setBlock(pos, RoutedPipes.pipe(kind));
         PipeBlockEntity pipe = helper.getBlockEntity(pos);
         // in these tests a basic pipe takes everything unless the test says otherwise
         pipe.setDefaultRoute(kind == PipeKind.BASIC);
@@ -666,7 +666,7 @@ public class CompatGameTest {
         GameTestPower.supply(helper);
         PipeBlockEntity start = pipe(helper, PipeKind.BASIC, 0);
         start.setDefaultRoute(false);
-        helper.setBlock(new BlockPos(1, 1, 1), LogisticsPipes.TRANSPORT_PIPE.get());
+        helper.setBlock(new BlockPos(1, 1, 1), RoutedPipes.TRANSPORT_PIPE.get());
         pipe(helper, PipeKind.BASIC, 2);
         BlockPos target = new BlockPos(2, 2, 1);
         helper.setBlock(target, inventory);

@@ -15,7 +15,7 @@ public record AskIngredientsPayload(int containerId, int question, boolean order
         implements CustomPacketPayload {
 
     public static final Type<AskIngredientsPayload> TYPE =
-            new Type<>(ResourceLocation.fromNamespaceAndPath(LogisticsPipes.MODID, "ask_ingredients"));
+            new Type<>(ResourceLocation.fromNamespaceAndPath(RoutedPipes.MODID, "ask_ingredients"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, AskIngredientsPayload> CODEC = StreamCodec.composite(
             ByteBufCodecs.VAR_INT, AskIngredientsPayload::containerId,

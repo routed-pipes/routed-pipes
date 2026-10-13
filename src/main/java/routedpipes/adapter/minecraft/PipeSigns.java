@@ -159,7 +159,7 @@ public final class PipeSigns {
         Level level = pipe.getLevel();
         for (Direction side : Direction.values()) {
             BlockPos neighbour = pipe.getBlockPos().relative(side);
-            if (pipe.kind() != PipeKind.FIREWALL && LogisticsPipeBlock.connected(pipe.getBlockState(), side)
+            if (pipe.kind() != PipeKind.FIREWALL && PipeBlock.connected(pipe.getBlockState(), side)
                     && level.isLoaded(neighbour) && level.getBlockEntity(neighbour) instanceof PipeBlockEntity other
                     && other.signs() != null && other.kind() != PipeKind.FIREWALL
                     && other.signs().faces.has(SignKind.ITEM_AMOUNT)) {

@@ -6,7 +6,7 @@ import java.util.UUID;
 import routedpipes.adapter.minecraft.FrequencyCardItem;
 import routedpipes.adapter.minecraft.PipeBlockEntity;
 import routedpipes.adapter.minecraft.menu.FrequencyCardMenu;
-import routedpipes.adapter.neoforge.LogisticsPipes;
+import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.domain.logistics.PipeKind;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -24,7 +24,7 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 // an entrance at x 0, beside it a basic pipe that takes everything, further off the destination pipes, each with a chest on top
-@GameTestHolder(LogisticsPipes.MODID)
+@GameTestHolder(RoutedPipes.MODID)
 @PrefixGameTestTemplate(false)
 public class SystemEntranceGameTest {
 
@@ -33,7 +33,7 @@ public class SystemEntranceGameTest {
 
     private static PipeBlockEntity pipe(GameTestHelper helper, PipeKind kind, int x) {
         BlockPos pos = new BlockPos(x, 1, 1);
-        helper.setBlock(pos, LogisticsPipes.pipe(kind));
+        helper.setBlock(pos, RoutedPipes.pipe(kind));
         PipeBlockEntity pipe = helper.getBlockEntity(pos);
         pipe.setDefaultRoute(kind == PipeKind.BASIC);
         return pipe;
@@ -53,8 +53,8 @@ public class SystemEntranceGameTest {
     // a stack of cards that got their id the way a player gives it to them
     private static ItemStack cards(GameTestHelper helper, int count) {
         TestPlayer player = TestPlayer.in(helper);
-        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(LogisticsPipes.FREQUENCY_CARD.get(), count));
-        return LogisticsPipes.FREQUENCY_CARD.get().use(helper.getLevel(), player, InteractionHand.MAIN_HAND).getObject();
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(RoutedPipes.FREQUENCY_CARD.get(), count));
+        return RoutedPipes.FREQUENCY_CARD.get().use(helper.getLevel(), player, InteractionHand.MAIN_HAND).getObject();
     }
 
     private static void insert(PipeBlockEntity pipe, ItemStack cards) {
@@ -63,7 +63,7 @@ public class SystemEntranceGameTest {
 
     @GameTest(template = EMPTY)
     public static void usingAStackOfBlankCardsGivesThemAllTheSameId(GameTestHelper helper) {
-        ItemStack blank = new ItemStack(LogisticsPipes.FREQUENCY_CARD.get(), 2);
+        ItemStack blank = new ItemStack(RoutedPipes.FREQUENCY_CARD.get(), 2);
         helper.assertTrue(FrequencyCardItem.frequencyOf(blank).isEmpty(), "a new card is blank");
 
         ItemStack pair = cards(helper, 2);
@@ -123,7 +123,7 @@ public class SystemEntranceGameTest {
     public static void ofTwoPairedDestinationsTheNearestGetsTheItems(GameTestHelper helper) {
         GameTestPower.supply(helper);
         PipeBlockEntity entrance = pipe(helper, PipeKind.SYSTEM_ENTRANCE, 0);
-        helper.setBlock(new BlockPos(1, 1, 1), LogisticsPipes.TRANSPORT_PIPE.get());
+        helper.setBlock(new BlockPos(1, 1, 1), RoutedPipes.TRANSPORT_PIPE.get());
         PipeBlockEntity near = pipe(helper, PipeKind.SYSTEM_DESTINATION, 2);
         BlockPos nearChest = chestOn(helper, 2);
         PipeBlockEntity far = pipe(helper, PipeKind.SYSTEM_DESTINATION, 3);

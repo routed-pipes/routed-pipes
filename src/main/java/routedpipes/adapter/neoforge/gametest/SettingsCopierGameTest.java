@@ -8,7 +8,7 @@ import routedpipes.adapter.minecraft.SettingsCopierItem;
 import routedpipes.adapter.minecraft.menu.MenuRequests;
 import routedpipes.adapter.minecraft.menu.PipeConfigMenu;
 import routedpipes.adapter.minecraft.menu.SatelliteNames;
-import routedpipes.adapter.neoforge.LogisticsPipes;
+import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.domain.logistics.ItemSink;
 import routedpipes.domain.logistics.ModuleKind;
 import routedpipes.domain.logistics.PipeKind;
@@ -35,7 +35,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-@GameTestHolder(LogisticsPipes.MODID)
+@GameTestHolder(RoutedPipes.MODID)
 @PrefixGameTestTemplate(false)
 public class SettingsCopierGameTest {
 
@@ -43,13 +43,13 @@ public class SettingsCopierGameTest {
 
     private static PipeBlockEntity pipe(GameTestHelper helper, PipeKind kind, int x) {
         BlockPos pos = new BlockPos(x, 1, 1);
-        helper.setBlock(pos, LogisticsPipes.pipe(kind));
+        helper.setBlock(pos, RoutedPipes.pipe(kind));
         return helper.getBlockEntity(pos);
     }
 
     private static PipeBlockEntity chassis(GameTestHelper helper, int slots, int x, ItemStack... modules) {
         BlockPos pos = new BlockPos(x, 1, 1);
-        helper.setBlock(pos, LogisticsPipes.CHASSIS_PIPES.get(slots).get());
+        helper.setBlock(pos, RoutedPipes.CHASSIS_PIPES.get(slots).get());
         PipeBlockEntity pipe = helper.getBlockEntity(pos);
         for (int slot = 0; slot < modules.length; slot++) {
             pipe.modules().setItem(slot, modules[slot]);
@@ -58,12 +58,12 @@ public class SettingsCopierGameTest {
     }
 
     private static ItemStack module(ModuleKind kind) {
-        return new ItemStack(LogisticsPipes.MODULES.get(kind).get());
+        return new ItemStack(RoutedPipes.MODULES.get(kind).get());
     }
 
     private static TestPlayer playerWithCopier(GameTestHelper helper) {
         TestPlayer player = TestPlayer.in(helper);
-        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(LogisticsPipes.SETTINGS_COPIER.get()));
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(RoutedPipes.SETTINGS_COPIER.get()));
         return player;
     }
 
@@ -173,7 +173,7 @@ public class SettingsCopierGameTest {
         basic.setDefaultRoute(true);
         PipeBlockEntity supplier = pipe(helper, PipeKind.SUPPLIER, 2);
         int supplyMode = supplier.mode();
-        helper.setBlock(new BlockPos(4, 1, 1), LogisticsPipes.TRANSPORT_PIPE.get());
+        helper.setBlock(new BlockPos(4, 1, 1), RoutedPipes.TRANSPORT_PIPE.get());
         TestPlayer player = playerWithCopier(helper);
 
         use(helper, player, 0, true);

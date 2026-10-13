@@ -261,8 +261,8 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         return block().routed() && network().usePower(routerId, amount);
     }
 
-    LogisticsPipeBlock block() {
-        return (LogisticsPipeBlock) getBlockState().getBlock();
+    PipeBlock block() {
+        return (PipeBlock) getBlockState().getBlock();
     }
 
     PipeServices services() {

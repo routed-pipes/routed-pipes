@@ -18,7 +18,7 @@ import net.minecraft.resources.ResourceLocation;
 public record HudPanelsPayload(boolean reset, Map<BlockPos, HudPanel> changed, List<BlockPos> gone) implements CustomPacketPayload {
 
     public static final Type<HudPanelsPayload> TYPE =
-            new Type<>(ResourceLocation.fromNamespaceAndPath(LogisticsPipes.MODID, "hud_panels"));
+            new Type<>(ResourceLocation.fromNamespaceAndPath(RoutedPipes.MODID, "hud_panels"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, HudPanelsPayload> CODEC = StreamCodec.composite(
             ByteBufCodecs.BOOL, HudPanelsPayload::reset,

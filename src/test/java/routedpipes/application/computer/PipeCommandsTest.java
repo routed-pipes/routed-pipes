@@ -92,12 +92,12 @@ class PipeCommandsTest {
 
     @Test
     void pipesGoByTheTypeNamesOfTheOriginal() {
-        assertThat(commands(PipeKind.BASIC).type()).isEqualTo("LogisticsPipes:Normal");
-        assertThat(commands(PipeKind.FLUID_REQUEST).type()).isEqualTo("LogisticsPipes:Normal");
-        assertThat(commands(PipeKind.REQUEST).type()).isEqualTo("LogisticsPipes:Request");
-        assertThat(commands(PipeKind.REQUEST_MK2).type()).isEqualTo("LogisticsPipes:Request");
-        assertThat(commands(PipeKind.REQUEST_TABLE).type()).isEqualTo("LogisticsPipes:Request");
-        assertThat(commands(PipeKind.CRAFTING).type()).isEqualTo("LogisticsPipes:Crafting");
+        assertThat(commands(PipeKind.BASIC).type()).isEqualTo("RoutedPipes:Normal");
+        assertThat(commands(PipeKind.FLUID_REQUEST).type()).isEqualTo("RoutedPipes:Normal");
+        assertThat(commands(PipeKind.REQUEST).type()).isEqualTo("RoutedPipes:Request");
+        assertThat(commands(PipeKind.REQUEST_MK2).type()).isEqualTo("RoutedPipes:Request");
+        assertThat(commands(PipeKind.REQUEST_TABLE).type()).isEqualTo("RoutedPipes:Request");
+        assertThat(commands(PipeKind.CRAFTING).type()).isEqualTo("RoutedPipes:Crafting");
         assertThat(commands(PipeKind.CHASSIS).type()).isEqualTo("LogisticsChassiePipe");
         assertThat(call(commands(PipeKind.CHASSIS), "getType")).containsExactly("LogisticsChassiePipe");
     }
@@ -189,7 +189,7 @@ class PipeCommandsTest {
         String direct = (String) call(commands, "help")[0];
         String remote = (String) commands.call("help", REMOTE, List.of())[0];
 
-        assertThat(direct).startsWith("Type: LogisticsPipes:Normal\n")
+        assertThat(direct).startsWith("Type: RoutedPipes:Normal\n")
                 .contains("\ngetRouterUUID(): Returns the Router UUID")
                 .contains("\nsendMessage(number computerId, any message): Sends a message");
         assertThat(remote).contains("getRouterUUID").doesNotContain("sendMessage");
@@ -422,7 +422,7 @@ class PipeCommandsTest {
 
         assertThat(call(commands, "canAccess")).containsExactly(false);
         assertThat(commands.call("canAccess", Caller.attached(3), List.of())).containsExactly(true);
-        assertThat(call(commands, "getType")).containsExactly("LogisticsPipes:Request");
+        assertThat(call(commands, "getType")).containsExactly("RoutedPipes:Request");
         assertThat((String) call(commands, "help")[0]).contains("canAccess");
         // the station is asked once for each of the two, type and help do not bother it
         assertThat(pipe.accessChecks).isEqualTo(2);
@@ -455,7 +455,7 @@ class PipeCommandsTest {
 
         PipeCommands remote = (PipeCommands) call(commands, "getPipeForUUID", NEAR.value().toString())[0];
 
-        assertThat(remote.type()).isEqualTo("LogisticsPipes:Request");
+        assertThat(remote.type()).isEqualTo("RoutedPipes:Request");
         assertThat(remote.call("getRouterUUID", REMOTE, List.of())).containsExactly(NEAR.value().toString());
         assertThat(remote.names(false)).contains("makeRequest").doesNotContain("getPipeForUUID", "sendMessage", "sendBroadcast");
         // not connected, not loaded, and no id at all

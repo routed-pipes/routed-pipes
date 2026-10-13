@@ -2,7 +2,7 @@ package routedpipes.adapter.neoforge.gametest;
 
 import routedpipes.adapter.minecraft.PowerJunctionBlockEntity;
 import routedpipes.adapter.minecraft.PowerProviderBlockEntity;
-import routedpipes.adapter.neoforge.LogisticsPipes;
+import routedpipes.adapter.neoforge.RoutedPipes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
@@ -19,7 +19,7 @@ final class GameTestPower {
     }
 
     static PowerJunctionBlockEntity junction(GameTestHelper helper, BlockPos pos, int energy) {
-        helper.setBlock(pos, LogisticsPipes.POWER_JUNCTION.get());
+        helper.setBlock(pos, RoutedPipes.POWER_JUNCTION.get());
         PowerJunctionBlockEntity junction = helper.getBlockEntity(pos);
         junction.receive(energy, false);
         return junction;
@@ -27,7 +27,7 @@ final class GameTestPower {
 
     // a power provider that already holds that much
     static PowerProviderBlockEntity provider(GameTestHelper helper, BlockPos pos, int energy) {
-        helper.setBlock(pos, LogisticsPipes.POWER_PROVIDER_RF.get());
+        helper.setBlock(pos, RoutedPipes.POWER_PROVIDER_RF.get());
         PowerProviderBlockEntity provider = helper.getBlockEntity(pos);
         CompoundTag tag = new CompoundTag();
         tag.putInt("Energy", energy);

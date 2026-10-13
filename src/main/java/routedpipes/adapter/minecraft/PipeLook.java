@@ -30,7 +30,7 @@ final class PipeLook {
         for (Side side : Link.exits(links)) {
             exits.add(Directions.toMinecraft(side));
         }
-        ((LogisticsPipeBlock) pipe.getBlockState().getBlock()).showRoutedExits(pipe.getBlockState(), pipe.getLevel(),
+        ((PipeBlock) pipe.getBlockState().getBlock()).showRoutedExits(pipe.getBlockState(), pipe.getLevel(),
                 pipe.getBlockPos(), exits);
     }
 
@@ -41,10 +41,10 @@ final class PipeLook {
         BlockPos pos = pipe.getBlockPos();
         Optional<Boolean> powered = pipe.network().hasPower(pipe.routerId(), level.getGameTime());
         BlockState state = pipe.getBlockState();
-        if (powered.isEmpty() || powered.get() == state.getValue(LogisticsPipeBlock.POWERED)) {
+        if (powered.isEmpty() || powered.get() == state.getValue(PipeBlock.POWERED)) {
             return powered.isEmpty();
         }
-        level.setBlock(pos, state.setValue(LogisticsPipeBlock.POWERED, powered.get()), Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
+        level.setBlock(pos, state.setValue(PipeBlock.POWERED, powered.get()), Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
         if (level instanceof ServerLevel server) {
             // three red sparks like the original
             server.sendParticles(DustParticleOptions.REDSTONE, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 3,

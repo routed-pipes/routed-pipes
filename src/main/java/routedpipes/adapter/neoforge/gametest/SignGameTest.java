@@ -7,7 +7,7 @@ import routedpipes.adapter.minecraft.PipeBlockEntity;
 import routedpipes.adapter.minecraft.SignCreatorItem;
 import routedpipes.adapter.minecraft.SignView;
 import routedpipes.adapter.minecraft.menu.SignItemMenu;
-import routedpipes.adapter.neoforge.LogisticsPipes;
+import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.domain.logistics.PipeKind;
 import routedpipes.domain.sign.SignKind;
 import net.minecraft.core.BlockPos;
@@ -32,7 +32,7 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 // signs on the faces of routed pipes and the tool that puts them there
-@GameTestHolder(LogisticsPipes.MODID)
+@GameTestHolder(RoutedPipes.MODID)
 @PrefixGameTestTemplate(false)
 public class SignGameTest {
 
@@ -42,13 +42,13 @@ public class SignGameTest {
     static final int A_LOOK = 21;
 
     static PipeBlockEntity pipe(GameTestHelper helper, PipeKind kind, BlockPos pos) {
-        helper.setBlock(pos, LogisticsPipes.pipe(kind));
+        helper.setBlock(pos, RoutedPipes.pipe(kind));
         return helper.getBlockEntity(pos);
     }
 
     static TestPlayer playerWithCreator(GameTestHelper helper, SignKind mode) {
         TestPlayer player = TestPlayer.in(helper);
-        ItemStack creator = new ItemStack(LogisticsPipes.SIGN_CREATOR.get());
+        ItemStack creator = new ItemStack(RoutedPipes.SIGN_CREATOR.get());
         creator.set(SignCreatorItem.MODE, mode.ordinal());
         player.setItemInHand(InteractionHand.MAIN_HAND, creator);
         return player;
@@ -113,7 +113,7 @@ public class SignGameTest {
     public static void aCraftingSignIsRefusedOnOtherPipes(GameTestHelper helper) {
         PipeBlockEntity provider = pipe(helper, PipeKind.PROVIDER, PIPE);
         BlockPos chassisPos = PIPE.east(2);
-        helper.setBlock(chassisPos, LogisticsPipes.CHASSIS_PIPES.get(1).get());
+        helper.setBlock(chassisPos, RoutedPipes.CHASSIS_PIPES.get(1).get());
         PipeBlockEntity chassis = helper.getBlockEntity(chassisPos);
         TestPlayer player = playerWithCreator(helper, SignKind.CRAFTING);
 
@@ -128,7 +128,7 @@ public class SignGameTest {
 
     @GameTest(template = EMPTY)
     public static void plainPipesTakeNoSigns(GameTestHelper helper) {
-        helper.setBlock(PIPE, LogisticsPipes.TRANSPORT_PIPE.get());
+        helper.setBlock(PIPE, RoutedPipes.TRANSPORT_PIPE.get());
         TestPlayer player = playerWithCreator(helper, SignKind.ITEM_AMOUNT);
 
         InteractionResult result = use(helper, player, PIPE, Direction.UP, false);
@@ -421,7 +421,7 @@ public class SignGameTest {
                 RecipeGameTest.item("chip_basic"), null, RecipeGameTest.item("chip_basic"),
                 null, Items.OAK_SIGN, null,
                 null, RecipeGameTest.item("chip_advanced"), null);
-        helper.assertTrue(creator.is(LogisticsPipes.SIGN_CREATOR.get()), "got " + creator);
+        helper.assertTrue(creator.is(RoutedPipes.SIGN_CREATOR.get()), "got " + creator);
         helper.assertTrue(SignCreatorItem.modeOf(creator) == SignKind.CRAFTING, "a fresh creator makes crafting signs");
         helper.succeed();
     }

@@ -6,7 +6,7 @@ import routedpipes.adapter.minecraft.PipeBlockEntity;
 import routedpipes.adapter.minecraft.PowerJunctionBlockEntity;
 import routedpipes.adapter.minecraft.menu.RequestMenu;
 import routedpipes.adapter.minecraft.menu.RequestMenu.Source;
-import routedpipes.adapter.neoforge.LogisticsPipes;
+import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.application.LogisticsNetwork;
 import routedpipes.domain.logistics.PipeKind;
 import net.minecraft.core.BlockPos;
@@ -22,7 +22,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-@GameTestHolder(LogisticsPipes.MODID)
+@GameTestHolder(RoutedPipes.MODID)
 @PrefixGameTestTemplate(false)
 public class RequestPreviewGameTest {
 
@@ -34,7 +34,7 @@ public class RequestPreviewGameTest {
 
     private static PipeBlockEntity pipe(GameTestHelper helper, PipeKind kind, int x) {
         BlockPos pos = new BlockPos(x, 1, 1);
-        helper.setBlock(pos, LogisticsPipes.pipe(kind));
+        helper.setBlock(pos, RoutedPipes.pipe(kind));
         return helper.getBlockEntity(pos);
     }
 
@@ -104,7 +104,7 @@ public class RequestPreviewGameTest {
 
         helper.runAfterDelay(SETTLE, () -> {
             int energy = stored(helper);
-            RequestMenu menu = new RequestMenu(LogisticsPipes.REQUEST_MENU.get(), 1, request, user -> true);
+            RequestMenu menu = new RequestMenu(RoutedPipes.REQUEST_MENU.get(), 1, request, user -> true);
             helper.assertTrue(menu.previews() && !menu.previewing(), "the menu opens on the list");
             menu.clickMenuButton(player, RequestMenu.BUTTON_PREVIEW);
             helper.assertTrue(!menu.previewing(), "nothing to preview before an item is picked");
@@ -147,7 +147,7 @@ public class RequestPreviewGameTest {
         Player player = TestPlayer.in(helper);
 
         helper.runAfterDelay(SETTLE, () -> {
-            RequestMenu menu = new RequestMenu(LogisticsPipes.REQUEST_MENU.get(), 1, request, user -> true);
+            RequestMenu menu = new RequestMenu(RoutedPipes.REQUEST_MENU.get(), 1, request, user -> true);
             select(helper, menu, player, Items.OAK_PLANKS);
             menu.clickMenuButton(player, RequestMenu.BUTTON_PREVIEW);
             helper.assertTrue(previewed(menu, Source.CRAFTED, Items.OAK_PLANKS).equals(Optional.of(1)), "one plank to start with");
@@ -173,7 +173,7 @@ public class RequestPreviewGameTest {
         Player player = TestPlayer.in(helper);
 
         helper.runAfterDelay(SETTLE, () -> {
-            RequestMenu menu = new RequestMenu(LogisticsPipes.REQUEST_MENU.get(), 1, request, user -> true);
+            RequestMenu menu = new RequestMenu(RoutedPipes.REQUEST_MENU.get(), 1, request, user -> true);
             select(helper, menu, player, Items.OAK_LOG);
             menu.clickMenuButton(player, PLUS_ONE);
             menu.clickMenuButton(player, RequestMenu.BUTTON_PREVIEW);

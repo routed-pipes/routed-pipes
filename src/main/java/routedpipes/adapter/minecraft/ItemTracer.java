@@ -64,7 +64,7 @@ public final class ItemTracer {
                 }
                 for (Direction direction : Direction.values()) {
                     BlockPos neighbour = pos.relative(direction);
-                    if (LogisticsPipeBlock.connected(pipe.getBlockState(), direction) && seen.add(neighbour)
+                    if (PipeBlock.connected(pipe.getBlockState(), direction) && seen.add(neighbour)
                             && level.getBlockEntity(neighbour) instanceof PipeBlockEntity connected) {
                         next.add(connected);
                     }
@@ -95,7 +95,7 @@ public final class ItemTracer {
     }
 
     private static boolean routed(BlockState state) {
-        return state.getBlock() instanceof LogisticsPipeBlock block && block.routed();
+        return state.getBlock() instanceof PipeBlock block && block.routed();
     }
 
     // adds the pipes from one place to the routed pipe with that id to the path and tells where that pipe is
@@ -108,7 +108,7 @@ public final class ItemTracer {
                 return Optional.of(at);
             }
             Optional<Direction> side = PipeTopology.branchTowards(level, at, target);
-            if (side.isEmpty() || !(level.getBlockState(at.relative(side.get())).getBlock() instanceof LogisticsPipeBlock)) {
+            if (side.isEmpty() || !(level.getBlockState(at.relative(side.get())).getBlock() instanceof PipeBlock)) {
                 Optional<BlockPos> beyond = pipe.positionOf(target);
                 beyond.ifPresent(path::add);
                 return beyond;

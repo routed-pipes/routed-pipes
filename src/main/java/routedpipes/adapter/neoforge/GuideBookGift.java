@@ -17,7 +17,7 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
 public final class GuideBookGift {
 
     private static final DeferredRegister<AttachmentType<?>> ATTACHMENTS =
-            DeferredRegister.create(NeoForgeRegistries.ATTACHMENT_TYPES, LogisticsPipes.MODID);
+            DeferredRegister.create(NeoForgeRegistries.ATTACHMENT_TYPES, RoutedPipes.MODID);
     // kept when the player dies
     public static final Supplier<AttachmentType<Boolean>> GIVEN = ATTACHMENTS.register("guide_book_given",
             () -> AttachmentType.builder(() -> false).serialize(Codec.BOOL).copyOnDeath().build());
@@ -26,7 +26,7 @@ public final class GuideBookGift {
     }
 
     static void register(IEventBus modEventBus) {
-        LogisticsPipes.keepOldIds(ATTACHMENTS);
+        RoutedPipes.keepOldIds(ATTACHMENTS);
         ATTACHMENTS.register(modEventBus);
         NeoForge.EVENT_BUS.addListener(PlayerEvent.ItemCraftedEvent.class, GuideBookGift::crafted);
     }
@@ -37,13 +37,13 @@ public final class GuideBookGift {
 
     public static void crafted(Player player, ItemStack crafted) {
         if (player.level().isClientSide || player.getData(GIVEN) || crafted.isEmpty()
-                || !BuiltInRegistries.ITEM.getKey(crafted.getItem()).getNamespace().equals(LogisticsPipes.MODID)) {
+                || !BuiltInRegistries.ITEM.getKey(crafted.getItem()).getNamespace().equals(RoutedPipes.MODID)) {
             return;
         }
         player.setData(GIVEN, true);
         // whoever crafts the book first has no need for a second one
-        if (!crafted.is(LogisticsPipes.GUIDE_BOOK.get())) {
-            player.getInventory().placeItemBackInInventory(new ItemStack(LogisticsPipes.GUIDE_BOOK.get()));
+        if (!crafted.is(RoutedPipes.GUIDE_BOOK.get())) {
+            player.getInventory().placeItemBackInInventory(new ItemStack(RoutedPipes.GUIDE_BOOK.get()));
         }
     }
 }

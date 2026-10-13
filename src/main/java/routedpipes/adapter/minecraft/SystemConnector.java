@@ -96,7 +96,7 @@ public final class SystemConnector {
     }
 
     private PipeServices services() {
-        return ((LogisticsPipeBlock) pipe.getBlockState().getBlock()).services();
+        return ((PipeBlock) pipe.getBlockState().getBlock()).services();
     }
 
     MenuProvider menuProvider() {

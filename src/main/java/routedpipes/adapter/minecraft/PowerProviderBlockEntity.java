@@ -60,7 +60,7 @@ public class PowerProviderBlockEntity extends BlockEntity implements PowerProvid
         for (Direction side : Direction.values()) {
             BlockPos target = worldPosition.relative(side);
             if (level.isLoaded(target) && level.getBlockEntity(target) instanceof PipeBlockEntity pipe
-                    && pipe.getBlockState().getBlock() instanceof LogisticsPipeBlock block && block.routed()) {
+                    && pipe.getBlockState().getBlock() instanceof PipeBlock block && block.routed()) {
                 routers.add(pipe.routerId());
             }
         }

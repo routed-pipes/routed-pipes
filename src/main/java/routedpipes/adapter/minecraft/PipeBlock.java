@@ -33,7 +33,7 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 // both pipe kinds, routed ones take part in the network and connect to inventories
-public class LogisticsPipeBlock extends Block implements EntityBlock {
+public class PipeBlock extends Block implements EntityBlock {
 
     public static final Map<Direction, EnumProperty<PipeArm>> ARMS = arms();
     // the frame of a routed pipe is lit while its network has energy
@@ -46,7 +46,7 @@ public class LogisticsPipeBlock extends Block implements EntityBlock {
     private final PipeServices services;
 
     // kind is null for plain transport pipes, only chassis pipes have module slots
-    public LogisticsPipeBlock(Properties properties, PipeKind kind, int moduleSlots, PipeServices services) {
+    public PipeBlock(Properties properties, PipeKind kind, int moduleSlots, PipeServices services) {
         super(properties);
         this.kind = kind;
         this.moduleSlots = moduleSlots;
@@ -248,7 +248,7 @@ public class LogisticsPipeBlock extends Block implements EntityBlock {
         if (cutOff(level, pos, direction) || cutOff(level, neighbour, direction.getOpposite())) {
             return false;
         }
-        if (level.getBlockState(neighbour).getBlock() instanceof LogisticsPipeBlock) {
+        if (level.getBlockState(neighbour).getBlock() instanceof PipeBlock) {
             return true;
         }
         // of all tube ends only the one made for pipes

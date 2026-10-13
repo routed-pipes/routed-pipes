@@ -42,7 +42,7 @@ class HexagonalArchitectureTest {
                     "routedpipes.adapter.neoforge.visualtest..", "routedpipes.adapter.jei..",
                     "routedpipes.adapter.jade..")
             // the client entry class and the classes nested in it
-            .and().haveNameNotMatching(".*\\.LogisticsPipesClient(\\$.*)?")
+            .and().haveNameNotMatching(".*\\.RoutedPipesClient(\\$.*)?")
             .should().dependOnClassesThat()
             .resideInAnyPackage("net.minecraft.client..", "net.neoforged.neoforge.client..", "com.mojang.blaze3d..",
                     "routedpipes.adapter.minecraft.client..", "routedpipes.adapter.neoforge.visualtest..");

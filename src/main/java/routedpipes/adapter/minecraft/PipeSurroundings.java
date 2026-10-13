@@ -132,8 +132,8 @@ final class PipeSurroundings {
             }
             if (level.getBlockEntity(target) instanceof PowerJunctionBlockEntity) {
                 junctions.add(target);
-            } else if (pipe.fluidPipe() == null && LogisticsPipeBlock.connected(pipe.getBlockState(), side)
-                    && !(level.getBlockState(target).getBlock() instanceof LogisticsPipeBlock)
+            } else if (pipe.fluidPipe() == null && PipeBlock.connected(pipe.getBlockState(), side)
+                    && !(level.getBlockState(target).getBlock() instanceof PipeBlock)
                     && storage().exists(level, target, pipe.accessFace(side))) {
                 sides.add(side);
             }
