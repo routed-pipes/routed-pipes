@@ -7,6 +7,8 @@
 set -eu
 cd "$(dirname "$0")/.."
 mkdir -p build
+scripts/quiet-client.sh run-visual
+scripts/quiet-client.sh run-compat
 
 # runs one gradle task inside a headless compositor, log goes to the given file
 headless() {
