@@ -1,4 +1,4 @@
-# The mods of the play pack, one Modrinth slug per line. scripts/resolve_pack.py pins a version of each for
+# The mods of the play pack, one Modrinth slug per line, or a pinned CurseForge file. scripts/resolve_pack.py pins a version of each for
 # NeoForge 1.21.1, adds the libraries they need and writes pack/mods.lock.json and pack/mods.gradle.
 # A Tekkit of today: the old line-up where it still exists, its successors where it does not.
 
@@ -21,6 +21,9 @@ mffs
 industrial-foregoing
 extreme-reactors
 dimensionaldoors
+# not on Modrinth: curseforge <name> <project id> <file id>, pinned by hand
+curseforge projecte 226410 6611984
+curseforge iron-chests 228756 5491156
 
 # fits beside them
 create

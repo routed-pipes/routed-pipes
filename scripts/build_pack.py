@@ -7,7 +7,10 @@ ROOT = Path(__file__).resolve().parent.parent
 properties = dict(re.findall(r"^(\w+)=(.*)$", (ROOT / "gradle.properties").read_text(), flags=re.M))
 version, neoforge = properties["mod_version"], properties["neo_version"]
 jar = ROOT / f"build/libs/routedpipes-{version}.jar"
-mods = json.loads((ROOT / "pack/mods.lock.json").read_text())
+lock = json.loads((ROOT / "pack/mods.lock.json").read_text())
+mods = lock["modrinth"]
+# a pack file may only download from Modrinth, so what comes from CurseForge is put inside it
+bundled = [ROOT / f"run-pack-check/mods/{mod['slug']}-{mod['project']}-{mod['file']}.jar" for mod in lock["curseforge"]]
 index = {
     "formatVersion": 1,
     "game": "minecraft",
@@ -23,5 +26,6 @@ out = ROOT / f"build/pack/routed-pipes-pack-{version}.mrpack"
 out.parent.mkdir(parents=True, exist_ok=True)
 with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as pack:
     pack.writestr("modrinth.index.json", json.dumps(index, indent=2))
-    pack.write(jar, "overrides/mods/" + jar.name)
-print(out.relative_to(ROOT), f"{len(mods)} mods plus {jar.name}")
+    for file in [jar] + bundled:
+        pack.write(file, "overrides/mods/" + file.name)
+print(out.relative_to(ROOT), f"{len(mods)} mods to download, inside: " + ", ".join(file.name for file in [jar] + bundled))

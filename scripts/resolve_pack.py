@@ -22,7 +22,10 @@ def newest(project):
     # the list comes newest first, the sort keeps that order within a kind
     return sorted(versions, key=lambda version: RANK[version["version_type"]])[0]
 
-wanted = [line.strip() for line in (ROOT / "pack/mods.txt").read_text().splitlines() if line.strip() and not line.startswith("#")]
+entries = [line.strip() for line in (ROOT / "pack/mods.txt").read_text().splitlines() if line.strip() and not line.startswith("#")]
+wanted = [entry for entry in entries if not entry.startswith("curseforge ")]
+# these come through cursemaven.com and are not looked up, the file id in the list is the pin
+curseforge = [dict(zip(("slug", "project", "file"), entry.split()[1:])) for entry in entries if entry.startswith("curseforge ")]
 locked, missing, queue = {}, [], [(slug, None) for slug in wanted]
 while queue:
     project, needed_by = queue.pop(0)
@@ -46,10 +49,13 @@ if missing:
     print("no NeoForge 1.21.1 build of: " + "; ".join(missing))
     sys.exit(1)
 mods = sorted(locked.values(), key=lambda mod: mod["slug"])
-(ROOT / "pack/mods.lock.json").write_text(json.dumps(mods, indent=2) + "\n")
+(ROOT / "pack/mods.lock.json").write_text(json.dumps({"modrinth": mods, "curseforge": curseforge}, indent=2) + "\n")
 lines = ["// written by scripts/resolve_pack.py from pack/mods.txt, do not edit", "dependencies {"]
 lines += [f"    packMods 'maven.modrinth:{mod['slug']}:{mod['id']}'" for mod in mods]
+lines += [f"    packMods 'curse.maven:{mod['slug']}-{mod['project']}:{mod['file']}'" for mod in curseforge]
 (ROOT / "pack/mods.gradle").write_text("\n".join(lines + ["}"]) + "\n")
 for mod in mods:
     print(f"{mod['slug']:32s} {mod['version'][:30]:30s} {mod['kind']:8s}" + (f" for {mod['needed_by']}" if mod["needed_by"] else ""))
-print(len(mods), "mods")
+for mod in curseforge:
+    print(f"{mod['slug']:32s} file {mod['file']:25s} curseforge")
+print(len(mods) + len(curseforge), "mods")

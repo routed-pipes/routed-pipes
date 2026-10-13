@@ -89,7 +89,10 @@ public class CompatGameTest {
             "create:item_vault",
             "create:depot",
             "create:basin",
-            "immersiveengineering:crate");
+            "immersiveengineering:crate",
+            "ironchest:iron_chest",
+            "ironchest:diamond_chest",
+            "projecte:alchemical_chest");
 
     @GameTestGenerator
     public static Collection<TestFunction> inventories() {

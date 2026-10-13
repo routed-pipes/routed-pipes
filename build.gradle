@@ -53,6 +53,15 @@ repositories {
             includeGroup 'maven.modrinth'
         }
     }
+    // the few mods of the play pack that are only on CurseForge
+    exclusiveContent {
+        forRepository {
+            maven { url = 'https://cursemaven.com' }
+        }
+        filter {
+            includeGroup 'curse.maven'
+        }
+    }
 }
 
 configurations {

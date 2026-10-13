@@ -42,4 +42,6 @@ dependencies {
     packMods 'maven.modrinth:xaeros-minimap:irjR7dHk'
     packMods 'maven.modrinth:xaeros-world-map:SnQ4SoDe'
     packMods 'maven.modrinth:zerocore:6AlNHOWo'
+    packMods 'curse.maven:projecte-226410:6611984'
+    packMods 'curse.maven:iron-chests-228756:5491156'
 }

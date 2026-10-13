@@ -3,5 +3,5 @@
 # The other mods are downloaded by the launcher from Modrinth, the jar of this mod is inside the file.
 set -eu
 cd "$(dirname "$0")/.."
-./gradlew --console=plain -q build -x check
+./gradlew --console=plain -q build -x check copyPackCheckMods
 python3 -I scripts/build_pack.py
