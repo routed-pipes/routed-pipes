@@ -40,11 +40,13 @@ def main():
         if box is None:
             problems.append(f"flicker_{frame:02d}: the travelling item is not visible")
             continue
-        centre = (box[0] + box[2]) / 2
+        # the item moves to the right and is the rightmost thing that differs from the picture without it
+        # other things differ too, lights and sparks further left come and go, so only that edge is followed
+        front = box[2]
         # the first frames show it leaving the chest downwards, after that it moves sideways
-        if last is not None and frame > 2 and centre < last - 2:
-            problems.append(f"flicker_{frame:02d}: the item jumped back from x={last:.0f} to x={centre:.0f}")
-        last = centre
+        if last is not None and frame > 2 and front < last - 2:
+            problems.append(f"flicker_{frame:02d}: the item jumped back from x={last:.0f} to x={front:.0f}")
+        last = front
 
     # a screen that failed to open would leave no window background in the picture
     for name in (shot for shot in EXPECTED if shot.startswith("gui_")):

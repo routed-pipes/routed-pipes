@@ -481,21 +481,6 @@
       "client_only": false
     },
     {
-      "slug": "inventory-profiles-next",
-      "project": "O7RBXm3n",
-      "name": "Inventory Profiles Next",
-      "version": "neoforge-1.21.1-2.2.5",
-      "kind": "release",
-      "id": "vjuNnHLv",
-      "file": "InventoryProfilesNext-neoforge-1.21.1-2.2.5.jar",
-      "url": "https://cdn.modrinth.com/data/O7RBXm3n/versions/vjuNnHLv/InventoryProfilesNext-neoforge-1.21.1-2.2.5.jar",
-      "sha1": "b09d7c0820c233ea34af54d0a3ab7ed510b32dcc",
-      "sha512": "521296cc7e4fa48e06eb0c00d430968c7b879946db5b02e632cc724672759ac152e11bd9d320bd09f7418edd6fe4ece521a1a2cac49d7f5687519c69a0bcbf12",
-      "size": 1295466,
-      "needed_by": null,
-      "client_only": true
-    },
-    {
       "slug": "iron-jetpacks",
       "project": "DWIEOniQ",
       "name": "Iron Jetpacks",
@@ -539,36 +524,6 @@
       "size": 1804792,
       "needed_by": null,
       "client_only": false
-    },
-    {
-      "slug": "kotlin-for-forge",
-      "project": "ordsPcFz",
-      "name": "Kotlin for Forge",
-      "version": "5.12.0",
-      "kind": "release",
-      "id": "uhJhCT7X",
-      "file": "kotlinforforge-5.12.0-all.jar",
-      "url": "https://cdn.modrinth.com/data/ordsPcFz/versions/uhJhCT7X/kotlinforforge-5.12.0-all.jar",
-      "sha1": "d10d062caf1aad9aec82d7852f2fee1781735c1f",
-      "sha512": "b8c3942f4d33179edf3f102f3d870b99dd436f8b8236dbbd31aa51b888162c692cfd88927295f24dc8b4375232f4c6c17360c5d6c4823f93cbcd7cf4bdc8bd14",
-      "size": 7279264,
-      "needed_by": "inventory-profiles-next",
-      "client_only": false
-    },
-    {
-      "slug": "libipn",
-      "project": "onSQdWhM",
-      "name": "libIPN",
-      "version": "neoforge-1.21.1-6.6.3",
-      "kind": "release",
-      "id": "BGe4KMlE",
-      "file": "libIPN-neoforge-1.21.1-6.6.3.jar",
-      "url": "https://cdn.modrinth.com/data/onSQdWhM/versions/BGe4KMlE/libIPN-neoforge-1.21.1-6.6.3.jar",
-      "sha1": "baab9e8cae3d2b77b5e172b5694e465ee9f30d4a",
-      "sha512": "89383465eb8dfa296e7518dd0e6ddc1a242f4537a3183425f2319c79a3e97843ded0f5e13f86b095f2f09beacd2a1f249f554e0f4e18291209720826031a8b93",
-      "size": 626146,
-      "needed_by": "inventory-profiles-next",
-      "client_only": true
     },
     {
       "slug": "lithium",
