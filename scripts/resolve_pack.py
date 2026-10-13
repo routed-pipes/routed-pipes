@@ -37,7 +37,7 @@ while queue:
         missing.append(f"{info['slug']}" + (f", needed by {needed_by}" if needed_by else ""))
         continue
     file = next((f for f in version["files"] if f["primary"]), version["files"][0])
-    locked[info["id"]] = {"slug": info["slug"], "name": info["title"], "version": version["version_number"],
+    locked[info["id"]] = {"slug": info["slug"], "project": info["id"], "name": info["title"], "version": version["version_number"],
                           "kind": version["version_type"], "id": version["id"], "file": file["filename"], "url": file["url"],
                           "sha1": file["hashes"]["sha1"], "sha512": file["hashes"]["sha512"], "size": file["size"],
                           "needed_by": needed_by, "client_only": info["server_side"] == "unsupported"}

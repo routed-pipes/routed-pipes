@@ -2,6 +2,7 @@
   "modrinth": [
     {
       "slug": "advancedperipherals",
+      "project": "SOw6jD6x",
       "name": "Advanced Peripherals",
       "version": "1.21.1-0.7.62b",
       "kind": "beta",
@@ -16,6 +17,7 @@
     },
     {
       "slug": "ae2",
+      "project": "XxWD5pD3",
       "name": "Applied Energistics 2",
       "version": "19.2.18",
       "kind": "release",
@@ -30,6 +32,7 @@
     },
     {
       "slug": "almost-unified-ie",
+      "project": "hCyAnqqq",
       "name": "AU: Immersive Engineering",
       "version": "1.21.1-1.0.1+neoforge",
       "kind": "beta",
@@ -44,6 +47,7 @@
     },
     {
       "slug": "almostunified",
+      "project": "sdaSaQEz",
       "name": "Almost Unified",
       "version": "1.21.1-1.4.2+neoforge",
       "kind": "release",
@@ -58,6 +62,7 @@
     },
     {
       "slug": "appleskin",
+      "project": "EsAfCjCV",
       "name": "AppleSkin",
       "version": "3.0.9+mc1.21",
       "kind": "release",
@@ -72,6 +77,7 @@
     },
     {
       "slug": "applied-mekanistics",
+      "project": "IiATswDj",
       "name": "Applied Mekanistics",
       "version": "1.6.3",
       "kind": "release",
@@ -86,6 +92,7 @@
     },
     {
       "slug": "audrops",
+      "project": "Rik5mWU3",
       "name": "AlmostUnifiedDrops",
       "version": "1.0.1",
       "kind": "release",
@@ -100,6 +107,7 @@
     },
     {
       "slug": "balm",
+      "project": "MBAkmtvl",
       "name": "Balm",
       "version": "21.0.66+neoforge-1.21.1",
       "kind": "release",
@@ -114,6 +122,7 @@
     },
     {
       "slug": "bookshelf-lib",
+      "project": "uy4Cnpcm",
       "name": "Bookshelf",
       "version": "21.1.81",
       "kind": "release",
@@ -128,6 +137,7 @@
     },
     {
       "slug": "brandons-core",
+      "project": "iFDWVIFV",
       "name": "Brandons Core",
       "version": "3.2.1.309",
       "kind": "release",
@@ -142,6 +152,7 @@
     },
     {
       "slug": "carry-on",
+      "project": "joEfVgkn",
       "name": "Carry On",
       "version": "2.2.6",
       "kind": "release",
@@ -156,6 +167,7 @@
     },
     {
       "slug": "cb-multipart",
+      "project": "LmvnWWSV",
       "name": "CB Multipart",
       "version": "3.5.0.155",
       "kind": "release",
@@ -170,6 +182,7 @@
     },
     {
       "slug": "cc-tweaked",
+      "project": "gu7yAYhd",
       "name": "CC: Tweaked",
       "version": "1.120.2",
       "kind": "alpha",
@@ -184,6 +197,7 @@
     },
     {
       "slug": "chunk-loaders",
+      "project": "t1VgucWo",
       "name": "Chunk Loaders",
       "version": "1.2.9-neoforge-mc1.21",
       "kind": "release",
@@ -198,6 +212,7 @@
     },
     {
       "slug": "cloth-config",
+      "project": "9s6osm5g",
       "name": "Cloth Config API",
       "version": "15.0.140+neoforge",
       "kind": "release",
@@ -212,6 +227,7 @@
     },
     {
       "slug": "clumps",
+      "project": "Wnxd13zP",
       "name": "Clumps",
       "version": "19.0.0.1",
       "kind": "release",
@@ -226,6 +242,7 @@
     },
     {
       "slug": "codechicken-lib",
+      "project": "2gq0ALnz",
       "name": "CodeChicken Lib",
       "version": "4.6.1.529",
       "kind": "release",
@@ -240,6 +257,7 @@
     },
     {
       "slug": "create",
+      "project": "LNytGWDc",
       "name": "Create",
       "version": "6.0.10+mc1.21.1",
       "kind": "release",
@@ -254,6 +272,7 @@
     },
     {
       "slug": "createaddition",
+      "project": "kU1G12Nn",
       "name": "Create Crafts & Additions",
       "version": "neoforge-1.21.1-1.6.0",
       "kind": "release",
@@ -268,6 +287,7 @@
     },
     {
       "slug": "cucumber",
+      "project": "Rw1NrDzF",
       "name": "Cucumber Library",
       "version": "8.0.16",
       "kind": "release",
@@ -282,6 +302,7 @@
     },
     {
       "slug": "dimensionaldoors",
+      "project": "b8Q0BxnV",
       "name": "Dimensional Doors",
       "version": "6.2.2",
       "kind": "beta",
@@ -296,6 +317,7 @@
     },
     {
       "slug": "draconic-evolution",
+      "project": "nBqivi8H",
       "name": "Draconic Evolution",
       "version": "3.1.4.633",
       "kind": "beta",
@@ -310,6 +332,7 @@
     },
     {
       "slug": "ender-storage",
+      "project": "BbrHg80P",
       "name": "Ender Storage",
       "version": "2.13.0.191",
       "kind": "release",
@@ -324,6 +347,7 @@
     },
     {
       "slug": "entityculling",
+      "project": "NNAgCjsB",
       "name": "Entity Culling",
       "version": "1.11.3",
       "kind": "release",
@@ -338,6 +362,7 @@
     },
     {
       "slug": "extreme-reactors",
+      "project": "idkvShUy",
       "name": "Extreme Reactors",
       "version": "1.21.1-2.4.9",
       "kind": "release",
@@ -352,6 +377,7 @@
     },
     {
       "slug": "fallingtree",
+      "project": "Fb4jn8m6",
       "name": "FallingTree",
       "version": "1.21.1-1.21.1.11",
       "kind": "release",
@@ -366,6 +392,7 @@
     },
     {
       "slug": "ferrite-core",
+      "project": "uXXizFIs",
       "name": "FerriteCore",
       "version": "7.0.3-neoforge",
       "kind": "release",
@@ -380,6 +407,7 @@
     },
     {
       "slug": "guideme",
+      "project": "Ck4E7v7R",
       "name": "GuideME",
       "version": "21.1.19",
       "kind": "release",
@@ -394,6 +422,7 @@
     },
     {
       "slug": "hammer-lib",
+      "project": "PlkSuVtM",
       "name": "HammerLib",
       "version": "21.0.17",
       "kind": "release",
@@ -408,6 +437,7 @@
     },
     {
       "slug": "immediatelyfast",
+      "project": "5ZwdcRci",
       "name": "ImmediatelyFast",
       "version": "1.6.14+1.21.1-neoforge",
       "kind": "release",
@@ -422,6 +452,7 @@
     },
     {
       "slug": "immersiveengineering",
+      "project": "tIm2nV03",
       "name": "Immersive Engineering",
       "version": "12.4.2-194",
       "kind": "release",
@@ -436,6 +467,7 @@
     },
     {
       "slug": "industrial-foregoing",
+      "project": "lWxpUd04",
       "name": "Industrial Foregoing",
       "version": "1.21-3.6.27",
       "kind": "release",
@@ -450,6 +482,7 @@
     },
     {
       "slug": "inventory-profiles-next",
+      "project": "O7RBXm3n",
       "name": "Inventory Profiles Next",
       "version": "neoforge-1.21.1-2.2.5",
       "kind": "release",
@@ -464,6 +497,7 @@
     },
     {
       "slug": "iron-jetpacks",
+      "project": "DWIEOniQ",
       "name": "Iron Jetpacks",
       "version": "8.0.11",
       "kind": "release",
@@ -478,6 +512,7 @@
     },
     {
       "slug": "jade",
+      "project": "nvQzSEkH",
       "name": "Jade \ud83d\udd0d",
       "version": "15.10.6+neoforge",
       "kind": "release",
@@ -492,6 +527,7 @@
     },
     {
       "slug": "jei",
+      "project": "u6dRKJwZ",
       "name": "Just Enough Items (JEI)",
       "version": "19.51.0.418",
       "kind": "release",
@@ -506,6 +542,7 @@
     },
     {
       "slug": "kotlin-for-forge",
+      "project": "ordsPcFz",
       "name": "Kotlin for Forge",
       "version": "5.12.0",
       "kind": "release",
@@ -520,6 +557,7 @@
     },
     {
       "slug": "libipn",
+      "project": "onSQdWhM",
       "name": "libIPN",
       "version": "neoforge-1.21.1-6.6.3",
       "kind": "release",
@@ -534,6 +572,7 @@
     },
     {
       "slug": "lithium",
+      "project": "gvQqBUqZ",
       "name": "Lithium",
       "version": "mc1.21.1-0.15.4-neoforge",
       "kind": "release",
@@ -548,6 +587,7 @@
     },
     {
       "slug": "mekanism",
+      "project": "Ce6I4WUE",
       "name": "Mekanism",
       "version": "10.7.19.85",
       "kind": "release",
@@ -562,6 +602,7 @@
     },
     {
       "slug": "mekanism-generators",
+      "project": "OFVYKsAk",
       "name": "Mekanism Generators",
       "version": "10.7.19.85",
       "kind": "release",
@@ -576,6 +617,7 @@
     },
     {
       "slug": "mekanism-tools",
+      "project": "tqQpq1lt",
       "name": "Mekanism Tools",
       "version": "10.7.19.85",
       "kind": "release",
@@ -590,6 +632,7 @@
     },
     {
       "slug": "mffs",
+      "project": "Ir9eTVLd",
       "name": "Modular Force Field System",
       "version": "5.4.44",
       "kind": "release",
@@ -604,6 +647,7 @@
     },
     {
       "slug": "modernfix",
+      "project": "nmDcB62a",
       "name": "ModernFix",
       "version": "5.27.26+mc1.21.1",
       "kind": "release",
@@ -618,6 +662,7 @@
     },
     {
       "slug": "mouse-tweaks",
+      "project": "aC3cM3Vq",
       "name": "Mouse Tweaks",
       "version": "1.21-2.26.1-neoforge",
       "kind": "release",
@@ -632,6 +677,7 @@
     },
     {
       "slug": "open-loader",
+      "project": "KwWsINvD",
       "name": "Open Loader",
       "version": "21.1.5",
       "kind": "release",
@@ -646,6 +692,7 @@
     },
     {
       "slug": "polymorph",
+      "project": "tagwiZkJ",
       "name": "Polymorph",
       "version": "1.1.0+1.21.1",
       "kind": "release",
@@ -660,6 +707,7 @@
     },
     {
       "slug": "powah",
+      "project": "KZO4S4DO",
       "name": "Powah!",
       "version": "6.2.10-neoforge",
       "kind": "release",
@@ -674,6 +722,7 @@
     },
     {
       "slug": "prickle",
+      "project": "aaRl8GiW",
       "name": "Prickle",
       "version": "21.1.11",
       "kind": "release",
@@ -688,6 +737,7 @@
     },
     {
       "slug": "project-red-core",
+      "project": "zIlxygxr",
       "name": "Project Red Core",
       "version": "4.23.0",
       "kind": "release",
@@ -702,6 +752,7 @@
     },
     {
       "slug": "project-red-expansion",
+      "project": "fn5zBLFv",
       "name": "Project Red Expansion",
       "version": "4.23.0",
       "kind": "release",
@@ -716,6 +767,7 @@
     },
     {
       "slug": "project-red-exploration",
+      "project": "TVQMH6pX",
       "name": "Project Red Exploration",
       "version": "4.23.0",
       "kind": "release",
@@ -730,6 +782,7 @@
     },
     {
       "slug": "project-red-fabrication",
+      "project": "5H1VMCiY",
       "name": "Project Red Fabrication",
       "version": "4.23.0",
       "kind": "release",
@@ -744,6 +797,7 @@
     },
     {
       "slug": "project-red-illumination",
+      "project": "9a4Zqq1k",
       "name": "Project Red Illumination",
       "version": "4.23.0",
       "kind": "release",
@@ -758,6 +812,7 @@
     },
     {
       "slug": "project-red-integration",
+      "project": "3JruZJb0",
       "name": "Project Red Integration",
       "version": "4.23.0",
       "kind": "release",
@@ -772,6 +827,7 @@
     },
     {
       "slug": "project-red-transmission",
+      "project": "dXmH4rEw",
       "name": "Project Red Transmission",
       "version": "4.23.0",
       "kind": "release",
@@ -786,6 +842,7 @@
     },
     {
       "slug": "railcraft-reborn",
+      "project": "rO6kKst6",
       "name": "Railcraft Reborn",
       "version": "1.2.11",
       "kind": "release",
@@ -800,6 +857,7 @@
     },
     {
       "slug": "sodium",
+      "project": "AANobbMI",
       "name": "Sodium",
       "version": "mc1.21.1-0.8.13-neoforge",
       "kind": "release",
@@ -814,6 +872,7 @@
     },
     {
       "slug": "solar-flux-reborn",
+      "project": "4QG5lev4",
       "name": "Solar Flux Reborn",
       "version": "21.1.8",
       "kind": "release",
@@ -828,6 +887,7 @@
     },
     {
       "slug": "sophisticated-backpacks",
+      "project": "TyCTlI4b",
       "name": "Sophisticated Backpacks",
       "version": "1.21.1-3.26.12.2208",
       "kind": "release",
@@ -842,6 +902,7 @@
     },
     {
       "slug": "sophisticated-core",
+      "project": "nmoqTijg",
       "name": "Sophisticated Core",
       "version": "1.21.1-1.5.11.2394",
       "kind": "release",
@@ -856,6 +917,7 @@
     },
     {
       "slug": "sophisticated-storage",
+      "project": "hMlaZH8f",
       "name": "Sophisticated Storage",
       "version": "1.21.1-1.6.5.2176",
       "kind": "release",
@@ -870,6 +932,7 @@
     },
     {
       "slug": "storagedrawers",
+      "project": "guitPqEi",
       "name": "Storage Drawers",
       "version": "1.21.1-13.11.4",
       "kind": "release",
@@ -884,6 +947,7 @@
     },
     {
       "slug": "supermartijn642s-config-lib",
+      "project": "LN9BxssP",
       "name": "SuperMartijn642's Config Lib",
       "version": "1.1.8-neoforge-mc1.21",
       "kind": "release",
@@ -898,6 +962,7 @@
     },
     {
       "slug": "supermartijn642s-core-lib",
+      "project": "rOUBggPv",
       "name": "SuperMartijn642's Core Lib",
       "version": "1.1.25-neoforge-mc1.21",
       "kind": "release",
@@ -912,6 +977,7 @@
     },
     {
       "slug": "titanium",
+      "project": "1Ro7m06l",
       "name": "Titanium",
       "version": "1.21-4.0.51",
       "kind": "beta",
@@ -926,6 +992,7 @@
     },
     {
       "slug": "waystones",
+      "project": "LOpKHB2A",
       "name": "Waystones",
       "version": "21.1.46+neoforge-1.21.1",
       "kind": "release",
@@ -940,6 +1007,7 @@
     },
     {
       "slug": "xaeros-minimap",
+      "project": "1bokaNcj",
       "name": "Xaero's Minimap",
       "version": "neoforge-1.21.1-26.6.0",
       "kind": "release",
@@ -954,6 +1022,7 @@
     },
     {
       "slug": "xaeros-world-map",
+      "project": "NcUtCpym",
       "name": "Xaero's World Map",
       "version": "neoforge-1.21.1-1.47.0",
       "kind": "release",
@@ -968,6 +1037,7 @@
     },
     {
       "slug": "zerocore",
+      "project": "rHpb85Mf",
       "name": "ZeroCore",
       "version": "1.21.1-2.4.9",
       "kind": "release",
