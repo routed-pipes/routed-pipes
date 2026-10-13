@@ -52,3 +52,6 @@ run-pack/
 run-benchmark/
 run-pack-check/
 run-pack-client-check/
+
+# python
+__pycache__/
