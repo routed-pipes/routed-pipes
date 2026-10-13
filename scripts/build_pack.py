@@ -29,4 +29,7 @@ with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as pack:
     pack.writestr("modrinth.index.json", json.dumps(index, indent=2))
     for file in [jar] + bundled:
         pack.write(file, "overrides/mods/" + file.name)
+    for file in sorted((ROOT / "pack/overrides").rglob("*")):
+        if file.is_file():
+            pack.write(file, "overrides/" + str(file.relative_to(ROOT / "pack/overrides")))
 print(out.relative_to(ROOT), f"{len(mods)} mods to download, inside: " + ", ".join(file.name for file in [jar] + bundled))

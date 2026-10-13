@@ -2,8 +2,11 @@
 dependencies {
     packMods 'maven.modrinth:advancedperipherals:G45Z1XQB'
     packMods 'maven.modrinth:ae2:KDnFUmMm'
+    packMods 'maven.modrinth:almost-unified-ie:QNmpHq1W'
+    packMods 'maven.modrinth:almostunified:e8iYxxI3'
     packMods 'maven.modrinth:appleskin:uAKA6Laj'
     packMods 'maven.modrinth:applied-mekanistics:TpUCzFaW'
+    packMods 'maven.modrinth:audrops:iksGqeli'
     packMods 'maven.modrinth:balm:CquiaiDj'
     packMods 'maven.modrinth:brandons-core:56nwe5IX'
     packMods 'maven.modrinth:carry-on:PV8oLZ1q'

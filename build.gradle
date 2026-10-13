@@ -376,8 +376,18 @@ def copyPackMods = tasks.register('copyPackMods', Sync) {
     from configurations.packMods, configurations.packClientMods
     into 'run-pack/mods'
 }
+// settings of other mods that belong to the pack, see pack/overrides. They replace what is in the game directory
+def copyPackOverrides = ['run-pack', 'run-pack-check', 'run-pack-client-check'].collect { directory ->
+    tasks.register('copyPackOverridesTo' + directory.split('-').collect { it.capitalize() }.join(''), Copy) {
+        from 'pack/overrides'
+        into directory
+    }
+}
 tasks.matching { it.name == 'runClientPack' }.configureEach {
     dependsOn copyPackMods
+}
+tasks.matching { it.name in ['runClientPack', 'runGameTestServerPack', 'runVisualTestPack'] }.configureEach {
+    dependsOn copyPackOverrides
 }
 def copyPackCheckMods = tasks.register('copyPackCheckMods', Sync) {
     from configurations.packMods

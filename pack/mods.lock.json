@@ -29,6 +29,34 @@
       "client_only": false
     },
     {
+      "slug": "almost-unified-ie",
+      "name": "AU: Immersive Engineering",
+      "version": "1.21.1-1.0.1+neoforge",
+      "kind": "beta",
+      "id": "QNmpHq1W",
+      "file": "almostunified_ie-neoforge-1.21.1-1.0.1.jar",
+      "url": "https://cdn.modrinth.com/data/hCyAnqqq/versions/QNmpHq1W/almostunified_ie-neoforge-1.21.1-1.0.1.jar",
+      "sha1": "0940f4ac40f87ba12e6978ad80eb8eb756822aba",
+      "sha512": "51f6b8d3b89ed5f5a241535360d3a208e30118a95858c2e1c585bc23802320387a221e9b0f07ba536def5617e3830f3065ee46fa307a96f8880fbe8ebe2f290b",
+      "size": 8743,
+      "needed_by": null,
+      "client_only": false
+    },
+    {
+      "slug": "almostunified",
+      "name": "Almost Unified",
+      "version": "1.21.1-1.4.2+neoforge",
+      "kind": "release",
+      "id": "e8iYxxI3",
+      "file": "almostunified-neoforge-1.21.1-1.4.2.jar",
+      "url": "https://cdn.modrinth.com/data/sdaSaQEz/versions/e8iYxxI3/almostunified-neoforge-1.21.1-1.4.2.jar",
+      "sha1": "f9a58fa95780f4b045d30559c1fdaedaa7f0fba3",
+      "sha512": "82ddfb82b86dcbf62c729ebbb2ed571bf284d31a8ad494b7e10db2da24a87e7887969e6092b78e79053ea0279c75de58dc548d30eca6ba60c2816a9bd3e436fd",
+      "size": 295093,
+      "needed_by": null,
+      "client_only": false
+    },
+    {
       "slug": "appleskin",
       "name": "AppleSkin",
       "version": "3.0.9+mc1.21",
@@ -53,6 +81,20 @@
       "sha1": "bec4a47269ec23bca2329742e13409bfde69c5c3",
       "sha512": "1a693c3c05862805bd88cf1265fd4b9b98b2da4efe986c9ff26efa0e675df14373983ffdf7ededb26f07864b6702fabc299ac1a06fb8fa35de0b341b596dbf9b",
       "size": 149709,
+      "needed_by": null,
+      "client_only": false
+    },
+    {
+      "slug": "audrops",
+      "name": "AlmostUnifiedDrops",
+      "version": "1.0.1",
+      "kind": "release",
+      "id": "iksGqeli",
+      "file": "audrops-1.0.1.jar",
+      "url": "https://cdn.modrinth.com/data/Rik5mWU3/versions/iksGqeli/audrops-1.0.1.jar",
+      "sha1": "670976c7de3a309bd9f74ffe9a6225b8292ad5c5",
+      "sha512": "39d3242d12246901031734ddb66d8ae86b221a7ea1c09584224f11876d1d69085d81ea44b281ebad2db3506a0d3e09f1aeeda7f29879c8d34ef7390ba02f266f",
+      "size": 2534,
       "needed_by": null,
       "client_only": false
     },

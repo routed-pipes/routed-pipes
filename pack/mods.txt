@@ -42,6 +42,10 @@ chunk-loaders
 
 # looking things up and getting around
 polymorph
+# one kind of every metal: what recipes make and what blocks and mobs drop is the item of the preferred mod
+almostunified
+almost-unified-ie
+audrops
 waystones
 inventory-profiles-next
 carry-on
