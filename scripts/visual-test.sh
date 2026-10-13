@@ -4,6 +4,7 @@
 # Afterwards the screenshots are checked for the item staying visible and the screens opening,
 # then the client is started a second time on the same world to check that orders survive a restart.
 # With the argument "compat" the client runs once with the other mods installed, output goes to build/visual-test-compat.
+# With "pack" it runs once with every mod of the play pack, output goes to build/visual-test-pack.
 set -eu
 cd "$(dirname "$0")/.."
 mkdir -p build
@@ -24,6 +25,12 @@ CONFIG
 if [ "${1:-}" = compat ]; then
     headless runVisualTestCompat build/visual-test-compat.log
     python3 scripts/check_visual.py build/visual-test-compat build/visual-test-compat.log
+    exit
+fi
+
+if [ "${1:-}" = pack ]; then
+    headless runVisualTestPack build/visual-test-pack.log
+    python3 scripts/check_visual.py build/visual-test-pack build/visual-test-pack.log
     exit
 fi
 

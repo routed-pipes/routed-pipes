@@ -158,6 +158,14 @@ neoForge {
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
 
+        // the scripted client with every mod of the play pack, started by scripts/visual-test.sh pack
+        visualTestPack {
+            client()
+            gameDirectory = project.file('run-pack-check')
+            systemProperty 'routedpipes.visualTest', project.file('build/visual-test-pack').absolutePath
+            programArguments.addAll '--width', '854', '--height', '480'
+        }
+
         // the same in-game tests with a set of popular mods installed, plus tests against their blocks
         gameTestServerCompat {
             type = "gameTestServer"
@@ -325,7 +333,8 @@ def quietOptions = tasks.register('quietClientOptions') {
     def targets = [(file('run/options.txt')): 'onboardAccessibility:false\nnarrator:0\n',
                    (file('run-compat/options.txt')): 'onboardAccessibility:false\nnarrator:0\nsoundCategory_master:0.0\n',
                    (file('run-pack/options.txt')): 'onboardAccessibility:false\nnarrator:0\n',
-                   (file('run-visual/options.txt')): 'onboardAccessibility:false\nnarrator:0\nsoundCategory_master:0.0\n']
+                   (file('run-visual/options.txt')): 'onboardAccessibility:false\nnarrator:0\nsoundCategory_master:0.0\n',
+                   (file('run-pack-check/options.txt')): 'onboardAccessibility:false\nnarrator:0\nsoundCategory_master:0.0\n']
     doLast {
         targets.each { options, content ->
             if (!options.exists()) {
@@ -335,7 +344,7 @@ def quietOptions = tasks.register('quietClientOptions') {
         }
     }
 }
-tasks.matching { it.name in ['runClient', 'runClientPack', 'runClientBenchmark', 'runVisualTest', 'runVisualTestResume', 'runVisualTestCompat'] }.configureEach {
+tasks.matching { it.name in ['runClient', 'runClientPack', 'runClientBenchmark', 'runVisualTest', 'runVisualTestResume', 'runVisualTestCompat', 'runVisualTestPack'] }.configureEach {
     dependsOn quietOptions
 }
 
@@ -361,7 +370,7 @@ def copyPackCheckMods = tasks.register('copyPackCheckMods', Sync) {
     from configurations.packMods
     into 'run-pack-check/mods'
 }
-tasks.matching { it.name == 'runGameTestServerPack' }.configureEach {
+tasks.matching { it.name in ['runGameTestServerPack', 'runVisualTestPack'] }.configureEach {
     dependsOn copyPackCheckMods
 }
 
