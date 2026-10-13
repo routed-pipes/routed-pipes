@@ -196,4 +196,36 @@ class LogisticsNetworkMachineQueueTest {
         assertThat(network.chooseExit(SAWMILL, ordered("log", SAWMILL), NOW + 5)).contains(Side.UP);
         assertThat(network.chooseExit(KILN, ordered("planks", KILN), NOW + 5)).isEmpty();
     }
+
+    @Test
+    void aPartThatIsOrderedAgainLaterDoesNotWaitForTheThingThatWaitsForIt() {
+        connect();
+        kiln.recipe = new Recipe(List.of(batch("planks", 2)), batch("slab", 1));
+        network.request(REQUEST, batch("slab", 1), NOW);
+        sawmillDelivers(NOW + 10);
+        assertThat(sawmill.outputOrders.isEmpty()).isTrue();
+
+        // the planks fall out of a broken pipe, the slab pipe orders them again and is now ahead of the saw in line
+        network.itemLost(KILN, batch("planks", 2), NOW + 20);
+
+        assertThat(sawmill.outputOrders.isEmpty()).isFalse();
+        assertThat(network.chooseExit(SAWMILL, ordered("log", SAWMILL), NOW + 25)).contains(Side.UP);
+    }
+
+    @Test
+    void anOrderWaitingForItsTurnDoesNotGoStale() {
+        connect();
+        network.request(REQUEST, batch("planks", 64), NOW);
+        network.request(REQUEST, batch("brick", 1), NOW);
+        // the saw is slow but keeps delivering, far longer than an order may go without progress
+        long time = NOW;
+        for (int round = 0; round < 15; round++) {
+            time += LogisticsNetwork.CRAFT_TIMEOUT / 10;
+            sawmillDelivers(time);
+            network.tick(KILN, time);
+        }
+
+        assertThat(sawmill.outputOrders.isEmpty()).isFalse();
+        assertThat(kiln.outputOrders.isEmpty()).as("the brick is still on order").isFalse();
+    }
 }

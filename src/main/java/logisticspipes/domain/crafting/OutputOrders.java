@@ -10,6 +10,7 @@ import java.util.function.ToIntFunction;
 
 import logisticspipes.domain.item.ItemBatch;
 import logisticspipes.domain.item.ItemType;
+import logisticspipes.domain.routing.RouterId;
 
 public final class OutputOrders {
 
@@ -53,6 +54,16 @@ public final class OutputOrders {
     public OptionalLong firstPlaced(ItemType type) {
         return orders.stream().filter(order -> !order.isExtra() && order.batch().type().equals(type))
                 .mapToLong(OutputOrder::placed).min();
+    }
+
+    // whether something of that item is owed to that router
+    public boolean owes(ItemType type, RouterId destination) {
+        return orders.stream().anyMatch(order -> destination.equals(order.destination()) && order.batch().type().equals(type));
+    }
+
+    // the orders for that item are waiting for something that is nobody's fault, so they do not go stale meanwhile
+    public void keepWaiting(ItemType type, long now) {
+        orders.replaceAll(order -> order.batch().type().equals(type) ? order.left(order.batch().count(), now) : order);
     }
 
     public void cancel(OutputOrder order) {

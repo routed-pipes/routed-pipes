@@ -569,14 +569,9 @@ public final class LogisticsNetwork {
     // what arrives for another recipe would only get in its way, like the wrong ingredient in the one slot of a brewing stand
     // true for everything that is not an ingredient delivered here, and for a recipe that has its machine to itself
     private boolean itsTurn(RouterId at, ItemType type) {
-        OptionalInt group = routing.component(at);
-        if (group.isEmpty()) {
-            return true;
-        }
-        Stations known = stations.get(group.getAsInt());
+        Stations known = stationsOf(at);
         if (known == null) {
-            known = stationsAround(at);
-            stations.put(group.getAsInt(), known);
+            return true;
         }
         boolean ingredient = false;
         for (Map.Entry<Station, List<ItemType>> delivered : known.deliveredTo.getOrDefault(at, Map.of()).entrySet()) {
@@ -590,13 +585,26 @@ public final class LogisticsNetwork {
         return !ingredient;
     }
 
+    // null for a router that is not there
+    private Stations stationsOf(RouterId at) {
+        OptionalInt group = routing.component(at);
+        if (group.isEmpty()) {
+            return null;
+        }
+        return stations.computeIfAbsent(group.getAsInt(), key -> stationsAround(at));
+    }
+
     // whether no other recipe on any of its inventories was ordered before this one
     // a recipe nobody is waiting for, like one whose order was cancelled, gets in when the machine has nothing else to do
+    // a recipe that makes a part for the one before it does not wait for that one, which is waiting for the part:
+    // that happens when a part is ordered again later, after it was lost on its way
     private boolean firstInLine(Stations known, Station station) {
         long own = placed(station);
+        RouterNode crafter = nodes.get(station.crafter());
         for (InventoryRef inventory : known.machine.get(station)) {
             for (Station other : known.working.get(inventory)) {
-                if (!other.equals(station) && placed(other) < own) {
+                if (!other.equals(station) && placed(other) < own
+                        && (crafter == null || !crafter.outputOrders().owes(station.output(), other.crafter()))) {
                     return false;
                 }
             }
@@ -1281,6 +1289,7 @@ public final class LogisticsNetwork {
             bulkStorage.look(nodes::get);
         }
         if (!node.outputOrders().isEmpty() && turn % CRAFT_INTERVAL == 0) {
+            keepWaitingInLine(id, node, now);
             boolean progress = node.outputOrders().ship(now, CRAFT_TIMEOUT, order -> {
                 // a result with fuzzy flags is whatever matching item the machine holds most of
                 ItemType made = FuzzyMatch.largest(order.batch().type(), node.contents());
@@ -1317,6 +1326,20 @@ public final class LogisticsNetwork {
                 if (turn % extraction.interval() == 0) {
                     extract(id, node, extraction, now);
                 }
+            }
+        }
+    }
+
+    // an order that waits for its turn at a machine is not stale, however long the recipe before it takes
+    private void keepWaitingInLine(RouterId id, RouterNode node, long now) {
+        Stations known = stationsOf(id);
+        if (known == null) {
+            return;
+        }
+        for (ItemType made : node.outputOrders().owedByType().keySet()) {
+            Station station = new Station(id, made);
+            if (known.machine.containsKey(station) && !firstInLine(known, station)) {
+                node.outputOrders().keepWaiting(made, now);
             }
         }
     }
