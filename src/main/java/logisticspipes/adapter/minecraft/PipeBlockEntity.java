@@ -297,6 +297,15 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         }
     }
 
+    // which inventories the pipe works with depends on its arms, so what was seen with the old ones is forgotten
+    @SuppressWarnings("deprecation")
+    @Override
+    public void setBlockState(BlockState state) {
+        super.setBlockState(state);
+        inventorySidesCache = null;
+        contentsCache = null;
+    }
+
     // null unless this is a fluid pipe
     public FluidPipe fluidPipe() {
         return fluids;

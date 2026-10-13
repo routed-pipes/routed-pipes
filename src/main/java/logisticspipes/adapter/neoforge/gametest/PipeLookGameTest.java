@@ -4,6 +4,7 @@ import java.util.List;
 
 import logisticspipes.adapter.minecraft.LogisticsPipeBlock;
 import logisticspipes.adapter.minecraft.PipeArm;
+import logisticspipes.adapter.minecraft.PipeBlockEntity;
 import logisticspipes.adapter.minecraft.PipeMounts;
 import logisticspipes.adapter.neoforge.LogisticsPipes;
 import logisticspipes.domain.logistics.PipeKind;
@@ -13,6 +14,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.world.Container;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
@@ -193,6 +197,24 @@ public class PipeLookGameTest {
             helper.setBlock(FIRST.above(), Blocks.AIR);
             assertArm(helper, FIRST, Direction.UP, PipeArm.NONE);
             assertArm(helper, FIRST, Direction.EAST, PipeArm.ROUTED);
+            helper.succeed();
+        });
+    }
+
+    // glasses and block info mods ask a pipe before its first tick, when it has no arms yet
+    // it must not stay blind to the chest it connects to a moment later
+    @GameTest(template = EMPTY)
+    public static void aPipeAskedBeforeItsFirstTickStillFindsItsInventory(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        helper.setBlock(pos.above(), Blocks.CHEST);
+        Container chest = helper.getBlockEntity(pos.above());
+        chest.setItem(0, new ItemStack(Items.COBBLESTONE, 64));
+        helper.setBlock(pos, LogisticsPipes.pipe(PipeKind.PROVIDER));
+        PipeBlockEntity provider = helper.getBlockEntity(pos);
+        helper.assertTrue(provider.provided().isEmpty(), "no arm to the chest before the first tick, arms are " + provider.getBlockState());
+
+        helper.runAfterDelay(3, () -> {
+            helper.assertTrue(!provider.provided().isEmpty(), "the provider sees what is in its chest, arms are " + provider.getBlockState());
             helper.succeed();
         });
     }

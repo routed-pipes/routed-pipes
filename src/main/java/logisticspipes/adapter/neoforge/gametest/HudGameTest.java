@@ -18,6 +18,7 @@ import logisticspipes.adapter.minecraft.PipeBlockEntity;
 import logisticspipes.adapter.minecraft.PowerJunctionBlockEntity;
 import logisticspipes.adapter.minecraft.menu.HudSettingsMenu;
 import logisticspipes.adapter.neoforge.LogisticsPipes;
+import logisticspipes.application.RequestOutcome;
 import logisticspipes.domain.hud.HudCategory;
 import logisticspipes.domain.hud.HudElement;
 import logisticspipes.domain.channel.ChannelAccess;
@@ -252,7 +253,11 @@ public class HudGameTest {
         });
 
         helper.assertTrue(panelAt(helper, player, 3) == null, "nothing to show while it waits for nothing");
-        helper.runAfterDelay(SETTLE, () -> helper.assertTrue(request.request(batch(Items.COBBLESTONE, 10)).started(), "the order starts"));
+        helper.runAfterDelay(SETTLE, () -> {
+            RequestOutcome outcome = request.request(batch(Items.COBBLESTONE, 10));
+            helper.assertTrue(outcome.started(), "the order starts, missing " + outcome.missing() + ", powered " + outcome.powered()
+                    + ", connectors " + near.getBlockState() + " " + far.getBlockState());
+        });
         helper.succeedWhen(() -> {
             helper.assertTrue(shownFrom[0] >= 0, "a panel once something came through the chest");
             helper.assertTrue(panelAt(helper, player, 3) == null, "gone two seconds later");
