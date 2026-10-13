@@ -144,7 +144,9 @@ public class StatisticsTableGameTest {
             menu.clickMenuButton(player, StatisticsTableMenu.BUTTON_ADD);
             helper.assertTrue(menu.view() == StatisticsTableMenu.View.ADD && menu.getSlot(list).isActive(), "the add button opens the list");
             helper.assertTrue(menu.getSlot(list).getItem().is(Items.COBBLESTONE) && RequestMenu.listedCount(menu.getSlot(list).getItem()) == 64
-                    && menu.getSlot(list + 1).getItem().is(Items.DIAMOND), "which has what the network has");
+                    && menu.getSlot(list + 1).getItem().is(Items.DIAMOND), "which has what the network has, got "
+                    + menu.getSlot(list).getItem() + " and " + menu.getSlot(list + 1).getItem() + ", the pipe has "
+                    + ((PipeBlockEntity) helper.getBlockEntity(PIPE)).amounts());
             menu.setText(StatisticsTableMenu.TEXT_SEARCH, "diam");
             helper.assertTrue(menu.getSlot(list).getItem().is(Items.DIAMOND) && menu.getSlot(list + 1).getItem().isEmpty(),
                     "and can be searched");

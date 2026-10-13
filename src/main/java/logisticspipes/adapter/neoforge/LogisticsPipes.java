@@ -80,6 +80,7 @@ import logisticspipes.adapter.minecraft.menu.UpgradeMenu;
 import logisticspipes.adapter.neoforge.benchmark.Benchmark;
 import logisticspipes.adapter.neoforge.gametest.TestBattery;
 import logisticspipes.adapter.neoforge.gametest.TestTank;
+import logisticspipes.adapter.neoforge.gametest.TestsWaitForTicking;
 import logisticspipes.domain.logistics.ModuleKind;
 import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.domain.tube.TubeKind;
@@ -492,6 +493,7 @@ public class LogisticsPipes {
         GuideBookGift.register(modEventBus);
         ComputerCraftSupport.registerIfInstalled(modEventBus);
         Benchmark.registerIfRequested();
+        TestsWaitForTicking.register();
     }
 
     public static LogisticsPipeBlock pipe(PipeKind kind) {
