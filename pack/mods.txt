@@ -24,6 +24,7 @@ dimensionaldoors
 # not on Modrinth: curseforge <name> <project id> <file id>, pinned by hand
 curseforge projecte 226410 6611984
 curseforge iron-chests 228756 5491156
+curseforge configured 457570 7276577
 
 # fits beside them
 draconic-evolution

@@ -223,6 +223,9 @@ public class CompatGameTest {
             tests.add(test("compat.fills_tank.enderstorage.ender_tank",
                     helper -> fillsTank(helper, block("enderstorage:ender_tank")), 400));
         }
+        if (has("bigreactors:basic_reactorfuelrod") && has("mekanism:uranium_ore")) {
+            tests.add(test("compat.pack.mekanism_uranium_is_reactor_fuel", CompatGameTest::mekanismUraniumIsReactorFuel));
+        }
         if (ModList.get().isLoaded("jei")) {
             tests.add(test("compat.jei.table_transfer_links_and_reports", CompatGameTest::jeiTableTransferLinksAndReports));
         }
@@ -498,6 +501,22 @@ public class CompatGameTest {
             helper.assertTrue(arrived.countItem(Items.COBBLESTONE) == 10, "the chest of the request pipe holds "
                     + arrived.countItem(Items.COBBLESTONE) + ", the far connector still waits for " + far.connector().expected());
         });
+    }
+
+    // the play pack turns off the ore of Extreme Reactors, so its reactors have to burn the uranium of Mekanism
+    private static void mekanismUraniumIsReactorFuel(GameTestHelper helper) {
+        try {
+            Method fuelOf = Class.forName("it.zerono.mods.extremereactors.api.reactor.ReactantMappingsRegistry")
+                    .getMethod("getFromSolid", ItemStack.class);
+            for (String id : List.of("mekanism:ingot_uranium", "bigreactors:yellorium_ingot")) {
+                helper.assertTrue(BuiltInRegistries.ITEM.containsKey(ResourceLocation.parse(id)), "no item " + id);
+                Object fuel = fuelOf.invoke(null, new ItemStack(item(id)));
+                helper.assertTrue(((java.util.Optional<?>) fuel).isPresent(), id + " is not reactor fuel");
+            }
+        } catch (ReflectiveOperationException e) {
+            helper.fail("could not ask Extreme Reactors: " + e);
+        }
+        helper.succeed();
     }
 
     private static void supplierPipeChargesElectricMotor(GameTestHelper helper) {

@@ -72,4 +72,5 @@ dependencies {
     packMods 'maven.modrinth:zerocore:6AlNHOWo'
     packMods 'curse.maven:projecte-226410:6611984'
     packMods 'curse.maven:iron-chests-228756:5491156'
+    packMods 'curse.maven:configured-457570:7276577'
 }
