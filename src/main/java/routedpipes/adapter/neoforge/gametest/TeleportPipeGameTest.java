@@ -17,6 +17,7 @@ import routedpipes.domain.channel.ChannelAccess;
 import routedpipes.domain.hud.HudCategory;
 import routedpipes.domain.hud.HudSource;
 import routedpipes.domain.logistics.PipeKind;
+import routedpipes.domain.logistics.UpgradeKind;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -25,6 +26,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
+import net.neoforged.neoforge.energy.EnergyStorage;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
@@ -241,5 +243,24 @@ public class TeleportPipeGameTest {
 
         helper.assertTrue(crafted.is(RoutedPipes.pipe(PipeKind.TELEPORT).asItem()) && crafted.getCount() == 1, "got " + crafted);
         helper.succeed();
+    }
+
+    // energy for machines takes the same way: provider, a pipe that passes it on, the teleport pair, the pipe that supplies
+    @GameTest(template = EMPTY)
+    public static void energyOfAPowerProviderCrossesATeleportPair(GameTestHelper helper) {
+        GameTestPower.supply(helper);
+        GameTestPower.provider(helper, new BlockPos(0, 2, 1), 1_000_000);
+        PowerSupplierGameTest.pipe(helper, new BlockPos(0, 1, 1), UpgradeKind.POWER_TRANSPORTATION);
+        UUID channel = channel(helper);
+        for (int x : new int[] {1, 4}) {
+            PipeBlockEntity teleport = pipe(helper, PipeKind.TELEPORT, x);
+            teleport.installUpgrade(new ItemStack(RoutedPipes.UPGRADES.get(UpgradeKind.POWER_TRANSPORTATION).get()));
+            teleport.connector().setChannel(channel);
+        }
+        BlockPos last = new BlockPos(5, 1, 1);
+        PowerSupplierGameTest.pipe(helper, last, UpgradeKind.POWER_SUPPLIER_RF);
+        EnergyStorage battery = TestBattery.place(helper, last.above(), 30_000);
+
+        helper.succeedWhen(() -> helper.assertTrue(battery.getEnergyStored() == 30_000, "the battery holds " + battery.getEnergyStored()));
     }
 }

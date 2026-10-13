@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import routedpipes.domain.logistics.FirewallRule;
 import routedpipes.domain.logistics.PipeKind;
@@ -200,6 +201,59 @@ class SubSystemPowerTest {
     }
 
     // routed for items, but the pipes between them make a turn
+    // provider at west, then a teleport pair, then the pipe that wants the energy at east
+    private FakePowerNode.Provider acrossAPair(boolean direct) {
+        FakePowerNode.Provider provider = provider(add(WEST), 1_000_000);
+        add(MIDDLE, PipeKind.TELEPORT);
+        add(DETOUR, PipeKind.TELEPORT);
+        add(EAST);
+        nodes.get(EAST).power = 1000;
+        power.updateStraightLinks(WEST, Set.of(MIDDLE));
+        power.updateStraightLinks(MIDDLE, Set.of(WEST));
+        power.updateStraightLinks(DETOUR, Set.of(EAST));
+        power.updateStraightLinks(EAST, Set.of(DETOUR));
+        UUID channel = UUID.randomUUID();
+        if (direct) {
+            network.setDirectConnector(MIDDLE, channel, Side.UP, 0, BUILT);
+            network.setDirectConnector(DETOUR, channel, Side.UP, 0, BUILT);
+        } else {
+            network.setConnector(MIDDLE, channel, Side.UP, 0, BUILT);
+            network.setConnector(DETOUR, channel, Side.UP, 0, BUILT);
+        }
+        return provider;
+    }
+
+    @Test
+    void energyCrossesATeleportLink() {
+        FakePowerNode.Provider provider = acrossAPair(true);
+
+        power.refill(EAST, 10_000);
+
+        assertThat(provider.destinations).containsExactly(EAST);
+        assertThat(power.deliver(List.of(WEST), EAST, 10_000)).isTrue();
+    }
+
+    @Test
+    void aTeleportPipeThatDoesNotLetItPassStopsTheEnergy() {
+        FakePowerNode.Provider provider = acrossAPair(true);
+        ((FakePowerNode) nodes.get(DETOUR).subSystemPower).passes = false;
+
+        power.refill(EAST, 10_000);
+
+        assertThat(provider.amounts).isEmpty();
+        assertThat(power.deliver(List.of(WEST), EAST, 10_000)).isFalse();
+    }
+
+    @Test
+    void energyDoesNotCrossAnInventoryConnector() {
+        FakePowerNode.Provider provider = acrossAPair(false);
+
+        power.refill(EAST, 10_000);
+
+        assertThat(provider.amounts).isEmpty();
+        assertThat(power.deliver(List.of(WEST), EAST, 10_000)).isFalse();
+    }
+
     @Test
     void energyDoesNotGoRoundCorners() {
         FakePowerNode.Provider provider = provider(add(WEST), 1_000_000);

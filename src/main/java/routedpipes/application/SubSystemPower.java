@@ -20,7 +20,7 @@ import routedpipes.domain.routing.RouterId;
 
 // the energy of power providers on its way to the pipes that feed machines with it
 // it is not the energy the network itself runs on, that comes from the junctions
-// it only goes from routed pipe to routed pipe in a straight line, and only through pipes that let it pass
+// it only goes from routed pipe to routed pipe in a straight line or across teleport pipes, and only through pipes that let it pass
 public final class SubSystemPower {
 
     private final LogisticsNetwork network;
@@ -65,7 +65,10 @@ public final class SubSystemPower {
             if (stops(from)) {
                 continue;
             }
-            for (RouterId to : straight.getOrDefault(from, Set.of())) {
+            List<RouterId> onwards = new ArrayList<>(straight.getOrDefault(from, Set.of()));
+            // a teleport pipe passes it on to the others on its channel as if they were next to it
+            onwards.addAll(network.teleportPartners(from));
+            for (RouterId to : onwards) {
                 if (passes(to) && seen.add(to)) {
                     found.add(to);
                 }

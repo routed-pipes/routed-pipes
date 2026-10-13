@@ -197,6 +197,11 @@ public final class LogisticsNetwork {
         return fluids;
     }
 
+    // the teleport pipes on the channel of this one, none for any other router
+    List<RouterId> teleportPartners(RouterId id) {
+        return connectors.directLinksOf(id).stream().map(Link::target).toList();
+    }
+
     public SubSystemPower subSystemPower() {
         return subSystemPower;
     }

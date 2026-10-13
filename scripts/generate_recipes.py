@@ -98,7 +98,8 @@ MODULE_ADVANCED_4 = ["chip_basic P chip_basic", "blaze_powder chip_advanced blaz
 # routed pipes are turned back into the basic pipe of their kind, a module on its own loses its settings
 ITEM_PIPES = ["provider_pipe", "request_pipe", "request_pipe_mk2", "supplier_pipe", "crafting_pipe", "satellite_pipe",
               "firewall_pipe", "chassis_pipe_mk1", "chassis_pipe_mk2", "chassis_pipe_mk3", "chassis_pipe_mk4",
-              "chassis_pipe_mk5", "inventory_system_connector_pipe", "system_entrance_pipe", "system_destination_pipe"]
+              "chassis_pipe_mk5", "inventory_system_connector_pipe", "system_entrance_pipe", "system_destination_pipe",
+              "void_pipe", "teleport_pipe"]
 FLUID_PIPES = ["fluid_insertion_pipe", "fluid_extractor_pipe", "fluid_provider_pipe", "fluid_terminus_pipe",
                "fluid_request_pipe", "fluid_satellite_pipe", "fluid_supplier_pipe", "fluid_container_supplier_pipe"]
 MODULES_WITH_SETTINGS = ["item_sink", "provider", "terminus", "passive_supplier", "advanced_extractor", "mod_item_sink",

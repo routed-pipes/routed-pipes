@@ -149,6 +149,8 @@ public class RecipeGameTest {
     public static void routedPipesAreTurnedBackIntoBasicPipes(GameTestHelper helper) {
         helper.assertTrue(crafted(helper, 1, 1, item("request_pipe_mk2")).is(item("basic_logistics_pipe")), "a request pipe mk2");
         helper.assertTrue(crafted(helper, 1, 1, item("chassis_pipe_mk5")).is(item("basic_logistics_pipe")), "a chassis pipe");
+        helper.assertTrue(crafted(helper, 1, 1, item("void_pipe")).is(item("basic_logistics_pipe")), "a void pipe");
+        helper.assertTrue(crafted(helper, 1, 1, item("teleport_pipe")).is(item("basic_logistics_pipe")), "a teleport pipe");
         helper.assertTrue(crafted(helper, 1, 1, item("fluid_supplier_pipe")).is(item("fluid_basic_pipe")), "a fluid supplier pipe");
         helper.assertTrue(crafted(helper, 1, 1, item("basic_logistics_pipe")).isEmpty()
                 && crafted(helper, 1, 1, item("fluid_basic_pipe")).isEmpty()
