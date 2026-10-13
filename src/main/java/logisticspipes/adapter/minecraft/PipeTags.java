@@ -90,6 +90,8 @@ final class PipeTags {
             }
             entry.putInt("Count", order.batch().count());
             entry.putLong("Since", order.since());
+            entry.putLong("Placed", order.placed());
+            entry.putLong("Request", order.request());
             orders.add(entry);
         }
         return orders;
@@ -196,7 +198,10 @@ final class PipeTags {
             ItemStack.parse(registries, entry.getCompound("Stack")).filter(stack -> !stack.isEmpty())
                     .ifPresent(stack -> outputOrders.add(new OutputOrder(
                             entry.hasUUID("Destination") ? new RouterId(entry.getUUID("Destination")) : null,
-                            new ItemBatch(orderedType(stack, entry.getInt("Fuzzy")), entry.getInt("Count")), entry.getLong("Since"))));
+                            new ItemBatch(orderedType(stack, entry.getInt("Fuzzy")), entry.getInt("Count")), entry.getLong("Since"),
+                            // worlds from before orders stood in line go by when they last made progress
+                            entry.contains("Placed") ? entry.getLong("Placed") : entry.getLong("Since") * OutputOrder.PLACED_PER_TICK,
+                            entry.getLong("Request"))));
         }
     }
 

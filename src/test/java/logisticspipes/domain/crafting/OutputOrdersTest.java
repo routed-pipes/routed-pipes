@@ -17,7 +17,8 @@ class OutputOrdersTest {
         orders.add(new OutputOrder(router(1), batch("ingot", 8)));
 
         orders.ship(50, PATIENCE, order -> 3);
-        assertThat(orders.all()).containsExactly(new OutputOrder(router(1), batch("ingot", 5), 50));
+        assertThat(orders.all()).usingRecursiveFieldByFieldElementComparatorIgnoringFields("placed", "request")
+                .containsExactly(new OutputOrder(router(1), batch("ingot", 5), 50));
 
         orders.ship(60, PATIENCE, order -> 5);
         assertThat(orders.isEmpty()).isTrue();
@@ -41,7 +42,8 @@ class OutputOrdersTest {
         orders.ship(50, PATIENCE, order -> order.destination().equals(router(2)) ? 4 : 0);
 
         // the crafter made progress, so the order still waiting is not stale either
-        assertThat(orders.all()).containsExactly(new OutputOrder(router(1), batch("ingot", 2), 50));
+        assertThat(orders.all()).usingRecursiveFieldByFieldElementComparatorIgnoringFields("placed", "request")
+                .containsExactly(new OutputOrder(router(1), batch("ingot", 2), 50));
     }
 
     @Test

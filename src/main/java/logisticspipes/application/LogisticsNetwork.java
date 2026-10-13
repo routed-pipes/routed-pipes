@@ -112,6 +112,25 @@ public final class LogisticsNetwork {
     private record NoRoom(long until, int minPriority, Set<RouterId> notAsked) {
     }
 
+    private long stampedAt = Long.MIN_VALUE;
+    private int stamped;
+
+    // one recipe of one crafter
+    private record Station(RouterId crafter, ItemType output) {
+    }
+
+    // the recipes of a group of connected routers as the machines see them
+    private static final class Stations {
+        // what is delivered to a router for which recipe: its own part at the crafter, the rest at its satellites
+        private final Map<RouterId, Map<Station, List<ItemType>>> deliveredTo = new HashMap<>();
+        // the inventories a recipe puts its ingredients into
+        private final Map<Station, Set<InventoryRef>> machine = new HashMap<>();
+        private final Map<InventoryRef, Set<Station>> working = new HashMap<>();
+    }
+
+    // worked out when an ingredient arrives somewhere, dropped when settings, inventories or the network change
+    private final Map<Integer, Stations> stations = new HashMap<>();
+
     // when storage is full every extractor and every item waiting in a pipe would ask every sink again and again
     static final int NO_ROOM_TICKS = 40;
     private final Map<Integer, Map<ItemType, NoRoom>> noRoom = new HashMap<>();
@@ -216,6 +235,7 @@ public final class LogisticsNetwork {
             }
         }
         lastChangeAnywhere = now;
+        stations.clear();
         nodes.remove(id);
         routing.remove(id);
         links.remove(id);
@@ -292,6 +312,7 @@ public final class LogisticsNetwork {
     }
 
     private void changed(RouterId id, long now) {
+        stations.clear();
         changedAt.put(id, now);
         lastChangeAnywhere = now;
     }
@@ -366,6 +387,7 @@ public final class LogisticsNetwork {
     public void sinksChanged(RouterId id) {
         forgetReaches();
         noRoom.clear();
+        stations.clear();
         indexSinks(id);
     }
 
@@ -484,6 +506,11 @@ public final class LogisticsNetwork {
                     item.abandon();
                     return Optional.empty();
                 }
+                if (node != null && !itsTurn(at, item.batch().type())) {
+                    // the machine is busy with another recipe, what is for this one waits in the pipe
+                    item.stayPatient();
+                    return Optional.empty();
+                }
                 // an ordered item may go back where it came from: a pipe crafting an ingredient of its own other recipe
                 // takes it out of the machine and puts it in again
                 Optional<Side> side = node == null ? Optional.empty()
@@ -536,6 +563,85 @@ public final class LogisticsNetwork {
         expectCapped(claim.get(), item.batch(), now);
         item.routeTo(claim.get().router());
         return exitTowards(at, claim.get().router(), item);
+    }
+
+    // a machine with several recipes works on one of them at a time, the one that was ordered first
+    // what arrives for another recipe would only get in its way, like the wrong ingredient in the one slot of a brewing stand
+    // true for everything that is not an ingredient delivered here, and for a recipe that has its machine to itself
+    private boolean itsTurn(RouterId at, ItemType type) {
+        OptionalInt group = routing.component(at);
+        if (group.isEmpty()) {
+            return true;
+        }
+        Stations known = stations.get(group.getAsInt());
+        if (known == null) {
+            known = stationsAround(at);
+            stations.put(group.getAsInt(), known);
+        }
+        boolean ingredient = false;
+        for (Map.Entry<Station, List<ItemType>> delivered : known.deliveredTo.getOrDefault(at, Map.of()).entrySet()) {
+            if (delivered.getValue().stream().anyMatch(input -> input.accepts(type))) {
+                if (firstInLine(known, delivered.getKey())) {
+                    return true;
+                }
+                ingredient = true;
+            }
+        }
+        return !ingredient;
+    }
+
+    // whether no other recipe on any of its inventories was ordered before this one
+    // a recipe nobody is waiting for, like one whose order was cancelled, gets in when the machine has nothing else to do
+    private boolean firstInLine(Stations known, Station station) {
+        long own = placed(station);
+        for (InventoryRef inventory : known.machine.get(station)) {
+            for (Station other : known.working.get(inventory)) {
+                if (!other.equals(station) && placed(other) < own) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private long placed(Station station) {
+        RouterNode crafter = nodes.get(station.crafter());
+        return crafter == null ? Long.MAX_VALUE : crafter.outputOrders().firstPlaced(station.output()).orElse(Long.MAX_VALUE);
+    }
+
+    private Stations stationsAround(RouterId at) {
+        Stations found = new Stations();
+        List<RouterId> members = routing.members(at);
+        Map<String, List<RouterId>> satellites = new HashMap<>();
+        for (RouterId id : members) {
+            RouterNode node = nodes.get(id);
+            if (node.kind() == PipeKind.SATELLITE && !node.satelliteName().isEmpty()) {
+                satellites.computeIfAbsent(node.satelliteName(), key -> new ArrayList<>()).add(id);
+            }
+        }
+        for (RouterId id : members) {
+            RouterNode node = nodes.get(id);
+            for (CraftingSetup craft : node.crafts()) {
+                Station station = new Station(id, craft.recipe().output().type());
+                Set<InventoryRef> machine = found.machine.computeIfAbsent(station, key -> new HashSet<>());
+                machine.addAll(node.inventories().values());
+                Map<ItemType, Integer> own = new LinkedHashMap<>(craft.recipe().inputTotals());
+                craft.bySatellite().forEach((name, inputs) -> {
+                    List<ItemType> types = inputs.stream().map(ItemBatch::type).toList();
+                    inputs.forEach(input -> own.computeIfPresent(input.type(), (type, count) -> count > input.count() ? count - input.count() : null));
+                    // which of the satellites with that name gets them depends on who orders, so all of them count
+                    for (RouterId satellite : satellites.getOrDefault(name, List.of())) {
+                        found.deliveredTo.computeIfAbsent(satellite, key -> new HashMap<>())
+                                .computeIfAbsent(station, key -> new ArrayList<>()).addAll(types);
+                        machine.addAll(nodes.get(satellite).inventories().values());
+                    }
+                });
+                found.deliveredTo.computeIfAbsent(id, key -> new HashMap<>())
+                        .computeIfAbsent(station, key -> new ArrayList<>()).addAll(own.keySet());
+                machine.forEach(inventory -> found.working.computeIfAbsent(inventory, key -> new HashSet<>()).add(station));
+            }
+        }
+        return found;
     }
 
     // a system entrance sends what has no destination to the nearest destination pipe with the same frequency card
@@ -994,6 +1100,7 @@ public final class LogisticsNetwork {
     public void inventoriesChanged() {
         forgetReaches();
         noRoom.clear();
+        stations.clear();
     }
 
     // items were taken out of the inventory of a router: if it is a sink, it may have room again
@@ -1040,8 +1147,18 @@ public final class LogisticsNetwork {
                 .anyMatch(id -> passes(at, id, FirewallRule::blockPower) && nodes.get(id).drawPower(1, true) > 0));
     }
 
+    // a number no other order has, later orders get higher ones, also after the world was saved and loaded
+    private long stamp(long now) {
+        if (stampedAt != now) {
+            stampedAt = now;
+            stamped = 0;
+        }
+        return now * OutputOrder.PLACED_PER_TICK + stamped++;
+    }
+
     private void execute(RequestPlan plan, FluidIngredients fluidIngredients, long now) {
         forgetReaches();
+        long request = stamp(now);
         // what a provider could not hand out after all, its inventory changed since the plan was made
         List<Provision> shortfalls = new ArrayList<>();
         for (Provision provision : plan.provisions()) {
@@ -1083,7 +1200,8 @@ public final class LogisticsNetwork {
             if (crafter == null) {
                 continue;
             }
-            crafter.outputOrders().add(new OutputOrder(craft.destination(), craft.output(), now));
+            // the parts of a thing come before the thing in a plan, so they are also first in line at a machine
+            crafter.outputOrders().add(new OutputOrder(craft.destination(), craft.output(), now, stamp(now), request));
             // what else comes out with every run is expected too, and sent off as it appears
             for (CraftingSetup setup : crafter.crafts()) {
                 if (setup.recipe().output().type().equals(craft.output().type()) && setup.byproduct().isPresent()) {

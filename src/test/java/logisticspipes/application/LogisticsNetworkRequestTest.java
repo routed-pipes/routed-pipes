@@ -133,7 +133,8 @@ class LogisticsNetworkRequestTest {
 
         assertThat(plan.started()).isTrue();
         assertThat(provider.shipments).containsExactly(new Shipment(batch("log", 2), CRAFTING));
-        assertThat(crafting.outputOrders.all()).containsExactly(new OutputOrder(REQUEST, batch("planks", 8)));
+        assertThat(crafting.outputOrders.all()).usingRecursiveFieldByFieldElementComparatorIgnoringFields("placed", "request")
+                .containsExactly(new OutputOrder(REQUEST, batch("planks", 8)));
     }
 
     @Test
@@ -149,7 +150,8 @@ class LogisticsNetworkRequestTest {
         crafting.stock("planks", 6);
         network.tick(CRAFTING, 40);
         assertThat(crafting.shipments).containsExactly(new Shipment(batch("planks", 6), REQUEST));
-        assertThat(crafting.outputOrders.all()).containsExactly(new OutputOrder(REQUEST, batch("planks", 2), 40));
+        assertThat(crafting.outputOrders.all()).usingRecursiveFieldByFieldElementComparatorIgnoringFields("placed", "request")
+                .containsExactly(new OutputOrder(REQUEST, batch("planks", 2), 40));
 
         crafting.stock("planks", 6);
         network.tick(CRAFTING, 60);

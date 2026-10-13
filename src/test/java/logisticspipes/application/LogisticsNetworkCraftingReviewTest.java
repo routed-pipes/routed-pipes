@@ -153,6 +153,7 @@ class LogisticsNetworkCraftingReviewTest {
         network.tick(SUPPLIER, later);
 
         assertThat(crafting.outputOrders.all()).as("the crafter still owes the other half")
+                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("placed", "request")
                 .containsExactly(new OutputOrder(SUPPLIER, batch("planks", 16), half));
         assertThat(provider.shipments).as("the logs for it went out once").containsExactly(new Shipment(batch("log", 32), CRAFTING));
     }

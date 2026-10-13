@@ -5,6 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.OptionalLong;
 import java.util.function.ToIntFunction;
 
 import logisticspipes.domain.item.ItemBatch;
@@ -48,6 +49,19 @@ public final class OutputOrders {
         return orders.stream().mapToInt(order -> order.batch().count()).sum();
     }
 
+    // when the oldest order for that item that is still open was placed, empty if there is none
+    public OptionalLong firstPlaced(ItemType type) {
+        return orders.stream().filter(order -> !order.isExtra() && order.batch().type().equals(type))
+                .mapToLong(OutputOrder::placed).min();
+    }
+
+    // drops everything that was ordered with that request, returns what was dropped
+    public List<OutputOrder> cancel(long request) {
+        List<OutputOrder> cancelled = orders.stream().filter(order -> order.request() == request).toList();
+        orders.removeAll(cancelled);
+        return cancelled;
+    }
+
     // offers every order to the shipper, which says how many items it managed to send, true if any items went out
     // an order is dropped when the crafter made no progress at all for the given time, its ingredients were probably lost
     // an order waiting behind another one for the same item is not stale while the crafter keeps delivering
@@ -65,11 +79,11 @@ public final class OutputOrders {
             if (left <= 0) {
                 iterator.remove();
             } else if (left < order.batch().count()) {
-                iterator.set(new OutputOrder(order.destination(), new ItemBatch(order.batch().type(), left), now));
+                iterator.set(order.left(left, now));
             }
         }
         if (progress) {
-            orders.replaceAll(order -> new OutputOrder(order.destination(), order.batch(), now));
+            orders.replaceAll(order -> order.left(order.batch().count(), now));
         }
         return progress;
     }
