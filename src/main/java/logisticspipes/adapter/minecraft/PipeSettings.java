@@ -31,6 +31,10 @@ import logisticspipes.domain.logistics.SupplyMode;
 import logisticspipes.domain.logistics.UpgradeKind;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.inventory.ContainerData;
@@ -146,6 +150,29 @@ final class PipeSettings {
 
     void setSlotSatellite(int slot, String name) {
         slotSatellites[slot] = SatelliteName.clean(name);
+        pipe.settingsChanged();
+    }
+
+    // what a settings copier takes along besides the markers and the plain switches
+    CompoundTag copyPerSlot() {
+        CompoundTag tag = new CompoundTag();
+        tag.putInt("Priority", priority);
+        ListTag names = new ListTag();
+        for (String name : slotSatellites) {
+            names.add(StringTag.valueOf(name));
+        }
+        tag.put("SlotSatellites", names);
+        tag.put("SlotSettings", slotSettings.save());
+        return tag;
+    }
+
+    void pastePerSlot(CompoundTag tag) {
+        priority = tag.getInt("Priority");
+        ListTag names = tag.getList("SlotSatellites", Tag.TAG_STRING);
+        for (int slot = 0; slot < slotSatellites.length && slot < names.size(); slot++) {
+            slotSatellites[slot] = SatelliteName.clean(names.getString(slot));
+        }
+        slotSettings.load(tag.getCompound("SlotSettings"));
         pipe.settingsChanged();
     }
 

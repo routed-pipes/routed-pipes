@@ -440,6 +440,14 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
 
     // no questions asked, a name a player types goes through satelliteSettings
     // like typing it in the screen: a satellite only takes a name no other satellite in reach has, false if refused
+    CompoundTag copyPerSlotSettings() {
+        return settings.copyPerSlot();
+    }
+
+    void pastePerSlotSettings(CompoundTag tag) {
+        settings.pastePerSlot(tag);
+    }
+
     public boolean pasteSatelliteName(String name) {
         return settings.pasteSatelliteName(name);
     }

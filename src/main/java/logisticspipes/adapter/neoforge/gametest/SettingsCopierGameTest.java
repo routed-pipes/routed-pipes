@@ -14,7 +14,10 @@ import logisticspipes.domain.logistics.ModuleKind;
 import logisticspipes.domain.logistics.PipeKind;
 import logisticspipes.domain.logistics.ProviderMode;
 import logisticspipes.domain.logistics.ProviderSettings;
+import logisticspipes.domain.item.FuzzyFlags;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -134,6 +137,31 @@ public class SettingsCopierGameTest {
         helper.assertTrue(target.recipe().isPresent() && target.recipe().equals(source.recipe()), "recipe");
         helper.assertTrue(target.satelliteInputs().equals(source.satelliteInputs()), "satellite row");
         helper.assertTrue(storedKeys(player.getMainHandItem()).contains("logisticspipes.settings_copier.satellite"), "tooltip names the satellite");
+        helper.succeed();
+    }
+
+    @GameTest(template = EMPTY)
+    public static void copiesPriorityAndWhatIsSetPerSlot(GameTestHelper helper) {
+        GameTestPower.supply(helper);
+        PipeBlockEntity source = pipe(helper, PipeKind.CRAFTING, 0);
+        source.config().setItem(0, new ItemStack(Items.RAW_IRON, 2));
+        source.config().setItem(PipeBlockEntity.OUTPUT_SLOT, new ItemStack(Items.IRON_INGOT, 2));
+        source.setPriority(3);
+        source.setSlotSatellite(0, "Side");
+        FuzzyFlags flags = new FuzzyFlags(true, false, true, false);
+        source.slotSettings().setFuzzyFlags(0, flags);
+        source.slotSettings().setPatternSlot(0, 4);
+        PipeBlockEntity target = pipe(helper, PipeKind.CRAFTING, 2);
+        TestPlayer player = playerWithCopier(helper);
+
+        use(helper, player, 0, true);
+        use(helper, player, 2, false);
+
+        helper.assertTrue(target.crafts().size() == 1 && target.crafts().get(0).priority() == 3, "priority, got " + target.crafts());
+        CompoundTag saved = target.saveWithoutMetadata(helper.getLevel().registryAccess());
+        helper.assertTrue(saved.getList("SlotSatellites", Tag.TAG_STRING).getString(0).equals("Side"), "the satellite of the first slot");
+        helper.assertTrue(target.slotSettings().fuzzyFlags(0).equals(flags), "fuzzy flags, got " + target.slotSettings().fuzzyFlags(0));
+        helper.assertTrue(target.slotSettings().patternSlot(0) == 4, "pattern slot, got " + target.slotSettings().patternSlot(0));
         helper.succeed();
     }
 

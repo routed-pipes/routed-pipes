@@ -71,6 +71,7 @@ public class SettingsCopierItem extends Item {
         settings.putString("Satellite", pipe.satelliteName());
         settings.putInt("Mode", pipe.mode());
         settings.putBoolean("Exclude", pipe.exclude());
+        settings.put("PerSlot", pipe.copyPerSlotSettings());
         ListTag modules = new ListTag();
         for (int slot = 0; slot < pipe.modules().getContainerSize(); slot++) {
             ItemStack stack = pipe.modules().getItem(slot);
@@ -104,6 +105,10 @@ public class SettingsCopierItem extends Item {
         pipe.pasteSatelliteName(settings.getString("Satellite"));
         pipe.setMode(settings.getInt("Mode"));
         pipe.setExclude(settings.getBoolean("Exclude"));
+        // a copier filled by an older version does not have these
+        if (settings.contains("PerSlot")) {
+            pipe.pastePerSlotSettings(settings.getCompound("PerSlot"));
+        }
         if (pipe.kind() != PipeKind.CHASSIS) {
             return Component.translatable("logisticspipes.settings_copier.pasted");
         }
