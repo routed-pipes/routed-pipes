@@ -59,6 +59,9 @@ configurations {
     compatMods {
         transitive = false
     }
+    packMods {
+        transitive = false
+    }
 }
 
 base {
@@ -146,6 +149,13 @@ neoForge {
             gameDirectory = project.file('run-compat')
             systemProperty 'routedpipes.visualTest', project.file('build/visual-test-compat').absolutePath
             programArguments.addAll '--width', '854', '--height', '480'
+        }
+
+        // the in-game tests with every mod of the play pack installed, to see that the pack loads and the pipes work in it
+        gameTestServerPack {
+            type = "gameTestServer"
+            gameDirectory = project.file('run-pack-check')
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
 
         // the same in-game tests with a set of popular mods installed, plus tests against their blocks
@@ -296,7 +306,7 @@ tasks.named('check').configure {
 
 // a server that crashes while loading mods exits like one whose tests passed, so its output has to say they did
 // the output and not the log file, whose last lines are not always written out when the server stops
-['runGameTestServer', 'runGameTestServerCompat'].each { taskName ->
+['runGameTestServer', 'runGameTestServerCompat', 'runGameTestServerPack'].each { taskName ->
     tasks.matching { it.name == taskName }.configureEach {
         doFirst { task ->
             task.ext.seen = new ByteArrayOutputStream()
@@ -338,11 +348,22 @@ tasks.matching { it.name in ['runGameTestServerCompat', 'runVisualTestCompat'] }
     dependsOn copyCompatMods
 }
 
-// the play pack gets the same mods, copied and not synced so that mods added by hand stay
-def copyPackMods = tasks.register('copyPackMods', Copy) {
-    from configurations.compatMods
+// the play pack has its own list of mods, see pack/mods.txt. The folder is kept the same as the list,
+// so a mod dropped in by hand is gone after the next start, add it to the list instead
+def copyPackMods = tasks.register('copyPackMods', Sync) {
+    from configurations.packMods
     into 'run-pack/mods'
 }
 tasks.matching { it.name == 'runClientPack' }.configureEach {
     dependsOn copyPackMods
 }
+def copyPackCheckMods = tasks.register('copyPackCheckMods', Sync) {
+    from configurations.packMods
+    into 'run-pack-check/mods'
+}
+tasks.matching { it.name == 'runGameTestServerPack' }.configureEach {
+    dependsOn copyPackCheckMods
+}
+
+// the mods of the play pack, pinned by scripts/resolve_pack.py
+apply from: 'pack/mods.gradle'

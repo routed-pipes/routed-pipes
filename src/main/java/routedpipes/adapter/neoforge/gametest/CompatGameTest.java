@@ -7,9 +7,11 @@ import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 import routedpipes.adapter.minecraft.CraftingTableBlockEntity;
+import routedpipes.adapter.minecraft.ChannelRegistry;
 import routedpipes.adapter.minecraft.FluidContainerItem;
 import routedpipes.adapter.minecraft.McFluidType;
 import routedpipes.adapter.minecraft.McItemType;
@@ -21,6 +23,8 @@ import routedpipes.adapter.minecraft.menu.CraftingTableMenu;
 import routedpipes.adapter.minecraft.menu.MenuRequests;
 import routedpipes.adapter.neoforge.CapabilityItemStorage;
 import routedpipes.adapter.neoforge.RoutedPipes;
+import routedpipes.application.RequestOutcome;
+import routedpipes.domain.channel.ChannelAccess;
 import routedpipes.domain.fluid.FluidBatch;
 import routedpipes.domain.logistics.PipeKind;
 import routedpipes.domain.logistics.UpgradeKind;
@@ -84,7 +88,8 @@ public class CompatGameTest {
             "ae2:sky_stone_chest",
             "create:item_vault",
             "create:depot",
-            "create:basin");
+            "create:basin",
+            "immersiveengineering:crate");
 
     @GameTestGenerator
     public static Collection<TestFunction> inventories() {
@@ -208,6 +213,12 @@ public class CompatGameTest {
         }
         if (has("mekanism:basic_universal_cable") && has("createaddition:alternator")) {
             tests.add(test("compat.mekanism.cable_charges_junction", CompatGameTest::mekanismCableChargesJunction, 400));
+        }
+        if (has("enderstorage:ender_chest")) {
+            tests.add(test("compat.enderstorage.ender_chests_join_two_networks", CompatGameTest::enderChestsJoinTwoNetworks, 400));
+            // ender tanks of one colour are one tank, so only one test may use them
+            tests.add(test("compat.fills_tank.enderstorage.ender_tank",
+                    helper -> fillsTank(helper, block("enderstorage:ender_tank")), 400));
         }
         if (ModList.get().isLoaded("jei")) {
             tests.add(test("compat.jei.table_transfer_links_and_reports", CompatGameTest::jeiTableTransferLinksAndReports));
@@ -450,6 +461,40 @@ public class CompatGameTest {
         helper.succeedWhen(() -> helper.assertTrue(junction.stored() > 0 || above.stored() > 0,
                 "no energy arrived, the cables are " + helper.getBlockState(new BlockPos(2, 1, 1)) + " and "
                         + helper.getBlockState(new BlockPos(1, 2, 1))));
+    }
+
+    // what Tekkit players did with ender chests: two bases with no pipe between them, a connector on an ender chest in each
+    // ender chests of one colour are one inventory, so this is the only test that uses them
+    private static void enderChestsJoinTwoNetworks(GameTestHelper helper) {
+        GameTestPower.supply(helper);
+        pipe(helper, PipeKind.PROVIDER, 0);
+        helper.setBlock(new BlockPos(0, 2, 1), Blocks.CHEST);
+        Container stock = helper.getBlockEntity(new BlockPos(0, 2, 1));
+        stock.setItem(0, new ItemStack(Items.COBBLESTONE, 64));
+        PipeBlockEntity near = pipe(helper, PipeKind.INVENTORY_SYSTEM_CONNECTOR, 1);
+        helper.setBlock(new BlockPos(1, 2, 1), block("enderstorage:ender_chest"));
+        PipeBlockEntity far = pipe(helper, PipeKind.INVENTORY_SYSTEM_CONNECTOR, 5);
+        helper.setBlock(new BlockPos(5, 2, 1), block("enderstorage:ender_chest"));
+        PipeBlockEntity request = pipe(helper, PipeKind.REQUEST, 6);
+        BlockPos target = new BlockPos(6, 2, 1);
+        helper.setBlock(target, Blocks.CHEST);
+        // power does not cross a connector, so the other side has its own
+        GameTestPower.junction(helper, new BlockPos(6, 1, 2), PowerJunctionBlockEntity.CAPACITY);
+        UUID channel = ChannelRegistry.of(helper.getLevel()).channels()
+                .create("ender", UUID.randomUUID(), "Tester", ChannelAccess.PRIVATE, null).orElseThrow().id();
+        near.connector().setChannel(channel);
+        far.connector().setChannel(channel);
+
+        helper.runAfterDelay(10, () -> {
+            RequestOutcome outcome = request.request(McItemType.batchOf(new ItemStack(Items.COBBLESTONE, 10)));
+            helper.assertTrue(outcome.started(), "the order across the ender chests starts, missing " + outcome.missing()
+                    + ", connectors " + near.getBlockState() + " and " + far.getBlockState());
+        });
+        helper.succeedWhen(() -> {
+            Container arrived = helper.getBlockEntity(target);
+            helper.assertTrue(arrived.countItem(Items.COBBLESTONE) == 10, "the chest of the request pipe holds "
+                    + arrived.countItem(Items.COBBLESTONE) + ", the far connector still waits for " + far.connector().expected());
+        });
     }
 
     private static void supplierPipeChargesElectricMotor(GameTestHelper helper) {

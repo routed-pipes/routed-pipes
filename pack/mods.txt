@@ -1,0 +1,42 @@
+# The mods of the play pack, one Modrinth slug per line. scripts/resolve_pack.py pins a version of each for
+# NeoForge 1.21.1, adds the libraries they need and writes pack/mods.lock.json and pack/mods.gradle.
+# A Tekkit of today: the old line-up where it still exists, its successors where it does not.
+
+# what Tekkit had
+mekanism
+mekanism-generators
+mekanism-tools
+project-red-core
+project-red-integration
+project-red-transmission
+project-red-illumination
+project-red-expansion
+project-red-fabrication
+project-red-exploration
+cc-tweaked
+railcraft-reborn
+ae2
+ender-storage
+mffs
+industrial-foregoing
+extreme-reactors
+dimensionaldoors
+
+# fits beside them
+create
+createaddition
+immersiveengineering
+powah
+applied-mekanistics
+sophisticated-storage
+sophisticated-backpacks
+storagedrawers
+chunk-loaders
+
+# looking things up and getting around
+jei
+jade
+xaeros-minimap
+xaeros-world-map
+fallingtree
+mouse-tweaks
