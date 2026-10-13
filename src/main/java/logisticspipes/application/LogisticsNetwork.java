@@ -121,6 +121,48 @@ public final class LogisticsNetwork {
     private long powerLookedAt = Long.MIN_VALUE / 2;
     private long powerLookedAfter = Long.MIN_VALUE / 2;
 
+    // what a router can order from: the stock and the crafters within its reach
+    private record Reach(List<Stock> stock, List<Crafter> crafters, FluidIngredients fluids) {
+    }
+
+    // a supplier short of several items asks for each of them in the same tick, and looking into every inventory of
+    // a base for each would add up. kept for one tick, and dropped when items are sent off or the network changes
+    // only for what pipes order on their own, a player asking gets a fresh look every time
+    private final Map<RouterId, Reach> reaches = new HashMap<>();
+    private long reachesAt = Long.MIN_VALUE;
+
+    // what providers hand out, for the same tick, so that several routers asking do not each look into every inventory
+    private final Map<RouterId, Map<ItemType, Integer>> providedNow = new HashMap<>();
+
+    private Reach reach(RouterId requester, long now) {
+        if (!cameShort.isEmpty()) {
+            // ordering again after a provider came short leaves that one out, see stockFor
+            return lookUpReach(requester, false);
+        }
+        if (reachesAt != now) {
+            forgetReaches();
+            reachesAt = now;
+        }
+        Reach reach = reaches.get(requester);
+        if (reach == null) {
+            reach = lookUpReach(requester, true);
+            reaches.put(requester, reach);
+        }
+        return reach;
+    }
+
+    private void forgetReaches() {
+        reaches.clear();
+        providedNow.clear();
+    }
+
+    private Reach lookUpReach(RouterId requester, boolean remember) {
+        FluidIngredients fluidIngredients = fluidIngredients(requester);
+        List<Stock> stock = new ArrayList<>(stockFor(requester, false, remember));
+        stock.addAll(fluidIngredients.stock(fluids.stockFor(requester)));
+        return new Reach(List.copyOf(stock), craftersFor(requester), fluidIngredients);
+    }
+
     public FluidLogistics fluids() {
         return fluids;
     }
@@ -145,6 +187,7 @@ public final class LogisticsNetwork {
             firewalls.add(id);
         }
         detours.clear();
+        forgetReaches();
         powerSourcesOf.clear();
         sinksChanged(id);
         changed(id, now);
@@ -165,6 +208,7 @@ public final class LogisticsNetwork {
         links.remove(id);
         firewalls.remove(id);
         detours.clear();
+        forgetReaches();
         powerSourcesOf.clear();
         wired = null;
         relink(connectors.remove(id), now);
@@ -181,6 +225,7 @@ public final class LogisticsNetwork {
     public void updateLinks(RouterId id, List<Link> links, long now) {
         this.links.put(id, List.copyOf(links));
         detours.clear();
+        forgetReaches();
         powerSourcesOf.clear();
         wired = null;
         if (routing.setLinks(id, withConnectors(id, links))) {
@@ -277,6 +322,7 @@ public final class LogisticsNetwork {
 
     // has to be called whenever what a router takes in changes: its filters, modules or default route
     public void sinksChanged(RouterId id) {
+        forgetReaches();
         forgetSinks(id);
         bulkStorage.forget(id);
         RouterNode node = nodes.get(id);
@@ -655,15 +701,15 @@ public final class LogisticsNetwork {
 
     // like request, but the item itself is crafted even when providers hold it, its ingredients come from wherever
     public RequestOutcome requestCrafted(RouterId requester, ItemBatch wanted, long now) {
+        Reach reach = lookUpReach(requester, false);
         List<Stock> stock = new ArrayList<>();
-        for (Stock entry : stockFor(requester)) {
+        for (Stock entry : reach.stock()) {
             Map<ItemType, Integer> items = new LinkedHashMap<>(entry.items());
             items.remove(wanted.type());
             stock.add(new Stock(entry.provider(), items));
         }
-        FluidIngredients fluidIngredients = fluidIngredients(requester);
-        stock.addAll(fluidIngredients.stock(fluids.stockFor(requester)));
-        RequestPlan plan = new RequestPlanner(stock, craftersFor(requester)).plan(requester, wanted);
+        FluidIngredients fluidIngredients = reach.fluids();
+        RequestPlan plan = new RequestPlanner(stock, reach.crafters()).plan(requester, wanted);
         if (!plan.complete()) {
             return new RequestOutcome(plan, true);
         }
@@ -687,7 +733,7 @@ public final class LogisticsNetwork {
     // how many of each item the network of the router holds for the taking, its own inventory included
     public Map<ItemType, Integer> amounts(RouterId at) {
         Map<ItemType, Integer> amounts = new LinkedHashMap<>();
-        for (Stock stock : stockFor(at, true)) {
+        for (Stock stock : stockFor(at, true, false)) {
             stock.items().forEach((type, count) -> amounts.merge(type, count, Integer::sum));
         }
         return amounts;
@@ -722,31 +768,35 @@ public final class LogisticsNetwork {
                 wanted.add(new ItemBatch(type, missing));
             }
         });
-        return request(requester, wanted, now, 0, false, simulate);
+        return request(requester, wanted, now, 0, false, simulate, false);
     }
 
     // orders several items in one go, all of them or nothing
     public RequestOutcome requestList(RouterId requester, List<ItemBatch> wanted, long now) {
-        return request(requester, wanted, now, 0, false, false);
+        return request(requester, wanted, now, 0, false, false, false);
     }
 
     // what a request would take from stock, craft and cost if it were made now, nothing is ordered and no power is used
     public RequestSummary preview(RouterId requester, ItemBatch wanted, long now) {
-        RequestPlan plan = request(requester, List.of(wanted), now, 0, false, true).plan();
+        RequestPlan plan = request(requester, List.of(wanted), now, 0, false, true, false).plan();
         return RequestSummary.of(plan, ENERGY_PER_PROVIDED_ITEM, ENERGY_PER_CRAFTED_ITEM);
     }
 
     private RequestOutcome request(RouterId requester, ItemBatch wanted, long now, int extraEnergy, boolean partial) {
-        return request(requester, List.of(wanted), now, extraEnergy, partial, false);
+        return request(requester, List.of(wanted), now, extraEnergy, partial, false, false);
+    }
+
+    // what a pipe orders for itself as part of its upkeep, these share one look at the network per tick, see reach
+    private RequestOutcome order(RouterId requester, ItemBatch wanted, long now, boolean partial) {
+        return request(requester, List.of(wanted), now, ENERGY_PER_SUPPLY_ORDER, partial, false, true);
     }
 
     // with partial set, whatever part of the order can be had is started
     private RequestOutcome request(RouterId requester, List<ItemBatch> wanted, long now, int extraEnergy, boolean partial,
-            boolean simulate) {
-        FluidIngredients fluidIngredients = fluidIngredients(requester);
-        List<Stock> stock = new ArrayList<>(stockFor(requester));
-        stock.addAll(fluidIngredients.stock(fluids.stockFor(requester)));
-        RequestPlan plan = new RequestPlanner(stock, craftersFor(requester)).plan(requester, wanted);
+            boolean simulate, boolean shared) {
+        Reach reach = shared ? reach(requester, now) : lookUpReach(requester, false);
+        FluidIngredients fluidIngredients = reach.fluids();
+        RequestPlan plan = new RequestPlanner(reach.stock(), reach.crafters()).plan(requester, wanted);
         boolean nothing = plan.provisions().isEmpty() && plan.crafts().isEmpty();
         if (simulate || !plan.complete() && (!partial || nothing)) {
             return new RequestOutcome(plan, true);
@@ -898,6 +948,7 @@ public final class LogisticsNetwork {
     }
 
     private void execute(RequestPlan plan, FluidIngredients fluidIngredients, long now) {
+        forgetReaches();
         // what a provider could not hand out after all, its inventory changed since the plan was made
         List<Provision> shortfalls = new ArrayList<>();
         for (Provision provision : plan.provisions()) {
@@ -972,6 +1023,7 @@ public final class LogisticsNetwork {
                 if (ready == 0 || !usePower(id, ready * ENERGY_PER_CRAFTED_ITEM)) {
                     return 0;
                 }
+                forgetReaches();
                 return node.send(made, ready, order.destination(),
                         order.isExtra() ? TransportMode.UNCLAIMED : TransportMode.REQUESTED);
             });
@@ -1009,6 +1061,7 @@ public final class LogisticsNetwork {
             if (cleanup.removes(stock.getKey())) {
                 int count = Math.min(CLEANUP_AMOUNT, stock.getValue());
                 if (usePower(id, count * ENERGY_PER_CRAFTED_ITEM)) {
+                    forgetReaches();
                     node.send(stock.getKey(), count, null, TransportMode.UNCLAIMED);
                 }
                 return;
@@ -1023,7 +1076,7 @@ public final class LogisticsNetwork {
             int amount = supply.mode().amount(wanted, contents.getOrDefault(type, 0), pending.expected(id, type, now),
                     node.roomFor(type, SUPPLY_ROOM_CHECK));
             if (amount > 0 && supply.mode().allOrNothing()) {
-                request(id, new ItemBatch(type, amount), now, ENERGY_PER_SUPPLY_ORDER, false);
+                order(id, new ItemBatch(type, amount), now, false);
             } else if (amount > 0) {
                 requestUpTo(id, type, amount, now);
             }
@@ -1034,7 +1087,7 @@ public final class LogisticsNetwork {
     private void supplyPattern(RouterId id, RouterNode node, PatternSupply pattern, long now) {
         for (ItemBatch order : pattern.orders(node.slots(), type -> pending.expected(id, type, now))) {
             if (pattern.mode().allOrNothing()) {
-                request(id, order, now, ENERGY_PER_SUPPLY_ORDER, false);
+                order(id, order, now, false);
             } else {
                 requestUpTo(id, order.type(), order.count(), now);
             }
@@ -1060,6 +1113,7 @@ public final class LogisticsNetwork {
             if (!usePower(id, claim.get().energy() + extraction.energyFor(count))) {
                 return;
             }
+            forgetReaches();
             int sent = node.send(batch.type(), count, claim.get().router(), TransportMode.SORTED);
             expectCapped(claim.get(), new ItemBatch(batch.type(), sent), now);
             itemsLeft -= sent;
@@ -1078,7 +1132,7 @@ public final class LogisticsNetwork {
 
     // like request, but settles for whatever part of the amount can be had
     private void requestUpTo(RouterId requester, ItemType type, int count, long now) {
-        request(requester, new ItemBatch(type, count), now, ENERGY_PER_SUPPLY_ORDER, true);
+        order(requester, new ItemBatch(type, count), now, true);
     }
 
     // nearest first
@@ -1089,11 +1143,12 @@ public final class LogisticsNetwork {
     // what can be ordered right now: the inventories of providers, and finished items in crafting inventories
     // that are not owed to anyone
     private List<Stock> stockFor(RouterId requester) {
-        return stockFor(requester, false);
+        return stockFor(requester, false, false);
     }
 
     // with ownToo what is at the requester itself counts as well, for looking at the network and not ordering from it
-    private List<Stock> stockFor(RouterId requester, boolean ownToo) {
+    // with remember what providers hand out is looked up once for all who ask in this tick, see reach
+    private List<Stock> stockFor(RouterId requester, boolean ownToo, boolean remember) {
         List<Stock> stock = new ArrayList<>();
         // an inventory with two providers on it counts once, and never the requester's own
         Set<InventoryRef> counted = new HashSet<>();
@@ -1125,11 +1180,16 @@ public final class LogisticsNetwork {
                 if (!Collections.disjoint(inventories, counted)) {
                     continue;
                 }
-                Map<ItemType, Integer> provided = new LinkedHashMap<>(node.provided());
-                owedHere(node, inventories, owedAt)
-                        .forEach((type, count) -> provided.computeIfPresent(type, (key, have) -> have > count ? have - count : null));
-                if (!firewalls.isEmpty()) {
-                    provided.keySet().removeIf(type -> !passes(requester, id, rule -> rule.rejects(type)));
+                Map<ItemType, Integer> offered = remember ? providedNow.computeIfAbsent(id, key -> node.provided()) : node.provided();
+                Map<ItemType, Integer> owed = owedHere(node, inventories, owedAt);
+                Map<ItemType, Integer> provided = offered;
+                if (!owed.isEmpty() || !firewalls.isEmpty()) {
+                    Map<ItemType, Integer> left = new LinkedHashMap<>(offered);
+                    owed.forEach((type, count) -> left.computeIfPresent(type, (key, have) -> have > count ? have - count : null));
+                    if (!firewalls.isEmpty()) {
+                        left.keySet().removeIf(type -> !passes(requester, id, rule -> rule.rejects(type)));
+                    }
+                    provided = left;
                 }
                 stock.add(new Stock(id, provided));
                 counted.addAll(inventories);

@@ -24,8 +24,11 @@ public final class RequestPlanner {
     }
 
     private static final class Draft {
-        private final Map<RouterId, Map<ItemType, int[]>> stock = new LinkedHashMap<>();
-        // who holds an item, in the order of the providers, so that taking it does not go through a whole base
+        // every provider once, in the order they are used
+        private List<Stock> stock = List.of();
+        private final Set<RouterId> providers = new HashSet<>();
+        // who still holds how many of an item, looked up when the item is first asked for
+        // most of what a big base holds has nothing to do with one request
         private final Map<ItemType, List<Holding>> holders = new HashMap<>();
         private final List<Provision> provisions = new ArrayList<>();
         private final List<CraftJob> crafts = new ArrayList<>();
@@ -36,14 +39,56 @@ public final class RequestPlanner {
         private boolean cannot;
         private int steps;
 
+        private void fill(List<Stock> entries) {
+            boolean twice = false;
+            for (Stock entry : entries) {
+                twice |= !providers.add(entry.provider());
+            }
+            if (!twice) {
+                stock = entries;
+                return;
+            }
+            // a provider that is listed twice counts once, what is listed later replaces what was listed before
+            Map<RouterId, Map<ItemType, Integer>> merged = new LinkedHashMap<>();
+            for (Stock entry : entries) {
+                merged.computeIfAbsent(entry.provider(), provider -> new LinkedHashMap<>()).putAll(entry.items());
+            }
+            List<Stock> once = new ArrayList<>();
+            merged.forEach((provider, items) -> once.add(new Stock(provider, items)));
+            stock = once;
+        }
+
+        private List<Holding> holders(ItemType type) {
+            List<Holding> known = holders.get(type);
+            if (known == null) {
+                known = new ArrayList<>();
+                for (Stock entry : stock) {
+                    Integer count = entry.items().get(type);
+                    if (count != null) {
+                        known.add(new Holding(entry.provider(), new int[] {count}));
+                    }
+                }
+                holders.put(type, known);
+            }
+            return known;
+        }
+
         // every kind of item some provider still has
         private Set<ItemType> stocked() {
             Set<ItemType> types = new LinkedHashSet<>();
-            stock.values().forEach(items -> items.forEach((type, left) -> {
-                if (left[0] > 0) {
-                    types.add(type);
-                }
-            }));
+            for (Stock entry : stock) {
+                entry.items().forEach((type, count) -> {
+                    int left = count;
+                    for (Holding holding : holders.getOrDefault(type, List.of())) {
+                        if (holding.provider().equals(entry.provider())) {
+                            left = holding.left()[0];
+                        }
+                    }
+                    if (left > 0) {
+                        types.add(type);
+                    }
+                });
+            }
             return types;
         }
 
@@ -55,15 +100,6 @@ public final class RequestPlanner {
             while (undo.size() > mark) {
                 undo.remove(undo.size() - 1).run();
             }
-        }
-
-        private void fill(List<Stock> entries) {
-            for (Stock entry : entries) {
-                Map<ItemType, int[]> held = stock.computeIfAbsent(entry.provider(), provider -> new LinkedHashMap<>());
-                entry.items().forEach((type, count) -> held.computeIfAbsent(type, key -> new int[1])[0] = count);
-            }
-            stock.forEach((provider, held) -> held.forEach((type, left) -> holders.computeIfAbsent(type, key -> new ArrayList<>())
-                    .add(new Holding(provider, left))));
         }
 
         private void take(Holding from, int count, Provision provision) {
@@ -259,7 +295,7 @@ public final class RequestPlanner {
     }
 
     private static boolean onStock(Draft draft, Crafter crafter) {
-        return draft.stock.containsKey(crafter.router()) || crafter.satelliteInputs().keySet().stream().anyMatch(draft.stock::containsKey);
+        return draft.providers.contains(crafter.router()) || crafter.satelliteInputs().keySet().stream().anyMatch(draft.providers::contains);
     }
 
     // plans as many of the wanted runs as there are ingredients for, returns how many that was
@@ -329,7 +365,7 @@ public final class RequestPlanner {
     // returns how many are still needed
     private static int takeFromStock(Draft draft, RouterId destination, ItemType type, int count) {
         int remaining = count;
-        for (Holding holding : draft.holders.getOrDefault(type, List.of())) {
+        for (Holding holding : draft.holders(type)) {
             if (remaining == 0) {
                 break;
             }
