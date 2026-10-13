@@ -294,51 +294,18 @@ tasks.named('check').configure {
     dependsOn 'runGameTestServer'
 }
 
-// a server that crashes while loading mods exits like one whose tests passed, so the log has to say they did
-['runGameTestServer': 'run', 'runGameTestServerCompat': 'run-compat'].each { taskName, directory ->
+// a server that crashes while loading mods exits like one whose tests passed, so its output has to say they did
+// the output and not the log file, whose last lines are not always written out when the server stops
+['runGameTestServer', 'runGameTestServerCompat'].each { taskName ->
     tasks.matching { it.name == taskName }.configureEach {
-        def log = file("${directory}/logs/latest.log")
-        doLast {
-            if (!log.exists() || !(log.text =~ /All \d+ required tests passed/)) {
-                throw new GradleException("The game test server did not report that all tests passed, see ${log}")
+        doFirst { task ->
+            task.ext.seen = new ByteArrayOutputStream()
+            task.standardOutput = new org.apache.tools.ant.util.TeeOutputStream(System.out, task.ext.seen)
+        }
+        doLast { task ->
+            if (!(task.ext.seen.toString() =~ /All \d+ required tests passed/)) {
+                throw new GradleException("The game test server did not report that all tests passed")
             }
         }
     }
-}
-
-// a fresh game directory starts with the accessibility screen, which reads itself out loud
-def quietOptions = tasks.register('quietClientOptions') {
-    def targets = [(file('run/options.txt')): 'onboardAccessibility:false\nnarrator:0\n',
-                   (file('run-compat/options.txt')): 'onboardAccessibility:false\nnarrator:0\nsoundCategory_master:0.0\n',
-                   (file('run-pack/options.txt')): 'onboardAccessibility:false\nnarrator:0\n',
-                   (file('run-visual/options.txt')): 'onboardAccessibility:false\nnarrator:0\nsoundCategory_master:0.0\n']
-    doLast {
-        targets.each { options, content ->
-            if (!options.exists()) {
-                options.parentFile.mkdirs()
-                options.text = content
-            }
-        }
-    }
-}
-tasks.matching { it.name in ['runClient', 'runClientPack', 'runClientBenchmark', 'runVisualTest', 'runVisualTestResume', 'runVisualTestCompat'] }.configureEach {
-    dependsOn quietOptions
-}
-
-// the compatibility run loads the other mods from its own mods folder
-def copyCompatMods = tasks.register('copyCompatMods', Sync) {
-    from configurations.compatMods
-    into 'run-compat/mods'
-}
-tasks.matching { it.name in ['runGameTestServerCompat', 'runVisualTestCompat'] }.configureEach {
-    dependsOn copyCompatMods
-}
-
-// the play pack gets the same mods, copied and not synced so that mods added by hand stay
-def copyPackMods = tasks.register('copyPackMods', Copy) {
-    from configurations.compatMods
-    into 'run-pack/mods'
-}
-tasks.matching { it.name == 'runClientPack' }.configureEach {
-    dependsOn copyPackMods
 }
