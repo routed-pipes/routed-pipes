@@ -106,6 +106,14 @@ public final class LogisticsNetwork {
     private long lastChangeAnywhere = Long.MIN_VALUE;
     private long tablesTick = Long.MIN_VALUE;
     private int tablesThisTick;
+    // nobody in a group of connected routers had room for an item: until when that is believed, how keen a sink had to
+    // be to count, and the sinks that want the item and were not asked or only asked on behalf of one router
+    private record NoRoom(long until, int minPriority, Set<RouterId> notAsked) {
+    }
+
+    // when storage is full every extractor and every item waiting in a pipe would ask every sink again and again
+    static final int NO_ROOM_TICKS = 40;
+    private final Map<Integer, Map<ItemType, NoRoom>> noRoom = new HashMap<>();
     // which routers take which items, so that sorting an item does not have to ask every router of a large base
     private final Map<RouterId, List<SinkRule>> sinkRules = new HashMap<>();
     private final Map<ItemType, Set<RouterId>> sinksByItem = new HashMap<>();
@@ -156,6 +164,12 @@ public final class LogisticsNetwork {
         providedNow.clear();
     }
 
+    // the network or what its sinks take changed
+    private void forgetLooks() {
+        forgetReaches();
+        noRoom.clear();
+    }
+
     private Reach lookUpReach(RouterId requester, boolean remember) {
         FluidIngredients fluidIngredients = fluidIngredients(requester);
         List<Stock> stock = new ArrayList<>(stockFor(requester, false, remember));
@@ -187,7 +201,7 @@ public final class LogisticsNetwork {
             firewalls.add(id);
         }
         detours.clear();
-        forgetReaches();
+        forgetLooks();
         powerSourcesOf.clear();
         sinksChanged(id);
         changed(id, now);
@@ -208,7 +222,7 @@ public final class LogisticsNetwork {
         links.remove(id);
         firewalls.remove(id);
         detours.clear();
-        forgetReaches();
+        forgetLooks();
         powerSourcesOf.clear();
         wired = null;
         relink(connectors.remove(id), now);
@@ -225,7 +239,7 @@ public final class LogisticsNetwork {
     public void updateLinks(RouterId id, List<Link> links, long now) {
         this.links.put(id, List.copyOf(links));
         detours.clear();
-        forgetReaches();
+        forgetLooks();
         powerSourcesOf.clear();
         wired = null;
         if (routing.setLinks(id, withConnectors(id, links))) {
@@ -322,7 +336,7 @@ public final class LogisticsNetwork {
 
     // has to be called whenever what a router takes in changes: its filters, modules or default route
     public void sinksChanged(RouterId id) {
-        forgetReaches();
+        forgetLooks();
         forgetSinks(id);
         bulkStorage.forget(id);
         RouterNode node = nodes.get(id);
@@ -618,15 +632,42 @@ public final class LogisticsNetwork {
         }
         Set<RouterId> candidates = new HashSet<>(sinksForAnything);
         candidates.addAll(sinksByItem.getOrDefault(batch.type(), Set.of()));
-        return claimAmong(candidates, at, batch, origin, mayStay, minPriority, now);
+        // firewalls and bulk storage make the answer depend on who asks, then nothing is remembered
+        OptionalInt group = firewalls.isEmpty() && !bulkStorageAt(at) ? routing.component(at) : OptionalInt.empty();
+        NoRoom known = group.isEmpty() ? null : noRoom.getOrDefault(group.getAsInt(), Map.of()).get(batch.type());
+        if (known != null && (known.until() <= now || minPriority < known.minPriority())) {
+            known = null;
+        }
+        if (known != null) {
+            candidates.retainAll(known.notAsked());
+        }
+        Set<RouterId> notAsked = new HashSet<>();
+        Optional<Claim> claim = claimAmong(candidates, at, batch, origin, mayStay, minPriority, now, notAsked);
+        if (claim.isEmpty() && known == null && group.isPresent()) {
+            Map<ItemType, NoRoom> full = noRoom.computeIfAbsent(group.getAsInt(), key -> new HashMap<>());
+            full.values().removeIf(old -> old.until() <= now);
+            full.put(batch.type(), new NoRoom(now + NO_ROOM_TICKS, minPriority, notAsked));
+        }
+        return claim;
     }
 
     private Optional<Claim> claimAmong(Set<RouterId> candidates, RouterId at, ItemBatch batch, Side origin, boolean mayStay,
             int minPriority, long now) {
+        return claimAmong(candidates, at, batch, origin, mayStay, minPriority, now, new HashSet<>());
+    }
+
+    // notAsked collects the sinks that want the item and were left out or asked in a way that only holds for this router
+    private Optional<Claim> claimAmong(Set<RouterId> candidates, RouterId at, ItemBatch batch, Side origin, boolean mayStay,
+            int minPriority, long now, Set<RouterId> notAsked) {
         Set<InventoryRef> cameFrom = sourceInventories(at, origin, mayStay);
+        OptionalInt group = routing.component(at);
         List<SinkOffer> offers = new ArrayList<>();
         Map<RouterId, SinkBid> bids = new HashMap<>();
         for (RouterId candidate : candidates) {
+            // sinks of other bases in the same world are none of this router's business
+            if (!routing.component(candidate).equals(group)) {
+                continue;
+            }
             Optional<SinkBid> bid = sinkBid(candidate, batch.type(), now);
             if (bid.isEmpty() || bid.get().priority() < minPriority
                     || !passes(at, candidate, rule -> rule.stopsSorted(batch.type()))) {
@@ -638,6 +679,7 @@ public final class LogisticsNetwork {
                 offers.add(new SinkOffer(candidate, bid.get().priority()));
                 bids.put(candidate, bid.get());
             }
+            notAsked.add(candidate);
         }
         // looking into inventories is the expensive part, so only the best candidates are asked, in order
         for (RouterId candidate : DestinationSelector.rank(at, offers, routing.routesFrom(at))) {
@@ -646,6 +688,9 @@ public final class LogisticsNetwork {
                     : nodes.get(candidate).inventoriesAccepting(batch);
             if (!sides.isEmpty()) {
                 return Optional.of(new Claim(candidate, bids.get(candidate).energy(), bids.get(candidate).maxItems()));
+            }
+            if (!candidate.equals(at)) {
+                notAsked.remove(candidate);
             }
         }
         return Optional.empty();
