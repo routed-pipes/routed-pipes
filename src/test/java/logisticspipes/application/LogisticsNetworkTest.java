@@ -317,12 +317,40 @@ class LogisticsNetworkTest {
         line();
         c.inventories.add(Side.UP);
         network.addRouter(router(8), new FakeNode(PipeKind.BASIC), NOW);
+        network.updateLinks(router(8), List.of(new Link(A, Side.UP, 1)), NOW);
         TravellingItem ordered = new TravellingItem(batch("stone", 8), Side.WEST, C);
         ordered.waitForExit();
 
         assertThat(network.chooseExit(B, ordered, NOW)).isEmpty();
         assertThat(ordered.waited()).isZero();
         assertThat(network.chooseExit(B, ordered, NOW + 1)).contains(Side.EAST);
+    }
+
+    @Test
+    void pipesBuiltSomewhereElseDoNotHoldItemsUp() {
+        line();
+        c.inventories.add(Side.UP);
+        network.chooseExit(B, new TravellingItem(batch("stone", 8), Side.WEST, C), NOW - 1);
+        network.addRouter(router(8), new FakeNode(PipeKind.BASIC), NOW);
+        network.addRouter(router(9), new FakeNode(PipeKind.BASIC), NOW);
+        network.updateLinks(router(8), List.of(new Link(router(9), Side.UP, 1)), NOW);
+        network.removeRouter(router(9), NOW);
+
+        assertThat(network.chooseExit(B, new TravellingItem(batch("stone", 8), Side.WEST, C), NOW)).contains(Side.EAST);
+        assertThat(network.routes(B).route(C)).isPresent();
+    }
+
+    @Test
+    void aRouterThatGoesAwayMakesTheOnesItWasConnectedToWaitAndSettle() {
+        line();
+        c.inventories.add(Side.UP);
+        network.chooseExit(B, itemFrom(Side.UP), NOW - 1);
+
+        network.removeRouter(A, NOW);
+
+        assertThat(network.chooseExit(B, itemFrom(Side.UP), NOW)).isEmpty();
+        assertThat(network.chooseExit(B, itemFrom(Side.UP), NOW + 1)).isEmpty();
+        assertThat(network.chooseExit(B, itemFrom(Side.UP), NOW + LogisticsNetwork.SETTLE_TICKS)).contains(Side.EAST);
     }
 
     @Test

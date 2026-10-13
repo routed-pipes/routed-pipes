@@ -101,9 +101,9 @@ public final class LogisticsNetwork {
     private final Map<RouterId, RouterNode> nodes = new HashMap<>();
     private final PendingDeliveries pending = new PendingDeliveries();
     private final Map<RouterId, Long> changedAt = new HashMap<>();
-    // newest change per group of connected routers, worked out when asked and dropped on any change
+    // newest change per group of connected routers, worked out when asked, a group that changes gets a new number
     private final Map<Integer, Long> lastChangeOfComponent = new HashMap<>();
-    private long lastChangeAnywhere = Long.MIN_VALUE;
+    private long settledAt = Long.MIN_VALUE;
     private long tablesTick = Long.MIN_VALUE;
     private int tablesThisTick;
     // nobody in a group of connected routers had room for an item: until when that is believed, how keen a sink had to
@@ -123,11 +123,10 @@ public final class LogisticsNetwork {
     private final SubSystemPower subSystemPower = new SubSystemPower(this);
     // how long the answer to which groups of routers have energy is good for, in ticks
     public static final int POWER_LOOK_INTERVAL = 20;
-    private final Set<Integer> poweredComponents = new HashSet<>();
+    private final Map<Integer, Boolean> poweredComponents = new HashMap<>();
     // the energy stores of every group of connected routers, forgotten when the network changes and with every look
     private final Map<Integer, List<PowerSource>> powerSourcesOf = new HashMap<>();
     private long powerLookedAt = Long.MIN_VALUE / 2;
-    private long powerLookedAfter = Long.MIN_VALUE / 2;
 
     // what a router can order from: the stock and the crafters within its reach
     private record Reach(List<Stock> stock, List<Crafter> crafters, FluidIngredients fluids) {
@@ -164,11 +163,7 @@ public final class LogisticsNetwork {
         providedNow.clear();
     }
 
-    // the network or what its sinks take changed
-    private void forgetLooks() {
-        forgetReaches();
-        noRoom.clear();
-    }
+
 
     private Reach lookUpReach(RouterId requester, boolean remember) {
         FluidIngredients fluidIngredients = fluidIngredients(requester);
@@ -201,20 +196,22 @@ public final class LogisticsNetwork {
             firewalls.add(id);
         }
         detours.clear();
-        forgetLooks();
+        forgetReaches();
         powerSourcesOf.clear();
-        sinksChanged(id);
+        indexSinks(id);
         changed(id, now);
     }
 
     public void removeRouter(RouterId id, long now) {
         // everything that was connected to it has to find its way again
-        OptionalInt component = routing.component(id);
-        if (component.isPresent()) {
-            for (RouterId other : changedAt.keySet()) {
-                if (routing.component(other).equals(component)) {
-                    changedAt.put(other, now);
-                }
+        // when its group is already in pieces from another change in this tick, telling its neighbours does
+        if (routing.stale(id)) {
+            for (Link link : links.getOrDefault(id, List.of())) {
+                changedAt.computeIfPresent(link.target(), (other, before) -> now);
+            }
+        } else {
+            for (RouterId other : routing.members(id)) {
+                changedAt.put(other, now);
             }
         }
         nodes.remove(id);
@@ -222,7 +219,7 @@ public final class LogisticsNetwork {
         links.remove(id);
         firewalls.remove(id);
         detours.clear();
-        forgetLooks();
+        forgetReaches();
         powerSourcesOf.clear();
         wired = null;
         relink(connectors.remove(id), now);
@@ -232,14 +229,12 @@ public final class LogisticsNetwork {
         changedAt.remove(id);
         forgetSinks(id);
         bulkStorage.forget(id);
-        lastChangeOfComponent.clear();
-        lastChangeAnywhere = now;
     }
 
     public void updateLinks(RouterId id, List<Link> links, long now) {
         this.links.put(id, List.copyOf(links));
         detours.clear();
-        forgetLooks();
+        forgetReaches();
         powerSourcesOf.clear();
         wired = null;
         if (routing.setLinks(id, withConnectors(id, links))) {
@@ -296,24 +291,53 @@ public final class LogisticsNetwork {
 
     private void changed(RouterId id, long now) {
         changedAt.put(id, now);
-        lastChangeOfComponent.clear();
-        lastChangeAnywhere = now;
+    }
+
+    // once a tick the groups that changed are put together again, for all of them at once
+    // when a large base loads, hundreds of routers register in one tick, and working out who is connected to whom
+    // after each of them would freeze the game
+    private void catchUp(long now) {
+        if (settledAt != now) {
+            settledAt = now;
+            routing.settle();
+        }
+    }
+
+    // whether something changed in this very tick among the routers this one is connected to, then it waits for the next
+    // pipes being built or loaded somewhere else in the world do not count
+    private boolean unsettled(RouterId at, long now) {
+        return routing.stale(at) || lastChange(at) == now;
+    }
+
+    // the group of a router, empty for one whose group is in pieces right now
+    // for looking at routers all over the world without putting everything together in the tick of a change
+    private OptionalInt group(RouterId id) {
+        return routing.stale(id) ? OptionalInt.empty() : routing.component(id);
+    }
+
+    private long lastChange(RouterId at) {
+        OptionalInt component = routing.component(at);
+        if (component.isEmpty()) {
+            return Long.MIN_VALUE / 2;
+        }
+        Long known = lastChangeOfComponent.get(component.getAsInt());
+        if (known == null) {
+            if (lastChangeOfComponent.size() > 4096) {
+                // groups that are long gone
+                lastChangeOfComponent.clear();
+            }
+            known = Long.MIN_VALUE / 2;
+            for (RouterId member : routing.members(at)) {
+                known = Math.max(known, changedAt.getOrDefault(member, known));
+            }
+            lastChangeOfComponent.put(component.getAsInt(), known);
+        }
+        return known;
     }
 
     // whether the routers this one is connected to are still finding each other
-    // pipes being built or loaded somewhere else in the world do not count
     private boolean settling(RouterId at, long now) {
-        if (now == lastChangeAnywhere) {
-            // when a large base loads, hundreds of routers register in one tick
-            // working out who is connected to whom after each of them would freeze the game, so everyone waits for the next tick
-            return true;
-        }
-        if (lastChangeOfComponent.isEmpty()) {
-            changedAt.forEach((id, when) -> routing.component(id).ifPresent(
-                    component -> lastChangeOfComponent.merge(component, when, Math::max)));
-        }
-        OptionalInt component = routing.component(at);
-        return component.isPresent() && now - lastChangeOfComponent.getOrDefault(component.getAsInt(), Long.MIN_VALUE / 2) < SETTLE_TICKS;
+        return routing.stale(at) || now - lastChange(at) < SETTLE_TICKS;
     }
 
     // after a change every router that passes an item on needs a new route table
@@ -336,7 +360,12 @@ public final class LogisticsNetwork {
 
     // has to be called whenever what a router takes in changes: its filters, modules or default route
     public void sinksChanged(RouterId id) {
-        forgetLooks();
+        forgetReaches();
+        noRoom.clear();
+        indexSinks(id);
+    }
+
+    private void indexSinks(RouterId id) {
         forgetSinks(id);
         bulkStorage.forget(id);
         RouterNode node = nodes.get(id);
@@ -404,12 +433,13 @@ public final class LogisticsNetwork {
         }
         OptionalInt component = routing.component(id);
         return component.isPresent()
-                && bulkStorage.modules().stream().anyMatch(module -> routing.component(module).equals(component));
+                && bulkStorage.modules().stream().anyMatch(module -> group(module).equals(component));
     }
 
     // side an item has to leave the router through, picks a new destination if the current one does not work out
     // empty means there is nowhere to go right now, the pipe asks again for a while before it gives up
     public Optional<Side> chooseExit(RouterId at, TravellingItem item, long now) {
+        catchUp(now);
         Optional<Side> exit = exitFor(at, item, now);
         RouterNode node = nodes.get(at);
         if (node != null) {
@@ -435,8 +465,8 @@ public final class LogisticsNetwork {
 
     private Optional<Side> exitFor(RouterId at, TravellingItem item, long now) {
         RouterNode node = nodes.get(at);
-        if (now == lastChangeAnywhere || !mayRouteFrom(at, now)) {
-            // routes are worked out again next tick, see settling
+        if (unsettled(at, now) || !mayRouteFrom(at, now)) {
+            // routes are worked out again next tick, see catchUp
             item.stayPatient();
             return Optional.empty();
         }
@@ -644,6 +674,8 @@ public final class LogisticsNetwork {
         Set<RouterId> notAsked = new HashSet<>();
         Optional<Claim> claim = claimAmong(candidates, at, batch, origin, mayStay, minPriority, now, notAsked);
         if (claim.isEmpty() && known == null && group.isPresent()) {
+            // groups that changed got a new number, what was known about them goes when it is out of date
+            noRoom.values().removeIf(entries -> entries.values().stream().allMatch(old -> old.until() <= now));
             Map<ItemType, NoRoom> full = noRoom.computeIfAbsent(group.getAsInt(), key -> new HashMap<>());
             full.values().removeIf(old -> old.until() <= now);
             full.put(batch.type(), new NoRoom(now + NO_ROOM_TICKS, minPriority, notAsked));
@@ -665,7 +697,7 @@ public final class LogisticsNetwork {
         Map<RouterId, SinkBid> bids = new HashMap<>();
         for (RouterId candidate : candidates) {
             // sinks of other bases in the same world are none of this router's business
-            if (!routing.component(candidate).equals(group)) {
+            if (!group(candidate).equals(group)) {
                 continue;
             }
             Optional<SinkBid> bid = sinkBid(candidate, batch.type(), now);
@@ -955,32 +987,30 @@ public final class LogisticsNetwork {
     }
 
     // whether the router could use any energy right now, for the look of its pipe
-    // every routed pipe keeps asking, so one walk over all routers answers for all of them until the network
-    // changes or POWER_LOOK_INTERVAL ticks have passed. empty when there is no telling in this tick
+    // every routed pipe keeps asking, so one walk over the routers it is connected to answers for all of them until
+    // they change or POWER_LOOK_INTERVAL ticks have passed. empty when there is no telling in this tick
     public Optional<Boolean> hasPower(RouterId at, long now) {
-        if (now == lastChangeAnywhere) {
-            // routers are still registering, see settling
+        catchUp(now);
+        if (unsettled(at, now)) {
+            // routers are still registering, see catchUp
             return Optional.empty();
         }
         OptionalInt component = routing.component(at);
         if (component.isEmpty()) {
             return Optional.of(false);
         }
-        if (now - powerLookedAt >= POWER_LOOK_INTERVAL || powerLookedAfter != lastChangeAnywhere) {
+        if (now - powerLookedAt >= POWER_LOOK_INTERVAL) {
             poweredComponents.clear();
             powerSourcesOf.clear();
-            nodes.forEach((id, node) -> routing.component(id).ifPresent(group -> {
-                if (!poweredComponents.contains(group) && node.drawPower(1, true) > 0) {
-                    poweredComponents.add(group);
-                }
-            }));
             powerLookedAt = now;
-            powerLookedAfter = lastChangeAnywhere;
         }
-        if (!poweredComponents.contains(component.getAsInt())) {
+        // a group that changes gets a new number, so what is known about a number stays true
+        boolean powered = poweredComponents.computeIfAbsent(component.getAsInt(),
+                key -> routing.members(at).stream().anyMatch(id -> nodes.get(id).drawPower(1, true) > 0));
+        if (!powered) {
             return Optional.of(false);
         }
-        if (firewalls.stream().noneMatch(firewall -> routing.component(firewall).equals(component))
+        if (firewalls.stream().noneMatch(firewall -> group(firewall).equals(component))
                 || nodes.get(at).drawPower(1, true) > 0) {
             return Optional.of(true);
         }
@@ -1052,8 +1082,9 @@ public final class LogisticsNetwork {
     // upkeep of one router, called every tick: crafting pipes ship finished items, suppliers reorder,
     // extractors push items out, each at its own pace
     public void tick(RouterId id, long now) {
+        catchUp(now);
         RouterNode node = nodes.get(id);
-        if (node == null || now == lastChangeAnywhere) {
+        if (node == null || unsettled(id, now)) {
             return;
         }
         // every pipe has its rounds in ticks of its own

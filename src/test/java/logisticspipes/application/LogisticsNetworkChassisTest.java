@@ -131,10 +131,26 @@ class LogisticsNetworkChassisTest {
         chassis.stock("stone", 40);
         store.inventories.add(Side.UP);
         network.addRouter(router(7), new FakeNode(PipeKind.BASIC), NOW);
+        network.updateLinks(router(7), List.of(new Link(STORE, Side.UP, 1)), NOW);
 
         network.tick(CHASSIS, NOW);
 
         assertThat(chassis.shipments).isEmpty();
+    }
+
+    @Test
+    void pipesBuiltSomewhereElseDoNotHoldUpTheUpkeep() {
+        connect();
+        chassis.extractions.add(ExtractionMode.EXTRACTOR);
+        chassis.stock("stone", 40);
+        store.inventories.add(Side.UP);
+        network.addRouter(router(7), new FakeNode(PipeKind.BASIC), NOW);
+        network.addRouter(router(8), new FakeNode(PipeKind.BASIC), NOW);
+        network.updateLinks(router(7), List.of(new Link(router(8), Side.UP, 1)), NOW);
+
+        network.tick(CHASSIS, NOW);
+
+        assertThat(chassis.shipments).hasSize(1);
     }
 
     @Test

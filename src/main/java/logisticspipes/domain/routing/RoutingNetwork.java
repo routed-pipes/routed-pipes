@@ -198,14 +198,17 @@ public final class RoutingNetwork {
     private final Map<RouterId, Island> islandOf = new HashMap<>();
     // routers that belong to no island right now: new ones, and those whose island something changed in
     private final Set<RouterId> loose = new HashSet<>();
-    // a router that comes back, like when its chunk loads, may still be linked to by routers of an island
-    private boolean added;
+    // who links to a router that is not there, like one in a chunk that is not loaded: when it comes back they join it
+    private final Map<RouterId, Set<RouterId>> waitingFor = new HashMap<>();
     private int nextIsland;
 
     public void add(RouterId router) {
         if (links.putIfAbsent(router, List.of()) == null) {
             loose.add(router);
-            added = true;
+            for (RouterId other : waitingFor.getOrDefault(router, Set.of())) {
+                breakUp(islandOf.get(other));
+            }
+            waitingFor.remove(router);
         }
     }
 
@@ -249,28 +252,15 @@ public final class RoutingNetwork {
     }
 
     // whether the router is part of something that changed and has not been put together again
-    // asking for its routes or its component would do that
+    // asking for its routes, its component or its island does that
     public boolean stale(RouterId router) {
         return loose.contains(router);
     }
 
     // puts the loose routers into islands again
-    private void settle() {
+    public void settle() {
         if (loose.isEmpty()) {
             return;
-        }
-        if (added) {
-            List<Island> joined = new ArrayList<>();
-            islandOf.forEach((router, island) -> {
-                for (Link link : links.get(router)) {
-                    if (loose.contains(link.target())) {
-                        joined.add(island);
-                        break;
-                    }
-                }
-            });
-            joined.forEach(this::breakUp);
-            added = false;
         }
         Map<RouterId, List<RouterId>> neighbours = new HashMap<>();
         for (RouterId router : loose) {
@@ -281,6 +271,8 @@ public final class RoutingNetwork {
                 if (loose.contains(link.target())) {
                     neighbours.get(router).add(link.target());
                     neighbours.get(link.target()).add(router);
+                } else if (!links.containsKey(link.target())) {
+                    waitingFor.computeIfAbsent(link.target(), key -> new HashSet<>()).add(router);
                 }
             }
         }
@@ -313,10 +305,23 @@ public final class RoutingNetwork {
         return island != null && island.tables.containsKey(source);
     }
 
+    // what changed elsewhere is left as it is, only a router that is itself part of a change makes everything settle
+    private Island island(RouterId router) {
+        if (loose.contains(router)) {
+            settle();
+        }
+        return islandOf.get(router);
+    }
+
     public RouteTable routesFrom(RouterId source) {
-        settle();
-        Island island = islandOf.get(source);
+        Island island = island(source);
         return island == null ? RouteTable.of(Map.of()) : island.routesFrom(source);
+    }
+
+    // the routers connected to the given one in either direction, itself included, empty for an unknown router
+    public List<RouterId> members(RouterId router) {
+        Island island = island(router);
+        return island == null ? List.of() : List.of(island.ids);
     }
 
     public Optional<Route> route(RouterId from, RouterId to) {
@@ -327,8 +332,7 @@ public final class RoutingNetwork {
     // far cheaper than a route table when all that matters is whether two routers belong together
     // the number stays the same for as long as nothing changes among them
     public OptionalInt component(RouterId router) {
-        settle();
-        Island island = islandOf.get(router);
+        Island island = island(router);
         return island == null ? OptionalInt.empty() : OptionalInt.of(island.number);
     }
 }
