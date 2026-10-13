@@ -12,7 +12,7 @@ PIPES = ["transport_pipe", "basic_logistics_pipe", "provider_pipe", "request_pip
              "fluid_basic_pipe", "fluid_insertion_pipe", "fluid_extractor_pipe", "fluid_provider_pipe", "fluid_terminus_pipe", "fluid_request_pipe", "fluid_satellite_pipe", "fluid_supplier_pipe", "fluid_container_supplier_pipe",
              "system_entrance_pipe", "system_destination_pipe", "void_pipe"]
 # these show on their sides whether they have found the others of their channel, one symbol per state of the block
-CONNECTORS = ["inventory_system_connector_pipe"]
+CONNECTORS = ["inventory_system_connector_pipe", "teleport_pipe"]
 LINKS = ["disconnected", "mismatched", "connected"]
 MODULES = ["module_item_sink", "module_extractor", "module_provider", "module_terminus", "module_passive_supplier",
            "module_polymorphic_item_sink", "module_quick_sort", "module_advanced_extractor", "module_mod_item_sink",

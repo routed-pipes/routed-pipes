@@ -18,7 +18,7 @@ public enum HudCategory {
     public static Optional<HudCategory> of(PipeKind kind) {
         return Optional.ofNullable(switch (kind) {
             case CHASSIS, BASIC, SUPPLIER -> CHASSIS;
-            case INVENTORY_SYSTEM_CONNECTOR -> CONNECTOR;
+            case INVENTORY_SYSTEM_CONNECTOR, TELEPORT -> CONNECTOR;
             case CRAFTING -> CRAFTING;
             case PROVIDER -> PROVIDER;
             case SATELLITE, FLUID_SATELLITE -> SATELLITE;

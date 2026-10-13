@@ -47,7 +47,9 @@ public enum PipeKind {
     // takes what the entrance pipes with its frequency card send
     SYSTEM_DESTINATION,
     // destroys what the network has no other place for
-    VOID;
+    VOID,
+    // joins its network to the ones of the other teleport pipes on its channel, with nothing in between
+    TELEPORT;
 
     // the pipes players order items at
     public boolean requestPipe() {

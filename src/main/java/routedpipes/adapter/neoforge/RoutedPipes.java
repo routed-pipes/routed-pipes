@@ -249,12 +249,16 @@ public class RoutedPipes {
         PIPES.put(PipeKind.FLUID_CONTAINER_SUPPLIER,
                 pipe("fluid_container_supplier_pipe", PipeKind.FLUID_CONTAINER_SUPPLIER, 0));
         DeferredBlock<PipeBlock> connector = BLOCKS.register("inventory_system_connector_pipe",
-                () -> new ConnectorPipeBlock(pipeProperties(), SERVICES));
+                () -> new ConnectorPipeBlock(pipeProperties(), PipeKind.INVENTORY_SYSTEM_CONNECTOR, SERVICES));
         ITEMS.registerSimpleBlockItem(connector);
         PIPES.put(PipeKind.INVENTORY_SYSTEM_CONNECTOR, connector);
         PIPES.put(PipeKind.SYSTEM_ENTRANCE, pipe("system_entrance_pipe", PipeKind.SYSTEM_ENTRANCE, 0));
         PIPES.put(PipeKind.SYSTEM_DESTINATION, pipe("system_destination_pipe", PipeKind.SYSTEM_DESTINATION, 0));
         PIPES.put(PipeKind.VOID, pipe("void_pipe", PipeKind.VOID, 0));
+        DeferredBlock<PipeBlock> teleport = BLOCKS.register("teleport_pipe",
+                () -> new ConnectorPipeBlock(pipeProperties(), PipeKind.TELEPORT, SERVICES));
+        ITEMS.registerSimpleBlockItem(teleport);
+        PIPES.put(PipeKind.TELEPORT, teleport);
     }
 
     // chassis mk1 to mk5 by number of module slots

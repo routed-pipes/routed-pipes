@@ -96,7 +96,7 @@ public final class LogisticsNetwork {
     private final Map<Set<RouterId>, RoutingNetwork> detours = new HashMap<>();
     // providers that handed out less than planned, left out while the rest is ordered elsewhere
     private final Set<RouterId> cameShort = new HashSet<>();
-    // for inventory system connectors: who is on which channel, and the network as it is without their links
+    // for inventory system connectors and teleport pipes: who is on which channel, and the network as it is without their links
     private final ConnectorLinks connectors = new ConnectorLinks();
     private RoutingNetwork wired;
     private final Map<RouterId, RouterNode> nodes = new HashMap<>();
@@ -271,11 +271,16 @@ public final class LogisticsNetwork {
         relink(connectors.set(id, channel, inventory, resistance), now);
     }
 
+    // the same for a teleport pipe, free is a side of it that nothing is connected to, null when it has none
+    public void setDirectConnector(RouterId id, UUID channel, Side free, int resistance, long now) {
+        relink(connectors.setDirect(id, channel, free, resistance), now);
+    }
+
     public ConnectorLinks.State connectorState(RouterId id) {
         return connectors.state(id);
     }
 
-    // whether what the first connector puts into the inventory on that side is picked up by the second
+    // whether what the first connector sends out through that side is picked up by the second
     public boolean connectorsLinked(RouterId from, Side exit, RouterId to) {
         return connectors.linked(from, exit, to);
     }
@@ -300,6 +305,7 @@ public final class LogisticsNetwork {
     }
 
     // power does not cross the inventory between two connectors, so this asks for a way through pipes alone
+    // teleport pipes count as pipes here, power goes from one to the other
     private boolean wired(RouterId from, RouterId to) {
         if (connectors.isEmpty()) {
             return true;
@@ -307,7 +313,11 @@ public final class LogisticsNetwork {
         if (wired == null) {
             wired = new RoutingNetwork();
             nodes.keySet().forEach(wired::add);
-            links.forEach(wired::setLinks);
+            links.forEach((id, pipes) -> {
+                List<Link> all = new ArrayList<>(pipes);
+                all.addAll(connectors.directLinksOf(id));
+                wired.setLinks(id, all);
+            });
         }
         return wired.component(from).equals(wired.component(to));
     }

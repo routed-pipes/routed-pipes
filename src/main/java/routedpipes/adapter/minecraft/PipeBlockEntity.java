@@ -100,7 +100,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
     private RequestTable table;
     // only pipes that take a disk have this
     private DiskDrive drive;
-    // only an inventory system connector has these
+    // only an inventory system connector and a teleport pipe have these
     private SystemConnector connector;
     // only system entrance and destination pipes have this
     private FrequencySlot frequency;
@@ -137,7 +137,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         if (kind() == PipeKind.REQUEST_MK2 || kind() == PipeKind.REQUEST_TABLE) {
             drive = new DiskDrive(this);
         }
-        if (kind() == PipeKind.INVENTORY_SYSTEM_CONNECTOR) {
+        if (kind() == PipeKind.INVENTORY_SYSTEM_CONNECTOR || kind() == PipeKind.TELEPORT) {
             connector = new SystemConnector(this);
         }
         if (kind() == PipeKind.SYSTEM_ENTRANCE || kind() == PipeKind.SYSTEM_DESTINATION) {
@@ -472,7 +472,7 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         setChanged();
     }
 
-    // takes an item coming out of a tube
+    // takes an item coming out of a tube or handed over by a teleport pipe
     void acceptFromTube(TravellingItem item) {
         transport.insert(item);
         setChanged();

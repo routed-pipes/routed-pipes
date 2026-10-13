@@ -103,4 +103,71 @@ class ConnectorLinksTest {
         assertThat(connectors.isEmpty()).isTrue();
         assertThat(connectors.remove(A)).isEmpty();
     }
+
+    @Test
+    void twoDirectConnectorsOnAChannelAreLinkedThroughTheirFreeSides() {
+        connectors.setDirect(A, CHANNEL, Side.DOWN, 0);
+        connectors.setDirect(B, CHANNEL, Side.UP, 2);
+
+        assertThat(connectors.linksOf(A)).containsExactly(new Link(B, Side.DOWN, TubeKind.PIPE_WEIGHT));
+        assertThat(connectors.linksOf(B)).containsExactly(new Link(A, Side.UP, 3 * TubeKind.PIPE_WEIGHT));
+        assertThat(connectors.linked(A, Side.DOWN, B)).isTrue();
+        assertThat(connectors.state(A)).isEqualTo(State.CONNECTED);
+    }
+
+    @Test
+    void onlyDirectConnectorsHaveDirectLinks() {
+        connectors.setDirect(A, CHANNEL, Side.DOWN, 0);
+        connectors.setDirect(B, CHANNEL, Side.UP, 0);
+        connectors.set(C, OTHER_CHANNEL, Side.EAST, 0);
+        connectors.set(router(4), OTHER_CHANNEL, Side.EAST, 0);
+
+        assertThat(connectors.directLinksOf(A)).isEqualTo(connectors.linksOf(A)).hasSize(1);
+        assertThat(connectors.linksOf(C)).hasSize(1);
+        assertThat(connectors.directLinksOf(C)).isEmpty();
+        assertThat(connectors.directLinksOf(router(5))).isEmpty();
+    }
+
+    @Test
+    void aDirectConnectorWithoutAFreeSideIsMismatched() {
+        connectors.setDirect(A, CHANNEL, null, 0);
+        connectors.setDirect(B, CHANNEL, Side.UP, 0);
+
+        assertThat(connectors.linksOf(A)).isEmpty();
+        assertThat(connectors.linksOf(B)).isEmpty();
+        assertThat(connectors.state(A)).isEqualTo(State.MISMATCHED);
+    }
+
+    @Test
+    void theTwoKindsOnOneChannelDoNotFindEachOther() {
+        connectors.set(A, CHANNEL, Side.EAST, 0);
+        connectors.setDirect(B, CHANNEL, Side.UP, 0);
+
+        assertThat(connectors.linksOf(A)).isEmpty();
+        assertThat(connectors.linksOf(B)).isEmpty();
+        assertThat(connectors.linked(A, Side.EAST, B)).isFalse();
+        assertThat(connectors.state(A)).isEqualTo(State.DISCONNECTED);
+        assertThat(connectors.state(B)).isEqualTo(State.DISCONNECTED);
+    }
+
+    @Test
+    void eachKindOnASharedChannelIsLinkedToItsOwnOnly() {
+        RouterId d = router(4);
+        connectors.set(A, CHANNEL, Side.EAST, 0);
+        connectors.set(B, CHANNEL, Side.EAST, 0);
+        connectors.setDirect(C, CHANNEL, Side.UP, 0);
+        connectors.setDirect(d, CHANNEL, Side.UP, 0);
+
+        assertThat(connectors.linksOf(A)).extracting(Link::target).containsExactly(B);
+        assertThat(connectors.linksOf(C)).extracting(Link::target).containsExactly(d);
+    }
+
+    @Test
+    void aConnectorThatChangesItsKindIsToldToEverybodyOnTheChannel() {
+        connectors.set(A, CHANNEL, Side.EAST, 0);
+        connectors.set(B, CHANNEL, Side.EAST, 0);
+
+        assertThat(connectors.setDirect(B, CHANNEL, Side.EAST, 0)).containsExactlyInAnyOrder(A, B);
+        assertThat(connectors.linksOf(A)).isEmpty();
+    }
 }

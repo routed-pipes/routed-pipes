@@ -20,6 +20,7 @@ NAMES = {
     "ender_pearl": "#c:ender_pearls", "blaze_powder": "minecraft:blaze_powder", "sign": "#minecraft:signs", "book": "minecraft:book",
     "copper_block": "#c:storage_blocks/copper", "slime_ball": "#c:slime_balls", "ink_sac": "minecraft:ink_sac",
     "comparator": "minecraft:comparator", "wheat": "minecraft:wheat",
+    "diamond_block": "#c:storage_blocks/diamond", "obsidian": "#c:obsidians", "ender_eye": "minecraft:ender_eye",
 }
 HAS_COPPER = {"type": "neoforge:not", "value": {"type": "neoforge:tag_empty", "tag": "c:ingots/copper"}}
 NO_COPPER = {"type": "neoforge:tag_empty", "tag": "c:ingots/copper"}
@@ -213,6 +214,8 @@ RECIPES = [
     shapeless("upgrade_power_supplier_rf", ["paper", "redstone", "iron", "copper"]),
     shapeless("upgrade_sneaky_combination", ["upgrade_sneaky", "upgrade_sneaky", "gold", "slime_ball"]),
     shapeless("void_pipe", ["basic_logistics_pipe", "ink_sac", "redstone"]),
+    shaped("teleport_pipe", ["ender_eye diamond_block ender_eye", "obsidian inventory_system_connector_pipe obsidian",
+                             "ender_eye diamond_block ender_eye"]),
 
     shapeless("basic_logistics_pipe", [ITEM_PIPES], file="basic_logistics_pipe_from_pipes"),
     shapeless("fluid_basic_pipe", [FLUID_PIPES], file="fluid_basic_pipe_from_pipes"),

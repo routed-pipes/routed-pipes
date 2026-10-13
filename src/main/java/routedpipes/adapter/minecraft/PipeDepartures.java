@@ -93,6 +93,10 @@ final class PipeDepartures {
                     PipeTransport.PIPE_LENGTH - item.speed(), item.speed()));
             return;
         }
+        // before anything else, a teleport pipe hands over through a side whatever is next to it
+        if (pipe.connector() != null && pipe.connector().handsOver(item, side)) {
+            return;
+        }
         if (TubeBlockEntity.takeFromPipe(level, target, side.getOpposite(), item)) {
             return;
         }
@@ -103,9 +107,6 @@ final class PipeDepartures {
             if (!neighbour.opaque()) {
                 level.sendBlockUpdated(target, neighbour.getBlockState(), neighbour.getBlockState(), Block.UPDATE_CLIENTS);
             }
-            return;
-        }
-        if (pipe.connector() != null && pipe.connector().handsOver(item, side)) {
             return;
         }
         List<PatternSupply> patterns = item.mode() == TransportMode.REQUESTED && item.destination().filter(routerId::equals).isPresent()

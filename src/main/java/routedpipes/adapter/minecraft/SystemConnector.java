@@ -9,8 +9,10 @@ import java.util.UUID;
 
 import routedpipes.adapter.minecraft.ConnectorPipeBlock.LinkState;
 import routedpipes.adapter.minecraft.menu.ChannelMenu;
+import routedpipes.domain.logistics.PipeKind;
 import routedpipes.domain.routing.ConnectorLinks;
 import routedpipes.domain.routing.RouterId;
+import routedpipes.domain.routing.Side;
 import routedpipes.domain.transport.TransportMode;
 import routedpipes.domain.transport.TravellingItem;
 import net.minecraft.core.BlockPos;
@@ -33,6 +35,7 @@ import org.joml.Vector3f;
 // what makes a pipe an inventory system connector: its channel, its resistance and the items it waits for
 // nothing teleports, what one connector puts into the inventory beside it another one takes out of the same inventory,
 // an ender chest for example
+// a teleport pipe is the direct kind: it needs no inventory and puts the item straight into the pipe of its partner
 public final class SystemConnector {
 
     // energy in FE for every stack taken out of the inventory, the original mod's 6 units at its rate of 2 RF per unit
@@ -46,6 +49,7 @@ public final class SystemConnector {
     }
 
     private final PipeBlockEntity pipe;
+    private final boolean direct;
     private final List<Waiting> waiting = new ArrayList<>();
     private UUID channel;
     private int resistance;
@@ -58,6 +62,7 @@ public final class SystemConnector {
 
     SystemConnector(PipeBlockEntity pipe) {
         this.pipe = pipe;
+        this.direct = pipe.kind() == PipeKind.TELEPORT;
     }
 
     // empty while the connector is on no channel
@@ -123,14 +128,17 @@ public final class SystemConnector {
             // somebody deleted the channel
             setChannel(null);
         }
-        List<Direction> sides = pipe.inventorySides();
-        Direction side = channel == null || sides.isEmpty() ? null : sides.get(0);
+        Direction side = channel == null ? null : linkSide();
         if (!Objects.equals(channel, toldChannel) || side != toldSide || resistance != toldResistance) {
             toldChannel = channel;
             toldSide = side;
             toldResistance = resistance;
-            pipe.network().setConnector(pipe.routerId(), channel, side == null ? null : Directions.toDomain(side), resistance,
-                    level.getGameTime());
+            Side told = side == null ? null : Directions.toDomain(side);
+            if (direct) {
+                pipe.network().setDirectConnector(pipe.routerId(), channel, told, resistance, level.getGameTime());
+            } else {
+                pipe.network().setConnector(pipe.routerId(), channel, told, resistance, level.getGameTime());
+            }
         }
         LinkState state = LinkState.values()[pipe.network().connectorState(pipe.routerId()).ordinal()];
         BlockState shown = pipe.getBlockState();
@@ -139,7 +147,23 @@ public final class SystemConnector {
         }
     }
 
+    // the side it reaches its partners through: its first inventory, for a teleport pipe the first side with no arm
+    // null when there is none
+    private Direction linkSide() {
+        if (!direct) {
+            List<Direction> sides = pipe.inventorySides();
+            return sides.isEmpty() ? null : sides.get(0);
+        }
+        for (Direction side : Direction.values()) {
+            if (!PipeBlock.connected(pipe.getBlockState(), side)) {
+                return side;
+            }
+        }
+        return null;
+    }
+
     // an item leaving for another connector goes into the inventory they share and that connector is told to expect it
+    // from a teleport pipe it goes straight into the pipe of the other one, coming in through the free side of that
     // false for every other item
     boolean handsOver(TravellingItem item, Direction side) {
         Optional<RouterId> partner = item.nextHop().filter(hop -> item.destination().isPresent()
@@ -147,6 +171,15 @@ public final class SystemConnector {
         if (partner.isEmpty() || !(pipe.network().node(partner.get()) instanceof PipeBlockEntity other)
                 || other.connector() == null) {
             return false;
+        }
+        if (direct) {
+            Direction entry = other.connector().toldSide;
+            if (entry == null) {
+                return false;
+            }
+            other.acceptFromTube(item.enteringFrom(Directions.toDomain(entry)));
+            sparkle();
+            return true;
         }
         ItemStack stack = McItemType.stackOf(item.batch());
         ItemStack rest = services().storage().insert(pipe.getLevel(), pipe.getBlockPos().relative(side), pipe.accessFace(side),

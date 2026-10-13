@@ -52,7 +52,7 @@ public final class HudSources {
             case BASIC -> new HudSource.Basic(takes(pipe), defaultRoute(pipe));
             case PROVIDER -> new HudSource.Provider(batches(pipe.provided()));
             case SUPPLIER -> new HudSource.Supplier(batches(pipe.supplyTargets()));
-            case INVENTORY_SYSTEM_CONNECTOR -> new HudSource.Connector(pipe.connector().expected().stream()
+            case INVENTORY_SYSTEM_CONNECTOR, TELEPORT -> new HudSource.Connector(pipe.connector().expected().stream()
                     .map(McItemType::batchOf).toList(), pipe.connector().ticksEmpty());
             case CRAFTING -> new HudSource.Crafting(pipe.recipe().map(recipe -> recipe.output()),
                     batches(pipe.outputOrders().owedByType()));

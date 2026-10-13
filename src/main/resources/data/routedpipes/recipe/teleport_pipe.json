@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "ABA",
+    "CDC",
+    "ABA"
+  ],
+  "key": {
+    "A": {
+      "item": "minecraft:ender_eye"
+    },
+    "B": {
+      "tag": "c:storage_blocks/diamond"
+    },
+    "C": {
+      "tag": "c:obsidians"
+    },
+    "D": {
+      "item": "routedpipes:inventory_system_connector_pipe"
+    }
+  },
+  "result": {
+    "id": "routedpipes:teleport_pipe",
+    "count": 1
+  }
+}
