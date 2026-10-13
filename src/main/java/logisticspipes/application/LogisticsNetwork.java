@@ -1056,10 +1056,12 @@ public final class LogisticsNetwork {
         if (node == null || now == lastChangeAnywhere) {
             return;
         }
+        // every pipe has its rounds in ticks of its own
+        long turn = now + node.phase();
         if (bulkStorage.modules().contains(id)) {
             bulkStorage.look(nodes::get);
         }
-        if (!node.outputOrders().isEmpty() && now % CRAFT_INTERVAL == 0) {
+        if (!node.outputOrders().isEmpty() && turn % CRAFT_INTERVAL == 0) {
             boolean progress = node.outputOrders().ship(now, CRAFT_TIMEOUT, order -> {
                 // a result with fuzzy flags is whatever matching item the machine holds most of
                 ItemType made = FuzzyMatch.largest(order.batch().type(), node.contents());
@@ -1080,10 +1082,10 @@ public final class LogisticsNetwork {
                     }
                 }
             }
-        } else if (now % CRAFT_INTERVAL == 0) {
+        } else if (turn % CRAFT_INTERVAL == 0) {
             node.cleanup().ifPresent(cleanup -> cleanUp(id, node, cleanup));
         }
-        if (now % SUPPLY_INTERVAL == 0) {
+        if (turn % SUPPLY_INTERVAL == 0) {
             for (Supply supply : node.supplies()) {
                 supply(id, node, supply, now);
             }
@@ -1093,7 +1095,7 @@ public final class LogisticsNetwork {
         }
         if (!settling(id, now)) {
             for (Extraction extraction : node.extractions()) {
-                if (now % extraction.interval() == 0) {
+                if (turn % extraction.interval() == 0) {
                     extract(id, node, extraction, now);
                 }
             }

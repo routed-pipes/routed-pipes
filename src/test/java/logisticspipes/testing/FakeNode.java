@@ -93,6 +93,8 @@ public final class FakeNode implements RouterNode {
     public PowerNode subSystemPower;
     // the frequency card of a system entrance or destination pipe
     public UUID frequency;
+    // set by tests about pipes taking turns
+    public int phase;
     private final PipeKind kind;
 
     public FakeNode(PipeKind kind) {
@@ -108,6 +110,11 @@ public final class FakeNode implements RouterNode {
     @Override
     public PipeKind kind() {
         return kind;
+    }
+
+    @Override
+    public int phase() {
+        return phase;
     }
 
     @Override

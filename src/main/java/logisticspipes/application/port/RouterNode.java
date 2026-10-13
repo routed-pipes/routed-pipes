@@ -32,6 +32,11 @@ public interface RouterNode {
 
     boolean hasInventory();
 
+    // shifts the rounds of this pipe against those of others, so that a base does not do all its upkeep in the same tick
+    default int phase() {
+        return 0;
+    }
+
     // which inventory is on which side, empty for sides without one
     default Map<Side, InventoryRef> inventories() {
         return Map.of();

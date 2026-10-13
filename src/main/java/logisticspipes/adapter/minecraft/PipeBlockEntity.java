@@ -723,6 +723,12 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         return surroundings.inventorySides();
     }
 
+    // pipes next to each other get rounds one tick apart
+    @Override
+    public int phase() {
+        return worldPosition.hashCode() & 0xFFFF;
+    }
+
     @Override
     public PipeKind kind() {
         return block().kind();
