@@ -6,28 +6,37 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
+import java.util.Set;
 
 // all routers of one world with their links, route tables are worked out when asked for and kept until something changes
 // big bases have thousands of routers and every one may need its own table, so inside this works on plain arrays
+// routers that are connected form an island with tables of its own: a change in one base leaves the others alone,
+// and a table is as big as the base it belongs to and not as the world
 public final class RoutingNetwork {
 
     private static final int UNREACHED = Integer.MAX_VALUE;
 
-    // the network frozen at one moment, with routers numbered in the order of their ids
-    private static final class Snapshot {
+    // routers that are connected in either direction, frozen at one moment and numbered in the order of their ids
+    private static final class Island {
+        private final int number;
         private final RouterId[] ids;
         private final Map<RouterId, Integer> index = new HashMap<>();
         private final int[][] targets;
         private final int[][] exits;
         private final int[][] distances;
-        private final int[] component;
+        private final Map<RouterId, RouteTable> tables = new HashMap<>();
 
-        private Snapshot(Map<RouterId, List<Link>> links) {
-            ids = links.keySet().toArray(new RouterId[0]);
+        private Island(int number, List<RouterId> members, Map<RouterId, List<Link>> links) {
+            if (members.size() > MAX_ROUTERS) {
+                throw new IllegalStateException("too many connected routers: " + members.size());
+            }
+            this.number = number;
+            ids = members.toArray(new RouterId[0]);
             Arrays.sort(ids, Comparator.comparing(RouterId::value));
             for (int i = 0; i < ids.length; i++) {
                 index.put(ids[i], i);
@@ -47,54 +56,22 @@ public final class RoutingNetwork {
                     distances[i][link] = known.get(link).distance();
                 }
             }
-            component = components();
         }
 
-        // routers that are connected in either direction share a number
-        private int[] components() {
-            List<List<Integer>> neighbours = new ArrayList<>();
-            for (int i = 0; i < ids.length; i++) {
-                neighbours.add(new ArrayList<>());
-            }
-            for (int i = 0; i < ids.length; i++) {
-                for (int target : targets[i]) {
-                    neighbours.get(i).add(target);
-                    neighbours.get(target).add(i);
-                }
-            }
-            int[] result = new int[ids.length];
-            Arrays.fill(result, -1);
-            int next = 0;
-            Deque<Integer> open = new ArrayDeque<>();
-            for (int start = 0; start < ids.length; start++) {
-                if (result[start] >= 0) {
-                    continue;
-                }
-                result[start] = next;
-                open.add(start);
-                while (!open.isEmpty()) {
-                    for (int neighbour : neighbours.get(open.poll())) {
-                        if (result[neighbour] < 0) {
-                            result[neighbour] = next;
-                            open.add(neighbour);
-                        }
-                    }
-                }
-                next++;
-            }
-            return result;
+        private RouteTable routesFrom(RouterId source) {
+            return tables.computeIfAbsent(source, key -> new ArrayTable(this, index.get(key)));
         }
     }
 
-    // routes from one router as three arrays over the numbering of the snapshot
+    // routes from one router as three arrays over the numbering of its island
     private static final class ArrayTable implements RouteTable {
-        private final Snapshot snapshot;
+        private final Island snapshot;
         private final int[] distance;
         private final byte[] exit;
         private final int[] nextHop;
         private List<RouterId> byDistance;
 
-        private ArrayTable(Snapshot snapshot, int source) {
+        private ArrayTable(Island snapshot, int source) {
             this.snapshot = snapshot;
             int count = snapshot.ids.length;
             distance = new int[count];
@@ -218,20 +195,25 @@ public final class RoutingNetwork {
     static final int MAX_ROUTERS = 1 << 16;
 
     private final Map<RouterId, List<Link>> links = new HashMap<>();
-    private final Map<RouterId, RouteTable> tables = new HashMap<>();
-    private Snapshot snapshot;
+    private final Map<RouterId, Island> islandOf = new HashMap<>();
+    // routers that belong to no island right now: new ones, and those whose island something changed in
+    private final Set<RouterId> loose = new HashSet<>();
+    // a router that comes back, like when its chunk loads, may still be linked to by routers of an island
+    private boolean added;
+    private int nextIsland;
 
     public void add(RouterId router) {
-        if (links.size() >= MAX_ROUTERS && !links.containsKey(router)) {
-            throw new IllegalStateException("too many routers in one world: " + links.size());
+        if (links.putIfAbsent(router, List.of()) == null) {
+            loose.add(router);
+            added = true;
         }
-        links.putIfAbsent(router, List.of());
-        changed();
     }
 
     public void remove(RouterId router) {
-        links.remove(router);
-        changed();
+        if (links.remove(router) != null) {
+            breakUp(islandOf.get(router));
+            loose.remove(router);
+        }
     }
 
     public boolean contains(RouterId router) {
@@ -247,35 +229,94 @@ public final class RoutingNetwork {
             return false;
         }
         links.put(router, List.copyOf(routerLinks));
-        changed();
+        breakUp(islandOf.get(router));
+        for (Link link : routerLinks) {
+            breakUp(islandOf.get(link.target()));
+        }
         return true;
     }
 
-    private void changed() {
-        tables.clear();
-        snapshot = null;
+    private void breakUp(Island island) {
+        if (island == null) {
+            return;
+        }
+        for (RouterId member : island.ids) {
+            islandOf.remove(member);
+            if (links.containsKey(member)) {
+                loose.add(member);
+            }
+        }
     }
 
-    private Snapshot snapshot() {
-        if (snapshot == null) {
-            snapshot = new Snapshot(links);
+    // whether the router is part of something that changed and has not been put together again
+    // asking for its routes or its component would do that
+    public boolean stale(RouterId router) {
+        return loose.contains(router);
+    }
+
+    // puts the loose routers into islands again
+    private void settle() {
+        if (loose.isEmpty()) {
+            return;
         }
-        return snapshot;
+        if (added) {
+            List<Island> joined = new ArrayList<>();
+            islandOf.forEach((router, island) -> {
+                for (Link link : links.get(router)) {
+                    if (loose.contains(link.target())) {
+                        joined.add(island);
+                        break;
+                    }
+                }
+            });
+            joined.forEach(this::breakUp);
+            added = false;
+        }
+        Map<RouterId, List<RouterId>> neighbours = new HashMap<>();
+        for (RouterId router : loose) {
+            neighbours.put(router, new ArrayList<>());
+        }
+        for (RouterId router : loose) {
+            for (Link link : links.get(router)) {
+                if (loose.contains(link.target())) {
+                    neighbours.get(router).add(link.target());
+                    neighbours.get(link.target()).add(router);
+                }
+            }
+        }
+        Set<RouterId> placed = new HashSet<>();
+        Deque<RouterId> open = new ArrayDeque<>();
+        for (RouterId start : loose) {
+            if (!placed.add(start)) {
+                continue;
+            }
+            List<RouterId> members = new ArrayList<>();
+            open.add(start);
+            while (!open.isEmpty()) {
+                RouterId next = open.poll();
+                members.add(next);
+                for (RouterId neighbour : neighbours.get(next)) {
+                    if (placed.add(neighbour)) {
+                        open.add(neighbour);
+                    }
+                }
+            }
+            Island island = new Island(nextIsland++, members, links);
+            members.forEach(member -> islandOf.put(member, island));
+        }
+        loose.clear();
     }
 
     // whether routesFrom would have to work the table out first
     public boolean hasRoutesFrom(RouterId source) {
-        return tables.containsKey(source);
+        Island island = islandOf.get(source);
+        return island != null && island.tables.containsKey(source);
     }
 
     public RouteTable routesFrom(RouterId source) {
-        RouteTable table = tables.get(source);
-        if (table == null) {
-            Integer index = snapshot().index.get(source);
-            table = index == null ? RouteTable.of(Map.of()) : new ArrayTable(snapshot(), index);
-            tables.put(source, table);
-        }
-        return table;
+        settle();
+        Island island = islandOf.get(source);
+        return island == null ? RouteTable.of(Map.of()) : island.routesFrom(source);
     }
 
     public Optional<Route> route(RouterId from, RouterId to) {
@@ -284,8 +325,10 @@ public final class RoutingNetwork {
 
     // routers connected to each other, in either direction, get the same number, empty for unknown routers
     // far cheaper than a route table when all that matters is whether two routers belong together
+    // the number stays the same for as long as nothing changes among them
     public OptionalInt component(RouterId router) {
-        Integer index = snapshot().index.get(router);
-        return index == null ? OptionalInt.empty() : OptionalInt.of(snapshot().component[index]);
+        settle();
+        Island island = islandOf.get(router);
+        return island == null ? OptionalInt.empty() : OptionalInt.of(island.number);
     }
 }
