@@ -1,6 +1,19 @@
 {
   "modrinth": [
     {
+      "slug": "advancedperipherals",
+      "name": "Advanced Peripherals",
+      "version": "1.21.1-0.7.62b",
+      "kind": "beta",
+      "id": "G45Z1XQB",
+      "file": "AdvancedPeripherals-1.21.1-0.7.62b.jar",
+      "url": "https://cdn.modrinth.com/data/SOw6jD6x/versions/G45Z1XQB/AdvancedPeripherals-1.21.1-0.7.62b.jar",
+      "sha1": "fcbd66eb380e2712c0d00c1c7fb1c55bf0cdc470",
+      "sha512": "9323762933ec9d61f229677401019fb1f4ddb5a8bdd15a69a1746c9a7186333aa29b2025abd381736bdf89505b449697bb96db69d8a50c39b430d6ef1efe689b",
+      "size": 936602,
+      "needed_by": null
+    },
+    {
       "slug": "ae2",
       "name": "Applied Energistics 2",
       "version": "19.2.18",
@@ -25,6 +38,32 @@
       "sha512": "1a693c3c05862805bd88cf1265fd4b9b98b2da4efe986c9ff26efa0e675df14373983ffdf7ededb26f07864b6702fabc299ac1a06fb8fa35de0b341b596dbf9b",
       "size": 149709,
       "needed_by": null
+    },
+    {
+      "slug": "balm",
+      "name": "Balm",
+      "version": "21.0.66+neoforge-1.21.1",
+      "kind": "release",
+      "id": "CquiaiDj",
+      "file": "balm-neoforge-1.21.1-21.0.66.jar",
+      "url": "https://cdn.modrinth.com/data/MBAkmtvl/versions/CquiaiDj/balm-neoforge-1.21.1-21.0.66.jar",
+      "sha1": "dd3606a349f4a3c8fb5bd0ab22905675c02b0d74",
+      "sha512": "0262d51c0e931d10c3dccefb3b5426a1622edecab243d4b15dce07a23309641370184776739765067d292d808242d088c6fbf249762689824eff9ba42c2d1e63",
+      "size": 783793,
+      "needed_by": "waystones"
+    },
+    {
+      "slug": "brandons-core",
+      "name": "Brandons Core",
+      "version": "3.2.1.309",
+      "kind": "release",
+      "id": "56nwe5IX",
+      "file": "BrandonsCore-1.21.1-3.2.1.309.jar",
+      "url": "https://cdn.modrinth.com/data/iFDWVIFV/versions/56nwe5IX/BrandonsCore-1.21.1-3.2.1.309.jar",
+      "sha1": "ef00bdaaca4e469cc3925d573434d2f84b9d8a14",
+      "sha512": "c7ce3d22cca5555aa0a41afd0d6ca4b9f11b9d49f7bfda7595db60ba68b2a96377318bfaf27747ed24d356e79ca796fe0239b5825363110b1a654d26eb2774ad",
+      "size": 1385131,
+      "needed_by": "draconic-evolution"
     },
     {
       "slug": "cb-multipart",
@@ -118,6 +157,19 @@
       "needed_by": null
     },
     {
+      "slug": "cucumber",
+      "name": "Cucumber Library",
+      "version": "8.0.16",
+      "kind": "release",
+      "id": "8421rqFF",
+      "file": "Cucumber-1.21.1-8.0.16.jar",
+      "url": "https://cdn.modrinth.com/data/Rw1NrDzF/versions/8421rqFF/Cucumber-1.21.1-8.0.16.jar",
+      "sha1": "0e97553af44d39d1976fe6feb4baf1c30c6b2f06",
+      "sha512": "fbc63f23f827061b2a45f33a3867e105268b5a51d9ca92ba3bacd2e2a0af847eb4c367e726a62a455b841e503f8ce73ea9e180285670ddf3ec18a8ba4e72da7d",
+      "size": 275588,
+      "needed_by": "iron-jetpacks"
+    },
+    {
       "slug": "dimensionaldoors",
       "name": "Dimensional Doors",
       "version": "6.2.2",
@@ -128,6 +180,19 @@
       "sha1": "43c8bec68ecf1197ee4312060dc56f1550c1bfba",
       "sha512": "0e59bc1aeebb959eda7903d53980f013cb568d02e3cdf22886ec676d41e1926e1ee833cbc307a6dcabcdd6854c4490a2c7481a0d35ca6f37de94bb27d1ab4a54",
       "size": 13863897,
+      "needed_by": null
+    },
+    {
+      "slug": "draconic-evolution",
+      "name": "Draconic Evolution",
+      "version": "3.1.4.633",
+      "kind": "beta",
+      "id": "84xwXpNh",
+      "file": "Draconic-Evolution-1.21.1-3.1.4.633.jar",
+      "url": "https://cdn.modrinth.com/data/nBqivi8H/versions/84xwXpNh/Draconic-Evolution-1.21.1-3.1.4.633.jar",
+      "sha1": "42ccf634a2a167db9cda533507909dd0524f2798",
+      "sha512": "9740f5750a916db8927d8051430b49eba9ebc37e5545aef09b83872a561a721e7eb8fed82e6ed2aad15ba016d6f8ea2ce566a5cafacc4a2879239119cdbaff31",
+      "size": 6046229,
       "needed_by": null
     },
     {
@@ -170,6 +235,19 @@
       "needed_by": null
     },
     {
+      "slug": "ferrite-core",
+      "name": "FerriteCore",
+      "version": "7.0.3-neoforge",
+      "kind": "release",
+      "id": "x7kQWVju",
+      "file": "ferritecore-7.0.3-neoforge.jar",
+      "url": "https://cdn.modrinth.com/data/uXXizFIs/versions/x7kQWVju/ferritecore-7.0.3-neoforge.jar",
+      "sha1": "9563692efb708b6b568df27a01ec52f6311928ef",
+      "sha512": "19af89a2075bb10a63884fa853ebf84b02c79dc3242430ecdad056fd764fdcde367a7303276b329df01b0736e2ef264c5d80c7dc92c6aebd244f556a230bb417",
+      "size": 121559,
+      "needed_by": null
+    },
+    {
       "slug": "guideme",
       "name": "GuideME",
       "version": "21.1.19",
@@ -181,6 +259,19 @@
       "sha512": "4dfa132e5cfd69a86c958867067f1c5ab39bb69ae35b2a62c24bb9924e9c688f1a4930ab75d335b22378d9f98cd7fceae8d030812b8f90c9aa282de8ea129f5a",
       "size": 9311992,
       "needed_by": "ae2"
+    },
+    {
+      "slug": "hammer-lib",
+      "name": "HammerLib",
+      "version": "21.0.17",
+      "kind": "release",
+      "id": "xUFPUf7h",
+      "file": "HammerLib-1.21-21.0.17.jar",
+      "url": "https://cdn.modrinth.com/data/PlkSuVtM/versions/xUFPUf7h/HammerLib-1.21-21.0.17.jar",
+      "sha1": "0c6314c727d5f3911fbe289eba5101957e5b8860",
+      "sha512": "d5de4cecae6fe015b65b0bb53d76be0f3ce6893fb652a54e8e949ad8f3b65e431accbd452d3547373a01b2e6050c670c6ea2a9f4cee3e9020149e3a11e0f7aaa",
+      "size": 2427649,
+      "needed_by": "solar-flux-reborn"
     },
     {
       "slug": "immersiveengineering",
@@ -209,6 +300,32 @@
       "needed_by": null
     },
     {
+      "slug": "inventory-profiles-next",
+      "name": "Inventory Profiles Next",
+      "version": "neoforge-1.21.1-2.2.5",
+      "kind": "release",
+      "id": "vjuNnHLv",
+      "file": "InventoryProfilesNext-neoforge-1.21.1-2.2.5.jar",
+      "url": "https://cdn.modrinth.com/data/O7RBXm3n/versions/vjuNnHLv/InventoryProfilesNext-neoforge-1.21.1-2.2.5.jar",
+      "sha1": "b09d7c0820c233ea34af54d0a3ab7ed510b32dcc",
+      "sha512": "521296cc7e4fa48e06eb0c00d430968c7b879946db5b02e632cc724672759ac152e11bd9d320bd09f7418edd6fe4ece521a1a2cac49d7f5687519c69a0bcbf12",
+      "size": 1295466,
+      "needed_by": null
+    },
+    {
+      "slug": "iron-jetpacks",
+      "name": "Iron Jetpacks",
+      "version": "8.0.11",
+      "kind": "release",
+      "id": "Dag6lNGT",
+      "file": "IronJetpacks-1.21.1-8.0.11.jar",
+      "url": "https://cdn.modrinth.com/data/DWIEOniQ/versions/Dag6lNGT/IronJetpacks-1.21.1-8.0.11.jar",
+      "sha1": "96bdaf7fa57b73a3c157edfc5d1afbfc2e23a65d",
+      "sha512": "944821c20be19c2e55262f606de392ce491ab4998fe3469030fb00fc95d47f3e1c87389c4f132c1accbbc2774692b90dbeae3c168c0301d3f4b52b7a2658705a",
+      "size": 154859,
+      "needed_by": null
+    },
+    {
       "slug": "jade",
       "name": "Jade \ud83d\udd0d",
       "version": "15.10.6+neoforge",
@@ -232,6 +349,45 @@
       "sha1": "d19552586f686eae4ef5e7199f31604d1d3cfca7",
       "sha512": "a6ca3abc3080f6f41033a77cb955fefe9f9ebae795c33546227f555b2d31e8d4131cc705126d14a3fbabb31097fc0e876dc0bbeb05ad907a1b796f21e57527bf",
       "size": 1804792,
+      "needed_by": null
+    },
+    {
+      "slug": "kotlin-for-forge",
+      "name": "Kotlin for Forge",
+      "version": "5.12.0",
+      "kind": "release",
+      "id": "uhJhCT7X",
+      "file": "kotlinforforge-5.12.0-all.jar",
+      "url": "https://cdn.modrinth.com/data/ordsPcFz/versions/uhJhCT7X/kotlinforforge-5.12.0-all.jar",
+      "sha1": "d10d062caf1aad9aec82d7852f2fee1781735c1f",
+      "sha512": "b8c3942f4d33179edf3f102f3d870b99dd436f8b8236dbbd31aa51b888162c692cfd88927295f24dc8b4375232f4c6c17360c5d6c4823f93cbcd7cf4bdc8bd14",
+      "size": 7279264,
+      "needed_by": "inventory-profiles-next"
+    },
+    {
+      "slug": "libipn",
+      "name": "libIPN",
+      "version": "neoforge-1.21.1-6.6.3",
+      "kind": "release",
+      "id": "BGe4KMlE",
+      "file": "libIPN-neoforge-1.21.1-6.6.3.jar",
+      "url": "https://cdn.modrinth.com/data/onSQdWhM/versions/BGe4KMlE/libIPN-neoforge-1.21.1-6.6.3.jar",
+      "sha1": "baab9e8cae3d2b77b5e172b5694e465ee9f30d4a",
+      "sha512": "89383465eb8dfa296e7518dd0e6ddc1a242f4537a3183425f2319c79a3e97843ded0f5e13f86b095f2f09beacd2a1f249f554e0f4e18291209720826031a8b93",
+      "size": 626146,
+      "needed_by": "inventory-profiles-next"
+    },
+    {
+      "slug": "lithium",
+      "name": "Lithium",
+      "version": "mc1.21.1-0.15.4-neoforge",
+      "kind": "release",
+      "id": "DDUrRVCA",
+      "file": "lithium-neoforge-0.15.4+mc1.21.1.jar",
+      "url": "https://cdn.modrinth.com/data/gvQqBUqZ/versions/DDUrRVCA/lithium-neoforge-0.15.4%2Bmc1.21.1.jar",
+      "sha1": "97212e45c963730bbfc7c44780df99317814c21b",
+      "sha512": "2735da2088b88a8bdcd4ad02a2b6fffbfd3925557cefd4fa54b5477dfb9e582ea7f521300c060f57dff1325dd21bff276b7333363ad3371ed6893e3de9eca9cd",
+      "size": 774220,
       "needed_by": null
     },
     {
@@ -287,6 +443,19 @@
       "needed_by": null
     },
     {
+      "slug": "modernfix",
+      "name": "ModernFix",
+      "version": "5.27.26+mc1.21.1",
+      "kind": "release",
+      "id": "7Jy58lnT",
+      "file": "modernfix-neoforge-5.27.26+mc1.21.1.jar",
+      "url": "https://cdn.modrinth.com/data/nmDcB62a/versions/7Jy58lnT/modernfix-neoforge-5.27.26%2Bmc1.21.1.jar",
+      "sha1": "69d468b70e53f6a014c778a81116a41a38fbab33",
+      "sha512": "37c76fc5bc72cfc1035260f891ffeb45b4f32651d2e490c5eb8c60f3b5686deca3145b32d4fab9036f65f5277b0ac66f4ad3855e52cd973e791b09e9c4b896d8",
+      "size": 611043,
+      "needed_by": null
+    },
+    {
       "slug": "mouse-tweaks",
       "name": "Mouse Tweaks",
       "version": "1.21-2.26.1-neoforge",
@@ -297,6 +466,19 @@
       "sha1": "6dae57f4f50f7808d2ed9a18f6cd1c0d4640c6bc",
       "sha512": "f95c0cc881211ee0442434976775e07aae40b4a2ba4e3a85455bc57ca9d3c991e239cd98374a8abd442dc9c378dcd9001e2caa1bf69991d424b5652dd7f3483b",
       "size": 73938,
+      "needed_by": null
+    },
+    {
+      "slug": "polymorph",
+      "name": "Polymorph",
+      "version": "1.1.0+1.21.1",
+      "kind": "release",
+      "id": "VEburL70",
+      "file": "polymorph-neoforge-1.1.0+1.21.1.jar",
+      "url": "https://cdn.modrinth.com/data/tagwiZkJ/versions/VEburL70/polymorph-neoforge-1.1.0%2B1.21.1.jar",
+      "sha1": "84f8c539fa326dc723ae62b7a6916d6b01982d07",
+      "sha512": "37358e19d8f251b7d435ea5198eded7b1361e90d5728e11fcb15aeb55786f4ee10fd8fecd14b11f34a99bd92aea01a9977c0dbc46ab6bb07af61a6c89455b6ff",
+      "size": 174972,
       "needed_by": null
     },
     {
@@ -417,6 +599,19 @@
       "needed_by": null
     },
     {
+      "slug": "solar-flux-reborn",
+      "name": "Solar Flux Reborn",
+      "version": "21.1.8",
+      "kind": "release",
+      "id": "8aToYlt2",
+      "file": "SolarFluxReborn-1.21.1-21.1.8.jar",
+      "url": "https://cdn.modrinth.com/data/4QG5lev4/versions/8aToYlt2/SolarFluxReborn-1.21.1-21.1.8.jar",
+      "sha1": "0326e609d6e8319ac48165cc9bdc708e6b0fac4c",
+      "sha512": "114f8b11a22f94a245d021633a66c30cbd3a8f57995f40b7a27fe22f53ac26817bdb63efdae80e546c0049a0f2bbf1881db31075a1fc95311f8bd62d714856de",
+      "size": 303598,
+      "needed_by": null
+    },
+    {
       "slug": "sophisticated-backpacks",
       "name": "Sophisticated Backpacks",
       "version": "1.21.1-3.26.12.2208",
@@ -506,6 +701,19 @@
       "sha512": "59a1470b5b3e103f52fa9c0f2f334bb3b28cdbaba74c95234528a40a558596d598227968e5812502a41a9ee24993b00c748cee913abae8fbb4ab7df79d04ab29",
       "size": 608070,
       "needed_by": "industrial-foregoing"
+    },
+    {
+      "slug": "waystones",
+      "name": "Waystones",
+      "version": "21.1.46+neoforge-1.21.1",
+      "kind": "release",
+      "id": "6Z6MQ6os",
+      "file": "waystones-neoforge-1.21.1-21.1.46.jar",
+      "url": "https://cdn.modrinth.com/data/LOpKHB2A/versions/6Z6MQ6os/waystones-neoforge-1.21.1-21.1.46.jar",
+      "sha1": "75718161662d9ec957ba22e10e497788ec1687ba",
+      "sha512": "ca90b58d884d4bc2b08a870484ae7ede397e71d31eaaf01ff2603ad498d584763e099c2094e57031522385339705d2c011ed4910bf36efae688e64935b49ece9",
+      "size": 1223229,
+      "needed_by": null
     },
     {
       "slug": "xaeros-minimap",

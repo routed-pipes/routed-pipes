@@ -26,6 +26,10 @@ curseforge projecte 226410 6611984
 curseforge iron-chests 228756 5491156
 
 # fits beside them
+draconic-evolution
+advancedperipherals
+iron-jetpacks
+solar-flux-reborn
 create
 createaddition
 immersiveengineering
@@ -37,9 +41,17 @@ storagedrawers
 chunk-loaders
 
 # looking things up and getting around
+polymorph
+waystones
+inventory-profiles-next
 jei
 jade
 xaeros-minimap
 xaeros-world-map
 fallingtree
 mouse-tweaks
+
+# speed and memory, nothing that changes how blocks are drawn
+ferrite-core
+modernfix
+lithium
