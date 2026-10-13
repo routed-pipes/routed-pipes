@@ -44,6 +44,9 @@ chunk-loaders
 polymorph
 waystones
 inventory-profiles-next
+carry-on
+clumps
+appleskin
 jei
 jade
 xaeros-minimap

@@ -27,6 +27,19 @@
       "needed_by": null
     },
     {
+      "slug": "appleskin",
+      "name": "AppleSkin",
+      "version": "3.0.9+mc1.21",
+      "kind": "release",
+      "id": "uAKA6Laj",
+      "file": "appleskin-neoforge-mc1.21-3.0.9.jar",
+      "url": "https://cdn.modrinth.com/data/EsAfCjCV/versions/uAKA6Laj/appleskin-neoforge-mc1.21-3.0.9.jar",
+      "sha1": "81cf0e668f991f83ac8820c386fbd6c9c3602246",
+      "sha512": "f4ea46273e407334b63e262e2555c9a8204f7b5e60f23f272fbaa83ad9e88800e0ee186aca840710df2dbe0a18b37758695fef2ae1a902c10b3706e3de772937",
+      "size": 75804,
+      "needed_by": null
+    },
+    {
       "slug": "applied-mekanistics",
       "name": "Applied Mekanistics",
       "version": "1.6.3",
@@ -64,6 +77,19 @@
       "sha512": "c7ce3d22cca5555aa0a41afd0d6ca4b9f11b9d49f7bfda7595db60ba68b2a96377318bfaf27747ed24d356e79ca796fe0239b5825363110b1a654d26eb2774ad",
       "size": 1385131,
       "needed_by": "draconic-evolution"
+    },
+    {
+      "slug": "carry-on",
+      "name": "Carry On",
+      "version": "2.2.6",
+      "kind": "release",
+      "id": "PV8oLZ1q",
+      "file": "carryon-neoforge-1.21.1-2.2.6.13.jar",
+      "url": "https://cdn.modrinth.com/data/joEfVgkn/versions/PV8oLZ1q/carryon-neoforge-1.21.1-2.2.6.13.jar",
+      "sha1": "2ceb0d9284525b6cb2a214c88cf6511cab91f601",
+      "sha512": "e097b11d6f14e0957bab6c0276b81542e786cb86b9c31d9f25975f8c9fb04a734188b8790683298bbc5c695dc3de7d6e947616a20ad26d4a728a3beb0bb78667",
+      "size": 361486,
+      "needed_by": null
     },
     {
       "slug": "cb-multipart",
@@ -116,6 +142,19 @@
       "sha512": "aaf9b010955b8cd294e5a92f069985b18729fd5e2cf22d351f1dff9680f15488688803ec41e77e941cbde130ceb535014ca4c868047d80ab69c2d508e216654d",
       "size": 1163890,
       "needed_by": "powah"
+    },
+    {
+      "slug": "clumps",
+      "name": "Clumps",
+      "version": "19.0.0.1",
+      "kind": "release",
+      "id": "jo7lDoK4",
+      "file": "Clumps-neoforge-1.21.1-19.0.0.1.jar",
+      "url": "https://cdn.modrinth.com/data/Wnxd13zP/versions/jo7lDoK4/Clumps-neoforge-1.21.1-19.0.0.1.jar",
+      "sha1": "fa2576297c7bd12b28aa7070e8141792bd66da4c",
+      "sha512": "314d8d8e640d73041f27e0f3f2cad7aad8b4c77dbd7fb31700ef7760362261f77085eed5289555c725d99c3f47a114e7290cd608f39c9f0f12ef74958463bdcc",
+      "size": 18382,
+      "needed_by": null
     },
     {
       "slug": "codechicken-lib",
