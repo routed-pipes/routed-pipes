@@ -5,8 +5,10 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.gametest.framework.GameTestServer;
+import net.minecraft.gametest.framework.MultipleTestTracker;
 import net.minecraft.gametest.framework.TestFunction;
 import net.minecraft.server.level.FullChunkStatus;
 import net.minecraft.server.level.ServerLevel;
@@ -14,8 +16,11 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
+import net.neoforged.neoforge.event.server.ServerStoppingEvent;
+import org.apache.logging.log4j.LogManager;
 
-// dev only: on a game test server every test waits until the blocks of its structure really tick
+// dev only: on a game test server every test waits until the blocks of its structure really tick,
+// and the server stops without saving its world
 //
 // the framework starts a test once its chunks may tick entities, but block entities need the entities of the chunk
 // loaded from disk too, and that comes a few ticks later on a busy machine. a test that places pipes and asks
@@ -31,6 +36,27 @@ public final class TestsWaitForTicking {
                 wrapAll(server);
             }
         });
+        NeoForge.EVENT_BUS.addListener((ServerStoppingEvent event) -> {
+            if (event.getServer() instanceof GameTestServer server) {
+                exitWithoutSaving(server);
+            }
+        });
+    }
+
+    // the world of a test run is thrown away, saving its chunks took a third of every run
+    // the exit code stays what the server gives: how many required tests failed
+    private static void exitWithoutSaving(GameTestServer server) {
+        int failed;
+        try {
+            Field field = GameTestServer.class.getDeclaredField("testTracker");
+            field.setAccessible(true);
+            MultipleTestTracker tracker = (MultipleTestTracker) field.get(server);
+            failed = tracker == null ? -1 : tracker.getFailedRequiredCount();
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException("could not read the result of the game tests", e);
+        }
+        LogManager.shutdown();
+        Runtime.getRuntime().halt(failed);
     }
 
     // the server builds its batches from this list right after the event
@@ -53,12 +79,27 @@ public final class TestsWaitForTicking {
     }
 
     // delays inside the body count from the tick it runs in, so its timing stays what it was
+    // the wait is a sequence because those run after the framework went through its timed tasks,
+    // a body that adds timed tasks while the framework walks them breaks its list
     private static void runWhenTicking(GameTestHelper helper, Consumer<GameTestHelper> body) {
         if (blocksTick(helper)) {
             body.accept(helper);
-        } else {
-            helper.runAfterDelay(1, () -> runWhenTicking(helper, body));
+            return;
         }
+        helper.startSequence().thenWaitUntil(() -> {
+            if (!blocksTick(helper)) {
+                throw new GameTestAssertException("the chunks of the test do not tick yet");
+            }
+        }).thenExecute(() -> {
+            try {
+                body.accept(helper);
+            } catch (RuntimeException e) {
+                // a sequence would swallow this and run the body again, a timed task fails the test with it
+                helper.runAfterDelay(0, () -> {
+                    throw e;
+                });
+            }
+        });
     }
 
     // what a chunk needs before its block entities tick
