@@ -67,7 +67,7 @@ public final class DiskDrive {
         if (outcome.started()) {
             player.displayClientMessage(Component.translatable("logisticspipes.request.macro_started", macro.name()), false);
         } else {
-            pipe.tellWhatIsMissing(player, outcome);
+            PipeMenus.tellWhatIsMissing(player, outcome);
         }
         return outcome;
     }
