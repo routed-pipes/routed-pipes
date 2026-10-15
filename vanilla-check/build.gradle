@@ -1,0 +1,21 @@
+// compiles everything outside adapter.neoforge against plain Minecraft, so a NeoForge method
+// patched into a vanilla class can't sneak into the loader-free code
+plugins {
+    id 'java'
+    id 'net.neoforged.moddev'
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+neoForge {
+    neoFormVersion = '1.21.1-20240808.144430'
+}
+
+sourceSets.main.java {
+    srcDir '../src/main/java'
+    include 'routedpipes/domain/**', 'routedpipes/application/**', 'routedpipes/adapter/minecraft/**'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}

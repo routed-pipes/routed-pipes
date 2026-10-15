@@ -327,9 +327,10 @@ idea {
     }
 }
 
-// in-game tests are part of the normal verification
+// in-game tests are part of the normal verification, and so is the compile against plain Minecraft
 tasks.named('check').configure {
     dependsOn 'runGameTestServer'
+    dependsOn ':vanilla-check:compileJava'
 }
 
 // a server that crashes while loading mods exits like one whose tests passed, so its output has to say they did

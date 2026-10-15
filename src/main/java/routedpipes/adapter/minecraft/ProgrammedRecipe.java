@@ -41,11 +41,13 @@ public class ProgrammedRecipe extends ShapedRecipe {
         }
     };
 
+    private final ShapedRecipePattern pattern;
     private final ItemStack result;
     private NonNullList<Ingredient> shown;
 
     public ProgrammedRecipe(ShapedRecipePattern pattern, ItemStack result) {
         super("", CraftingBookCategory.MISC, pattern, result);
+        this.pattern = pattern;
         this.result = result;
     }
 
