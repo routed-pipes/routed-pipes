@@ -5,6 +5,7 @@
 # then the client is started a second time on the same world to check that orders survive a restart.
 # With the argument "compat" the client runs once with the other mods installed, output goes to build/visual-test-compat.
 # With "pack" it runs once with every mod of the play pack, output goes to build/visual-test-pack.
+# With "fabric" it runs once on Fabric, output goes to fabric/build/visual-test.
 set -eu
 cd "$(dirname "$0")/.."
 mkdir -p build
@@ -25,6 +26,12 @@ CONFIG
 if [ "${1:-}" = compat ]; then
     headless runVisualTestCompat build/visual-test-compat.log
     python3 scripts/check_visual.py build/visual-test-compat build/visual-test-compat.log
+    exit
+fi
+
+if [ "${1:-}" = fabric ]; then
+    headless :fabric:runFabricVisualTest build/visual-test-fabric.log
+    python3 scripts/check_visual.py fabric/build/visual-test build/visual-test-fabric.log
     exit
 fi
 

@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "${mod_id}",
+  "version": "${mod_version}",
+  "name": "${mod_name}",
+  "description": "Routed item transport, requesting and autocrafting.\nBased on the design of Logistics Pipes by Krapht and the RS485 team and uses its original textures under the MMPL.\nNot affiliated with or endorsed by them.",
+  "license": "${mod_license}",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["routedpipes.adapter.fabric.RoutedPipesFabric"],
+    "client": ["routedpipes.adapter.fabric.client.RoutedPipesFabricClient"]
+  },
+  "mixins": ["routedpipes.mixins.json"],
+  "depends": {
+    "fabricloader": ">=${fabric_loader_version}",
+    "fabric-api": "*",
+    "minecraft": "${minecraft_version}",
+    "team_reborn_energy": "*"
+  }
+}

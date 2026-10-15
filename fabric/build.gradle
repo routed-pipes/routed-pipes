@@ -1,0 +1,112 @@
+// the mod on Fabric: the shared code of the main project plus adapter.fabric
+plugins {
+    id 'fabric-loom' version '1.11.8'
+}
+
+version = mod_version
+group = mod_group_id
+
+base {
+    archivesName = "${mod_id}-fabric"
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+repositories {
+    maven { url = 'https://maven.parchmentmc.org' }
+}
+
+def shared = ['routedpipes/domain/**', 'routedpipes/application/**', 'routedpipes/adapter/minecraft/**']
+
+sourceSets.main {
+    java {
+        srcDir '../src/main/java'
+        include shared
+        include 'routedpipes/adapter/fabric/**'
+    }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+    mappings loom.layered {
+        officialMojangMappings()
+        parchment("org.parchmentmc.data:parchment-${parchment_minecraft_version}:${parchment_mappings_version}@zip")
+    }
+    modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
+    modImplementation include("teamreborn:energy:${energy_version}")
+}
+
+processResources {
+    from('../src/main/resources') {
+        // NeoForge only
+        exclude 'META-INF/neoforge.mods.toml', 'META-INF/services/**'
+    }
+    var replaceProperties = [mod_id: mod_id, mod_name: mod_name, mod_license: mod_license, mod_version: mod_version,
+                             minecraft_version: minecraft_version, fabric_loader_version: fabric_loader_version]
+    inputs.properties replaceProperties
+    filesMatching('fabric.mod.json') {
+        expand replaceProperties
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 21
+}
+
+loom {
+    runs {
+        // own names, a task name that is also one of the main project would run both
+        remove client
+        remove server
+        fabricClient {
+            client()
+            name 'Fabric Client'
+            runDir 'run/client'
+        }
+        fabricServer {
+            server()
+            name 'Fabric Server'
+            runDir 'run/server'
+        }
+
+        // starts a server that runs every game test and exits
+        fabricGameTest {
+            server()
+            name 'Game Test'
+            vmArg '-Dfabric-api.gametest'
+            runDir 'run/gametest'
+        }
+
+        // scripted client that saves screenshots and quits, started by scripts/visual-test.sh fabric
+        fabricVisualTest {
+            client()
+            name 'Visual Test'
+            runDir 'run/visual'
+            vmArg "-Droutedpipes.visualTest=${project.file('build/visual-test').absolutePath}"
+            programArgs '--width', '854', '--height', '480'
+        }
+    }
+}
+
+// a fresh game directory starts with the accessibility screen, which reads itself out loud
+def visualOptions = file('run/visual/options.txt')
+tasks.matching { it.name == 'runFabricVisualTest' }.configureEach {
+    doFirst {
+        if (!visualOptions.exists()) {
+            visualOptions.parentFile.mkdirs()
+            visualOptions.text = 'onboardAccessibility:false\nnarrator:0\nsoundCategory_master:0.0\n'
+        }
+    }
+}
+
+// Loom keeps the tasks of the default runs, here they would only start along with the ones of the main project
+tasks.matching { it.name in ['runClient', 'runServer', 'runClientRenderDoc'] }.configureEach {
+    enabled = false
+}
+
+// the game tests on Fabric are part of the normal verification, the server exits with the number of failed ones
+tasks.named('check').configure {
+    dependsOn 'runFabricGameTest'
+}

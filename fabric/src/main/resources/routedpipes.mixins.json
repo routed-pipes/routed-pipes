@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "package": "routedpipes.adapter.fabric.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "ExplosionMixin",
+    "ResultSlotMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
