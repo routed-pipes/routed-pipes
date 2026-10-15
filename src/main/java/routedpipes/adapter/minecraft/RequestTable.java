@@ -167,6 +167,17 @@ public final class RequestTable {
         return pipe.requestShortfall(ingredients(crafts), stock(), true).missing();
     }
 
+    // the same for one craft of other ingredients than the grid, like a recipe a recipe viewer shows
+    public Map<ItemType, Integer> missing(List<ItemStack> ingredients) {
+        Map<ItemType, Integer> needed = new LinkedHashMap<>();
+        for (ItemStack ingredient : ingredients) {
+            if (!ingredient.isEmpty()) {
+                needed.merge(McItemType.batchOf(ingredient).type(), 1, Integer::sum);
+            }
+        }
+        return pipe.requestShortfall(needed, stock(), true).missing();
+    }
+
     // what the buffer holds and the network can bring, craftable items that are out of stock with 0
     public Map<ItemType, Integer> reachable() {
         Map<ItemType, Integer> reachable = new LinkedHashMap<>(pipe.available());

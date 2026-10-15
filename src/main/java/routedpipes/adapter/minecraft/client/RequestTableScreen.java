@@ -130,8 +130,17 @@ public class RequestTableScreen extends AbstractContainerScreen<RequestTableMenu
         for (int index = 0; index < missing.size(); index++) {
             int x = MISSING_X + index * 17;
             graphics.renderItem(missing.get(index), x, MISSING_Y);
-            graphics.renderItemDecorations(font, missing.get(index), x, MISSING_Y, Integer.toString(Shortfall.count(missing.get(index))));
+            graphics.renderItemDecorations(font, missing.get(index), x, MISSING_Y, shortCount(Shortfall.count(missing.get(index))));
         }
+        if (menu.missingKinds() > missing.size()) {
+            Component more = Component.translatable("routedpipes.gui.request_table.more", menu.missingKinds() - missing.size());
+            graphics.drawString(font, more, imageWidth - 6 - font.width(more), 67, MISSING, false);
+        }
+    }
+
+    // fits on an item, the tooltip has the exact number
+    private static String shortCount(int count) {
+        return count < 1000 ? Integer.toString(count) : count < 1_000_000 ? count / 1000 + "k" : count / 1_000_000 + "M";
     }
 
     @Override

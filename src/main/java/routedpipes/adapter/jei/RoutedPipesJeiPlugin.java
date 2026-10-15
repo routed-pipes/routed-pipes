@@ -13,6 +13,7 @@ import routedpipes.adapter.minecraft.client.PipeConfigScreen;
 import routedpipes.adapter.minecraft.client.RecipeViewerCheck;
 import routedpipes.adapter.minecraft.client.RequestTableScreen;
 import routedpipes.adapter.minecraft.menu.CraftingTableMenu;
+import routedpipes.adapter.minecraft.menu.IngredientMenu;
 import routedpipes.adapter.minecraft.menu.IngredientQuestions;
 import routedpipes.adapter.minecraft.menu.MenuRequests;
 import routedpipes.adapter.minecraft.menu.PipeConfigMenu;
@@ -132,9 +133,7 @@ public class RoutedPipesJeiPlugin implements IModPlugin {
             }
         }
 
-        private final IngredientQuestions questions = new IngredientQuestions(
-                (containerId, question, ingredients) -> ClientMenuLink.askIngredients(containerId, question, ingredients),
-                Util::getMillis);
+        private final IngredientQuestions questions = new IngredientQuestions(ClientMenuLink::askIngredients, Util::getMillis);
 
         @Override
         public Class<? extends CraftingTableMenu> getContainerClass() {
@@ -199,13 +198,16 @@ public class RoutedPipesJeiPlugin implements IModPlugin {
                 questions.forget();
                 return null;
             }
-            return questions.answer(menu, ingredients).filter(answer -> answer.network() == CraftingTableMenu.NETWORK_MISSING)
+            return questions.answer(menu, ingredients).filter(answer -> answer.network() == IngredientMenu.NETWORK_MISSING)
                     .<IRecipeTransferError>map(answer -> new NetworkShortfall(answer.shortfall())).orElse(null);
         }
     }
 
-    // the plus button on a crafting recipe fills the grid of an open request table
+    // the plus button on a crafting recipe fills the grid of an open request table,
+    // hovering the button tells which ingredients the network cannot bring
     private static final class RequestTableTransfer implements IRecipeTransferHandler<RequestTableMenu, RecipeHolder<CraftingRecipe>> {
+
+        private final IngredientQuestions questions = new IngredientQuestions(ClientMenuLink::askIngredients, Util::getMillis);
 
         @Override
         public Class<? extends RequestTableMenu> getContainerClass() {
@@ -227,8 +229,10 @@ public class RoutedPipesJeiPlugin implements IModPlugin {
                 IRecipeSlotsView recipeSlots, Player player, boolean maxTransfer, boolean doTransfer) {
             if (doTransfer) {
                 TableTransfer.fillGrid(menu.containerId, recipeSlots);
+                return null;
             }
-            return null;
+            return questions.answer(menu, TableTransfer.grid(recipeSlots)).filter(answer -> answer.network() == IngredientMenu.NETWORK_MISSING)
+                    .<IRecipeTransferError>map(answer -> new TableTransfer.NetworkShortfall(answer.shortfall())).orElse(null);
         }
     }
 

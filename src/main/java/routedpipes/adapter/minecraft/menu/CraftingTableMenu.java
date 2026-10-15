@@ -21,13 +21,7 @@ import net.minecraft.world.item.ItemStack;
 
 // recipe grid of markers, a preview of the result and the ingredient storage
 // slots that are never shown carry what the network said about the ingredients a recipe viewer asked about
-public class CraftingTableMenu extends AbstractContainerMenu implements MarkerMenu {
-
-    // no pipe next to the table can order
-    public static final int NETWORK_NONE = 0;
-    // the network can bring everything that is not in storage
-    public static final int NETWORK_SUPPLIES = 1;
-    public static final int NETWORK_MISSING = 2;
+public class CraftingTableMenu extends AbstractContainerMenu implements MarkerMenu, IngredientMenu {
 
     private static final int PATTERN_END = CraftingTableBlockEntity.PATTERN_SLOTS;
     private static final int RESULT_SLOT = PATTERN_END;
@@ -80,7 +74,7 @@ public class CraftingTableMenu extends AbstractContainerMenu implements MarkerMe
     }
 
     // finds out whether the network can bring what these ingredients need beyond the storage
-    // the client reads the answer from the menu once it carries the number of its question
+    @Override
     public void askIngredients(int question, List<ItemStack> ingredients) {
         if (table == null) {
             return;
@@ -92,16 +86,18 @@ public class CraftingTableMenu extends AbstractContainerMenu implements MarkerMe
         answer.set(DATA_QUESTION, question);
     }
 
-    // the number of the question the menu holds the answer to
+    @Override
     public int answeredQuestion() {
         return answer.get(DATA_QUESTION);
     }
 
+    @Override
     public int network() {
         return answer.get(DATA_NETWORK);
     }
 
     // what the network cannot bring, at most nine kinds
+    @Override
     public List<ItemStack> shortfall() {
         return Shortfall.read(shortfall);
     }

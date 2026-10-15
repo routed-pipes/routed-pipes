@@ -172,6 +172,7 @@
   "routedpipes.gui.request_table.craft.tooltip": "Order what is missing and craft that many into the buffer as soon as it arrives",
   "routedpipes.gui.request_table.pending": "%s to go",
   "routedpipes.gui.request_table.missing": "Missing:",
+  "routedpipes.gui.request_table.more": "+%s more",
   "routedpipes.gui.request_table.ready": "The network has it all",
   "routedpipes.gui.request_table.store_all": "Store all",
   "routedpipes.gui.request_table.store_all.tooltip": "Send everything in the buffer back into the network",

@@ -9,9 +9,10 @@ import java.util.function.LongSupplier;
 
 import routedpipes.adapter.minecraft.McItemType;
 import routedpipes.domain.item.ItemType;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 
-// client side of asking whether the network can bring the ingredients of a recipe to the open crafting table
+// client side of asking whether the network can bring the ingredients of a recipe to the open table
 // only the server knows the network, so the answers come in a little later and are kept per recipe
 // a recipe viewer looks at them every tick for every recipe it shows
 public final class IngredientQuestions {
@@ -45,7 +46,7 @@ public final class IngredientQuestions {
 
     // the last thing the server said about these ingredients, empty until it has answered
     // asks the server when there is nothing fresh, one question at a time
-    public Optional<Answer> answer(CraftingTableMenu menu, List<ItemStack> ingredients) {
+    public <M extends AbstractContainerMenu & IngredientMenu> Optional<Answer> answer(M menu, List<ItemStack> ingredients) {
         long now = clock.getAsLong();
         if (menu.containerId != containerId) {
             containerId = menu.containerId;

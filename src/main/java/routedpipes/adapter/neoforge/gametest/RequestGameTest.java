@@ -774,7 +774,7 @@ public class RequestGameTest {
             routedpipes.adapter.minecraft.menu.RequestTableMenu menu = (routedpipes.adapter.minecraft.menu.RequestTableMenu) player.containerMenu;
             MenuRequests.applyText(player, menu.containerId, routedpipes.adapter.minecraft.menu.RequestTableMenu.TEXT_AMOUNT, "5");
             menu.broadcastChanges();
-            helper.assertTrue(menu.amount() == 5, "five crafts are chosen");
+            helper.assertTrue(menu.amount() == 5 && menu.missingKinds() == 1, "five crafts are chosen");
             helper.assertTrue(menu.missing().size() == 1 && menu.missing().get(0).is(Items.OAK_LOG)
                     && routedpipes.adapter.minecraft.menu.Shortfall.count(menu.missing().get(0)) == 3, "three logs short for five crafts");
             menu.clickMenuButton(player, routedpipes.adapter.minecraft.menu.RequestTableMenu.BUTTON_CRAFT);
@@ -846,6 +846,59 @@ public class RequestGameTest {
             helper.assertTrue(crafting.config().getItem(0).is(Items.BIRCH_PLANKS) && crafting.config().getItem(0).getCount() == 3,
                     "a crafting pipe picks the same way and keeps the count");
             helper.succeed();
+        });
+    }
+
+    // a recipe viewer asks the request table about a recipe, the buffer counts and nothing is ordered
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void requestTableTellsARecipeViewerWhatIsMissing(GameTestHelper helper) {
+        GameTestPower.supply(helper);
+        PipeBlockEntity table = pipe(helper, PipeKind.REQUEST_TABLE, 0, 1);
+        pipe(helper, PipeKind.PROVIDER, 1, 1);
+        BlockPos source = chest(helper, 1, 2, new ItemStack(Items.OAK_PLANKS, 1));
+        table.requestTable().buffer().setItem(0, new ItemStack(Items.OAK_PLANKS, 1));
+        TestPlayer player = TestPlayer.in(helper);
+        List<ItemStack> torch = List.of(new ItemStack(Items.OAK_PLANKS), new ItemStack(Items.OAK_PLANKS), new ItemStack(Items.OAK_PLANKS),
+                new ItemStack(Items.COAL));
+
+        helper.runAfterDelay(SETTLE + 15, () -> {
+            player.openMenu(table.menuProvider());
+            routedpipes.adapter.minecraft.menu.RequestTableMenu menu = (routedpipes.adapter.minecraft.menu.RequestTableMenu) player.containerMenu;
+            MenuRequests.askIngredients(player, menu.containerId, 4, torch);
+            helper.assertTrue(menu.answeredQuestion() == 4 && menu.network() == routedpipes.adapter.minecraft.menu.IngredientMenu.NETWORK_MISSING,
+                    "something is missing");
+            List<ItemStack> shortfall = menu.shortfall();
+            helper.assertTrue(shortfall.size() == 2 && shortfall.get(0).is(Items.COAL) && routedpipes.adapter.minecraft.menu.Shortfall.count(shortfall.get(0)) == 1
+                    && shortfall.get(1).is(Items.OAK_PLANKS) && routedpipes.adapter.minecraft.menu.Shortfall.count(shortfall.get(1)) == 1,
+                    "one plank is in the buffer, one in the chest, one and the coal are missing, got " + shortfall);
+            assertCount(helper, source, Items.OAK_PLANKS, 1);
+            helper.succeed();
+        });
+    }
+
+    // the planks the stick recipe needs are in no chest, a crafting pipe makes them from logs for the table
+    @GameTest(template = EMPTY, timeoutTicks = 400)
+    public static void requestTableGetsItsIngredientsCraftedByTheNetwork(GameTestHelper helper) {
+        GameTestPower.supply(helper);
+        PipeBlockEntity pipe = pipe(helper, PipeKind.REQUEST_TABLE, 0, 1);
+        routedpipes.adapter.minecraft.RequestTable table = pipe.requestTable();
+        pipe(helper, PipeKind.PROVIDER, 1, 1);
+        BlockPos source = chest(helper, 1, 2, new ItemStack(Items.OAK_LOG, 8));
+        PipeBlockEntity planks = pipe(helper, PipeKind.CRAFTING, 2, 1);
+        helper.setBlock(new BlockPos(2, 2, 1), RoutedPipes.CRAFTING_TABLE.get());
+        ((routedpipes.adapter.minecraft.CraftingTableBlockEntity) helper.getBlockEntity(new BlockPos(2, 2, 1))).pattern()
+                .setItem(0, new ItemStack(Items.OAK_LOG));
+        planks.importRecipe();
+        table.grid().setItem(1, new ItemStack(Items.OAK_PLANKS));
+        table.grid().setItem(4, new ItemStack(Items.OAK_PLANKS));
+
+        helper.runAfterDelay(SETTLE + 15, () -> {
+            helper.assertTrue(table.missing(1).isEmpty(), "planks can be crafted, so nothing is missing, got " + table.missing(1));
+            helper.assertTrue(table.orderAndCraft(1).started(), "the order goes through");
+        });
+        helper.succeedWhen(() -> {
+            helper.assertTrue(table.buffer().countItem(Items.STICK) == 4, "four sticks from crafted planks");
+            assertCount(helper, source, Items.OAK_LOG, 7);
         });
     }
 }

@@ -1,5 +1,6 @@
 package routedpipes.adapter.minecraft;
 
+import java.util.List;
 import java.util.Map;
 
 import routedpipes.adapter.minecraft.menu.ChassisMenu;
@@ -111,6 +112,11 @@ final class PipeMenus {
             @Override
             public Map<ItemType, Integer> missing(int crafts) {
                 return table.missing(crafts);
+            }
+
+            @Override
+            public Map<ItemType, Integer> missing(List<ItemStack> ingredients) {
+                return table.missing(ingredients);
             }
 
             @Override

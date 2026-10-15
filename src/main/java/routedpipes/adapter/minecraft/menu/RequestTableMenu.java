@@ -20,8 +20,9 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
 // recipe grid, buffer and sort slot of a request table
-// slots that are never shown carry what the network lacks for the chosen number of crafts
-public class RequestTableMenu extends AbstractContainerMenu implements MarkerMenu, TextMenu {
+// slots that are never shown carry what the network lacks for the chosen number of crafts,
+// and what it lacks for the recipe a recipe viewer asked about
+public class RequestTableMenu extends AbstractContainerMenu implements MarkerMenu, TextMenu, IngredientMenu {
 
     // what the table does for the buttons of its screen
     public interface Actions {
@@ -36,6 +37,8 @@ public class RequestTableMenu extends AbstractContainerMenu implements MarkerMen
         int pending();
 
         Map<ItemType, Integer> missing(int crafts);
+
+        Map<ItemType, Integer> missing(List<ItemStack> ingredients);
 
         Map<ItemType, Integer> reachable();
 
@@ -67,12 +70,18 @@ public class RequestTableMenu extends AbstractContainerMenu implements MarkerMen
     public static final int DISK_SLOT = FIRST_PLAYER_SLOT + 36;
     private static final int DATA_AMOUNT = 0;
     private static final int DATA_PENDING = 1;
+    private static final int DATA_MISSING_KINDS = 2;
+    private static final int DATA_NETWORK = 0;
+    // sent last, so a client that sees the number of its question has the rest of the answer too
+    private static final int DATA_QUESTION = 1;
     // how often the network is asked what it lacks
     private static final int MISSING_REFRESH = 10;
 
     private final Container preview = new SimpleContainer(1);
     private final Container missing = new SimpleContainer(MISSING_SLOTS);
-    private final ContainerData data = new SimpleContainerData(2);
+    private final ContainerData data = new SimpleContainerData(3);
+    private final Container shortfall = new SimpleContainer(MISSING_SLOTS);
+    private final ContainerData answer = new SimpleContainerData(2);
     private final Predicate<Player> usable;
     private final Actions actions;
     private int sinceMissing = MISSING_REFRESH;
@@ -108,8 +117,12 @@ public class RequestTableMenu extends AbstractContainerMenu implements MarkerMen
         for (int slot = 0; slot < MISSING_SLOTS; slot++) {
             addSlot(new HiddenSlot(missing, slot));
         }
+        for (int slot = 0; slot < MISSING_SLOTS; slot++) {
+            addSlot(new HiddenSlot(shortfall, slot));
+        }
         data.set(DATA_AMOUNT, 1);
         addDataSlots(data);
+        addDataSlots(answer);
     }
 
     public boolean holdsDisk() {
@@ -130,6 +143,37 @@ public class RequestTableMenu extends AbstractContainerMenu implements MarkerMen
         return Shortfall.read(missing);
     }
 
+    // how many kinds are missing, more than missing() shows when they do not fit
+    public int missingKinds() {
+        return data.get(DATA_MISSING_KINDS);
+    }
+
+    @Override
+    public void askIngredients(int question, List<ItemStack> ingredients) {
+        if (actions == null) {
+            return;
+        }
+        Map<ItemType, Integer> lacking = actions.missing(ingredients);
+        Shortfall.write(shortfall, lacking);
+        answer.set(DATA_NETWORK, lacking.isEmpty() ? NETWORK_SUPPLIES : NETWORK_MISSING);
+        answer.set(DATA_QUESTION, question);
+    }
+
+    @Override
+    public int answeredQuestion() {
+        return answer.get(DATA_QUESTION);
+    }
+
+    @Override
+    public int network() {
+        return answer.get(DATA_NETWORK);
+    }
+
+    @Override
+    public List<ItemStack> shortfall() {
+        return Shortfall.read(shortfall);
+    }
+
     // the result is worked out on the server and shown through a slot, and so is what is missing
     @Override
     public void broadcastChanges() {
@@ -138,7 +182,7 @@ public class RequestTableMenu extends AbstractContainerMenu implements MarkerMen
             data.set(DATA_PENDING, actions.pending());
             if (++sinceMissing >= MISSING_REFRESH) {
                 sinceMissing = 0;
-                Shortfall.write(missing, actions.missing(amount()));
+                data.set(DATA_MISSING_KINDS, Shortfall.write(missing, actions.missing(amount())));
             }
         }
         super.broadcastChanges();

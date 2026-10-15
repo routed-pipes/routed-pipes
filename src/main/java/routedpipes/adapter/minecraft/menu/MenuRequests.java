@@ -35,9 +35,9 @@ public final class MenuRequests {
         apply(player, containerId, slot, MarkerChoice.pick(choices, menu.available()));
     }
 
-    // a recipe viewer asks whether the network can bring the ingredients of a recipe to the open crafting table
+    // a recipe viewer asks whether the network can bring the ingredients of a recipe to the open table
     public static void askIngredients(Player player, int containerId, int question, List<ItemStack> ingredients) {
-        if (player.containerMenu.containerId != containerId || !(player.containerMenu instanceof CraftingTableMenu menu)
+        if (player.containerMenu.containerId != containerId || !(player.containerMenu instanceof IngredientMenu menu)
                 || !player.containerMenu.stillValid(player) || ingredients.size() > MAX_INGREDIENTS) {
             return;
         }

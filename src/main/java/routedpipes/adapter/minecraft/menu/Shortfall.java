@@ -24,7 +24,8 @@ public final class Shortfall {
     }
 
     // fills the container sorted by item id, what does not fit is left out
-    static void write(Container slots, Map<ItemType, Integer> missing) {
+    // returns how many kinds are missing, also those left out
+    static int write(Container slots, Map<ItemType, Integer> missing) {
         List<Map.Entry<ItemType, Integer>> sorted = new ArrayList<>(missing.entrySet());
         sorted.sort(Comparator.comparing(entry -> BuiltInRegistries.ITEM.getKey(((McItemType) entry.getKey()).item())));
         for (int slot = 0; slot < slots.getContainerSize(); slot++) {
@@ -36,6 +37,7 @@ public final class Shortfall {
             }
             slots.setItem(slot, stack);
         }
+        return sorted.size();
     }
 
     static List<ItemStack> read(Container slots) {
