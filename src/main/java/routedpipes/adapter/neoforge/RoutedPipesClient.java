@@ -46,7 +46,7 @@ import routedpipes.adapter.minecraft.client.StatisticsTableScreen;
 import routedpipes.adapter.minecraft.client.UpgradeScreen;
 import routedpipes.adapter.minecraft.menu.RequestMenu;
 import routedpipes.adapter.neoforge.visualtest.ClientBenchmark;
-import routedpipes.adapter.neoforge.visualtest.VisualTest;
+import routedpipes.adapter.minecraft.client.visualtest.VisualTest;
 import routedpipes.domain.look.Mount;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
@@ -137,7 +137,7 @@ public class RoutedPipesClient {
             }
         });
         GuideBookItem.setOpener(() -> Minecraft.getInstance().setScreen(new GuideBookScreen()));
-        VisualTest.registerIfRequested();
+        VisualTest.registerIfRequested(tick -> NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post event) -> tick.run()));
         ClientBenchmark.registerIfRequested();
     }
 

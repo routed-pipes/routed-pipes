@@ -10,6 +10,7 @@ import routedpipes.adapter.minecraft.ShownHudPanels;
 import routedpipes.adapter.minecraft.RemoteOrdererItem;
 import routedpipes.adapter.minecraft.content.Content;
 import routedpipes.adapter.minecraft.content.Registered;
+import routedpipes.adapter.minecraft.gametest.TestsWaitForTicking;
 import routedpipes.adapter.minecraft.menu.MenuRequests;
 import routedpipes.adapter.minecraft.network.AskIngredientsPayload;
 import routedpipes.adapter.minecraft.network.ChooseMarkerPayload;
@@ -19,7 +20,6 @@ import routedpipes.adapter.minecraft.network.SetMarkerPayload;
 import routedpipes.adapter.minecraft.network.SetMenuTextPayload;
 import routedpipes.adapter.neoforge.benchmark.Benchmark;
 import routedpipes.adapter.neoforge.gametest.NeoForgeGameTestPlatform;
-import routedpipes.adapter.neoforge.gametest.TestsWaitForTicking;
 import routedpipes.domain.logistics.PipeKind;
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.Registry;
@@ -36,7 +36,9 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
+import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
@@ -89,7 +91,9 @@ public class RoutedPipes {
         ComputerCraftSupport.registerIfInstalled(modEventBus);
         Benchmark.registerIfRequested();
         NeoForgeGameTestPlatform.registerIfTesting(modEventBus);
-        TestsWaitForTicking.register();
+        // dev only: test servers wait for their chunks and stop without saving
+        NeoForge.EVENT_BUS.addListener((ServerAboutToStartEvent event) -> TestsWaitForTicking.serverStarting(event.getServer()));
+        NeoForge.EVENT_BUS.addListener((ServerStoppingEvent event) -> TestsWaitForTicking.serverStopping(event.getServer()));
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})

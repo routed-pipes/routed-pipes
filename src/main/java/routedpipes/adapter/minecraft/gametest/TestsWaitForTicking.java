@@ -1,4 +1,4 @@
-package routedpipes.adapter.neoforge.gametest;
+package routedpipes.adapter.minecraft.gametest;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -10,13 +10,11 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.gametest.framework.GameTestServer;
 import net.minecraft.gametest.framework.MultipleTestTracker;
 import net.minecraft.gametest.framework.TestFunction;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.FullChunkStatus;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
-import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
-import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import org.apache.logging.log4j.LogManager;
 
 // dev only: on a game test server every test waits until the blocks of its structure really tick,
@@ -30,17 +28,17 @@ public final class TestsWaitForTicking {
     private TestsWaitForTicking() {
     }
 
-    public static void register() {
-        NeoForge.EVENT_BUS.addListener((ServerAboutToStartEvent event) -> {
-            if (event.getServer() instanceof GameTestServer server) {
-                wrapAll(server);
-            }
-        });
-        NeoForge.EVENT_BUS.addListener((ServerStoppingEvent event) -> {
-            if (event.getServer() instanceof GameTestServer server) {
-                exitWithoutSaving(server);
-            }
-        });
+    // the loader calls this before the server sets up, it builds its batches right after
+    public static void serverStarting(MinecraftServer server) {
+        if (server instanceof GameTestServer testServer) {
+            wrapAll(testServer);
+        }
+    }
+
+    public static void serverStopping(MinecraftServer server) {
+        if (server instanceof GameTestServer testServer) {
+            exitWithoutSaving(testServer);
+        }
     }
 
     // the world of a test run is thrown away, saving its chunks took a third of every run
@@ -59,7 +57,6 @@ public final class TestsWaitForTicking {
         Runtime.getRuntime().halt(failed);
     }
 
-    // the server builds its batches from this list right after the event
     @SuppressWarnings("unchecked")
     private static void wrapAll(GameTestServer server) {
         try {

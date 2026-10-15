@@ -1,4 +1,4 @@
-package routedpipes.adapter.neoforge.visualtest;
+package routedpipes.adapter.minecraft.client.visualtest;
 
 import routedpipes.adapter.minecraft.content.Content;
 import java.io.File;
@@ -42,8 +42,6 @@ import net.minecraft.world.level.levelgen.WorldOptions;
 import net.minecraft.world.level.levelgen.presets.WorldPresets;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.client.event.ClientTickEvent;
-import net.neoforged.neoforge.common.NeoForge;
 import org.slf4j.Logger;
 
 // dev only: with -Droutedpipes.visualTest=<dir> the client builds a pipe scene by itself,
@@ -82,11 +80,12 @@ public final class VisualTest {
         this.output = output;
     }
 
-    public static void registerIfRequested() {
+    // the loader runs what it is given at the end of every client tick
+    public static void registerIfRequested(Consumer<Runnable> onClientTick) {
         String directory = System.getProperty(PROPERTY);
         if (directory != null) {
             VisualTest test = new VisualTest(new File(directory));
-            NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post event) -> test.tick());
+            onClientTick.accept(test::tick);
         }
     }
 

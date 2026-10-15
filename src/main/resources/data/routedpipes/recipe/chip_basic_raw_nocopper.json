@@ -5,6 +5,17 @@
       "tag": "c:ingots/copper"
     }
   ],
+  "fabric:load_conditions": [
+    {
+      "condition": "fabric:not",
+      "value": {
+        "condition": "fabric:tags_populated",
+        "values": [
+          "c:ingots/copper"
+        ]
+      }
+    }
+  ],
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
