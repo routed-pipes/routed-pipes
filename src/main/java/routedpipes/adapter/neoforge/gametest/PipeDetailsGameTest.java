@@ -1,5 +1,6 @@
 package routedpipes.adapter.neoforge.gametest;
 
+import routedpipes.adapter.minecraft.content.Content;
 import java.util.List;
 
 import routedpipes.adapter.minecraft.CraftingTableBlockEntity;
@@ -7,7 +8,6 @@ import routedpipes.adapter.minecraft.McItemType;
 import routedpipes.adapter.minecraft.ModuleItem;
 import routedpipes.adapter.minecraft.PipeBlockEntity;
 import routedpipes.adapter.minecraft.PipeDetails;
-import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.domain.logistics.ModuleKind;
 import routedpipes.domain.logistics.PipeKind;
 import net.minecraft.core.BlockPos;
@@ -22,7 +22,7 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 // what the tooltip of a block info mod is told about a pipe
-@GameTestHolder(RoutedPipes.MODID)
+@GameTestHolder(Content.MODID)
 @PrefixGameTestTemplate(false)
 public class PipeDetailsGameTest {
 
@@ -31,7 +31,7 @@ public class PipeDetailsGameTest {
 
     private static PipeBlockEntity pipe(GameTestHelper helper, PipeKind kind, int x) {
         BlockPos pos = new BlockPos(x, 1, 1);
-        helper.setBlock(pos, RoutedPipes.pipe(kind));
+        helper.setBlock(pos, Content.pipe(kind));
         return helper.getBlockEntity(pos);
     }
 
@@ -78,18 +78,18 @@ public class PipeDetailsGameTest {
     public static void chassisTellsItsModulesAndWhatTheyTake(GameTestHelper helper) {
         GameTestPower.supply(helper);
         BlockPos pos = new BlockPos(0, 1, 1);
-        helper.setBlock(pos, RoutedPipes.CHASSIS_PIPES.get(8).get());
+        helper.setBlock(pos, Content.CHASSIS_PIPES.get(8).get());
         PipeBlockEntity chassis = helper.getBlockEntity(pos);
-        ItemStack sink = new ItemStack(RoutedPipes.MODULES.get(ModuleKind.ITEM_SINK).get());
+        ItemStack sink = new ItemStack(Content.MODULES.get(ModuleKind.ITEM_SINK).get());
         ModuleItem.configureSink(sink, List.of(new ItemStack(Items.DIAMOND)), true);
         chassis.modules().setItem(0, sink);
-        chassis.modules().setItem(1, new ItemStack(RoutedPipes.MODULES.get(ModuleKind.EXTRACTOR).get()));
-        chassis.modules().setItem(3, new ItemStack(RoutedPipes.MODULES.get(ModuleKind.PROVIDER).get()));
-        chassis.modules().setItem(4, new ItemStack(RoutedPipes.MODULES.get(ModuleKind.POLYMORPHIC_ITEM_SINK).get()));
+        chassis.modules().setItem(1, new ItemStack(Content.MODULES.get(ModuleKind.EXTRACTOR).get()));
+        chassis.modules().setItem(3, new ItemStack(Content.MODULES.get(ModuleKind.PROVIDER).get()));
+        chassis.modules().setItem(4, new ItemStack(Content.MODULES.get(ModuleKind.POLYMORPHIC_ITEM_SINK).get()));
 
         PipeDetails details = sent(helper, chassis);
-        helper.assertTrue(items(details.modules().shown()).equals(List.of(RoutedPipes.MODULES.get(ModuleKind.ITEM_SINK).get(),
-                RoutedPipes.MODULES.get(ModuleKind.EXTRACTOR).get(), RoutedPipes.MODULES.get(ModuleKind.PROVIDER).get())),
+        helper.assertTrue(items(details.modules().shown()).equals(List.of(Content.MODULES.get(ModuleKind.ITEM_SINK).get(),
+                Content.MODULES.get(ModuleKind.EXTRACTOR).get(), Content.MODULES.get(ModuleKind.PROVIDER).get())),
                 "the first three modules in slot order, got " + details.modules());
         helper.assertTrue(details.modules().more() == 1, "the fourth module is only counted");
         helper.assertTrue(items(details.listed().shown()).equals(List.of(Items.DIAMOND)), "the item sink module lists diamonds");
@@ -108,7 +108,7 @@ public class PipeDetailsGameTest {
         Container logs = helper.getBlockEntity(new BlockPos(1, 2, 1));
         logs.setItem(0, new ItemStack(Items.OAK_LOG, 16));
         PipeBlockEntity crafting = pipe(helper, PipeKind.CRAFTING, 2);
-        helper.setBlock(new BlockPos(2, 2, 1), RoutedPipes.CRAFTING_TABLE.get());
+        helper.setBlock(new BlockPos(2, 2, 1), Content.CRAFTING_TABLE.get());
         CraftingTableBlockEntity table = helper.getBlockEntity(new BlockPos(2, 2, 1));
         table.pattern().setItem(0, new ItemStack(Items.OAK_LOG));
         crafting.importRecipe();

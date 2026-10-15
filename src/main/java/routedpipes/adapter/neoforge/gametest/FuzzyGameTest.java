@@ -1,5 +1,6 @@
 package routedpipes.adapter.neoforge.gametest;
 
+import routedpipes.adapter.minecraft.content.Content;
 import java.util.List;
 
 import routedpipes.adapter.minecraft.McItemType;
@@ -7,7 +8,6 @@ import routedpipes.adapter.minecraft.ModuleItem;
 import routedpipes.adapter.minecraft.PipeBlockEntity;
 import routedpipes.adapter.minecraft.menu.ChassisMenu;
 import routedpipes.adapter.minecraft.menu.PipeConfigMenu;
-import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.domain.item.FuzzyFlags;
 import routedpipes.domain.item.FuzzyType;
 import routedpipes.domain.item.ItemType;
@@ -25,7 +25,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-@GameTestHolder(RoutedPipes.MODID)
+@GameTestHolder(Content.MODID)
 @PrefixGameTestTemplate(false)
 public class FuzzyGameTest {
 
@@ -35,12 +35,12 @@ public class FuzzyGameTest {
     private static final int SETTLE = 15;
 
     private static ItemStack upgrade(UpgradeKind kind) {
-        return new ItemStack(RoutedPipes.UPGRADES.get(kind).get());
+        return new ItemStack(Content.UPGRADES.get(kind).get());
     }
 
     private static PipeBlockEntity pipe(GameTestHelper helper, PipeKind kind, int x) {
         BlockPos pos = new BlockPos(x, 1, 1);
-        helper.setBlock(pos, RoutedPipes.pipe(kind));
+        helper.setBlock(pos, Content.pipe(kind));
         return helper.getBlockEntity(pos);
     }
 
@@ -136,9 +136,9 @@ public class FuzzyGameTest {
     public static void itemSinkModuleWithFuzzyUpgradeTakesWhatMatchesItsList(GameTestHelper helper) {
         GameTestPower.supply(helper);
         BlockPos chassisPos = new BlockPos(0, 1, 1);
-        helper.setBlock(chassisPos, RoutedPipes.CHASSIS_PIPES.get(1).get());
+        helper.setBlock(chassisPos, Content.CHASSIS_PIPES.get(1).get());
         PipeBlockEntity chassis = helper.getBlockEntity(chassisPos);
-        ItemStack module = new ItemStack(RoutedPipes.MODULES.get(ModuleKind.ITEM_SINK).get());
+        ItemStack module = new ItemStack(Content.MODULES.get(ModuleKind.ITEM_SINK).get());
         ModuleItem.configureSink(module, List.of(new ItemStack(Items.OAK_PLANKS), new ItemStack(Items.IRON_PICKAXE)), false);
         chassis.modules().setItem(0, module);
         chassis.moduleUpgrades().setItem(0, upgrade(UpgradeKind.FUZZY));
@@ -258,9 +258,9 @@ public class FuzzyGameTest {
     public static void crafterModuleUsesItsFlagsOnlyWithAFuzzyUpgradeOfItsOwn(GameTestHelper helper) {
         GameTestPower.supply(helper);
         BlockPos chassisPos = new BlockPos(0, 1, 1);
-        helper.setBlock(chassisPos, RoutedPipes.CHASSIS_PIPES.get(1).get());
+        helper.setBlock(chassisPos, Content.CHASSIS_PIPES.get(1).get());
         PipeBlockEntity chassis = helper.getBlockEntity(chassisPos);
-        ItemStack module = new ItemStack(RoutedPipes.MODULES.get(ModuleKind.CRAFTER).get());
+        ItemStack module = new ItemStack(Content.MODULES.get(ModuleKind.CRAFTER).get());
         ModuleItem.configureCrafter(module, List.of(new ItemStack(Items.OAK_PLANKS, 2)), new ItemStack(Items.STICK, 4), "", 0);
         chassis.modules().setItem(0, module);
         chassis.moduleUpgrades().setItem(0, upgrade(UpgradeKind.FUZZY));

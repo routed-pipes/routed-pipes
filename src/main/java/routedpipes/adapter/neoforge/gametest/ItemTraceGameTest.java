@@ -1,5 +1,6 @@
 package routedpipes.adapter.neoforge.gametest;
 
+import routedpipes.adapter.minecraft.content.Content;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -8,7 +9,6 @@ import routedpipes.adapter.minecraft.ItemTracer;
 import routedpipes.adapter.minecraft.McItemType;
 import routedpipes.adapter.minecraft.PipeBlockEntity;
 import routedpipes.adapter.minecraft.menu.UpgradeMenu;
-import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.domain.logistics.PipeKind;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -26,7 +26,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-@GameTestHolder(RoutedPipes.MODID)
+@GameTestHolder(Content.MODID)
 @PrefixGameTestTemplate(false)
 public class ItemTraceGameTest {
 
@@ -34,12 +34,12 @@ public class ItemTraceGameTest {
     private static final int SETTLE = 5;
 
     private static PipeBlockEntity pipe(GameTestHelper helper, PipeKind kind, BlockPos pos) {
-        helper.setBlock(pos, RoutedPipes.pipe(kind));
+        helper.setBlock(pos, Content.pipe(kind));
         return helper.getBlockEntity(pos);
     }
 
     private static PipeBlockEntity transport(GameTestHelper helper, BlockPos pos) {
-        helper.setBlock(pos, RoutedPipes.TRANSPORT_PIPE.get());
+        helper.setBlock(pos, Content.TRANSPORT_PIPE.get());
         return helper.getBlockEntity(pos);
     }
 
@@ -62,7 +62,7 @@ public class ItemTraceGameTest {
 
     private static ItemInteractionResult useController(GameTestHelper helper, TestPlayer player, BlockPos relative) {
         BlockPos pos = helper.absolutePos(relative);
-        ItemStack controller = new ItemStack(RoutedPipes.PIPE_CONTROLLER.get());
+        ItemStack controller = new ItemStack(Content.PIPE_CONTROLLER.get());
         player.setItemInHand(InteractionHand.MAIN_HAND, controller);
         return helper.getBlockState(relative).useItemOn(controller, helper.getLevel(), player, InteractionHand.MAIN_HAND,
                 new BlockHitResult(Vec3.atCenterOf(pos), Direction.UP, pos, false));

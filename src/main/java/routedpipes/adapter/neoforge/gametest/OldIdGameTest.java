@@ -1,7 +1,7 @@
 package routedpipes.adapter.neoforge.gametest;
 
+import routedpipes.adapter.minecraft.content.Content;
 import routedpipes.adapter.minecraft.PipeBlockEntity;
-import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.domain.logistics.PipeKind;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
@@ -17,7 +17,7 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 // worlds saved while the mod still had the id of the original keep loading
-@GameTestHolder(RoutedPipes.MODID)
+@GameTestHolder(Content.MODID)
 @PrefixGameTestTemplate(false)
 public class OldIdGameTest {
 
@@ -32,20 +32,20 @@ public class OldIdGameTest {
 
         ItemStack loaded = ItemStack.parseOptional(helper.getLevel().registryAccess(), saved);
 
-        helper.assertTrue(loaded.is(RoutedPipes.pipe(PipeKind.BASIC).asItem()) && loaded.getCount() == 3, "got " + loaded);
+        helper.assertTrue(loaded.is(Content.pipe(PipeKind.BASIC).asItem()) && loaded.getCount() == 3, "got " + loaded);
         helper.succeed();
     }
 
     @GameTest(template = EMPTY)
     public static void whatASavedItemCarriesUnderTheOldIdIsKept(GameTestHelper helper) {
-        ItemStack original = new ItemStack(RoutedPipes.SIGN_CREATOR.get());
+        ItemStack original = new ItemStack(Content.SIGN_CREATOR.get());
         original.set(routedpipes.adapter.minecraft.SignCreatorItem.MODE, 2);
         CompoundTag saved = (CompoundTag) original.save(helper.getLevel().registryAccess());
         CompoundTag components = saved.getCompound("components");
         CompoundTag renamed = new CompoundTag();
-        components.getAllKeys().forEach(key -> renamed.put(key.replace(RoutedPipes.MODID + ":", OLD), components.get(key)));
+        components.getAllKeys().forEach(key -> renamed.put(key.replace(Content.MODID + ":", OLD), components.get(key)));
         saved.put("components", renamed);
-        saved.putString("id", saved.getString("id").replace(RoutedPipes.MODID + ":", OLD));
+        saved.putString("id", saved.getString("id").replace(Content.MODID + ":", OLD));
         helper.assertTrue(renamed.getAllKeys().stream().anyMatch(key -> key.startsWith(OLD)), "the test saves under the old id, got " + saved);
 
         ItemStack loaded = ItemStack.parseOptional(helper.getLevel().registryAccess(), saved);
@@ -62,17 +62,17 @@ public class OldIdGameTest {
 
         BlockState loaded = NbtUtils.readBlockState(helper.getLevel().holderLookup(Registries.BLOCK), saved);
 
-        helper.assertTrue(loaded.is(RoutedPipes.pipe(PipeKind.BASIC)), "got " + loaded);
+        helper.assertTrue(loaded.is(Content.pipe(PipeKind.BASIC)), "got " + loaded);
         helper.succeed();
     }
 
     @GameTest(template = EMPTY)
     public static void aSavedBlockEntityWithTheOldIdIsLoaded(GameTestHelper helper) {
         BlockPos pos = new BlockPos(1, 1, 1);
-        helper.setBlock(pos, RoutedPipes.pipe(PipeKind.BASIC));
+        helper.setBlock(pos, Content.pipe(PipeKind.BASIC));
         PipeBlockEntity pipe = helper.getBlockEntity(pos);
         CompoundTag saved = pipe.saveWithFullMetadata(helper.getLevel().registryAccess());
-        saved.putString("id", saved.getString("id").replace(RoutedPipes.MODID + ":", OLD));
+        saved.putString("id", saved.getString("id").replace(Content.MODID + ":", OLD));
         helper.assertTrue(saved.getString("id").startsWith(OLD), "the test saves under the old id, got " + saved.getString("id"));
 
         BlockEntity loaded = BlockEntity.loadStatic(helper.absolutePos(pos), pipe.getBlockState(), saved, helper.getLevel().registryAccess());

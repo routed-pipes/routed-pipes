@@ -1,5 +1,6 @@
-package routedpipes.adapter.neoforge;
+package routedpipes.adapter.minecraft.network;
 
+import routedpipes.adapter.minecraft.content.Content;
 import java.util.List;
 
 import routedpipes.adapter.minecraft.menu.MenuRequests;
@@ -14,7 +15,7 @@ import net.minecraft.world.item.ItemStack;
 public record ChooseMarkerPayload(int containerId, int slot, List<ItemStack> choices) implements CustomPacketPayload {
 
     public static final Type<ChooseMarkerPayload> TYPE =
-            new Type<>(ResourceLocation.fromNamespaceAndPath(RoutedPipes.MODID, "choose_marker"));
+            new Type<>(ResourceLocation.fromNamespaceAndPath(Content.MODID, "choose_marker"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, ChooseMarkerPayload> CODEC = StreamCodec.composite(
             ByteBufCodecs.VAR_INT, ChooseMarkerPayload::containerId,

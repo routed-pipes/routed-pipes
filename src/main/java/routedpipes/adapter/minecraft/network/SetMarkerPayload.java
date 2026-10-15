@@ -1,5 +1,6 @@
-package routedpipes.adapter.neoforge;
+package routedpipes.adapter.minecraft.network;
 
+import routedpipes.adapter.minecraft.content.Content;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -11,7 +12,7 @@ import net.minecraft.world.item.ItemStack;
 public record SetMarkerPayload(int containerId, int slot, ItemStack stack) implements CustomPacketPayload {
 
     public static final Type<SetMarkerPayload> TYPE =
-            new Type<>(ResourceLocation.fromNamespaceAndPath(RoutedPipes.MODID, "set_marker"));
+            new Type<>(ResourceLocation.fromNamespaceAndPath(Content.MODID, "set_marker"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, SetMarkerPayload> CODEC = StreamCodec.composite(
             ByteBufCodecs.VAR_INT, SetMarkerPayload::containerId,

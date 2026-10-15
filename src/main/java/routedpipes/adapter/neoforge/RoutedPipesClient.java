@@ -1,5 +1,11 @@
 package routedpipes.adapter.neoforge;
 
+import routedpipes.adapter.minecraft.content.Content;
+import routedpipes.adapter.minecraft.network.AskIngredientsPayload;
+import routedpipes.adapter.minecraft.network.ChooseMarkerPayload;
+import routedpipes.adapter.minecraft.network.OpenRemoteOrdererPayload;
+import routedpipes.adapter.minecraft.network.SetMarkerPayload;
+import routedpipes.adapter.minecraft.network.SetMenuTextPayload;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
@@ -80,7 +86,7 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 // never loaded on dedicated servers
-@Mod(value = RoutedPipes.MODID, dist = Dist.CLIENT)
+@Mod(value = Content.MODID, dist = Dist.CLIENT)
 public class RoutedPipesClient {
 
     public RoutedPipesClient(IEventBus modEventBus) {
@@ -92,7 +98,7 @@ public class RoutedPipesClient {
         modEventBus.addListener(RoutedPipesClient::registerItemProperties);
         modEventBus.addListener((RegisterKeyMappingsEvent event) -> event.register(RemoteOrdererKey.MAPPING));
         modEventBus.addListener((RegisterGuiLayersEvent event) -> event.registerAbove(VanillaGuiLayers.CROSSHAIR,
-                ResourceLocation.fromNamespaceAndPath(RoutedPipes.MODID, "hud_crosshair"),
+                ResourceLocation.fromNamespaceAndPath(Content.MODID, "hud_crosshair"),
                 (graphics, delta) -> HudRenderer.drawCrosshair(graphics)));
         NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post event) -> RemoteOrdererKey.tick());
         // after everything see-through, the panels are see-through themselves
@@ -136,44 +142,44 @@ public class RoutedPipesClient {
     }
 
     private static void registerScreens(RegisterMenuScreensEvent event) {
-        event.register(RoutedPipes.REQUEST_MENU.get(), RequestScreen<RequestMenu>::new);
-        event.register(RoutedPipes.DISK_MENU.get(), DiskScreen::new);
-        event.register(RoutedPipes.MACRO_EDIT_MENU.get(), MacroEditScreen::new);
-        RoutedPipes.CONFIG_MENUS.values().forEach(menu -> event.register(menu.get(), PipeConfigScreen::new));
-        event.register(RoutedPipes.CRAFTING_TABLE_MENU.get(), CraftingTableScreen::new);
-        event.register(RoutedPipes.CHASSIS_MENU.get(), ChassisScreen::new);
-        event.register(RoutedPipes.NAMES_MENU.get(), NamesScreen::new);
-        event.register(RoutedPipes.REQUEST_TABLE_MENU.get(), RequestTableScreen::new);
-        event.register(RoutedPipes.FIREWALL_MENU.get(), FirewallScreen::new);
-        event.register(RoutedPipes.CONNECTOR_MENU.get(), ChannelScreen::new);
-        event.register(RoutedPipes.CHANNEL_MENU.get(), ChannelScreen::new);
-        event.register(RoutedPipes.FREQUENCY_CARD_MENU.get(), FrequencyCardScreen::new);
-        event.register(RoutedPipes.SIGN_ITEM_MENU.get(), SignItemScreen::new);
-        event.register(RoutedPipes.UPGRADE_MENU.get(), UpgradeScreen::new);
-        event.register(RoutedPipes.SECURITY_STATION_MENU.get(), SecurityStationScreen::new);
-        event.register(RoutedPipes.STATISTICS_TABLE_MENU.get(), StatisticsTableScreen::new);
-        event.register(RoutedPipes.PROGRAM_COMPILER_MENU.get(), ProgramCompilerScreen::new);
-        RoutedPipes.FLUID_CONFIG_MENUS.values().forEach(menu -> event.register(menu.get(), FluidConfigScreen::new));
-        event.register(RoutedPipes.FLUID_REQUEST_MENU.get(), FluidRequestScreen::new);
-        event.register(RoutedPipes.HUD_SETTINGS_MENU.get(), HudSettingsScreen::new);
+        event.register(Content.REQUEST_MENU.get(), RequestScreen<RequestMenu>::new);
+        event.register(Content.DISK_MENU.get(), DiskScreen::new);
+        event.register(Content.MACRO_EDIT_MENU.get(), MacroEditScreen::new);
+        Content.CONFIG_MENUS.values().forEach(menu -> event.register(menu.get(), PipeConfigScreen::new));
+        event.register(Content.CRAFTING_TABLE_MENU.get(), CraftingTableScreen::new);
+        event.register(Content.CHASSIS_MENU.get(), ChassisScreen::new);
+        event.register(Content.NAMES_MENU.get(), NamesScreen::new);
+        event.register(Content.REQUEST_TABLE_MENU.get(), RequestTableScreen::new);
+        event.register(Content.FIREWALL_MENU.get(), FirewallScreen::new);
+        event.register(Content.CONNECTOR_MENU.get(), ChannelScreen::new);
+        event.register(Content.CHANNEL_MENU.get(), ChannelScreen::new);
+        event.register(Content.FREQUENCY_CARD_MENU.get(), FrequencyCardScreen::new);
+        event.register(Content.SIGN_ITEM_MENU.get(), SignItemScreen::new);
+        event.register(Content.UPGRADE_MENU.get(), UpgradeScreen::new);
+        event.register(Content.SECURITY_STATION_MENU.get(), SecurityStationScreen::new);
+        event.register(Content.STATISTICS_TABLE_MENU.get(), StatisticsTableScreen::new);
+        event.register(Content.PROGRAM_COMPILER_MENU.get(), ProgramCompilerScreen::new);
+        Content.FLUID_CONFIG_MENUS.values().forEach(menu -> event.register(menu.get(), FluidConfigScreen::new));
+        event.register(Content.FLUID_REQUEST_MENU.get(), FluidRequestScreen::new);
+        event.register(Content.HUD_SETTINGS_MENU.get(), HudSettingsScreen::new);
     }
 
     // the window of a fluid container shows the colour of what is in it
     private static void registerItemColors(RegisterColorHandlersEvent.Item event) {
         event.register((stack, layer) -> layer == 1 && stack.get(FluidContents.TYPE) != null
                 ? IClientFluidTypeExtensions.of(stack.get(FluidContents.TYPE).fluid()).getTintColor() | 0xFF000000 : -1,
-                RoutedPipes.FLUID_CONTAINER.get());
+                Content.FLUID_CONTAINER.get());
     }
 
     // the model of the sign creator asks for the kind of sign it makes
     private static void registerItemProperties(FMLClientSetupEvent event) {
-        event.enqueueWork(() -> ItemProperties.register(RoutedPipes.SIGN_CREATOR.get(),
-                ResourceLocation.fromNamespaceAndPath(RoutedPipes.MODID, "sign_mode"),
+        event.enqueueWork(() -> ItemProperties.register(Content.SIGN_CREATOR.get(),
+                ResourceLocation.fromNamespaceAndPath(Content.MODID, "sign_mode"),
                 (stack, level, entity, seed) -> SignCreatorItem.modeOf(stack).ordinal()));
     }
 
     private static ModelResourceLocation mountModel(Mount mount) {
-        return ModelResourceLocation.standalone(ResourceLocation.fromNamespaceAndPath(RoutedPipes.MODID, PipeMounts.modelPath(mount)));
+        return ModelResourceLocation.standalone(ResourceLocation.fromNamespaceAndPath(Content.MODID, PipeMounts.modelPath(mount)));
     }
 
     // no block state uses the mounts, so their models have to be asked for
@@ -236,7 +242,7 @@ public class RoutedPipesClient {
     }
 
     private static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
-        event.registerBlockEntityRenderer(RoutedPipes.PIPE_BLOCK_ENTITY.get(), PipeItemRenderer::new);
-        event.registerBlockEntityRenderer(RoutedPipes.TUBE_BLOCK_ENTITY.get(), TubeItemRenderer::new);
+        event.registerBlockEntityRenderer(Content.PIPE_BLOCK_ENTITY.get(), PipeItemRenderer::new);
+        event.registerBlockEntityRenderer(Content.TUBE_BLOCK_ENTITY.get(), TubeItemRenderer::new);
     }
 }

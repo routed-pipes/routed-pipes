@@ -1,5 +1,6 @@
 package routedpipes.adapter.neoforge.gametest;
 
+import routedpipes.adapter.minecraft.content.Content;
 import java.util.List;
 
 import routedpipes.adapter.minecraft.McFluidType;
@@ -10,7 +11,6 @@ import routedpipes.adapter.minecraft.menu.ChassisMenu;
 import routedpipes.adapter.minecraft.menu.MenuRequests;
 import routedpipes.adapter.minecraft.menu.PipeConfigMenu;
 import routedpipes.adapter.minecraft.menu.SatelliteNames;
-import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.application.RequestOutcome;
 import routedpipes.domain.crafting.FluidInput;
 import routedpipes.domain.logistics.ModuleKind;
@@ -30,7 +30,7 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 // crafters that take fluid: set up in the settings, delivered to a fluid satellite together with the items of the request
-@GameTestHolder(RoutedPipes.MODID)
+@GameTestHolder(Content.MODID)
 @PrefixGameTestTemplate(false)
 public class FluidCraftingGameTest {
 
@@ -41,12 +41,12 @@ public class FluidCraftingGameTest {
 
     private static PipeBlockEntity pipe(GameTestHelper helper, PipeKind kind, int x) {
         BlockPos pos = new BlockPos(x, 1, 1);
-        helper.setBlock(pos, RoutedPipes.pipe(kind));
+        helper.setBlock(pos, Content.pipe(kind));
         return helper.getBlockEntity(pos);
     }
 
     private static void transport(GameTestHelper helper, int x) {
-        helper.setBlock(new BlockPos(x, 1, 1), RoutedPipes.TRANSPORT_PIPE.get());
+        helper.setBlock(new BlockPos(x, 1, 1), Content.TRANSPORT_PIPE.get());
     }
 
     private static BlockPos barrel(GameTestHelper helper, int x, ItemStack... contents) {
@@ -60,7 +60,7 @@ public class FluidCraftingGameTest {
     }
 
     private static ItemStack upgrade(UpgradeKind kind, int count) {
-        return new ItemStack(RoutedPipes.UPGRADES.get(kind).get(), count);
+        return new ItemStack(Content.UPGRADES.get(kind).get(), count);
     }
 
     private static int stepButton(int slot, int step) {
@@ -201,10 +201,10 @@ public class FluidCraftingGameTest {
     @GameTest(template = EMPTY)
     public static void aCrafterModuleTakesFluidWithAnUpgradeInItsOwnSlots(GameTestHelper helper) {
         BlockPos chassisPos = new BlockPos(0, 1, 1);
-        helper.setBlock(chassisPos, RoutedPipes.CHASSIS_PIPES.get(1).get());
+        helper.setBlock(chassisPos, Content.CHASSIS_PIPES.get(1).get());
         PipeBlockEntity chassis = helper.getBlockEntity(chassisPos);
         pipe(helper, PipeKind.FLUID_SATELLITE, 1).setSatelliteName("Lava");
-        ItemStack module = new ItemStack(RoutedPipes.MODULES.get(ModuleKind.CRAFTER).get());
+        ItemStack module = new ItemStack(Content.MODULES.get(ModuleKind.CRAFTER).get());
         ModuleItem.configureCrafter(module, List.of(new ItemStack(Items.COBBLESTONE)), new ItemStack(Items.OBSIDIAN), "", 0);
         chassis.modules().setItem(0, module);
         chassis.moduleUpgrades().setItem(0, upgrade(UpgradeKind.FLUID_CRAFTING, 1));

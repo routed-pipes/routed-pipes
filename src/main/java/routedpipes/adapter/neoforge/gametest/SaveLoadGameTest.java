@@ -1,5 +1,6 @@
 package routedpipes.adapter.neoforge.gametest;
 
+import routedpipes.adapter.minecraft.content.Content;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -17,7 +18,6 @@ import routedpipes.adapter.minecraft.SecurityStationBlockEntity;
 import routedpipes.adapter.minecraft.StatisticsTableBlockEntity;
 import routedpipes.adapter.minecraft.TubeBlock;
 import routedpipes.adapter.minecraft.TubeBlockEntity;
-import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.domain.crafting.OutputOrder;
 import routedpipes.domain.fluid.FluidBatch;
 import routedpipes.domain.fluid.FluidSupply;
@@ -52,7 +52,7 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 // every block entity of the mod with every piece of state set, saved, loaded the way a chunk is loaded and saved again
 // both saves have to be the same
-@GameTestHolder(RoutedPipes.MODID)
+@GameTestHolder(Content.MODID)
 @PrefixGameTestTemplate(false)
 public class SaveLoadGameTest {
 
@@ -67,7 +67,7 @@ public class SaveLoadGameTest {
     }
 
     private static ItemStack upgrade(UpgradeKind kind, int count) {
-        return new ItemStack(RoutedPipes.UPGRADES.get(kind).get(), count);
+        return new ItemStack(Content.UPGRADES.get(kind).get(), count);
     }
 
     // everything a routed pipe of any kind keeps
@@ -83,7 +83,7 @@ public class SaveLoadGameTest {
         if (kind == PipeKind.CHASSIS) {
             // a chassis points at an inventory
             helper.setBlock(pos.above(), Blocks.CHEST);
-            pipe.modules().setItem(0, new ItemStack(RoutedPipes.MODULES.get(ModuleKind.ITEM_SINK).get()));
+            pipe.modules().setItem(0, new ItemStack(Content.MODULES.get(ModuleKind.ITEM_SINK).get()));
             pipe.moduleUpgrades().setItem(1, upgrade(UpgradeKind.SPEED, 2));
             pipe.pointAtNext();
         }
@@ -106,7 +106,7 @@ public class SaveLoadGameTest {
         pipe.outputOrders().add(new OutputOrder(new RouterId(UUID.randomUUID()), new ItemBatch(McItemType.batchOf(new ItemStack(Items.STICK)).type(), 6), 40));
         pipe.powerPipe().receive(500);
         pipe.statistics().count(PipeStatistics.Kind.SENT, 9);
-        pipe.security().card().setItem(0, RoutedPipes.SECURITY_CARD.get().cardFor(UUID.randomUUID()));
+        pipe.security().card().setItem(0, Content.SECURITY_CARD.get().cardFor(UUID.randomUUID()));
         if (SignKind.ITEM_AMOUNT.allowedOn(kind)) {
             pipe.signs().place(Direction.UP, SignKind.ITEM_AMOUNT);
         }
@@ -122,14 +122,14 @@ public class SaveLoadGameTest {
             pipe.requestTable().sort().setItem(0, new ItemStack(Items.FLINT, 2));
         }
         if (pipe.diskDrive() != null) {
-            pipe.diskDrive().slot().setItem(0, new ItemStack(RoutedPipes.DISK.get()));
+            pipe.diskDrive().slot().setItem(0, new ItemStack(Content.DISK.get()));
         }
         if (pipe.connector() != null) {
             pipe.connector().setChannel(UUID.randomUUID());
             pipe.connector().setResistance(3);
         }
         if (pipe.frequencySlot() != null) {
-            pipe.frequencySlot().card().setItem(0, new ItemStack(RoutedPipes.FREQUENCY_CARD.get()));
+            pipe.frequencySlot().card().setItem(0, new ItemStack(Content.FREQUENCY_CARD.get()));
         }
         if (pipe.fluidPipe() != null) {
             pipe.fluidPipe().fill(Direction.NORTH, new FluidBatch(new McFluidType(Fluids.LAVA), 300), false);
@@ -143,14 +143,14 @@ public class SaveLoadGameTest {
 
     private static List<BlockEntity> everything(GameTestHelper helper) {
         List<BlockEntity> all = new ArrayList<>();
-        all.add(fullPipe(helper, RoutedPipes.TRANSPORT_PIPE.get()));
+        all.add(fullPipe(helper, Content.TRANSPORT_PIPE.get()));
         for (PipeKind kind : PipeKind.values()) {
-            all.add(fullPipe(helper, kind == PipeKind.CHASSIS ? RoutedPipes.CHASSIS_PIPES.get(PipeBlockEntity.MODULE_SLOTS).get()
-                    : RoutedPipes.pipe(kind)));
+            all.add(fullPipe(helper, kind == PipeKind.CHASSIS ? Content.CHASSIS_PIPES.get(PipeBlockEntity.MODULE_SLOTS).get()
+                    : Content.pipe(kind)));
         }
 
         BlockPos pos = spot();
-        helper.setBlock(pos, RoutedPipes.CRAFTING_TABLE.get());
+        helper.setBlock(pos, Content.CRAFTING_TABLE.get());
         CraftingTableBlockEntity table = helper.getBlockEntity(pos);
         table.pattern().setItem(4, new ItemStack(Items.OAK_LOG));
         table.storage().setItem(2, new ItemStack(Items.OAK_LOG, 20));
@@ -158,13 +158,13 @@ public class SaveLoadGameTest {
         all.add(table);
 
         pos = spot();
-        helper.setBlock(pos, RoutedPipes.POWER_JUNCTION.get());
+        helper.setBlock(pos, Content.POWER_JUNCTION.get());
         PowerJunctionBlockEntity junction = helper.getBlockEntity(pos);
         junction.receive(1234, false);
         all.add(junction);
 
         pos = spot();
-        helper.setBlock(pos, RoutedPipes.POWER_PROVIDER_RF.get());
+        helper.setBlock(pos, Content.POWER_PROVIDER_RF.get());
         PowerProviderBlockEntity provider = helper.getBlockEntity(pos);
         CompoundTag energy = new CompoundTag();
         energy.putInt("Energy", 777);
@@ -173,10 +173,10 @@ public class SaveLoadGameTest {
         all.add(provider);
 
         pos = spot();
-        helper.setBlock(pos, RoutedPipes.PROGRAM_COMPILER.get());
+        helper.setBlock(pos, Content.PROGRAM_COMPILER.get());
         ProgramCompilerBlockEntity compiler = helper.getBlockEntity(pos);
-        compiler.slots().setItem(ProgramCompilerBlockEntity.DISK_SLOT, new ItemStack(RoutedPipes.DISK.get()));
-        compiler.slots().setItem(ProgramCompilerBlockEntity.PROGRAMMER_SLOT, new ItemStack(RoutedPipes.LOGISTICS_PROGRAMMER.get()));
+        compiler.slots().setItem(ProgramCompilerBlockEntity.DISK_SLOT, new ItemStack(Content.DISK.get()));
+        compiler.slots().setItem(ProgramCompilerBlockEntity.PROGRAMMER_SLOT, new ItemStack(Content.LOGISTICS_PROGRAMMER.get()));
         CompoundTag task = compiler.saveWithoutMetadata(helper.getLevel().registryAccess());
         task.putString("Task", "UNLOCK");
         task.putString("Target", ProgramCategory.values()[1].name());
@@ -185,13 +185,13 @@ public class SaveLoadGameTest {
         all.add(compiler);
 
         pos = spot();
-        helper.setBlock(pos, RoutedPipes.SECURITY_STATION.get());
+        helper.setBlock(pos, Content.SECURITY_STATION.get());
         SecurityStationBlockEntity station = helper.getBlockEntity(pos);
-        station.cards().setItem(0, RoutedPipes.SECURITY_CARD.get().cardFor(station.id()).copyWithCount(4));
+        station.cards().setItem(0, Content.SECURITY_CARD.get().cardFor(station.id()).copyWithCount(4));
         all.add(station);
 
         pos = spot();
-        helper.setBlock(pos, RoutedPipes.STATISTICS_TABLE.get());
+        helper.setBlock(pos, Content.STATISTICS_TABLE.get());
         StatisticsTableBlockEntity statistics = helper.getBlockEntity(pos);
         CompoundTag tracked = new CompoundTag();
         ListTag list = new ListTag();
@@ -244,8 +244,8 @@ public class SaveLoadGameTest {
         next = 0;
         // a tube needs an item in it, which takes a few ticks
         BlockPos start = new BlockPos(0, 3, 1);
-        helper.setBlock(start, RoutedPipes.TRANSPORT_PIPE.get());
-        TubeBlock tube = RoutedPipes.TUBES.get(TubeKind.SPEEDUP).get();
+        helper.setBlock(start, Content.TRANSPORT_PIPE.get());
+        TubeBlock tube = Content.TUBES.get(TubeKind.SPEEDUP).get();
         helper.assertTrue(tube.build(helper.getLevel(), helper.absolutePos(start.east()), new TubeShape(TubeKind.SPEEDUP, Side.EAST),
                 pos -> true), "the tube fits");
         helper.runAfterDelay(2, () -> ((PipeBlockEntity) helper.getBlockEntity(start)).accept(new ItemStack(Items.DIAMOND, 3), Direction.WEST));
@@ -274,7 +274,7 @@ public class SaveLoadGameTest {
     @GameTest(template = LONG)
     public static void aSideCutOffWithTheUpgradeInTheSecondSlotStaysCutOffAfterLoading(GameTestHelper helper) {
         BlockPos pos = new BlockPos(1, 1, 1);
-        helper.setBlock(pos, RoutedPipes.pipe(PipeKind.BASIC));
+        helper.setBlock(pos, Content.pipe(PipeKind.BASIC));
         PipeBlockEntity pipe = helper.getBlockEntity(pos);
         pipe.installUpgrade(upgrade(UpgradeKind.SPEED, 1));
         // the first click puts the upgrade in, the next free slot is the second one
@@ -293,7 +293,7 @@ public class SaveLoadGameTest {
     @GameTest(template = LONG)
     public static void loadingIntoAPipeThatIsThereDoesNotDoubleWhatItOwes(GameTestHelper helper) {
         BlockPos pos = new BlockPos(1, 1, 1);
-        helper.setBlock(pos, RoutedPipes.pipe(PipeKind.CRAFTING));
+        helper.setBlock(pos, Content.pipe(PipeKind.CRAFTING));
         PipeBlockEntity pipe = helper.getBlockEntity(pos);
         pipe.outputOrders().add(new OutputOrder(new RouterId(UUID.randomUUID()),
                 new ItemBatch(McItemType.batchOf(new ItemStack(Items.STICK)).type(), 6), 40));

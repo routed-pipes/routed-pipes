@@ -1,10 +1,10 @@
 package routedpipes.adapter.neoforge.gametest;
 
+import routedpipes.adapter.minecraft.content.Content;
 import routedpipes.adapter.minecraft.McItemType;
 import routedpipes.adapter.minecraft.PipeBlockEntity;
 import routedpipes.adapter.minecraft.PowerJunctionBlockEntity;
 import routedpipes.adapter.minecraft.menu.UpgradeMenu;
-import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.application.LogisticsNetwork;
 import routedpipes.domain.crafting.OutputOrder;
 import routedpipes.domain.logistics.PipeKind;
@@ -22,7 +22,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-@GameTestHolder(RoutedPipes.MODID)
+@GameTestHolder(Content.MODID)
 @PrefixGameTestTemplate(false)
 public class NetworkOverviewGameTest {
 
@@ -31,7 +31,7 @@ public class NetworkOverviewGameTest {
 
     private static PipeBlockEntity pipe(GameTestHelper helper, PipeKind kind, int x) {
         BlockPos pos = new BlockPos(x, 1, 1);
-        helper.setBlock(pos, RoutedPipes.pipe(kind));
+        helper.setBlock(pos, Content.pipe(kind));
         return helper.getBlockEntity(pos);
     }
 
@@ -49,7 +49,7 @@ public class NetworkOverviewGameTest {
     private static UpgradeMenu controller(GameTestHelper helper, TestPlayer player, int x) {
         BlockPos relative = new BlockPos(x, 1, 1);
         BlockPos pos = helper.absolutePos(relative);
-        ItemStack controller = new ItemStack(RoutedPipes.PIPE_CONTROLLER.get());
+        ItemStack controller = new ItemStack(Content.PIPE_CONTROLLER.get());
         player.setItemInHand(InteractionHand.MAIN_HAND, controller);
         helper.getBlockState(relative).useItemOn(controller, helper.getLevel(), player, InteractionHand.MAIN_HAND,
                 new BlockHitResult(Vec3.atCenterOf(pos), Direction.UP, pos, false));
@@ -64,7 +64,7 @@ public class NetworkOverviewGameTest {
     private static void assertRow(GameTestHelper helper, UpgradeMenu menu, int row, PipeKind kind, int x, int sent, int received,
             int relayed, int orders) {
         ItemStack stack = menu.getSlot(UpgradeMenu.FIRST_PIPE_SLOT + row).getItem();
-        helper.assertTrue(stack.is(RoutedPipes.pipe(kind).asItem()), "row " + row + " should be a " + kind + " pipe but is " + stack);
+        helper.assertTrue(stack.is(Content.pipe(kind).asItem()), "row " + row + " should be a " + kind + " pipe but is " + stack);
         UpgradeMenu.PipeRow found = row(helper, menu, row);
         UpgradeMenu.PipeRow wanted = new UpgradeMenu.PipeRow(helper.absolutePos(new BlockPos(x, 1, 1)), sent, received, relayed, orders);
         helper.assertTrue(found.equals(wanted), "row " + row + " should be " + wanted + " but is " + found);

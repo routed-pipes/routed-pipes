@@ -1,8 +1,8 @@
 package routedpipes.adapter.neoforge.gametest;
 
+import routedpipes.adapter.minecraft.content.Content;
 import routedpipes.adapter.minecraft.PipeBlockEntity;
 import routedpipes.adapter.minecraft.PowerJunctionBlockEntity;
-import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.domain.logistics.PipeKind;
 import routedpipes.domain.logistics.UpgradeKind;
 import net.minecraft.core.BlockPos;
@@ -19,7 +19,7 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 // an opaque pipe keeps what travels through it from the clients
-@GameTestHolder(RoutedPipes.MODID)
+@GameTestHolder(Content.MODID)
 @PrefixGameTestTemplate(false)
 public class OpaqueUpgradeGameTest {
 
@@ -27,11 +27,11 @@ public class OpaqueUpgradeGameTest {
     private static final BlockPos PIPE = new BlockPos(3, 1, 1);
 
     private static ItemStack opaque() {
-        return new ItemStack(RoutedPipes.UPGRADES.get(UpgradeKind.OPAQUE).get());
+        return new ItemStack(Content.UPGRADES.get(UpgradeKind.OPAQUE).get());
     }
 
     private static PipeBlockEntity pipe(GameTestHelper helper, BlockPos pos) {
-        helper.setBlock(pos, RoutedPipes.pipe(PipeKind.BASIC));
+        helper.setBlock(pos, Content.pipe(PipeKind.BASIC));
         return helper.getBlockEntity(pos);
     }
 
@@ -42,7 +42,7 @@ public class OpaqueUpgradeGameTest {
     @GameTest(template = EMPTY)
     public static void opaqueUpgradeGoesIntoRoutedPipesOnly(GameTestHelper helper) {
         PipeBlockEntity basic = pipe(helper, PIPE);
-        helper.setBlock(PIPE.east(), RoutedPipes.TRANSPORT_PIPE.get());
+        helper.setBlock(PIPE.east(), Content.TRANSPORT_PIPE.get());
         PipeBlockEntity plain = helper.getBlockEntity(PIPE.east());
 
         helper.assertTrue(!basic.opaque(), "a fresh pipe is not opaque");

@@ -1,9 +1,9 @@
 package routedpipes.adapter.neoforge.gametest;
 
+import routedpipes.adapter.minecraft.content.Content;
 import routedpipes.adapter.minecraft.PipeBlockEntity;
 import routedpipes.adapter.minecraft.PowerJunctionBlockEntity;
 import routedpipes.adapter.minecraft.PowerProviderBlockEntity;
-import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.domain.logistics.PipeKind;
 import routedpipes.domain.logistics.UpgradeKind;
 import routedpipes.domain.power.PowerBuffer;
@@ -17,7 +17,7 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 // a pipe at 1 1 1 with a power provider north of it, machines go above and east
-@GameTestHolder(RoutedPipes.MODID)
+@GameTestHolder(Content.MODID)
 @PrefixGameTestTemplate(false)
 public class PowerSupplierGameTest {
 
@@ -29,10 +29,10 @@ public class PowerSupplierGameTest {
     private static final BlockPos EAST = new BlockPos(2, 1, 1);
 
     static PipeBlockEntity pipe(GameTestHelper helper, BlockPos pos, UpgradeKind... upgrades) {
-        helper.setBlock(pos, RoutedPipes.pipe(PipeKind.BASIC));
+        helper.setBlock(pos, Content.pipe(PipeKind.BASIC));
         PipeBlockEntity pipe = helper.getBlockEntity(pos);
         for (UpgradeKind upgrade : upgrades) {
-            helper.assertTrue(pipe.installUpgrade(new ItemStack(RoutedPipes.UPGRADES.get(upgrade).get())),
+            helper.assertTrue(pipe.installUpgrade(new ItemStack(Content.UPGRADES.get(upgrade).get())),
                     "the pipe should take the upgrade " + upgrade);
         }
         return pipe;

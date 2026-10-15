@@ -1,5 +1,6 @@
 package routedpipes.adapter.neoforge.gametest;
 
+import routedpipes.adapter.minecraft.content.Content;
 import java.util.UUID;
 
 import routedpipes.adapter.minecraft.ChannelRegistry;
@@ -11,7 +12,6 @@ import routedpipes.adapter.minecraft.PipeBlock;
 import routedpipes.adapter.minecraft.PipeBlockEntity;
 import routedpipes.adapter.minecraft.PowerJunctionBlockEntity;
 import routedpipes.adapter.minecraft.menu.ChannelMenu;
-import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.application.RequestOutcome;
 import routedpipes.domain.channel.ChannelAccess;
 import routedpipes.domain.hud.HudCategory;
@@ -32,7 +32,7 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 // two networks far apart: a provider and a teleport pipe at one end of the row, a teleport pipe and a request pipe at the other
 // nothing but air between them and no inventory at the teleport pipes
-@GameTestHolder(RoutedPipes.MODID)
+@GameTestHolder(Content.MODID)
 @PrefixGameTestTemplate(false)
 public class TeleportPipeGameTest {
 
@@ -44,7 +44,7 @@ public class TeleportPipeGameTest {
 
     private static PipeBlockEntity pipe(GameTestHelper helper, PipeKind kind, int x) {
         BlockPos pos = new BlockPos(x, 1, 1);
-        helper.setBlock(pos, RoutedPipes.pipe(kind));
+        helper.setBlock(pos, Content.pipe(kind));
         return helper.getBlockEntity(pos);
     }
 
@@ -153,7 +153,7 @@ public class TeleportPipeGameTest {
         // the provider is on its west, plain pipes go on the other five sides
         for (BlockPos beside : new BlockPos[] {above, new BlockPos(NEAR, 0, 1), new BlockPos(NEAR, 1, 0), new BlockPos(NEAR, 1, 2),
                 new BlockPos(NEAR + 1, 1, 1)}) {
-            helper.setBlock(beside, RoutedPipes.TRANSPORT_PIPE.get());
+            helper.setBlock(beside, Content.TRANSPORT_PIPE.get());
         }
         PipeBlockEntity far = pipe(helper, PipeKind.TELEPORT, FAR);
         UUID channel = channel(helper);
@@ -238,10 +238,10 @@ public class TeleportPipeGameTest {
         Item obsidian = Items.OBSIDIAN;
         ItemStack crafted = RecipeGameTest.crafted(helper, 3, 3,
                 eye, diamonds, eye,
-                obsidian, RoutedPipes.pipe(PipeKind.INVENTORY_SYSTEM_CONNECTOR).asItem(), obsidian,
+                obsidian, Content.pipe(PipeKind.INVENTORY_SYSTEM_CONNECTOR).asItem(), obsidian,
                 eye, diamonds, eye);
 
-        helper.assertTrue(crafted.is(RoutedPipes.pipe(PipeKind.TELEPORT).asItem()) && crafted.getCount() == 1, "got " + crafted);
+        helper.assertTrue(crafted.is(Content.pipe(PipeKind.TELEPORT).asItem()) && crafted.getCount() == 1, "got " + crafted);
         helper.succeed();
     }
 
@@ -254,7 +254,7 @@ public class TeleportPipeGameTest {
         UUID channel = channel(helper);
         for (int x : new int[] {1, 4}) {
             PipeBlockEntity teleport = pipe(helper, PipeKind.TELEPORT, x);
-            teleport.installUpgrade(new ItemStack(RoutedPipes.UPGRADES.get(UpgradeKind.POWER_TRANSPORTATION).get()));
+            teleport.installUpgrade(new ItemStack(Content.UPGRADES.get(UpgradeKind.POWER_TRANSPORTATION).get()));
             teleport.connector().setChannel(channel);
         }
         BlockPos last = new BlockPos(5, 1, 1);

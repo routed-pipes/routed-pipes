@@ -1,5 +1,6 @@
 package routedpipes.adapter.neoforge.gametest;
 
+import routedpipes.adapter.minecraft.content.Content;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -15,7 +16,6 @@ import routedpipes.adapter.minecraft.PowerJunctionBlockEntity;
 import routedpipes.adapter.minecraft.SecurityStationBlockEntity;
 import routedpipes.adapter.minecraft.SecurityStations;
 import routedpipes.adapter.minecraft.menu.SecurityStationMenu;
-import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.application.computer.Caller;
 import routedpipes.application.computer.ComputerException;
 import routedpipes.application.computer.PipeCommands;
@@ -36,7 +36,7 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 // what a computer gets out of real pipes, without a computer: the commands are the same with and without CC: Tweaked
-@GameTestHolder(RoutedPipes.MODID)
+@GameTestHolder(Content.MODID)
 @PrefixGameTestTemplate(false)
 public class ComputerGameTest {
 
@@ -46,7 +46,7 @@ public class ComputerGameTest {
 
     static PipeBlockEntity pipe(GameTestHelper helper, PipeKind kind, int x) {
         BlockPos pos = new BlockPos(x, 1, 1);
-        helper.setBlock(pos, RoutedPipes.pipe(kind));
+        helper.setBlock(pos, Content.pipe(kind));
         return helper.getBlockEntity(pos);
     }
 
@@ -65,7 +65,7 @@ public class ComputerGameTest {
     @GameTest(template = EMPTY)
     public static void plainPipesHaveNothingForComputers(GameTestHelper helper) {
         BlockPos pos = new BlockPos(0, 1, 1);
-        helper.setBlock(pos, RoutedPipes.TRANSPORT_PIPE.get());
+        helper.setBlock(pos, Content.TRANSPORT_PIPE.get());
         PipeBlockEntity plain = helper.getBlockEntity(pos);
 
         helper.assertTrue(PipeComputer.of(plain).isEmpty(), "a plain pipe has commands");
@@ -193,7 +193,7 @@ public class ComputerGameTest {
     public static void aCraftingPipeImportsAndShowsItsRecipe(GameTestHelper helper) {
         PipeBlockEntity crafting = pipe(helper, PipeKind.CRAFTING, 0);
         BlockPos pos = new BlockPos(0, 2, 1);
-        helper.setBlock(pos, RoutedPipes.CRAFTING_TABLE.get());
+        helper.setBlock(pos, Content.CRAFTING_TABLE.get());
         CraftingTableBlockEntity table = helper.getBlockEntity(pos);
         table.pattern().setItem(0, new ItemStack(Items.OAK_LOG));
 
@@ -233,9 +233,9 @@ public class ComputerGameTest {
     @GameTest(template = EMPTY)
     public static void aChassisShowsItsModules(GameTestHelper helper) {
         BlockPos pos = new BlockPos(0, 1, 1);
-        helper.setBlock(pos, RoutedPipes.CHASSIS_PIPES.get(2).get());
+        helper.setBlock(pos, Content.CHASSIS_PIPES.get(2).get());
         PipeBlockEntity chassis = helper.getBlockEntity(pos);
-        ItemStack sink = new ItemStack(RoutedPipes.MODULES.get(ModuleKind.ITEM_SINK).get());
+        ItemStack sink = new ItemStack(Content.MODULES.get(ModuleKind.ITEM_SINK).get());
         ModuleItem.configureSink(sink, List.of(new ItemStack(Items.DIAMOND)), true);
         chassis.modules().setItem(1, sink);
 
@@ -250,10 +250,10 @@ public class ComputerGameTest {
     // a station at the place the junctions of GameTestPower leave free, with the pipe locked to it
     private static SecurityStationBlockEntity lockedTo(GameTestHelper helper, PipeBlockEntity pipe) {
         BlockPos pos = new BlockPos(3, 1, 3);
-        helper.setBlock(pos, RoutedPipes.SECURITY_STATION.get());
+        helper.setBlock(pos, Content.SECURITY_STATION.get());
         SecurityStationBlockEntity station = helper.getBlockEntity(pos);
         station.station();
-        pipe.security().card().setItem(0, RoutedPipes.SECURITY_CARD.get().cardFor(station.id()));
+        pipe.security().card().setItem(0, Content.SECURITY_CARD.get().cardFor(station.id()));
         return station;
     }
 
@@ -315,10 +315,10 @@ public class ComputerGameTest {
     public static void theStationMenuSetsWhichComputersGetIn(GameTestHelper helper) {
         TestPlayer player = TestPlayer.in(helper);
         BlockPos pos = new BlockPos(1, 1, 1);
-        helper.setBlock(pos, RoutedPipes.SECURITY_STATION.get());
+        helper.setBlock(pos, Content.SECURITY_STATION.get());
         SecurityStationBlockEntity station = helper.getBlockEntity(pos);
         SecuritySettings settings = station.station().settings();
-        SecurityStationMenu menu = new SecurityStationMenu(RoutedPipes.SECURITY_STATION_MENU.get(), 1, player.getInventory(), station);
+        SecurityStationMenu menu = new SecurityStationMenu(Content.SECURITY_STATION_MENU.get(), 1, player.getInventory(), station);
 
         assertEquals(helper, ModList.get().isLoaded("computercraft"), menu.hasComputers());
         menu.clickMenuButton(player, SecurityStationMenu.BUTTON_COMPUTERS);
@@ -375,7 +375,7 @@ public class ComputerGameTest {
     }
 
     private static ItemStack remoteControl() {
-        return new ItemStack(RoutedPipes.UPGRADES.get(UpgradeKind.CC_REMOTE_CONTROL).get());
+        return new ItemStack(Content.UPGRADES.get(UpgradeKind.CC_REMOTE_CONTROL).get());
     }
 
     @GameTest(template = EMPTY)
@@ -406,7 +406,7 @@ public class ComputerGameTest {
     public static void theRemoteControlUpgradeGoesIntoPipesOnly(GameTestHelper helper) {
         for (PipeKind kind : List.of(PipeKind.BASIC, PipeKind.CRAFTING, PipeKind.CHASSIS, PipeKind.FLUID_BASIC)) {
             BlockPos pos = new BlockPos(kind.ordinal() % 5, 1, 1 + kind.ordinal() / 5 * 2);
-            helper.setBlock(pos, kind == PipeKind.CHASSIS ? RoutedPipes.CHASSIS_PIPES.get(1).get() : RoutedPipes.pipe(kind));
+            helper.setBlock(pos, kind == PipeKind.CHASSIS ? Content.CHASSIS_PIPES.get(1).get() : Content.pipe(kind));
             PipeBlockEntity pipe = helper.getBlockEntity(pos);
             helper.assertTrue(pipe.installUpgrade(remoteControl()), "the upgrade does not fit " + kind);
         }

@@ -1,11 +1,11 @@
 package routedpipes.adapter.neoforge.gametest;
 
+import routedpipes.adapter.minecraft.content.Content;
 import java.util.List;
 
 import routedpipes.adapter.minecraft.McItemType;
 import routedpipes.adapter.minecraft.ModuleItem;
 import routedpipes.adapter.minecraft.PipeBlockEntity;
-import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.domain.logistics.ModuleKind;
 import routedpipes.domain.logistics.PipeKind;
 import net.minecraft.core.BlockPos;
@@ -24,7 +24,7 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 // one machine with two recipes: what is brought for one recipe must not get in the way of the other
-@GameTestHolder(RoutedPipes.MODID)
+@GameTestHolder(Content.MODID)
 @PrefixGameTestTemplate(false)
 public class CraftingJamGameTest {
 
@@ -33,7 +33,7 @@ public class CraftingJamGameTest {
 
     private static PipeBlockEntity pipe(GameTestHelper helper, PipeKind kind, int x) {
         BlockPos pos = new BlockPos(x, 1, 1);
-        helper.setBlock(pos, RoutedPipes.pipe(kind));
+        helper.setBlock(pos, Content.pipe(kind));
         return helper.getBlockEntity(pos);
     }
 
@@ -63,7 +63,7 @@ public class CraftingJamGameTest {
     }
 
     private static ItemStack brewing(ItemStack bottle, ItemStack ingredient, ItemStack result) {
-        ItemStack module = new ItemStack(RoutedPipes.MODULES.get(ModuleKind.CRAFTER).get());
+        ItemStack module = new ItemStack(Content.MODULES.get(ModuleKind.CRAFTER).get());
         ModuleItem.configureCrafter(module, List.of(bottle.copy(), bottle.copy(), bottle.copy(), ingredient), result.copyWithCount(3), "", 0);
         return module;
     }
@@ -80,7 +80,7 @@ public class CraftingJamGameTest {
         pipe(helper, PipeKind.PROVIDER, 1);
         chest(helper, 1, bottle(Potions.AWKWARD), bottle(Potions.AWKWARD), bottle(Potions.AWKWARD), new ItemStack(Items.GLOWSTONE_DUST));
         BlockPos chassisPos = new BlockPos(2, 1, 1);
-        helper.setBlock(chassisPos, RoutedPipes.CHASSIS_PIPES.get(2).get());
+        helper.setBlock(chassisPos, Content.CHASSIS_PIPES.get(2).get());
         PipeBlockEntity chassis = helper.getBlockEntity(chassisPos);
         chassis.modules().setItem(0, brewing(bottle(Potions.WATER), new ItemStack(Items.GLOWSTONE_DUST), bottle(Potions.THICK)));
         chassis.modules().setItem(1, brewing(bottle(Potions.AWKWARD), new ItemStack(Items.SUGAR), bottle(Potions.SWIFTNESS)));
@@ -89,7 +89,7 @@ public class CraftingJamGameTest {
         Container stand = helper.getBlockEntity(standPos);
         stand.setItem(4, new ItemStack(Items.BLAZE_POWDER, 8));
         for (int x = 3; x <= 5; x++) {
-            helper.setBlock(new BlockPos(x, 1, 1), RoutedPipes.TRANSPORT_PIPE.get());
+            helper.setBlock(new BlockPos(x, 1, 1), Content.TRANSPORT_PIPE.get());
         }
         pipe(helper, PipeKind.PROVIDER, 6);
         chest(helper, 6, bottle(Potions.WATER), bottle(Potions.WATER), bottle(Potions.WATER), new ItemStack(Items.SUGAR));

@@ -1,8 +1,8 @@
 package routedpipes.adapter.neoforge.gametest;
 
+import routedpipes.adapter.minecraft.content.Content;
 import routedpipes.adapter.minecraft.PipeBlock;
 import routedpipes.adapter.minecraft.PowerProviderBlockEntity;
-import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.domain.logistics.PipeKind;
 import routedpipes.domain.power.ProviderStore;
 import net.minecraft.core.BlockPos;
@@ -15,7 +15,7 @@ import net.neoforged.neoforge.energy.IEnergyStorage;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-@GameTestHolder(RoutedPipes.MODID)
+@GameTestHolder(Content.MODID)
 @PrefixGameTestTemplate(false)
 public class PowerProviderGameTest {
 
@@ -62,7 +62,7 @@ public class PowerProviderGameTest {
     public static void routedPipesConnectToIt(GameTestHelper helper) {
         GameTestPower.provider(helper, PROVIDER, 0);
         BlockPos pipe = new BlockPos(1, 2, 1);
-        helper.setBlock(pipe, RoutedPipes.pipe(PipeKind.BASIC));
+        helper.setBlock(pipe, Content.pipe(PipeKind.BASIC));
 
         helper.runAfterDelay(2, () -> {
             helper.assertTrue(PipeBlock.connected(helper.getBlockState(pipe), Direction.DOWN), "the pipe connects to the provider");

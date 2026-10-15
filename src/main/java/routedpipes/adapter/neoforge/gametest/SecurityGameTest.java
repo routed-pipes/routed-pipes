@@ -1,5 +1,6 @@
 package routedpipes.adapter.neoforge.gametest;
 
+import routedpipes.adapter.minecraft.content.Content;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -16,7 +17,6 @@ import routedpipes.adapter.minecraft.menu.PipeConfigMenu;
 import routedpipes.adapter.minecraft.menu.RequestMenu;
 import routedpipes.adapter.minecraft.menu.SecurityStationMenu;
 import routedpipes.adapter.minecraft.menu.UpgradeMenu;
-import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.domain.logistics.PipeKind;
 import routedpipes.domain.logistics.UpgradeKind;
 import routedpipes.domain.security.Permission;
@@ -44,7 +44,7 @@ import net.neoforged.neoforge.event.level.ExplosionEvent;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-@GameTestHolder(RoutedPipes.MODID)
+@GameTestHolder(Content.MODID)
 @PrefixGameTestTemplate(false)
 public class SecurityGameTest {
 
@@ -57,7 +57,7 @@ public class SecurityGameTest {
 
     private static PipeBlockEntity pipe(GameTestHelper helper, PipeKind kind, int x) {
         BlockPos pos = new BlockPos(x, 1, 1);
-        helper.setBlock(pos, RoutedPipes.pipe(kind));
+        helper.setBlock(pos, Content.pipe(kind));
         return helper.getBlockEntity(pos);
     }
 
@@ -83,14 +83,14 @@ public class SecurityGameTest {
 
     // what the player gets when using a pipe controller on the pipe at x
     private static UpgradeMenu controller(GameTestHelper helper, Player player, int x) {
-        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(RoutedPipes.PIPE_CONTROLLER.get()));
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Content.PIPE_CONTROLLER.get()));
         use(helper, player, new BlockPos(x, 1, 1));
         return (UpgradeMenu) player.containerMenu;
     }
 
     // a station at the given place that belongs to the owner
     private static SecurityStationBlockEntity station(GameTestHelper helper, BlockPos pos, Player owner) {
-        helper.setBlock(pos, RoutedPipes.SECURITY_STATION.get());
+        helper.setBlock(pos, Content.SECURITY_STATION.get());
         SecurityStationBlockEntity station = helper.getBlockEntity(pos);
         if (owner != null) {
             helper.getBlockState(pos).getBlock().setPlacedBy(helper.getLevel(), helper.absolutePos(pos), helper.getBlockState(pos),
@@ -100,7 +100,7 @@ public class SecurityGameTest {
     }
 
     private static ItemStack card(SecurityStationBlockEntity station) {
-        return RoutedPipes.SECURITY_CARD.get().cardFor(station.id());
+        return Content.SECURITY_CARD.get().cardFor(station.id());
     }
 
     private static void lock(PipeBlockEntity pipe, SecurityStationBlockEntity station) {
@@ -227,11 +227,11 @@ public class SecurityGameTest {
         TestPlayer owner = TestPlayer.in(helper);
         SecurityStationBlockEntity station = station(helper, STATION, owner);
         PipeBlockEntity first = pipe(helper, PipeKind.BASIC, 0);
-        helper.setBlock(new BlockPos(1, 1, 1), RoutedPipes.TRANSPORT_PIPE.get());
+        helper.setBlock(new BlockPos(1, 1, 1), Content.TRANSPORT_PIPE.get());
         PipeBlockEntity second = pipe(helper, PipeKind.BASIC, 2);
         PipeBlockEntity third = pipe(helper, PipeKind.BASIC, 3);
 
-        ItemStack stray = RoutedPipes.SECURITY_CARD.get().cardFor(UUID.randomUUID());
+        ItemStack stray = Content.SECURITY_CARD.get().cardFor(UUID.randomUUID());
         owner.setItemInHand(InteractionHand.MAIN_HAND, stray);
         use(helper, owner, new BlockPos(0, 1, 1));
         helper.assertTrue(first.security().station().isEmpty() && stray.getCount() == 1, "a card of no station does not go in");
@@ -293,10 +293,10 @@ public class SecurityGameTest {
         PipeBlockEntity request = pipe(helper, PipeKind.REQUEST, 1);
         lock(basic, station);
         lock(request, station);
-        ItemStack controller = new ItemStack(RoutedPipes.PIPE_CONTROLLER.get());
-        ItemStack upgrades = new ItemStack(RoutedPipes.UPGRADES.get(UpgradeKind.SPEED).get(), 4);
-        ItemStack orderer = new ItemStack(RoutedPipes.REMOTE_ORDERER.get());
-        ItemStack copier = new ItemStack(RoutedPipes.SETTINGS_COPIER.get());
+        ItemStack controller = new ItemStack(Content.PIPE_CONTROLLER.get());
+        ItemStack upgrades = new ItemStack(Content.UPGRADES.get(UpgradeKind.SPEED).get(), 4);
+        ItemStack orderer = new ItemStack(Content.REMOTE_ORDERER.get());
+        ItemStack copier = new ItemStack(Content.SETTINGS_COPIER.get());
         BlockPos requestPos = helper.absolutePos(new BlockPos(1, 1, 1));
         UseOnContext link = new UseOnContext(helper.getLevel(), friend, InteractionHand.MAIN_HAND, orderer,
                 new BlockHitResult(Vec3.atCenterOf(requestPos), Direction.UP, requestPos, false));

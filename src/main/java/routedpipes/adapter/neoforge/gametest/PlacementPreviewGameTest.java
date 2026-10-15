@@ -1,10 +1,10 @@
 package routedpipes.adapter.neoforge.gametest;
 
+import routedpipes.adapter.minecraft.content.Content;
 import java.util.Optional;
 import java.util.Set;
 
 import routedpipes.adapter.minecraft.PlacementPreview;
-import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.domain.logistics.PipeKind;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -23,7 +23,7 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 // what a player holding a pipe is shown before placing it
-@GameTestHolder(RoutedPipes.MODID)
+@GameTestHolder(Content.MODID)
 @PrefixGameTestTemplate(false)
 public class PlacementPreviewGameTest {
 
@@ -36,8 +36,8 @@ public class PlacementPreviewGameTest {
     private static void surroundings(GameTestHelper helper) {
         helper.setBlock(BASE, Blocks.STONE);
         helper.setBlock(SPOT.above(), Blocks.CHEST);
-        helper.setBlock(SPOT.east(), RoutedPipes.TRANSPORT_PIPE.get());
-        helper.setBlock(SPOT.north(), RoutedPipes.POWER_JUNCTION.get());
+        helper.setBlock(SPOT.east(), Content.TRANSPORT_PIPE.get());
+        helper.setBlock(SPOT.north(), Content.POWER_JUNCTION.get());
     }
 
     private static BlockHitResult topOfBase(GameTestHelper helper) {
@@ -62,9 +62,9 @@ public class PlacementPreviewGameTest {
     public static void routedPipeWouldConnectToInventoryPipeAndJunction(GameTestHelper helper) {
         surroundings(helper);
 
-        assertSides(helper, holding(helper, InteractionHand.MAIN_HAND, RoutedPipes.pipe(PipeKind.BASIC)),
+        assertSides(helper, holding(helper, InteractionHand.MAIN_HAND, Content.pipe(PipeKind.BASIC)),
                 Set.of(Direction.UP, Direction.EAST, Direction.NORTH));
-        assertSides(helper, holding(helper, InteractionHand.OFF_HAND, RoutedPipes.pipe(PipeKind.BASIC)),
+        assertSides(helper, holding(helper, InteractionHand.OFF_HAND, Content.pipe(PipeKind.BASIC)),
                 Set.of(Direction.UP, Direction.EAST, Direction.NORTH));
         helper.succeed();
     }
@@ -73,7 +73,7 @@ public class PlacementPreviewGameTest {
     public static void plainPipeWouldOnlyConnectToThePipe(GameTestHelper helper) {
         surroundings(helper);
 
-        assertSides(helper, holding(helper, InteractionHand.MAIN_HAND, RoutedPipes.TRANSPORT_PIPE.get()), Set.of(Direction.EAST));
+        assertSides(helper, holding(helper, InteractionHand.MAIN_HAND, Content.TRANSPORT_PIPE.get()), Set.of(Direction.EAST));
         helper.succeed();
     }
 
@@ -86,7 +86,7 @@ public class PlacementPreviewGameTest {
         helper.assertTrue(PlacementPreview.of(holding(helper, InteractionHand.MAIN_HAND, Blocks.STONE), topOfBase(helper)).isEmpty(),
                 "neither is a stone");
         helper.setBlock(SPOT, Blocks.STONE);
-        helper.assertTrue(PlacementPreview.of(holding(helper, InteractionHand.MAIN_HAND, RoutedPipes.pipe(PipeKind.BASIC)),
+        helper.assertTrue(PlacementPreview.of(holding(helper, InteractionHand.MAIN_HAND, Content.pipe(PipeKind.BASIC)),
                 topOfBase(helper)).isEmpty(), "there is no room for a pipe where a stone is");
         helper.succeed();
     }
@@ -95,7 +95,7 @@ public class PlacementPreviewGameTest {
     @GameTest(template = EMPTY)
     public static void placedPipeLooksLikeItsPreview(GameTestHelper helper) {
         surroundings(helper);
-        TestPlayer player = holding(helper, InteractionHand.MAIN_HAND, RoutedPipes.pipe(PipeKind.BASIC));
+        TestPlayer player = holding(helper, InteractionHand.MAIN_HAND, Content.pipe(PipeKind.BASIC));
         Optional<PlacementPreview.Preview> preview = PlacementPreview.of(player, topOfBase(helper));
         ItemStack stack = player.getMainHandItem();
 

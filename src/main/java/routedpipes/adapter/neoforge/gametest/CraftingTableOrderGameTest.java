@@ -1,5 +1,6 @@
 package routedpipes.adapter.neoforge.gametest;
 
+import routedpipes.adapter.minecraft.content.Content;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -11,7 +12,6 @@ import routedpipes.adapter.minecraft.menu.IngredientQuestions;
 import routedpipes.adapter.minecraft.menu.MenuRequests;
 import routedpipes.adapter.minecraft.menu.PipeConfigMenu;
 import routedpipes.adapter.minecraft.menu.Shortfall;
-import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.domain.logistics.PipeKind;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -28,7 +28,7 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 // what the server does when a recipe viewer moves a recipe into a crafting table that has a pipe next to it
-@GameTestHolder(RoutedPipes.MODID)
+@GameTestHolder(Content.MODID)
 @PrefixGameTestTemplate(false)
 public class CraftingTableOrderGameTest {
 
@@ -40,7 +40,7 @@ public class CraftingTableOrderGameTest {
 
     private static PipeBlockEntity pipe(GameTestHelper helper, PipeKind kind, int x) {
         BlockPos pos = new BlockPos(x, 1, 1);
-        helper.setBlock(pos, RoutedPipes.pipe(kind));
+        helper.setBlock(pos, Content.pipe(kind));
         return helper.getBlockEntity(pos);
     }
 
@@ -56,7 +56,7 @@ public class CraftingTableOrderGameTest {
 
     private static CraftingTableBlockEntity table(GameTestHelper helper, int x) {
         BlockPos pos = new BlockPos(x, 2, 1);
-        helper.setBlock(pos, RoutedPipes.CRAFTING_TABLE.get());
+        helper.setBlock(pos, Content.CRAFTING_TABLE.get());
         return helper.getBlockEntity(pos);
     }
 

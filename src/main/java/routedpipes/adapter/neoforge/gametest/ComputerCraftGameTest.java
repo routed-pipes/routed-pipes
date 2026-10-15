@@ -1,10 +1,10 @@
 package routedpipes.adapter.neoforge.gametest;
 
+import routedpipes.adapter.minecraft.content.Content;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 
-import routedpipes.adapter.neoforge.RoutedPipes;
 import net.minecraft.gametest.framework.GameTestGenerator;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.gametest.framework.TestFunction;
@@ -14,7 +14,7 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 // the peripherals of routed pipes, only there in the run that has CC: Tweaked installed
 // the checks are in a class of their own because this one has to load without the mod
-@GameTestHolder(RoutedPipes.MODID)
+@GameTestHolder(Content.MODID)
 @PrefixGameTestTemplate(false)
 public class ComputerCraftGameTest {
 
@@ -38,6 +38,6 @@ public class ComputerCraftGameTest {
     }
 
     private static TestFunction test(String name, Consumer<GameTestHelper> body, int maxTicks) {
-        return new TestFunction("defaultBatch", name, RoutedPipes.MODID + ":empty", maxTicks, 0, true, body);
+        return new TestFunction("defaultBatch", name, Content.MODID + ":empty", maxTicks, 0, true, body);
     }
 }

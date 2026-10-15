@@ -1,5 +1,6 @@
 package routedpipes.adapter.neoforge.gametest;
 
+import routedpipes.adapter.minecraft.content.Content;
 import java.util.List;
 
 import routedpipes.adapter.minecraft.McItemType;
@@ -7,7 +8,6 @@ import routedpipes.adapter.minecraft.ModuleItem;
 import routedpipes.adapter.minecraft.PipeBlockEntity;
 import routedpipes.adapter.minecraft.menu.ChassisMenu;
 import routedpipes.adapter.minecraft.menu.PipeConfigMenu;
-import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.domain.logistics.ModuleKind;
 import routedpipes.domain.logistics.PipeKind;
 import routedpipes.domain.logistics.SupplyMode;
@@ -24,7 +24,7 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 // a supplier at x 0 with its chest on top, a provider with a full chest at x 1
-@GameTestHolder(RoutedPipes.MODID)
+@GameTestHolder(Content.MODID)
 @PrefixGameTestTemplate(false)
 public class PatternGameTest {
 
@@ -32,12 +32,12 @@ public class PatternGameTest {
     private static final BlockPos TARGET = new BlockPos(0, 2, 1);
 
     private static ItemStack upgrade(UpgradeKind kind) {
-        return new ItemStack(RoutedPipes.UPGRADES.get(kind).get());
+        return new ItemStack(Content.UPGRADES.get(kind).get());
     }
 
     private static PipeBlockEntity pipe(GameTestHelper helper, PipeKind kind, int x) {
         BlockPos pos = new BlockPos(x, 1, 1);
-        helper.setBlock(pos, RoutedPipes.pipe(kind));
+        helper.setBlock(pos, Content.pipe(kind));
         return helper.getBlockEntity(pos);
     }
 
@@ -200,9 +200,9 @@ public class PatternGameTest {
     public static void activeSupplierModuleWithPatternUpgradeFillsItsSlot(GameTestHelper helper) {
         GameTestPower.supply(helper);
         BlockPos chassisPos = new BlockPos(0, 1, 1);
-        helper.setBlock(chassisPos, RoutedPipes.CHASSIS_PIPES.get(1).get());
+        helper.setBlock(chassisPos, Content.CHASSIS_PIPES.get(1).get());
         PipeBlockEntity chassis = helper.getBlockEntity(chassisPos);
-        ItemStack module = new ItemStack(RoutedPipes.MODULES.get(ModuleKind.ACTIVE_SUPPLIER).get());
+        ItemStack module = new ItemStack(Content.MODULES.get(ModuleKind.ACTIVE_SUPPLIER).get());
         ModuleItem.configureSupplier(module, List.of(new ItemStack(Items.COAL, 4)), SupplyMode.PARTIAL);
         chassis.modules().setItem(0, module);
         Container target = chest(helper, 0);

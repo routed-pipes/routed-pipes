@@ -1,5 +1,6 @@
 package routedpipes.adapter.neoforge.gametest;
 
+import routedpipes.adapter.minecraft.content.Content;
 import routedpipes.adapter.minecraft.FluidContainerItem;
 import routedpipes.adapter.minecraft.PipeBlock;
 import routedpipes.adapter.minecraft.McFluidType;
@@ -8,7 +9,6 @@ import routedpipes.adapter.minecraft.menu.FluidConfigMenu;
 import routedpipes.adapter.minecraft.menu.MenuRequests;
 import routedpipes.adapter.minecraft.menu.SatelliteNames;
 import routedpipes.adapter.minecraft.menu.FluidRequestMenu;
-import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.application.RequestOutcome;
 import routedpipes.domain.fluid.FluidBatch;
 import routedpipes.domain.fluid.FluidSupply;
@@ -38,7 +38,7 @@ import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-@GameTestHolder(RoutedPipes.MODID)
+@GameTestHolder(Content.MODID)
 @PrefixGameTestTemplate(false)
 public class FluidGameTest {
 
@@ -48,12 +48,12 @@ public class FluidGameTest {
 
     private static PipeBlockEntity pipe(GameTestHelper helper, PipeKind kind, int x, int y) {
         BlockPos pos = new BlockPos(x, y, 1);
-        helper.setBlock(pos, RoutedPipes.pipe(kind));
+        helper.setBlock(pos, Content.pipe(kind));
         return helper.getBlockEntity(pos);
     }
 
     private static void transport(GameTestHelper helper, int x, int y) {
-        helper.setBlock(new BlockPos(x, y, 1), RoutedPipes.TRANSPORT_PIPE.get());
+        helper.setBlock(new BlockPos(x, y, 1), Content.TRANSPORT_PIPE.get());
     }
 
     private static FluidTank tank(GameTestHelper helper, int x, int y, Fluid fluid, int amount) {

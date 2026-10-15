@@ -1,9 +1,9 @@
 package routedpipes.adapter.neoforge.gametest;
 
+import routedpipes.adapter.minecraft.content.Content;
 import routedpipes.adapter.minecraft.McItemType;
 import routedpipes.adapter.minecraft.PipeBlockEntity;
 import routedpipes.adapter.minecraft.menu.UpgradeMenu;
-import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.domain.crafting.OutputOrder;
 import routedpipes.domain.logistics.PipeKind;
 import routedpipes.domain.logistics.UpgradeKind;
@@ -25,7 +25,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-@GameTestHolder(RoutedPipes.MODID)
+@GameTestHolder(Content.MODID)
 @PrefixGameTestTemplate(false)
 public class PipeControllerGameTest {
 
@@ -36,7 +36,7 @@ public class PipeControllerGameTest {
 
     private static PipeBlockEntity pipe(GameTestHelper helper, PipeKind kind, int x) {
         BlockPos pos = new BlockPos(x, 1, 1);
-        helper.setBlock(pos, RoutedPipes.pipe(kind));
+        helper.setBlock(pos, Content.pipe(kind));
         return helper.getBlockEntity(pos);
     }
 
@@ -54,7 +54,7 @@ public class PipeControllerGameTest {
     private static UpgradeMenu controller(GameTestHelper helper, TestPlayer player, int x) {
         BlockPos relative = new BlockPos(x, 1, 1);
         BlockPos pos = helper.absolutePos(relative);
-        ItemStack controller = new ItemStack(RoutedPipes.PIPE_CONTROLLER.get());
+        ItemStack controller = new ItemStack(Content.PIPE_CONTROLLER.get());
         player.setItemInHand(InteractionHand.MAIN_HAND, controller);
         helper.getBlockState(relative).useItemOn(controller, helper.getLevel(), player, InteractionHand.MAIN_HAND,
                 new BlockHitResult(Vec3.atCenterOf(pos), Direction.UP, pos, false));
@@ -121,7 +121,7 @@ public class PipeControllerGameTest {
     public static void upgradeSlotsAreOnlyThereOnTheirTab(GameTestHelper helper) {
         PipeBlockEntity basic = pipe(helper, PipeKind.BASIC, 0);
         TestPlayer player = TestPlayer.in(helper);
-        ItemStack upgrade = new ItemStack(RoutedPipes.UPGRADES.get(UpgradeKind.SPEED).get());
+        ItemStack upgrade = new ItemStack(Content.UPGRADES.get(UpgradeKind.SPEED).get());
         player.getInventory().setItem(1, upgrade);
         UpgradeMenu menu = controller(helper, player, 0);
 
@@ -133,7 +133,7 @@ public class PipeControllerGameTest {
         press(menu, player, UpgradeMenu.Tab.UPGRADES.ordinal());
         helper.assertTrue(menu.getSlot(0).isActive(), "upgrade slots on the upgrades tab");
         menu.quickMoveStack(player, HOTBAR_SLOT);
-        helper.assertTrue(basic.upgrades().getItem(0).is(RoutedPipes.UPGRADES.get(UpgradeKind.SPEED).get()),
+        helper.assertTrue(basic.upgrades().getItem(0).is(Content.UPGRADES.get(UpgradeKind.SPEED).get()),
                 "the upgrade goes in with a shift click");
         helper.succeed();
     }
@@ -186,7 +186,7 @@ public class PipeControllerGameTest {
 
     // the menu as the client has it, it hears of the numbers of the server's the way vanilla sends them
     private static UpgradeMenu clientOf(UpgradeMenu server, TestPlayer player) {
-        UpgradeMenu client = new UpgradeMenu(RoutedPipes.UPGRADE_MENU.get(), server.containerId, player.getInventory());
+        UpgradeMenu client = new UpgradeMenu(Content.UPGRADE_MENU.get(), server.containerId, player.getInventory());
         server.addSlotListener(new ContainerListener() {
             @Override
             public void slotChanged(AbstractContainerMenu menu, int slot, ItemStack stack) {

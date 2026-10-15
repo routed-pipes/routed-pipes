@@ -1,8 +1,8 @@
 package routedpipes.adapter.neoforge.gametest;
 
+import routedpipes.adapter.minecraft.content.Content;
 import routedpipes.adapter.minecraft.PipeBlockEntity;
 import routedpipes.adapter.minecraft.PowerJunctionBlockEntity;
-import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.domain.logistics.PipeKind;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -16,7 +16,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-@GameTestHolder(RoutedPipes.MODID)
+@GameTestHolder(Content.MODID)
 @PrefixGameTestTemplate(false)
 public class PipeTransportGameTest {
 
@@ -25,14 +25,14 @@ public class PipeTransportGameTest {
     // a basic pipe that takes everything
     private static void router(GameTestHelper helper, int x) {
         BlockPos pos = new BlockPos(x, 1, 1);
-        helper.setBlock(pos, RoutedPipes.pipe(PipeKind.BASIC));
+        helper.setBlock(pos, Content.pipe(PipeKind.BASIC));
         PipeBlockEntity pipe = helper.getBlockEntity(pos);
         pipe.setDefaultRoute(true);
     }
 
     private static void transport(GameTestHelper helper, int fromX, int toX) {
         for (int x = fromX; x <= toX; x++) {
-            helper.setBlock(new BlockPos(x, 1, 1), RoutedPipes.TRANSPORT_PIPE.get());
+            helper.setBlock(new BlockPos(x, 1, 1), Content.TRANSPORT_PIPE.get());
         }
     }
 
@@ -186,7 +186,7 @@ public class PipeTransportGameTest {
         router(helper, 0);
         PipeBlockEntity start = helper.getBlockEntity(new BlockPos(0, 1, 1));
         start.setDefaultRoute(false);
-        helper.setBlock(new BlockPos(1, 1, 1), RoutedPipes.pipe(PipeKind.BASIC));
+        helper.setBlock(new BlockPos(1, 1, 1), Content.pipe(PipeKind.BASIC));
         BlockPos chest = chestAbove(helper, 1);
         PipeBlockEntity fresh = helper.getBlockEntity(new BlockPos(1, 1, 1));
 

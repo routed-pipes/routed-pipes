@@ -1,5 +1,6 @@
 package routedpipes.adapter.neoforge.gametest;
 
+import routedpipes.adapter.minecraft.content.Content;
 import java.util.UUID;
 
 import routedpipes.adapter.minecraft.ChannelRegistry;
@@ -12,7 +13,6 @@ import routedpipes.adapter.minecraft.SecurityStationBlockEntity;
 import routedpipes.adapter.minecraft.SystemConnector;
 import routedpipes.adapter.minecraft.menu.ChannelMenu;
 import routedpipes.adapter.minecraft.menu.SecurityStationMenu;
-import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.application.RequestOutcome;
 import routedpipes.domain.channel.Channel;
 import routedpipes.domain.channel.ChannelAccess;
@@ -35,7 +35,7 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 // two networks side by side: a provider and a connector, a chest both connectors touch, a connector and a request pipe
-@GameTestHolder(RoutedPipes.MODID)
+@GameTestHolder(Content.MODID)
 @PrefixGameTestTemplate(false)
 public class ConnectorGameTest {
 
@@ -45,7 +45,7 @@ public class ConnectorGameTest {
 
     private static PipeBlockEntity pipe(GameTestHelper helper, PipeKind kind, int x) {
         BlockPos pos = new BlockPos(x, 1, 1);
-        helper.setBlock(pos, RoutedPipes.pipe(kind));
+        helper.setBlock(pos, Content.pipe(kind));
         return helper.getBlockEntity(pos);
     }
 
@@ -248,7 +248,7 @@ public class ConnectorGameTest {
     @GameTest(template = EMPTY)
     public static void aStationSecuresChannelsForThePlayersItLets(GameTestHelper helper) {
         BlockPos pos = new BlockPos(0, 1, 3);
-        helper.setBlock(pos, RoutedPipes.SECURITY_STATION.get());
+        helper.setBlock(pos, Content.SECURITY_STATION.get());
         SecurityStationBlockEntity station = helper.getBlockEntity(pos);
         TestPlayer owner = TestPlayer.in(helper);
         TestPlayer friend = TestPlayer.in(helper);

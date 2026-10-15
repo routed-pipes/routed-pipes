@@ -1,5 +1,6 @@
 package routedpipes.adapter.neoforge.gametest;
 
+import routedpipes.adapter.minecraft.content.Content;
 import java.util.List;
 
 import routedpipes.adapter.minecraft.McItemType;
@@ -9,7 +10,6 @@ import routedpipes.adapter.minecraft.RemoteOrdererItem;
 import routedpipes.adapter.minecraft.menu.MenuRequests;
 import routedpipes.adapter.minecraft.menu.PipeConfigMenu;
 import routedpipes.adapter.minecraft.menu.RequestMenu;
-import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.domain.item.ItemBatch;
 import routedpipes.domain.logistics.PipeKind;
 import routedpipes.domain.logistics.ProviderMode;
@@ -41,7 +41,7 @@ import net.neoforged.neoforge.energy.IEnergyStorage;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-@GameTestHolder(RoutedPipes.MODID)
+@GameTestHolder(Content.MODID)
 @PrefixGameTestTemplate(false)
 public class RequestGameTest {
 
@@ -51,7 +51,7 @@ public class RequestGameTest {
 
     private static PipeBlockEntity pipe(GameTestHelper helper, PipeKind kind, int x, int y) {
         BlockPos pos = new BlockPos(x, y, 1);
-        helper.setBlock(pos, RoutedPipes.pipe(kind));
+        helper.setBlock(pos, Content.pipe(kind));
         PipeBlockEntity pipe = helper.getBlockEntity(pos);
         // in these tests a basic pipe takes everything unless the test says otherwise
         pipe.setDefaultRoute(kind == PipeKind.BASIC);
@@ -59,7 +59,7 @@ public class RequestGameTest {
     }
 
     private static void transport(GameTestHelper helper, int x, int y) {
-        helper.setBlock(new BlockPos(x, y, 1), RoutedPipes.TRANSPORT_PIPE.get());
+        helper.setBlock(new BlockPos(x, y, 1), Content.TRANSPORT_PIPE.get());
     }
 
     private static BlockPos chest(GameTestHelper helper, int x, int y, ItemStack... contents) {
@@ -239,7 +239,7 @@ public class RequestGameTest {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
 
         helper.runAfterDelay(SETTLE, () -> {
-            RequestMenu menu = new RequestMenu(RoutedPipes.REQUEST_MENU.get(), 1, request, user -> true);
+            RequestMenu menu = new RequestMenu(Content.REQUEST_MENU.get(), 1, request, user -> true);
             ItemStack first = menu.getSlot(0).getItem();
             helper.assertTrue(first.is(Items.COBBLESTONE) && first.getCount() == 1, "cobblestone should be listed first");
             helper.assertTrue(RequestMenu.listedCount(first) == 128, "listed amount should be 128");
@@ -261,7 +261,7 @@ public class RequestGameTest {
         GameTestPower.supply(helper);
         PipeBlockEntity supplier = pipe(helper, PipeKind.SUPPLIER, 0, 1);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        PipeConfigMenu menu = new PipeConfigMenu(RoutedPipes.CONFIG_MENUS.get(PipeKind.SUPPLIER).get(), 1, player.getInventory(),
+        PipeConfigMenu menu = new PipeConfigMenu(Content.CONFIG_MENUS.get(PipeKind.SUPPLIER).get(), 1, player.getInventory(),
                 PipeKind.SUPPLIER, supplier.config(), new SimpleContainerData(PipeConfigMenu.DATA_COUNT), user -> true, () -> { });
 
         menu.setCarried(new ItemStack(Items.COAL, 16));
@@ -311,7 +311,7 @@ public class RequestGameTest {
         chest(helper, 1, 2, new ItemStack(Items.DIAMOND, 9));
         TestPlayer player = TestPlayer.in(helper);
         player.setPos(player.getX() + 500, player.getY(), player.getZ());
-        ItemStack orderer = new ItemStack(RoutedPipes.REMOTE_ORDERER.get());
+        ItemStack orderer = new ItemStack(Content.REMOTE_ORDERER.get());
         player.setItemInHand(InteractionHand.MAIN_HAND, orderer);
 
         orderer.use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
@@ -343,7 +343,7 @@ public class RequestGameTest {
         pipe(helper, PipeKind.PROVIDER, 0, 1);
         pipe(helper, PipeKind.REQUEST, 2, 1);
         TestPlayer player = TestPlayer.in(helper);
-        ItemStack orderer = new ItemStack(RoutedPipes.REMOTE_ORDERER.get());
+        ItemStack orderer = new ItemStack(Content.REMOTE_ORDERER.get());
         player.setItemInHand(InteractionHand.MAIN_HAND, orderer);
 
         BlockPos provider = helper.absolutePos(new BlockPos(0, 1, 1));
@@ -599,9 +599,9 @@ public class RequestGameTest {
     public static void activeSupplierModuleKeepsChestStocked(GameTestHelper helper) {
         GameTestPower.supply(helper);
         BlockPos chassisPos = new BlockPos(0, 1, 1);
-        helper.setBlock(chassisPos, RoutedPipes.CHASSIS_PIPES.get(1).get());
+        helper.setBlock(chassisPos, Content.CHASSIS_PIPES.get(1).get());
         PipeBlockEntity chassis = helper.getBlockEntity(chassisPos);
-        ItemStack module = new ItemStack(RoutedPipes.MODULES.get(routedpipes.domain.logistics.ModuleKind.ACTIVE_SUPPLIER).get());
+        ItemStack module = new ItemStack(Content.MODULES.get(routedpipes.domain.logistics.ModuleKind.ACTIVE_SUPPLIER).get());
         routedpipes.adapter.minecraft.ModuleItem.configureSupplier(module, java.util.List.of(new ItemStack(Items.COAL, 16)), SupplyMode.PARTIAL);
         chassis.modules().setItem(0, module);
         BlockPos target = chest(helper, 0, 2);
@@ -624,9 +624,9 @@ public class RequestGameTest {
         java.util.List<String> without = new java.util.ArrayList<>();
         net.minecraft.core.registries.BuiltInRegistries.ITEM.entrySet().forEach(entry -> {
             // packed fluid is never in a player's hands, security cards are made by their station
-            if (entry.getKey().location().getNamespace().equals(RoutedPipes.MODID) && !made.contains(entry.getValue())
-                    && entry.getValue() != RoutedPipes.FLUID_CONTAINER.get()
-                    && entry.getValue() != RoutedPipes.SECURITY_CARD.get()) {
+            if (entry.getKey().location().getNamespace().equals(Content.MODID) && !made.contains(entry.getValue())
+                    && entry.getValue() != Content.FLUID_CONTAINER.get()
+                    && entry.getValue() != Content.SECURITY_CARD.get()) {
                 without.add(entry.getKey().location().getPath());
             }
         });
@@ -731,12 +731,12 @@ public class RequestGameTest {
         BlockPos source = chest(helper, 1, 2, new ItemStack(Items.OAK_LOG, 8));
         table.grid().setItem(0, new ItemStack(Items.OAK_LOG));
         BlockPos stationPos = new BlockPos(3, 1, 1);
-        helper.setBlock(stationPos, RoutedPipes.SECURITY_STATION.get());
+        helper.setBlock(stationPos, Content.SECURITY_STATION.get());
         routedpipes.adapter.minecraft.SecurityStationBlockEntity station = helper.getBlockEntity(stationPos);
         TestPlayer owner = TestPlayer.in(helper);
         helper.getBlockState(stationPos).getBlock().setPlacedBy(helper.getLevel(), helper.absolutePos(stationPos),
                 helper.getBlockState(stationPos), owner, ItemStack.EMPTY);
-        ItemStack card = RoutedPipes.SECURITY_CARD.get().cardFor(station.id());
+        ItemStack card = Content.SECURITY_CARD.get().cardFor(station.id());
         pipe.security().card().setItem(0, card.copy());
         provider.security().card().setItem(0, card.copy());
         TestPlayer stranger = TestPlayer.in(helper);
@@ -885,7 +885,7 @@ public class RequestGameTest {
         pipe(helper, PipeKind.PROVIDER, 1, 1);
         BlockPos source = chest(helper, 1, 2, new ItemStack(Items.OAK_LOG, 8));
         PipeBlockEntity planks = pipe(helper, PipeKind.CRAFTING, 2, 1);
-        helper.setBlock(new BlockPos(2, 2, 1), RoutedPipes.CRAFTING_TABLE.get());
+        helper.setBlock(new BlockPos(2, 2, 1), Content.CRAFTING_TABLE.get());
         ((routedpipes.adapter.minecraft.CraftingTableBlockEntity) helper.getBlockEntity(new BlockPos(2, 2, 1))).pattern()
                 .setItem(0, new ItemStack(Items.OAK_LOG));
         planks.importRecipe();
@@ -913,7 +913,7 @@ public class RequestGameTest {
         GameTestPower.supply(helper);
         PipeBlockEntity piston = pipe(helper, PipeKind.CRAFTING, 0, 1);
         PipeBlockEntity planks = pipe(helper, PipeKind.CRAFTING, 1, 1);
-        helper.setBlock(new BlockPos(1, 2, 1), RoutedPipes.CRAFTING_TABLE.get());
+        helper.setBlock(new BlockPos(1, 2, 1), Content.CRAFTING_TABLE.get());
         ((routedpipes.adapter.minecraft.CraftingTableBlockEntity) helper.getBlockEntity(new BlockPos(1, 2, 1))).pattern()
                 .setItem(0, new ItemStack(Items.OAK_LOG));
         planks.importRecipe();

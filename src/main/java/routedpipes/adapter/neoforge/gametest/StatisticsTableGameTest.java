@@ -1,5 +1,6 @@
 package routedpipes.adapter.neoforge.gametest;
 
+import routedpipes.adapter.minecraft.content.Content;
 import java.util.Arrays;
 
 import routedpipes.adapter.minecraft.McItemType;
@@ -7,7 +8,6 @@ import routedpipes.adapter.minecraft.PipeBlockEntity;
 import routedpipes.adapter.minecraft.StatisticsTableBlockEntity;
 import routedpipes.adapter.minecraft.menu.RequestMenu;
 import routedpipes.adapter.minecraft.menu.StatisticsTableMenu;
-import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.domain.crafting.OutputOrder;
 import routedpipes.domain.item.ItemType;
 import routedpipes.domain.logistics.PipeKind;
@@ -31,7 +31,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-@GameTestHolder(RoutedPipes.MODID)
+@GameTestHolder(Content.MODID)
 @PrefixGameTestTemplate(false)
 public class StatisticsTableGameTest {
 
@@ -47,7 +47,7 @@ public class StatisticsTableGameTest {
     }
 
     private static PipeBlockEntity pipe(GameTestHelper helper, PipeKind kind, ItemStack... contents) {
-        helper.setBlock(PIPE, RoutedPipes.pipe(kind));
+        helper.setBlock(PIPE, Content.pipe(kind));
         helper.setBlock(CHEST, Blocks.CHEST);
         Container container = helper.getBlockEntity(CHEST);
         for (int slot = 0; slot < contents.length; slot++) {
@@ -57,7 +57,7 @@ public class StatisticsTableGameTest {
     }
 
     private static StatisticsTableBlockEntity table(GameTestHelper helper, BlockPos pos) {
-        helper.setBlock(pos, RoutedPipes.STATISTICS_TABLE.get());
+        helper.setBlock(pos, Content.STATISTICS_TABLE.get());
         return helper.getBlockEntity(pos);
     }
 
@@ -65,7 +65,7 @@ public class StatisticsTableGameTest {
     private static void passAMinute(GameTestHelper helper, StatisticsTableBlockEntity table) {
         BlockState state = table.getBlockState();
         BlockEntityTicker<StatisticsTableBlockEntity> ticker = state.getTicker(helper.getLevel(),
-                RoutedPipes.STATISTICS_TABLE_BLOCK_ENTITY.get());
+                Content.STATISTICS_TABLE_BLOCK_ENTITY.get());
         for (int tick = 0; tick < AmountTracking.INTERVAL; tick++) {
             ticker.tick(helper.getLevel(), table.getBlockPos(), state, table);
         }

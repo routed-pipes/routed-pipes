@@ -1,5 +1,6 @@
 package routedpipes.adapter.neoforge.gametest;
 
+import routedpipes.adapter.minecraft.content.Content;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -11,7 +12,6 @@ import routedpipes.adapter.minecraft.ModuleItem;
 import routedpipes.adapter.minecraft.PipeBlockEntity;
 import routedpipes.adapter.minecraft.ProgrammerItem;
 import routedpipes.adapter.minecraft.RequestTable;
-import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.application.RequestOutcome;
 import routedpipes.domain.logistics.ModuleKind;
 import routedpipes.domain.logistics.PipeKind;
@@ -37,7 +37,7 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 // a programmer comes out of the craft as it went in, so one does for any number of crafts
-@GameTestHolder(RoutedPipes.MODID)
+@GameTestHolder(Content.MODID)
 @PrefixGameTestTemplate(false)
 public class KeptIngredientGameTest {
 
@@ -45,7 +45,7 @@ public class KeptIngredientGameTest {
     private static final int SETTLE = 5;
 
     private static ItemStack programmer() {
-        ItemStack programmer = new ItemStack(RoutedPipes.LOGISTICS_PROGRAMMER.get());
+        ItemStack programmer = new ItemStack(Content.LOGISTICS_PROGRAMMER.get());
         ProgrammerItem.flash(programmer, ProgramCatalog.byId("request_pipe").orElseThrow());
         return programmer;
     }
@@ -81,7 +81,7 @@ public class KeptIngredientGameTest {
 
     private static PipeBlockEntity pipe(GameTestHelper helper, PipeKind kind, int x) {
         BlockPos pos = new BlockPos(x, 1, 1);
-        helper.setBlock(pos, RoutedPipes.pipe(kind));
+        helper.setBlock(pos, Content.pipe(kind));
         return helper.getBlockEntity(pos);
     }
 
@@ -104,7 +104,7 @@ public class KeptIngredientGameTest {
     public static void tableCraftsAsOftenAsTheMaterialsAllowWithOneProgrammer(GameTestHelper helper) {
         GameTestPower.supply(helper);
         BlockPos pos = new BlockPos(0, 1, 1);
-        helper.setBlock(pos, RoutedPipes.CRAFTING_TABLE.get());
+        helper.setBlock(pos, Content.CRAFTING_TABLE.get());
         CraftingTableBlockEntity table = helper.getBlockEntity(pos);
         fill(table.pattern());
         table.storage().setItem(0, programmer());
@@ -117,7 +117,7 @@ public class KeptIngredientGameTest {
                 "three request pipes can be taken, got " + table.available());
         ItemStack taken = table.takeResult(3, false);
         helper.assertTrue(taken.is(requestPipe()) && taken.getCount() == 3, "took " + taken);
-        assertCount(helper, table.storage(), RoutedPipes.LOGISTICS_PROGRAMMER.get(), 1, "the programmer stays");
+        assertCount(helper, table.storage(), Content.LOGISTICS_PROGRAMMER.get(), 1, "the programmer stays");
         assertCount(helper, table.storage(), chip(), 0, "the chips are used up");
 
         table.storage().clearContent();
@@ -145,8 +145,8 @@ public class KeptIngredientGameTest {
         });
         helper.runAfterDelay(200, () -> {
             assertCount(helper, table.buffer(), requestPipe(), 3, "three request pipes");
-            assertCount(helper, table.buffer(), RoutedPipes.LOGISTICS_PROGRAMMER.get(), 1, "the programmer is still there");
-            assertCount(helper, source, RoutedPipes.LOGISTICS_PROGRAMMER.get(), 0, "it came from the network");
+            assertCount(helper, table.buffer(), Content.LOGISTICS_PROGRAMMER.get(), 1, "the programmer is still there");
+            assertCount(helper, source, Content.LOGISTICS_PROGRAMMER.get(), 0, "it came from the network");
             helper.assertTrue(table.pending() == 0, "nothing left to craft");
             helper.succeed();
         });
@@ -163,7 +163,7 @@ public class KeptIngredientGameTest {
         Container source = chest(helper, 1, programmer(), materials[0], materials[1], materials[2], materials[3]);
         PipeBlockEntity crafting = pipe(helper, PipeKind.CRAFTING, 2);
         BlockPos tablePos = new BlockPos(2, 2, 1);
-        helper.setBlock(tablePos, RoutedPipes.CRAFTING_TABLE.get());
+        helper.setBlock(tablePos, Content.CRAFTING_TABLE.get());
         CraftingTableBlockEntity table = helper.getBlockEntity(tablePos);
         fill(table.pattern());
         crafting.importRecipe();
@@ -172,14 +172,14 @@ public class KeptIngredientGameTest {
                 request.request(McItemType.batchOf(new ItemStack(requestPipe(), 3))).started(), "first request"));
         helper.runAfterDelay(220, () -> {
             assertCount(helper, target, requestPipe(), 3, "first delivery");
-            assertCount(helper, table.storage(), RoutedPipes.LOGISTICS_PROGRAMMER.get(), 1, "the programmer stays in the table");
-            assertCount(helper, source, RoutedPipes.LOGISTICS_PROGRAMMER.get(), 0, "only one was taken");
+            assertCount(helper, table.storage(), Content.LOGISTICS_PROGRAMMER.get(), 1, "the programmer stays in the table");
+            assertCount(helper, source, Content.LOGISTICS_PROGRAMMER.get(), 0, "only one was taken");
             helper.assertTrue(request.request(McItemType.batchOf(new ItemStack(requestPipe(), 1))).started(),
                     "the second request needs no programmer from the network");
         });
         helper.runAfterDelay(440, () -> {
             assertCount(helper, target, requestPipe(), 4, "second delivery");
-            assertCount(helper, table.storage(), RoutedPipes.LOGISTICS_PROGRAMMER.get(), 1, "still the one programmer");
+            assertCount(helper, table.storage(), Content.LOGISTICS_PROGRAMMER.get(), 1, "still the one programmer");
             helper.succeed();
         });
     }
@@ -194,10 +194,10 @@ public class KeptIngredientGameTest {
         ItemStack[] materials = materials(2);
         chest(helper, 1, materials);
         BlockPos chassisPos = new BlockPos(2, 1, 1);
-        helper.setBlock(chassisPos, RoutedPipes.CHASSIS_PIPES.get(1).get());
+        helper.setBlock(chassisPos, Content.CHASSIS_PIPES.get(1).get());
         PipeBlockEntity chassis = helper.getBlockEntity(chassisPos);
         BlockPos tablePos = new BlockPos(2, 2, 1);
-        helper.setBlock(tablePos, RoutedPipes.CRAFTING_TABLE.get());
+        helper.setBlock(tablePos, Content.CRAFTING_TABLE.get());
         CraftingTableBlockEntity table = helper.getBlockEntity(tablePos);
         fill(table.pattern());
         table.storage().setItem(0, programmer());
@@ -205,7 +205,7 @@ public class KeptIngredientGameTest {
         for (int slot = 0; slot < CraftingTableBlockEntity.PATTERN_SLOTS; slot++) {
             inputs.add(table.pattern().getItem(slot).copy());
         }
-        ItemStack crafter = new ItemStack(RoutedPipes.MODULES.get(ModuleKind.CRAFTER).get());
+        ItemStack crafter = new ItemStack(Content.MODULES.get(ModuleKind.CRAFTER).get());
         ModuleItem.configureCrafter(crafter, inputs, new ItemStack(requestPipe()), "", 0);
         chassis.modules().setItem(0, crafter);
 
@@ -215,7 +215,7 @@ public class KeptIngredientGameTest {
         });
         helper.runAfterDelay(250, () -> {
             assertCount(helper, target, requestPipe(), 2, "delivered");
-            assertCount(helper, table.storage(), RoutedPipes.LOGISTICS_PROGRAMMER.get(), 1, "the programmer stays");
+            assertCount(helper, table.storage(), Content.LOGISTICS_PROGRAMMER.get(), 1, "the programmer stays");
             helper.succeed();
         });
     }

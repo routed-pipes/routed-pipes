@@ -1,5 +1,6 @@
 package routedpipes.adapter.neoforge.benchmark;
 
+import routedpipes.adapter.minecraft.content.Content;
 import routedpipes.domain.logistics.UpgradeKind;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,7 +14,6 @@ import routedpipes.adapter.minecraft.ModuleItem;
 import routedpipes.adapter.minecraft.PipeBlockEntity;
 import routedpipes.adapter.minecraft.PowerJunctionBlockEntity;
 import routedpipes.adapter.minecraft.UpgradeItem;
-import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.application.RequestOutcome;
 import routedpipes.domain.logistics.ModuleKind;
 import routedpipes.domain.logistics.PipeKind;
@@ -126,18 +126,18 @@ public final class BenchmarkBase {
     }
 
     private PipeBlockEntity pipe(BlockPos pos, PipeKind kind) {
-        level.setBlock(pos, RoutedPipes.pipe(kind).defaultBlockState(), 3);
+        level.setBlock(pos, Content.pipe(kind).defaultBlockState(), 3);
         pipePositions.add(pos);
         return (PipeBlockEntity) level.getBlockEntity(pos);
     }
 
     private void transport(BlockPos pos) {
-        level.setBlock(pos, RoutedPipes.TRANSPORT_PIPE.get().defaultBlockState(), 3);
+        level.setBlock(pos, Content.TRANSPORT_PIPE.get().defaultBlockState(), 3);
         pipePositions.add(pos);
     }
 
     private PipeBlockEntity chassis(BlockPos pos, ItemStack module) {
-        level.setBlock(pos, RoutedPipes.CHASSIS_PIPES.get(1).get().defaultBlockState(), 3);
+        level.setBlock(pos, Content.CHASSIS_PIPES.get(1).get().defaultBlockState(), 3);
         pipePositions.add(pos);
         PipeBlockEntity chassis = (PipeBlockEntity) level.getBlockEntity(pos);
         chassis.modules().setItem(0, module);
@@ -164,11 +164,11 @@ public final class BenchmarkBase {
         // head of the trunk with the power and the row of input chests
         pipe(at(0, 0, 0), PipeKind.BASIC);
         junction = at(0, -1, 0);
-        level.setBlock(junction, RoutedPipes.POWER_JUNCTION.get().defaultBlockState(), 3);
+        level.setBlock(junction, Content.POWER_JUNCTION.get().defaultBlockState(), 3);
         for (int input = 1; input <= inputs; input++) {
             transport(at(-2 * input + 1, 0, 0));
-            PipeBlockEntity extractor = chassis(at(-2 * input, 0, 0), new ItemStack(RoutedPipes.MODULES.get(ModuleKind.EXTRACTOR).get()));
-            extractor.moduleUpgrades().setItem(0, new ItemStack(RoutedPipes.UPGRADES.get(UpgradeKind.ITEM_STACK_EXTRACTION).get()));
+            PipeBlockEntity extractor = chassis(at(-2 * input, 0, 0), new ItemStack(Content.MODULES.get(ModuleKind.EXTRACTOR).get()));
+            extractor.moduleUpgrades().setItem(0, new ItemStack(Content.UPGRADES.get(UpgradeKind.ITEM_STACK_EXTRACTION).get()));
             inputChests.add(chestAbove(at(-2 * input, 0, 0)));
         }
         // the trunk, a routed pipe wherever a row branches off
@@ -183,7 +183,7 @@ public final class BenchmarkBase {
             int z = 4 + 3 * row;
             for (int column = 1; column <= columns; column++) {
                 transport(at(2 * column - 1, 0, z));
-                ItemStack sink = new ItemStack(RoutedPipes.MODULES.get(ModuleKind.ITEM_SINK).get());
+                ItemStack sink = new ItemStack(Content.MODULES.get(ModuleKind.ITEM_SINK).get());
                 ModuleItem.configureSink(sink, List.of(new ItemStack(items.get((row * columns + column - 1) % items.size()))), false);
                 chassis(at(2 * column, 0, z), sink);
                 sinkChests.add(chestAbove(at(2 * column, 0, z)));
@@ -213,7 +213,7 @@ public final class BenchmarkBase {
         for (int station = 1; station <= WORKSHOP_STATIONS; station++) {
             transport(at(2 * station - 1, 0, z + 3));
             PipeBlockEntity crafting = pipe(at(2 * station, 0, z + 3), PipeKind.CRAFTING);
-            level.setBlock(at(2 * station, 1, z + 3), RoutedPipes.CRAFTING_TABLE.get().defaultBlockState(), 3);
+            level.setBlock(at(2 * station, 1, z + 3), Content.CRAFTING_TABLE.get().defaultBlockState(), 3);
             CraftingTableBlockEntity table = (CraftingTableBlockEntity) level.getBlockEntity(at(2 * station, 1, z + 3));
             Item[] recipe = recipes[(station - 1) % recipes.length];
             for (int slot = 0; slot < recipe.length; slot++) {

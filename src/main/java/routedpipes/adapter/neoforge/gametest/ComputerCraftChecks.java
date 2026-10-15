@@ -1,5 +1,6 @@
 package routedpipes.adapter.neoforge.gametest;
 
+import routedpipes.adapter.minecraft.content.Content;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.lang.reflect.Proxy;
@@ -17,7 +18,6 @@ import routedpipes.adapter.computercraft.PipePeripheral;
 import routedpipes.adapter.computercraft.RemotePipe;
 import routedpipes.adapter.minecraft.PipeBlockEntity;
 import routedpipes.adapter.minecraft.SecurityStationBlockEntity;
-import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.domain.logistics.PipeKind;
 import routedpipes.domain.logistics.UpgradeKind;
 import net.minecraft.core.BlockPos;
@@ -67,7 +67,7 @@ final class ComputerCraftChecks {
     static void routedPipesArePeripherals(GameTestHelper helper) {
         PipeBlockEntity basic = pipe(helper, PipeKind.BASIC, 0);
         pipe(helper, PipeKind.REQUEST, 2);
-        helper.setBlock(new BlockPos(4, 1, 1), RoutedPipes.TRANSPORT_PIPE.get());
+        helper.setBlock(new BlockPos(4, 1, 1), Content.TRANSPORT_PIPE.get());
 
         helper.assertTrue(peripheral(helper, 4) == null, "a plain pipe is a peripheral");
         IPeripheral found = peripheral(helper, 0);
@@ -204,10 +204,10 @@ final class ComputerCraftChecks {
         GameTestPower.supply(helper);
         PipeBlockEntity basic = pipe(helper, PipeKind.BASIC, 0);
         BlockPos pos = new BlockPos(3, 1, 3);
-        helper.setBlock(pos, RoutedPipes.SECURITY_STATION.get());
+        helper.setBlock(pos, Content.SECURITY_STATION.get());
         SecurityStationBlockEntity station = helper.getBlockEntity(pos);
         station.station().settings().addComputerException(7);
-        basic.security().card().setItem(0, RoutedPipes.SECURITY_CARD.get().cardFor(station.id()));
+        basic.security().card().setItem(0, Content.SECURITY_CARD.get().cardFor(station.id()));
         PipePeripheral peripheral = (PipePeripheral) peripheral(helper, 0);
 
         helper.runAfterDelay(SETTLE, () -> {
@@ -225,7 +225,7 @@ final class ComputerCraftChecks {
     static void theRemoteControlUpgradeHandsOutPipeObjects(GameTestHelper helper) {
         PipeBlockEntity basic = pipe(helper, PipeKind.BASIC, 0);
         PipeBlockEntity request = pipe(helper, PipeKind.REQUEST, 1);
-        basic.installUpgrade(new ItemStack(RoutedPipes.UPGRADES.get(UpgradeKind.CC_REMOTE_CONTROL).get()));
+        basic.installUpgrade(new ItemStack(Content.UPGRADES.get(UpgradeKind.CC_REMOTE_CONTROL).get()));
         PipePeripheral peripheral = (PipePeripheral) peripheral(helper, 0);
 
         helper.runAfterDelay(SETTLE, () -> {
@@ -248,7 +248,7 @@ final class ComputerCraftChecks {
     static void aScriptUsesAPipeFromAfar(GameTestHelper helper) {
         PipeBlockEntity basic = pipe(helper, PipeKind.BASIC, 1);
         PipeBlockEntity request = pipe(helper, PipeKind.REQUEST, 2);
-        basic.installUpgrade(new ItemStack(RoutedPipes.UPGRADES.get(UpgradeKind.CC_REMOTE_CONTROL).get()));
+        basic.installUpgrade(new ItemStack(Content.UPGRADES.get(UpgradeKind.CC_REMOTE_CONTROL).get()));
 
         helper.runAfterDelay(SETTLE, () -> {
             BlockEntity computer = computer(helper, new BlockPos(0, 1, 1), """

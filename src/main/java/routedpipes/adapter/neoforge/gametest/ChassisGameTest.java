@@ -1,5 +1,6 @@
 package routedpipes.adapter.neoforge.gametest;
 
+import routedpipes.adapter.minecraft.content.Content;
 import java.util.List;
 
 import routedpipes.adapter.minecraft.McItemType;
@@ -8,7 +9,6 @@ import routedpipes.adapter.minecraft.PipeBlockEntity;
 import routedpipes.adapter.minecraft.PowerJunctionBlockEntity;
 import routedpipes.adapter.minecraft.menu.ChassisMenu;
 import routedpipes.adapter.minecraft.menu.PipeConfigMenu;
-import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.domain.logistics.ItemSink;
 import routedpipes.domain.logistics.ModuleKind;
 import routedpipes.domain.logistics.PipeKind;
@@ -29,19 +29,19 @@ import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-@GameTestHolder(RoutedPipes.MODID)
+@GameTestHolder(Content.MODID)
 @PrefixGameTestTemplate(false)
 public class ChassisGameTest {
 
     private static final String EMPTY = "empty";
 
     private static ItemStack module(ModuleKind kind) {
-        return new ItemStack(RoutedPipes.MODULES.get(kind).get());
+        return new ItemStack(Content.MODULES.get(kind).get());
     }
 
     private static PipeBlockEntity chassis(GameTestHelper helper, int slots, int x, ItemStack... modules) {
         BlockPos pos = new BlockPos(x, 1, 1);
-        helper.setBlock(pos, RoutedPipes.CHASSIS_PIPES.get(slots).get());
+        helper.setBlock(pos, Content.CHASSIS_PIPES.get(slots).get());
         PipeBlockEntity pipe = helper.getBlockEntity(pos);
         for (int slot = 0; slot < modules.length; slot++) {
             pipe.modules().setItem(slot, modules[slot]);
@@ -51,7 +51,7 @@ public class ChassisGameTest {
 
     private static PipeBlockEntity pipe(GameTestHelper helper, PipeKind kind, int x) {
         BlockPos pos = new BlockPos(x, 1, 1);
-        helper.setBlock(pos, RoutedPipes.pipe(kind));
+        helper.setBlock(pos, Content.pipe(kind));
         PipeBlockEntity pipe = helper.getBlockEntity(pos);
         // in these tests a basic pipe takes everything unless the test says otherwise
         pipe.setDefaultRoute(kind == PipeKind.BASIC);
@@ -79,7 +79,7 @@ public class ChassisGameTest {
         GameTestPower.supply(helper);
         chassis(helper, 1, 0, module(ModuleKind.EXTRACTOR));
         BlockPos source = chest(helper, 0, new ItemStack(Items.COBBLESTONE, 40));
-        helper.setBlock(new BlockPos(1, 1, 1), RoutedPipes.TRANSPORT_PIPE.get());
+        helper.setBlock(new BlockPos(1, 1, 1), Content.TRANSPORT_PIPE.get());
         pipe(helper, PipeKind.BASIC, 2);
         BlockPos target = chest(helper, 2);
 
@@ -115,7 +115,7 @@ public class ChassisGameTest {
         ModuleItem.configureSink(stone, List.of(new ItemStack(Items.COBBLESTONE)), false);
         chassis(helper, 2, 3, stone);
         BlockPos stoneChest = chest(helper, 3);
-        helper.setBlock(new BlockPos(2, 1, 1), RoutedPipes.TRANSPORT_PIPE.get());
+        helper.setBlock(new BlockPos(2, 1, 1), Content.TRANSPORT_PIPE.get());
         pipe(helper, PipeKind.BASIC, 4);
         helper.setBlock(new BlockPos(4, 1, 0), Blocks.CHEST);
         BlockPos rest = new BlockPos(4, 1, 0);
@@ -182,7 +182,7 @@ public class ChassisGameTest {
         player.getInventory().setItem(3, module(ModuleKind.ITEM_SINK));
         SimpleContainerData slots = new SimpleContainerData(ChassisMenu.DATA_COUNT);
         slots.set(0, 2);
-        ChassisMenu menu = new ChassisMenu(RoutedPipes.CHASSIS_MENU.get(), 1, player.getInventory(), pipe.modules(), pipe.moduleUpgrades(),
+        ChassisMenu menu = new ChassisMenu(Content.CHASSIS_MENU.get(), 1, player.getInventory(), pipe.modules(), pipe.moduleUpgrades(),
                 slots, user -> true, () -> { }, (user, slot) -> { });
         int hotbar = menu.slots.size() - 9;
 
@@ -393,8 +393,8 @@ public class ChassisGameTest {
         helper.setBlock(shared, Blocks.CHEST);
         Container contents = helper.getBlockEntity(shared);
         contents.setItem(0, new ItemStack(Items.COBBLESTONE, 40));
-        helper.setBlock(new BlockPos(5, 1, 1), RoutedPipes.TRANSPORT_PIPE.get());
-        helper.setBlock(new BlockPos(5, 2, 1), RoutedPipes.pipe(PipeKind.BASIC));
+        helper.setBlock(new BlockPos(5, 1, 1), Content.TRANSPORT_PIPE.get());
+        helper.setBlock(new BlockPos(5, 2, 1), Content.pipe(PipeKind.BASIC));
 
         helper.runAfterDelay(200, () -> {
             assertCount(helper, shared, Items.COBBLESTONE, 40);
@@ -481,12 +481,12 @@ public class ChassisGameTest {
 
     @GameTest(template = EMPTY, timeoutTicks = 300)
     public static void modSinkTakesItemsOfItsMod(GameTestHelper helper) {
-        sinkTest(helper, new ItemStack(RoutedPipes.TRANSPORT_PIPE.get(), 4), named(ModuleKind.MOD_ITEM_SINK, RoutedPipes.MODID), true);
+        sinkTest(helper, new ItemStack(Content.TRANSPORT_PIPE.get(), 4), named(ModuleKind.MOD_ITEM_SINK, Content.MODID), true);
     }
 
     @GameTest(template = EMPTY, timeoutTicks = 300)
     public static void modSinkLeavesOtherModsAlone(GameTestHelper helper) {
-        sinkTest(helper, new ItemStack(Items.COAL, 4), named(ModuleKind.MOD_ITEM_SINK, RoutedPipes.MODID), false);
+        sinkTest(helper, new ItemStack(Items.COAL, 4), named(ModuleKind.MOD_ITEM_SINK, Content.MODID), false);
     }
 
     @GameTest(template = EMPTY, timeoutTicks = 300)
@@ -565,7 +565,7 @@ public class ChassisGameTest {
         ItemStack module = module(ModuleKind.TAG_ITEM_SINK);
         player.getInventory().setItem(0, module);
         routedpipes.adapter.minecraft.menu.NamesMenu menu = new routedpipes.adapter.minecraft.menu.NamesMenu(
-                RoutedPipes.NAMES_MENU.get(), 1, player.getInventory(), module, user -> true, () -> { });
+                Content.NAMES_MENU.get(), 1, player.getInventory(), module, user -> true, () -> { });
         player.containerMenu = menu;
 
         routedpipes.adapter.minecraft.menu.MenuRequests.applyText(player, 1, routedpipes.adapter.minecraft.menu.NamesMenu.FIELD_ADD, "minecraft:planks");

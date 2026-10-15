@@ -1,5 +1,6 @@
 package routedpipes.adapter.neoforge.gametest;
 
+import routedpipes.adapter.minecraft.content.Content;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -17,7 +18,6 @@ import routedpipes.adapter.minecraft.ModuleItem;
 import routedpipes.adapter.minecraft.PipeBlockEntity;
 import routedpipes.adapter.minecraft.PowerJunctionBlockEntity;
 import routedpipes.adapter.minecraft.menu.HudSettingsMenu;
-import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.application.RequestOutcome;
 import routedpipes.domain.hud.HudCategory;
 import routedpipes.domain.hud.HudElement;
@@ -49,7 +49,7 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 // what a player who wears the glasses is told about the pipes around them
-@GameTestHolder(RoutedPipes.MODID)
+@GameTestHolder(Content.MODID)
 @PrefixGameTestTemplate(false)
 public class HudGameTest {
 
@@ -62,13 +62,13 @@ public class HudGameTest {
 
     private static PipeBlockEntity pipe(GameTestHelper helper, PipeKind kind, int x) {
         BlockPos pos = new BlockPos(x, 1, 1);
-        helper.setBlock(pos, RoutedPipes.pipe(kind));
+        helper.setBlock(pos, Content.pipe(kind));
         return helper.getBlockEntity(pos);
     }
 
     private static TestPlayer wearer(GameTestHelper helper) {
         TestPlayer player = TestPlayer.in(helper);
-        player.setItemSlot(EquipmentSlot.HEAD, new ItemStack(RoutedPipes.HUD_GLASSES.get()));
+        player.setItemSlot(EquipmentSlot.HEAD, new ItemStack(Content.HUD_GLASSES.get()));
         return player;
     }
 
@@ -86,7 +86,7 @@ public class HudGameTest {
 
     @GameTest(template = EMPTY)
     public static void glassesAreWornOnTheHeadAndProtectFromNothing(GameTestHelper helper) {
-        ItemStack glasses = new ItemStack(RoutedPipes.HUD_GLASSES.get());
+        ItemStack glasses = new ItemStack(Content.HUD_GLASSES.get());
         TestPlayer player = TestPlayer.in(helper);
 
         helper.assertTrue(player.getEquipmentSlotForItem(glasses) == EquipmentSlot.HEAD, "they go on the head");
@@ -133,13 +133,13 @@ public class HudGameTest {
         GameTestPower.supply(helper);
         TestPlayer player = wearer(helper);
         BlockPos pos = new BlockPos(2, 1, 1);
-        helper.setBlock(pos, RoutedPipes.CHASSIS_PIPES.get(8).get());
+        helper.setBlock(pos, Content.CHASSIS_PIPES.get(8).get());
         PipeBlockEntity chassis = helper.getBlockEntity(pos);
         helper.assertTrue(panelAt(helper, player, 2) == null, "an empty chassis has nothing to show");
-        ItemStack sink = new ItemStack(RoutedPipes.MODULES.get(ModuleKind.ITEM_SINK).get());
+        ItemStack sink = new ItemStack(Content.MODULES.get(ModuleKind.ITEM_SINK).get());
         ModuleItem.configureSink(sink, List.of(new ItemStack(Items.DIAMOND)), false);
         chassis.modules().setItem(0, sink);
-        ItemStack extractor = new ItemStack(RoutedPipes.MODULES.get(ModuleKind.EXTRACTOR).get());
+        ItemStack extractor = new ItemStack(Content.MODULES.get(ModuleKind.EXTRACTOR).get());
         chassis.modules().setItem(3, extractor);
 
         HudPanel panel = panelAt(helper, player, 2);
@@ -163,7 +163,7 @@ public class HudGameTest {
         logs.setItem(0, new ItemStack(Items.OAK_LOG, 16));
         PipeBlockEntity crafting = pipe(helper, PipeKind.CRAFTING, 2);
         helper.assertTrue(panelAt(helper, player, 2) == null, "no recipe, nothing to show");
-        helper.setBlock(new BlockPos(2, 2, 1), RoutedPipes.CRAFTING_TABLE.get());
+        helper.setBlock(new BlockPos(2, 2, 1), Content.CRAFTING_TABLE.get());
         CraftingTableBlockEntity table = helper.getBlockEntity(new BlockPos(2, 2, 1));
         table.pattern().setItem(0, new ItemStack(Items.OAK_LOG));
         crafting.importRecipe();
@@ -271,7 +271,7 @@ public class HudGameTest {
         pipe(helper, PipeKind.SATELLITE, 2);
         PipeBlockEntity supplier = pipe(helper, PipeKind.SUPPLIER, 4);
         supplier.config().setItem(0, new ItemStack(Items.COAL));
-        ItemStack glasses = new ItemStack(RoutedPipes.HUD_GLASSES.get());
+        ItemStack glasses = new ItemStack(Content.HUD_GLASSES.get());
         player.getInventory().setItem(0, glasses);
         player.getInventory().selected = 0;
 
@@ -297,7 +297,7 @@ public class HudGameTest {
     @GameTest(template = EMPTY)
     public static void theSettingsOfTheGlassesDoNotTakeOffCursedArmour(GameTestHelper helper) {
         TestPlayer player = TestPlayer.in(helper);
-        player.getInventory().setItem(0, new ItemStack(RoutedPipes.HUD_GLASSES.get()));
+        player.getInventory().setItem(0, new ItemStack(Content.HUD_GLASSES.get()));
         player.getInventory().selected = 0;
         ItemStack helmet = new ItemStack(Items.IRON_HELMET);
         helmet.enchant(helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.BINDING_CURSE), 1);
@@ -346,7 +346,7 @@ public class HudGameTest {
         watch.refresh(player);
         helper.assertTrue(sent.isEmpty(), "nothing without glasses");
 
-        player.setItemSlot(EquipmentSlot.HEAD, new ItemStack(RoutedPipes.HUD_GLASSES.get()));
+        player.setItemSlot(EquipmentSlot.HEAD, new ItemStack(Content.HUD_GLASSES.get()));
         watch.refresh(player);
         // the pipes of the tests next to this one are in reach too
         helper.assertTrue(sent.size() == 1 && sent.get(0).reset() && sent.get(0).changed().keySet().containsAll(List.of(firstPos, secondPos))
@@ -376,7 +376,7 @@ public class HudGameTest {
     // what is sent has to arrive the way it was made
     @GameTest(template = EMPTY)
     public static void panelsSurviveTheWayToTheClient(GameTestHelper helper) {
-        ItemStack sink = new ItemStack(RoutedPipes.MODULES.get(ModuleKind.ITEM_SINK).get());
+        ItemStack sink = new ItemStack(Content.MODULES.get(ModuleKind.ITEM_SINK).get());
         ModuleItem.configureSink(sink, List.of(new ItemStack(Items.DIAMOND)), true);
         HudElement.Grid grid = new HudElement.Grid(List.of(batch(Items.STONE, 100_000), batch(Items.COAL, 1)), 4, 12);
         HudPanel panel = new HudPanel(HudCategory.CHASSIS, 100, 110, List.of(label("satellite", 7),

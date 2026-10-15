@@ -1,12 +1,12 @@
 package routedpipes.adapter.neoforge.gametest;
 
+import routedpipes.adapter.minecraft.content.Content;
 import java.util.List;
 
 import routedpipes.adapter.minecraft.ModuleItem;
 import routedpipes.adapter.minecraft.PipeBlockEntity;
 import routedpipes.adapter.minecraft.UpgradeItem;
 import routedpipes.adapter.minecraft.menu.UpgradeMenu;
-import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.domain.logistics.ModuleKind;
 import routedpipes.domain.logistics.PipeKind;
 import routedpipes.domain.logistics.UpgradeKind;
@@ -28,7 +28,7 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 // the pipes here touch the side of a furnace, where only fuel goes in: slot 0 is behind the top, slot 1 behind the sides
 // diamonds do not smelt, so the furnace never lights and burns the coal
-@GameTestHolder(RoutedPipes.MODID)
+@GameTestHolder(Content.MODID)
 @PrefixGameTestTemplate(false)
 public class SneakyGameTest {
 
@@ -39,7 +39,7 @@ public class SneakyGameTest {
     private static final int FUEL = 1;
 
     private static ItemStack upgrade(UpgradeKind kind) {
-        return new ItemStack(RoutedPipes.UPGRADES.get(kind).get());
+        return new ItemStack(Content.UPGRADES.get(kind).get());
     }
 
     private static ItemStack sneaky(Direction face) {
@@ -49,7 +49,7 @@ public class SneakyGameTest {
     }
 
     private static PipeBlockEntity basicBesideFurnace(GameTestHelper helper) {
-        helper.setBlock(PIPE, RoutedPipes.pipe(PipeKind.BASIC));
+        helper.setBlock(PIPE, Content.pipe(PipeKind.BASIC));
         helper.setBlock(FURNACE, Blocks.FURNACE);
         PipeBlockEntity pipe = helper.getBlockEntity(PIPE);
         pipe.setDefaultRoute(true);
@@ -107,7 +107,7 @@ public class SneakyGameTest {
         TestPlayer player = TestPlayer.in(helper);
         int row = UpgradeMenu.FIRST_SNEAKY_SLOT;
 
-        ItemStack controller = new ItemStack(RoutedPipes.PIPE_CONTROLLER.get());
+        ItemStack controller = new ItemStack(Content.PIPE_CONTROLLER.get());
         player.setItemInHand(InteractionHand.MAIN_HAND, controller);
         BlockPos absolute = helper.absolutePos(PIPE);
         helper.getBlockState(PIPE).useItemOn(controller, helper.getLevel(), player, InteractionHand.MAIN_HAND,
@@ -131,7 +131,7 @@ public class SneakyGameTest {
         pipe.upgrades().setItem(0, ItemStack.EMPTY);
         menu.removed(player);
         helper.assertTrue(pipe.sneakyUpgrades().isEmpty(), "the row is emptied");
-        helper.assertTrue(player.getInventory().countItem(RoutedPipes.UPGRADES.get(UpgradeKind.SNEAKY).get()) == 1,
+        helper.assertTrue(player.getInventory().countItem(Content.UPGRADES.get(UpgradeKind.SNEAKY).get()) == 1,
                 "the player gets the upgrade back");
         helper.succeed();
     }
@@ -145,7 +145,7 @@ public class SneakyGameTest {
         CompoundTag saved = pipe.saveWithoutMetadata(helper.getLevel().registryAccess());
 
         BlockPos other = new BlockPos(1, 1, 4);
-        helper.setBlock(other, RoutedPipes.pipe(PipeKind.BASIC));
+        helper.setBlock(other, Content.pipe(PipeKind.BASIC));
         PipeBlockEntity loaded = helper.getBlockEntity(other);
         loaded.loadWithComponents(saved, helper.getLevel().registryAccess());
 
@@ -155,7 +155,7 @@ public class SneakyGameTest {
     }
 
     private static PipeBlockEntity chassisBesideFurnace(GameTestHelper helper, ItemStack... modules) {
-        helper.setBlock(PIPE, RoutedPipes.CHASSIS_PIPES.get(2).get());
+        helper.setBlock(PIPE, Content.CHASSIS_PIPES.get(2).get());
         helper.setBlock(FURNACE, Blocks.FURNACE);
         PipeBlockEntity chassis = helper.getBlockEntity(PIPE);
         for (int slot = 0; slot < modules.length; slot++) {
@@ -165,7 +165,7 @@ public class SneakyGameTest {
     }
 
     private static ItemStack sink(Item... items) {
-        ItemStack module = new ItemStack(RoutedPipes.MODULES.get(ModuleKind.ITEM_SINK).get());
+        ItemStack module = new ItemStack(Content.MODULES.get(ModuleKind.ITEM_SINK).get());
         ModuleItem.configureSink(module, List.of(items).stream().map(ItemStack::new).toList(), false);
         return module;
     }
@@ -190,7 +190,7 @@ public class SneakyGameTest {
     public static void sneakyUpgradeFitsTheSinkModulesOnly(GameTestHelper helper) {
         GameTestPower.supply(helper);
         PipeBlockEntity chassis = chassisBesideFurnace(helper, sink(Items.DIAMOND),
-                new ItemStack(RoutedPipes.MODULES.get(ModuleKind.EXTRACTOR).get()));
+                new ItemStack(Content.MODULES.get(ModuleKind.EXTRACTOR).get()));
         chassis.installUpgrade(upgrade(UpgradeKind.MODULE_UPGRADE));
         TestPlayer player = TestPlayer.in(helper);
 

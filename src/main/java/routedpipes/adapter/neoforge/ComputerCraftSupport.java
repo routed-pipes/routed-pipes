@@ -1,5 +1,6 @@
 package routedpipes.adapter.neoforge;
 
+import routedpipes.adapter.minecraft.content.Content;
 import dan200.computercraft.api.peripheral.PeripheralCapability;
 import routedpipes.adapter.computercraft.PipePeripheral;
 import net.neoforged.bus.api.IEventBus;
@@ -28,7 +29,7 @@ final class ComputerCraftSupport {
     private static final class Peripherals {
 
         private static void register(RegisterCapabilitiesEvent event) {
-            event.registerBlockEntity(PeripheralCapability.get(), RoutedPipes.PIPE_BLOCK_ENTITY.get(),
+            event.registerBlockEntity(PeripheralCapability.get(), Content.PIPE_BLOCK_ENTITY.get(),
                     (pipe, side) -> PipePeripheral.of(pipe));
         }
     }

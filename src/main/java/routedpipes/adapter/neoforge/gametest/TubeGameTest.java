@@ -1,5 +1,6 @@
 package routedpipes.adapter.neoforge.gametest;
 
+import routedpipes.adapter.minecraft.content.Content;
 import java.util.List;
 
 import routedpipes.adapter.minecraft.PipeBlock;
@@ -9,7 +10,6 @@ import routedpipes.adapter.minecraft.PowerJunctionBlockEntity;
 import routedpipes.adapter.minecraft.TubeBlock;
 import routedpipes.adapter.minecraft.TubeBlockEntity;
 import routedpipes.adapter.minecraft.TubePartBlockEntity;
-import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.domain.logistics.PipeKind;
 import routedpipes.domain.routing.Side;
 import routedpipes.domain.tube.TubeKind;
@@ -31,7 +31,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-@GameTestHolder(RoutedPipes.MODID)
+@GameTestHolder(Content.MODID)
 @PrefixGameTestTemplate(false)
 public class TubeGameTest {
 
@@ -44,7 +44,7 @@ public class TubeGameTest {
 
     // a basic pipe that takes everything
     private static void router(GameTestHelper helper, BlockPos pos) {
-        helper.setBlock(pos, RoutedPipes.pipe(PipeKind.BASIC));
+        helper.setBlock(pos, Content.pipe(PipeKind.BASIC));
         PipeBlockEntity pipe = helper.getBlockEntity(pos);
         pipe.setDefaultRoute(true);
     }
@@ -55,7 +55,7 @@ public class TubeGameTest {
     }
 
     private static void tube(GameTestHelper helper, TubeKind kind, BlockPos main, Side facing) {
-        TubeBlock tube = RoutedPipes.TUBES.get(kind).get();
+        TubeBlock tube = Content.TUBES.get(kind).get();
         helper.assertTrue(tube.build(helper.getLevel(), helper.absolutePos(main), new TubeShape(kind, facing), pos -> true),
                 "the tube fits");
     }
@@ -78,7 +78,7 @@ public class TubeGameTest {
     }
 
     private static Item speedupItem() {
-        return RoutedPipes.TUBES.get(TubeKind.SPEEDUP).get().asItem();
+        return Content.TUBES.get(TubeKind.SPEEDUP).get().asItem();
     }
 
     @GameTest(template = LONG, timeoutTicks = 200)
@@ -106,7 +106,7 @@ public class TubeGameTest {
         router(helper, at(9, 3));
         BlockPos far = chestAbove(helper, at(9, 3));
         for (int z = 4; z <= 6; z++) {
-            helper.setBlock(at(0, z), RoutedPipes.TRANSPORT_PIPE.get());
+            helper.setBlock(at(0, z), Content.TRANSPORT_PIPE.get());
         }
         router(helper, at(0, 7));
         BlockPos near = chestAbove(helper, at(0, 7));
@@ -122,7 +122,7 @@ public class TubeGameTest {
 
     @GameTest(template = LONG, timeoutTicks = 200)
     public static void anItemFallsOutOfAnOpenTubeEnd(GameTestHelper helper) {
-        helper.setBlock(at(0, 1), RoutedPipes.TRANSPORT_PIPE.get());
+        helper.setBlock(at(0, 1), Content.TRANSPORT_PIPE.get());
         tube(helper, TubeKind.SPEEDUP, at(1, 1), Side.EAST);
         tube(helper, TubeKind.LINE, at(5, 1), Side.EAST);
 
@@ -138,10 +138,10 @@ public class TubeGameTest {
     // a line tube does not let items out into a pipe, only the speedup tube does
     @GameTest(template = LONG, timeoutTicks = 200)
     public static void aLineTubeDoesNotFeedAPipe(GameTestHelper helper) {
-        helper.setBlock(at(0, 1), RoutedPipes.TRANSPORT_PIPE.get());
+        helper.setBlock(at(0, 1), Content.TRANSPORT_PIPE.get());
         tube(helper, TubeKind.SPEEDUP, at(1, 1), Side.EAST);
         tube(helper, TubeKind.LINE, at(5, 1), Side.EAST);
-        helper.setBlock(at(6, 1), RoutedPipes.TRANSPORT_PIPE.get());
+        helper.setBlock(at(6, 1), Content.TRANSPORT_PIPE.get());
         helper.setBlock(at(7, 1), Blocks.CHEST);
 
         helper.runAfterDelay(2, () -> insert(helper, at(0, 1), Direction.WEST, new ItemStack(Items.DIAMOND, 3)));
@@ -157,11 +157,11 @@ public class TubeGameTest {
     @GameTest(template = LONG)
     public static void pipesConnectToTheMainBlockOfASpeedupTubeOnly(GameTestHelper helper) {
         tube(helper, TubeKind.SPEEDUP, at(2, 1), Side.EAST);
-        helper.setBlock(at(1, 1), RoutedPipes.TRANSPORT_PIPE.get());
-        helper.setBlock(at(6, 1), RoutedPipes.TRANSPORT_PIPE.get());
-        helper.setBlock(at(2, 2), RoutedPipes.TRANSPORT_PIPE.get());
+        helper.setBlock(at(1, 1), Content.TRANSPORT_PIPE.get());
+        helper.setBlock(at(6, 1), Content.TRANSPORT_PIPE.get());
+        helper.setBlock(at(2, 2), Content.TRANSPORT_PIPE.get());
         tube(helper, TubeKind.LINE, at(2, 4), Side.EAST);
-        helper.setBlock(at(1, 4), RoutedPipes.TRANSPORT_PIPE.get());
+        helper.setBlock(at(1, 4), Content.TRANSPORT_PIPE.get());
 
         helper.runAfterDelay(3, () -> {
             helper.assertBlockProperty(at(1, 1), PipeBlock.ARMS.get(Direction.EAST), PipeArm.UNROUTED);
@@ -175,7 +175,7 @@ public class TubeGameTest {
     @GameTest(template = LONG)
     public static void breakingAPartTakesTheWholeTubeAndDropsOneItem(GameTestHelper helper) {
         tube(helper, TubeKind.SPEEDUP, at(1, 1), Side.EAST);
-        helper.assertBlockPresent(RoutedPipes.TUBE_PART.get(), at(4, 1));
+        helper.assertBlockPresent(Content.TUBE_PART.get(), at(4, 1));
 
         helper.getLevel().destroyBlock(helper.absolutePos(at(3, 1)), true);
 
@@ -187,7 +187,7 @@ public class TubeGameTest {
     @GameTest(template = LONG)
     public static void breakingTheMainBlockTakesThePartsAndDropsOneItem(GameTestHelper helper) {
         tube(helper, TubeKind.SPEEDUP, at(4, 1), Side.WEST);
-        helper.assertBlockPresent(RoutedPipes.TUBE_PART.get(), at(1, 1));
+        helper.assertBlockPresent(Content.TUBE_PART.get(), at(1, 1));
 
         helper.getLevel().destroyBlock(helper.absolutePos(at(4, 1)), true);
 
@@ -198,7 +198,7 @@ public class TubeGameTest {
 
     @GameTest(template = LONG)
     public static void aBrokenTubeDropsWhatWasInside(GameTestHelper helper) {
-        helper.setBlock(at(0, 1), RoutedPipes.TRANSPORT_PIPE.get());
+        helper.setBlock(at(0, 1), Content.TRANSPORT_PIPE.get());
         tube(helper, TubeKind.SPEEDUP, at(1, 1), Side.EAST);
         tube(helper, TubeKind.SPEEDUP, at(5, 1), Side.EAST);
 
@@ -234,10 +234,10 @@ public class TubeGameTest {
         helper.setBlock(at(5, 1), Blocks.AIR);
         InteractionResult placed = stack.getItem().useOn(context);
         helper.assertTrue(placed.consumesAction(), "fits now, got " + placed);
-        helper.assertBlockPresent(RoutedPipes.TUBES.get(TubeKind.SPEEDUP).get(), at(2, 1));
+        helper.assertBlockPresent(Content.TUBES.get(TubeKind.SPEEDUP).get(), at(2, 1));
         helper.assertBlockProperty(at(2, 1), TubeBlock.FACING, Direction.EAST);
         for (int x = 3; x <= 5; x++) {
-            helper.assertBlockPresent(RoutedPipes.TUBE_PART.get(), at(x, 1));
+            helper.assertBlockPresent(Content.TUBE_PART.get(), at(x, 1));
         }
         helper.assertTrue(stack.getCount() == 1, "one tube was used up");
         helper.succeed();
@@ -295,21 +295,21 @@ public class TubeGameTest {
         tube(helper, TubeKind.CURVE, at(5, 0), Side.WEST);
         List<BlockPos> parts = List.of(at(5, 1), at(6, 0), at(6, 1), at(6, 2), at(7, 1), at(7, 2));
         for (BlockPos part : parts) {
-            helper.assertBlockPresent(RoutedPipes.TUBE_PART.get(), part);
+            helper.assertBlockPresent(Content.TUBE_PART.get(), part);
         }
 
         helper.getLevel().destroyBlock(helper.absolutePos(at(7, 2)), true);
 
         helper.assertBlockPresent(Blocks.AIR, at(5, 0));
         assertTubeGone(helper, parts);
-        helper.assertItemEntityCountIs(RoutedPipes.TUBES.get(TubeKind.CURVE).get().asItem(), at(5, 0), 3, 1);
+        helper.assertItemEntityCountIs(Content.TUBES.get(TubeKind.CURVE).get().asItem(), at(5, 0), 3, 1);
         helper.succeed();
     }
 
     // one curve inside the other, the blocks between them belong to both
     @GameTest(template = LONG)
     public static void curvesShareBlocksAndAreBrokenOneByOne(GameTestHelper helper) {
-        TubeBlock curve = RoutedPipes.TUBES.get(TubeKind.CURVE).get();
+        TubeBlock curve = Content.TUBES.get(TubeKind.CURVE).get();
         TubeShape north = new TubeShape(TubeKind.CURVE, Side.NORTH);
         tube(helper, TubeKind.CURVE, at(4, 1), Side.NORTH);
         tube(helper, TubeKind.CURVE, at(5, 2), Side.NORTH);
@@ -325,7 +325,7 @@ public class TubeGameTest {
         helper.getLevel().destroyBlock(helper.absolutePos(at(5, 2)), true);
 
         helper.assertBlockPresent(curve, at(4, 1));
-        helper.assertBlockPresent(RoutedPipes.TUBE_PART.get(), at(4, 2));
+        helper.assertBlockPresent(Content.TUBE_PART.get(), at(4, 2));
         helper.assertTrue(shared.mains().equals(List.of(helper.absolutePos(at(4, 1)))), "the shared block stays with the curve that is left");
         helper.assertBlockPresent(Blocks.AIR, at(5, 3));
         helper.assertItemEntityCountIs(curve.asItem(), at(5, 2), 3, 1);
@@ -347,7 +347,7 @@ public class TubeGameTest {
         player.setPos(feet.x, feet.y, feet.z);
         // east and a bit north
         player.setYRot(-100);
-        ItemStack stack = new ItemStack(RoutedPipes.TUBES.get(TubeKind.CURVE).get().asItem());
+        ItemStack stack = new ItemStack(Content.TUBES.get(TubeKind.CURVE).get().asItem());
         BlockHitResult hit = new BlockHitResult(helper.absoluteVec(new Vec3(2.5, 1, 4.5)), Direction.UP,
                 helper.absolutePos(new BlockPos(2, 0, 4)), false);
 
@@ -355,15 +355,15 @@ public class TubeGameTest {
 
         helper.assertTrue(placed.consumesAction(), "fits, got " + placed);
         // the main block is the far end
-        helper.assertBlockPresent(RoutedPipes.TUBES.get(TubeKind.CURVE).get(), at(4, 2));
+        helper.assertBlockPresent(Content.TUBES.get(TubeKind.CURVE).get(), at(4, 2));
         helper.assertBlockProperty(at(4, 2), TubeBlock.FACING, Direction.NORTH);
-        helper.assertBlockPresent(RoutedPipes.TUBE_PART.get(), at(2, 4));
+        helper.assertBlockPresent(Content.TUBE_PART.get(), at(2, 4));
         helper.assertTrue(stack.isEmpty(), "the tube was used up");
         helper.succeed();
     }
 
     private static void tube(GameTestHelper helper, TubeKind kind, BlockPos main, Side facing, boolean mirrored) {
-        TubeBlock tube = RoutedPipes.TUBES.get(kind).get();
+        TubeBlock tube = Content.TUBES.get(kind).get();
         helper.assertTrue(tube.build(helper.getLevel(), helper.absolutePos(main), new TubeShape(kind, facing, mirrored), pos -> true),
                 "the tube fits");
     }
@@ -421,14 +421,14 @@ public class TubeGameTest {
         tube(helper, TubeKind.GAIN, at(1, 1), Side.EAST);
         List<BlockPos> parts = List.of(at(2, 1), at(3, 1), new BlockPos(2, 2, 1), new BlockPos(3, 2, 1), new BlockPos(4, 2, 1));
         for (BlockPos part : parts) {
-            helper.assertBlockPresent(RoutedPipes.TUBE_PART.get(), part);
+            helper.assertBlockPresent(Content.TUBE_PART.get(), part);
         }
 
         helper.getLevel().destroyBlock(helper.absolutePos(new BlockPos(4, 2, 1)), true);
 
         helper.assertBlockPresent(Blocks.AIR, at(1, 1));
         assertTubeGone(helper, parts);
-        helper.assertItemEntityCountIs(RoutedPipes.TUBES.get(TubeKind.GAIN).get().asItem(), at(1, 1), 3, 1);
+        helper.assertItemEntityCountIs(Content.TUBES.get(TubeKind.GAIN).get().asItem(), at(1, 1), 3, 1);
         helper.succeed();
     }
 
@@ -445,7 +445,7 @@ public class TubeGameTest {
         helper.assertTrue(betweenCurves.mains().size() == 2, "the second curve starts where the first one ends up");
 
         // an s-curve the other way round would cross the first one
-        TubeBlock curve = RoutedPipes.TUBES.get(TubeKind.S_CURVE).get();
+        TubeBlock curve = Content.TUBES.get(TubeKind.S_CURVE).get();
         helper.assertTrue(!curve.build(helper.getLevel(), helper.absolutePos(at(1, 6)), new TubeShape(TubeKind.S_CURVE, Side.EAST, true),
                 pos -> true), "no crossing");
         helper.assertBlockPresent(Blocks.AIR, at(1, 6));
@@ -460,17 +460,17 @@ public class TubeGameTest {
         player.setPos(feet.x, feet.y, feet.z);
         // east and a bit north
         player.setYRot(-100);
-        ItemStack stack = new ItemStack(RoutedPipes.TUBES.get(TubeKind.S_CURVE).get().asItem());
+        ItemStack stack = new ItemStack(Content.TUBES.get(TubeKind.S_CURVE).get().asItem());
         BlockHitResult hit = new BlockHitResult(helper.absoluteVec(new Vec3(2.5, 1, 4.5)), Direction.UP,
                 helper.absolutePos(new BlockPos(2, 0, 4)), false);
 
         InteractionResult placed = stack.getItem().useOn(new BlockPlaceContext(player, InteractionHand.MAIN_HAND, stack, hit));
 
         helper.assertTrue(placed.consumesAction(), "fits, got " + placed);
-        helper.assertBlockPresent(RoutedPipes.TUBES.get(TubeKind.S_CURVE).get(), at(2, 4));
+        helper.assertBlockPresent(Content.TUBES.get(TubeKind.S_CURVE).get(), at(2, 4));
         helper.assertBlockProperty(at(2, 4), TubeBlock.FACING, Direction.EAST);
         helper.assertBlockProperty(at(2, 4), TubeBlock.MIRRORED, true);
-        helper.assertBlockPresent(RoutedPipes.TUBE_PART.get(), at(5, 3));
+        helper.assertBlockPresent(Content.TUBE_PART.get(), at(5, 3));
         helper.succeed();
     }
 
@@ -481,16 +481,16 @@ public class TubeGameTest {
         Vec3 feet = helper.absoluteVec(new Vec3(0.5, 1, 4.5));
         player.setPos(feet.x, feet.y, feet.z);
         player.setYRot(-90);
-        ItemStack stack = new ItemStack(RoutedPipes.TUBES.get(TubeKind.GAIN).get().asItem());
+        ItemStack stack = new ItemStack(Content.TUBES.get(TubeKind.GAIN).get().asItem());
         BlockHitResult hit = new BlockHitResult(helper.absoluteVec(new Vec3(2.5, 1, 4.5)), Direction.UP,
                 helper.absolutePos(new BlockPos(2, 0, 4)), false);
 
         InteractionResult placed = stack.getItem().useOn(new BlockPlaceContext(player, InteractionHand.MAIN_HAND, stack, hit));
 
         helper.assertTrue(placed.consumesAction(), "fits, got " + placed);
-        helper.assertBlockPresent(RoutedPipes.TUBES.get(TubeKind.GAIN).get(), at(2, 4));
+        helper.assertBlockPresent(Content.TUBES.get(TubeKind.GAIN).get(), at(2, 4));
         helper.assertBlockProperty(at(2, 4), TubeBlock.FACING, Direction.EAST);
-        helper.assertBlockPresent(RoutedPipes.TUBE_PART.get(), new BlockPos(5, 2, 4));
+        helper.assertBlockPresent(Content.TUBE_PART.get(), new BlockPos(5, 2, 4));
         helper.succeed();
     }
 }

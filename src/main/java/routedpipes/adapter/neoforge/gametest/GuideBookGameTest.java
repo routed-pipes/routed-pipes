@@ -1,5 +1,6 @@
 package routedpipes.adapter.neoforge.gametest;
 
+import routedpipes.adapter.minecraft.content.Content;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -12,8 +13,8 @@ import java.util.Set;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import routedpipes.adapter.minecraft.GuideBookItem;
-import routedpipes.adapter.neoforge.GuideBookGift;
-import routedpipes.adapter.neoforge.RoutedPipes;
+import routedpipes.adapter.minecraft.GuideBookGift;
+import routedpipes.adapter.minecraft.Platform;
 import routedpipes.domain.guide.GuideChapter;
 import routedpipes.domain.logistics.PipeKind;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -29,7 +30,7 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-@GameTestHolder(RoutedPipes.MODID)
+@GameTestHolder(Content.MODID)
 @PrefixGameTestTemplate(false)
 public class GuideBookGameTest {
 
@@ -47,7 +48,7 @@ public class GuideBookGameTest {
 
     private static List<Item> modItems() {
         return BuiltInRegistries.ITEM.stream()
-                .filter(item -> BuiltInRegistries.ITEM.getKey(item).getNamespace().equals(RoutedPipes.MODID)).toList();
+                .filter(item -> BuiltInRegistries.ITEM.getKey(item).getNamespace().equals(Content.MODID)).toList();
     }
 
     // the book is made from the registry, so whatever is added later shows up as long as it has a description
@@ -59,7 +60,7 @@ public class GuideBookGameTest {
         List<String> missing = new ArrayList<>();
         for (Item item : modItems()) {
             // never in a player's hands
-            if (item == RoutedPipes.FLUID_CONTAINER.get()) {
+            if (item == Content.FLUID_CONTAINER.get()) {
                 continue;
             }
             if (!keys.contains(item.getDescriptionId()) || !listed.contains(item)) {
@@ -67,28 +68,28 @@ public class GuideBookGameTest {
             }
         }
         helper.assertTrue(missing.isEmpty(), "without a name or a description in the book: " + missing);
-        helper.assertTrue(!listed.contains(RoutedPipes.FLUID_CONTAINER.get()), "the fluid container is left out");
+        helper.assertTrue(!listed.contains(Content.FLUID_CONTAINER.get()), "the fluid container is left out");
         helper.succeed();
     }
 
     @GameTest(template = EMPTY)
     public static void thingsAreSortedIntoTheirChapters(GameTestHelper helper) {
         Map<GuideChapter, List<Item>> book = GuideBookItem.entries(langKeys()::contains);
-        helper.assertTrue(book.get(GuideChapter.PIPES).contains(RoutedPipes.pipe(PipeKind.CRAFTING).asItem())
-                && book.get(GuideChapter.PIPES).contains(RoutedPipes.TUBES.values().iterator().next().get().asItem()), "pipes and tubes");
-        helper.assertTrue(book.get(GuideChapter.MODULES).size() == RoutedPipes.MODULES.size(), "every module");
-        helper.assertTrue(book.get(GuideChapter.UPGRADES).size() == RoutedPipes.UPGRADES.size(), "every upgrade");
-        helper.assertTrue(book.get(GuideChapter.BLOCKS).contains(RoutedPipes.POWER_JUNCTION.get().asItem()), "blocks");
-        helper.assertTrue(book.get(GuideChapter.TOOLS).contains(RoutedPipes.SIGN_CREATOR.get())
-                && book.get(GuideChapter.TOOLS).contains(RoutedPipes.GUIDE_BOOK.get()), "tools");
+        helper.assertTrue(book.get(GuideChapter.PIPES).contains(Content.pipe(PipeKind.CRAFTING).asItem())
+                && book.get(GuideChapter.PIPES).contains(Content.TUBES.values().iterator().next().get().asItem()), "pipes and tubes");
+        helper.assertTrue(book.get(GuideChapter.MODULES).size() == Content.MODULES.size(), "every module");
+        helper.assertTrue(book.get(GuideChapter.UPGRADES).size() == Content.UPGRADES.size(), "every upgrade");
+        helper.assertTrue(book.get(GuideChapter.BLOCKS).contains(Content.POWER_JUNCTION.get().asItem()), "blocks");
+        helper.assertTrue(book.get(GuideChapter.TOOLS).contains(Content.SIGN_CREATOR.get())
+                && book.get(GuideChapter.TOOLS).contains(Content.GUIDE_BOOK.get()), "tools");
         helper.assertTrue(langKeys().contains("routedpipes.guide.start.1"), "and there is a chapter to start with");
         helper.succeed();
     }
 
     @GameTest(template = EMPTY)
     public static void theBookIsCraftedFromABookAndAPipe(GameTestHelper helper) {
-        ItemStack book = RecipeGameTest.crafted(helper, 2, 1, Items.BOOK, RoutedPipes.TRANSPORT_PIPE.get().asItem());
-        helper.assertTrue(book.is(RoutedPipes.GUIDE_BOOK.get()) && book.getCount() == 1, "got " + book);
+        ItemStack book = RecipeGameTest.crafted(helper, 2, 1, Items.BOOK, Content.TRANSPORT_PIPE.get().asItem());
+        helper.assertTrue(book.is(Content.GUIDE_BOOK.get()) && book.getCount() == 1, "got " + book);
         helper.assertTrue(book.getMaxStackSize() == 1, "books do not stack");
         helper.succeed();
     }
@@ -98,7 +99,7 @@ public class GuideBookGameTest {
     }
 
     private static int books(Player player) {
-        return player.getInventory().countItem(RoutedPipes.GUIDE_BOOK.get());
+        return player.getInventory().countItem(Content.GUIDE_BOOK.get());
     }
 
     @GameTest(template = EMPTY)
@@ -108,12 +109,12 @@ public class GuideBookGameTest {
         craft(player, new ItemStack(Items.STICK));
         helper.assertTrue(books(player) == 0, "crafting something else brings nothing");
 
-        craft(player, new ItemStack(RoutedPipes.TRANSPORT_PIPE.get(), 8));
+        craft(player, new ItemStack(Content.TRANSPORT_PIPE.get(), 8));
         helper.assertTrue(books(player) == 1, "the first pipe brings the book");
 
-        craft(player, new ItemStack(RoutedPipes.TRANSPORT_PIPE.get(), 8));
+        craft(player, new ItemStack(Content.TRANSPORT_PIPE.get(), 8));
         helper.assertTrue(books(player) == 1, "only the first time");
-        helper.assertTrue(player.getData(GuideBookGift.GIVEN), "the player is marked");
+        helper.assertTrue(Platform.get().guideBookGiven(player), "the player is marked");
         helper.succeed();
     }
 
@@ -121,8 +122,8 @@ public class GuideBookGameTest {
     public static void craftingTheBookFirstBringsNoSecondOne(GameTestHelper helper) {
         TestPlayer player = TestPlayer.in(helper);
 
-        craft(player, new ItemStack(RoutedPipes.GUIDE_BOOK.get()));
-        craft(player, new ItemStack(RoutedPipes.TRANSPORT_PIPE.get(), 8));
+        craft(player, new ItemStack(Content.GUIDE_BOOK.get()));
+        craft(player, new ItemStack(Content.TRANSPORT_PIPE.get(), 8));
 
         helper.assertTrue(books(player) == 0, "the crafted book is all there is, got " + books(player));
         helper.succeed();

@@ -1,9 +1,9 @@
 package routedpipes.adapter.neoforge.gametest;
 
+import routedpipes.adapter.minecraft.content.Content;
 import routedpipes.adapter.minecraft.PipeBlockEntity;
 import routedpipes.adapter.minecraft.RemoteOrdererItem;
 import routedpipes.adapter.minecraft.menu.RequestMenu;
-import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.domain.logistics.PipeKind;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -22,7 +22,7 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 // what the server does when a client says the key for the remote orderer was pressed
-@GameTestHolder(RoutedPipes.MODID)
+@GameTestHolder(Content.MODID)
 @PrefixGameTestTemplate(false)
 public class RemoteOrdererKeyGameTest {
 
@@ -31,7 +31,7 @@ public class RemoteOrdererKeyGameTest {
 
     // an orderer linked to the pipe at that place the way a player links it
     private static ItemStack linkedOrderer(GameTestHelper helper, TestPlayer player, BlockPos pipe) {
-        ItemStack orderer = new ItemStack(RoutedPipes.REMOTE_ORDERER.get());
+        ItemStack orderer = new ItemStack(Content.REMOTE_ORDERER.get());
         BlockPos pos = helper.absolutePos(pipe);
         orderer.useOn(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, orderer,
                 new BlockHitResult(Vec3.atCenterOf(pos), Direction.UP, pos, false)));
@@ -43,17 +43,17 @@ public class RemoteOrdererKeyGameTest {
     public static void keyOpensTheOrdererFromAnywhereInTheInventory(GameTestHelper helper) {
         GameTestPower.supply(helper);
         BlockPos pipePos = new BlockPos(0, 1, 1);
-        helper.setBlock(pipePos, RoutedPipes.pipe(PipeKind.REQUEST));
+        helper.setBlock(pipePos, Content.pipe(PipeKind.REQUEST));
         BlockPos target = new BlockPos(0, 2, 1);
         helper.setBlock(target, Blocks.CHEST);
-        helper.setBlock(new BlockPos(1, 1, 1), RoutedPipes.pipe(PipeKind.PROVIDER));
+        helper.setBlock(new BlockPos(1, 1, 1), Content.pipe(PipeKind.PROVIDER));
         helper.setBlock(new BlockPos(1, 2, 1), Blocks.CHEST);
         Container source = helper.getBlockEntity(new BlockPos(1, 2, 1));
         source.setItem(0, new ItemStack(Items.DIAMOND, 9));
         TestPlayer player = TestPlayer.in(helper);
         player.setPos(player.getX() + 500, player.getY(), player.getZ());
         // an unlinked one comes first, the linked one sits deep in the backpack rows
-        player.getInventory().setItem(3, new ItemStack(RoutedPipes.REMOTE_ORDERER.get()));
+        player.getInventory().setItem(3, new ItemStack(Content.REMOTE_ORDERER.get()));
         player.getInventory().setItem(30, linkedOrderer(helper, player, pipePos));
 
         helper.runAfterDelay(SETTLE, () -> {
@@ -76,14 +76,14 @@ public class RemoteOrdererKeyGameTest {
     public static void keyDoesNothingWithoutALinkedOrdererOrItsPipe(GameTestHelper helper) {
         GameTestPower.supply(helper);
         BlockPos pipePos = new BlockPos(0, 1, 1);
-        helper.setBlock(pipePos, RoutedPipes.pipe(PipeKind.REQUEST));
+        helper.setBlock(pipePos, Content.pipe(PipeKind.REQUEST));
         PipeBlockEntity request = helper.getBlockEntity(pipePos);
         TestPlayer player = TestPlayer.in(helper);
 
         RemoteOrdererItem.openFromInventory(player);
         helper.assertTrue(player.containerMenu == player.inventoryMenu, "a player without an orderer opens nothing");
 
-        player.getInventory().setItem(5, new ItemStack(RoutedPipes.REMOTE_ORDERER.get()));
+        player.getInventory().setItem(5, new ItemStack(Content.REMOTE_ORDERER.get()));
         RemoteOrdererItem.openFromInventory(player);
         helper.assertTrue(player.containerMenu == player.inventoryMenu, "an unlinked orderer opens nothing");
 
@@ -92,7 +92,7 @@ public class RemoteOrdererKeyGameTest {
         helper.assertTrue(player.containerMenu instanceof RequestMenu, "the linked orderer opens the pipe");
 
         player.containerMenu = player.inventoryMenu;
-        helper.setBlock(pipePos, RoutedPipes.pipe(PipeKind.PROVIDER));
+        helper.setBlock(pipePos, Content.pipe(PipeKind.PROVIDER));
         RemoteOrdererItem.openFromInventory(player);
         helper.assertTrue(player.containerMenu == player.inventoryMenu, "a pipe of another kind in its place is not opened");
 

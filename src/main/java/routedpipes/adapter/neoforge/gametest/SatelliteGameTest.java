@@ -1,5 +1,6 @@
 package routedpipes.adapter.neoforge.gametest;
 
+import routedpipes.adapter.minecraft.content.Content;
 import java.util.List;
 import java.util.Set;
 
@@ -9,7 +10,6 @@ import routedpipes.adapter.minecraft.menu.ChassisMenu;
 import routedpipes.adapter.minecraft.menu.MenuRequests;
 import routedpipes.adapter.minecraft.menu.PipeConfigMenu;
 import routedpipes.adapter.minecraft.menu.SatelliteNames;
-import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.domain.logistics.ModuleKind;
 import routedpipes.domain.logistics.PipeKind;
 import net.minecraft.core.BlockPos;
@@ -24,7 +24,7 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 // satellites go by a name a player types, crafters pick one of the names within reach
-@GameTestHolder(RoutedPipes.MODID)
+@GameTestHolder(Content.MODID)
 @PrefixGameTestTemplate(false)
 public class SatelliteGameTest {
 
@@ -34,7 +34,7 @@ public class SatelliteGameTest {
 
     private static PipeBlockEntity pipe(GameTestHelper helper, PipeKind kind, int x) {
         BlockPos pos = new BlockPos(x, 1, 1);
-        helper.setBlock(pos, RoutedPipes.pipe(kind));
+        helper.setBlock(pos, Content.pipe(kind));
         return helper.getBlockEntity(pos);
     }
 
@@ -140,10 +140,10 @@ public class SatelliteGameTest {
 
         helper.assertTrue(satellite.satelliteName().equals("7"), "satellite 7 is now called 7");
         helper.assertTrue(crafting.crafts().get(0).bySatellite().keySet().equals(Set.of("7")), "and the crafting pipe still points at it");
-        crafting.installUpgrade(new ItemStack(RoutedPipes.UPGRADES.get(routedpipes.domain.logistics.UpgradeKind.ADVANCED_SATELLITE).get()));
+        crafting.installUpgrade(new ItemStack(Content.UPGRADES.get(routedpipes.domain.logistics.UpgradeKind.ADVANCED_SATELLITE).get()));
         helper.assertTrue(crafting.crafts().get(0).bySatellite().keySet().equals(Set.of("3")), "the numbers of single slots as well");
 
-        ItemStack module = new ItemStack(RoutedPipes.MODULES.get(ModuleKind.CRAFTER).get());
+        ItemStack module = new ItemStack(Content.MODULES.get(ModuleKind.CRAFTER).get());
         ModuleItem.configureCrafter(module, List.of(ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY,
                 ItemStack.EMPTY, new ItemStack(Items.RAW_IRON)), new ItemStack(Items.IRON_INGOT), "", 0);
         CustomData.update(DataComponents.CUSTOM_DATA, module, tag -> tag.putInt("LogisticsPipesSatellite", 5));
@@ -155,10 +155,10 @@ public class SatelliteGameTest {
     @GameTest(template = EMPTY)
     public static void aCrafterModuleInAChassisPicksFromTheSatellitesInReach(GameTestHelper helper) {
         BlockPos chassisPos = new BlockPos(0, 1, 1);
-        helper.setBlock(chassisPos, RoutedPipes.CHASSIS_PIPES.get(1).get());
+        helper.setBlock(chassisPos, Content.CHASSIS_PIPES.get(1).get());
         PipeBlockEntity chassis = helper.getBlockEntity(chassisPos);
         pipe(helper, PipeKind.SATELLITE, 1).setSatelliteName("Ore");
-        ItemStack module = new ItemStack(RoutedPipes.MODULES.get(ModuleKind.CRAFTER).get());
+        ItemStack module = new ItemStack(Content.MODULES.get(ModuleKind.CRAFTER).get());
         ModuleItem.configureCrafter(module, List.of(ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY,
                 ItemStack.EMPTY, new ItemStack(Items.RAW_IRON)), new ItemStack(Items.IRON_INGOT), "", 0);
         chassis.modules().setItem(0, module);

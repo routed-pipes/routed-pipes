@@ -1,5 +1,6 @@
-package routedpipes.adapter.neoforge;
+package routedpipes.adapter.minecraft.network;
 
+import routedpipes.adapter.minecraft.content.Content;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,7 +19,7 @@ import net.minecraft.resources.ResourceLocation;
 public record HudPanelsPayload(boolean reset, Map<BlockPos, HudPanel> changed, List<BlockPos> gone) implements CustomPacketPayload {
 
     public static final Type<HudPanelsPayload> TYPE =
-            new Type<>(ResourceLocation.fromNamespaceAndPath(RoutedPipes.MODID, "hud_panels"));
+            new Type<>(ResourceLocation.fromNamespaceAndPath(Content.MODID, "hud_panels"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, HudPanelsPayload> CODEC = StreamCodec.composite(
             ByteBufCodecs.BOOL, HudPanelsPayload::reset,

@@ -1,10 +1,10 @@
 package routedpipes.adapter.neoforge.gametest;
 
+import routedpipes.adapter.minecraft.content.Content;
 import routedpipes.domain.logistics.UpgradeKind;
 import routedpipes.adapter.minecraft.McItemType;
 import routedpipes.adapter.minecraft.PipeBlockEntity;
 import routedpipes.adapter.minecraft.UpgradeItem;
-import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.domain.logistics.PipeKind;
 import routedpipes.adapter.minecraft.menu.UpgradeMenu;
 import routedpipes.domain.logistics.ModuleKind;
@@ -25,19 +25,19 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-@GameTestHolder(RoutedPipes.MODID)
+@GameTestHolder(Content.MODID)
 @PrefixGameTestTemplate(false)
 public class UpgradeGameTest {
 
     private static final String EMPTY = "empty";
 
     private static ItemStack upgrade(UpgradeKind kind, int count) {
-        return new ItemStack(RoutedPipes.UPGRADES.get(kind).get(), count);
+        return new ItemStack(Content.UPGRADES.get(kind).get(), count);
     }
 
     private static PipeBlockEntity pipe(GameTestHelper helper, PipeKind kind, int x) {
         BlockPos pos = new BlockPos(x, 1, 1);
-        helper.setBlock(pos, RoutedPipes.pipe(kind));
+        helper.setBlock(pos, Content.pipe(kind));
         PipeBlockEntity pipe = helper.getBlockEntity(pos);
         // in these tests a basic pipe takes everything unless the test says otherwise
         pipe.setDefaultRoute(kind == PipeKind.BASIC);
@@ -136,7 +136,7 @@ public class UpgradeGameTest {
     public static void plainPipesTakeNoUpgrades(GameTestHelper helper) {
         GameTestPower.supply(helper);
         BlockPos relative = new BlockPos(0, 1, 1);
-        helper.setBlock(relative, RoutedPipes.TRANSPORT_PIPE.get());
+        helper.setBlock(relative, Content.TRANSPORT_PIPE.get());
         PipeBlockEntity transport = helper.getBlockEntity(relative);
         ItemStack held = upgrade(UpgradeKind.SPEED, 1);
 
@@ -153,7 +153,7 @@ public class UpgradeGameTest {
             start.installUpgrade(upgrades);
         }
         for (int x = 1; x <= 6; x++) {
-            helper.setBlock(new BlockPos(x, 1, 1), RoutedPipes.TRANSPORT_PIPE.get());
+            helper.setBlock(new BlockPos(x, 1, 1), Content.TRANSPORT_PIPE.get());
         }
         pipe(helper, PipeKind.BASIC, 7);
         BlockPos chest = new BlockPos(7, 2, 1);
@@ -218,7 +218,7 @@ public class UpgradeGameTest {
         GameTestPower.supply(helper);
         PipeBlockEntity basic = pipe(helper, PipeKind.BASIC, 0);
         BlockPos chassisPos = new BlockPos(2, 1, 1);
-        helper.setBlock(chassisPos, RoutedPipes.CHASSIS_PIPES.get(2).get());
+        helper.setBlock(chassisPos, Content.CHASSIS_PIPES.get(2).get());
         PipeBlockEntity chassis = helper.getBlockEntity(chassisPos);
 
         helper.assertTrue(!basic.installUpgrade(upgrade(UpgradeKind.MODULE_UPGRADE, 1)), "a basic pipe has no modules to upgrade");
@@ -232,12 +232,12 @@ public class UpgradeGameTest {
     public static void pipeControllerOpensTheUpgradesAndModulesGetTheirOwnSlots(GameTestHelper helper) {
         GameTestPower.supply(helper);
         BlockPos relative = new BlockPos(0, 1, 1);
-        helper.setBlock(relative, RoutedPipes.CHASSIS_PIPES.get(2).get());
+        helper.setBlock(relative, Content.CHASSIS_PIPES.get(2).get());
         PipeBlockEntity chassis = helper.getBlockEntity(relative);
-        chassis.modules().setItem(0, new ItemStack(RoutedPipes.MODULES.get(ModuleKind.EXTRACTOR).get()));
-        chassis.modules().setItem(1, new ItemStack(RoutedPipes.MODULES.get(ModuleKind.ITEM_SINK).get()));
+        chassis.modules().setItem(0, new ItemStack(Content.MODULES.get(ModuleKind.EXTRACTOR).get()));
+        chassis.modules().setItem(1, new ItemStack(Content.MODULES.get(ModuleKind.ITEM_SINK).get()));
         TestPlayer player = TestPlayer.in(helper);
-        ItemStack controller = new ItemStack(RoutedPipes.PIPE_CONTROLLER.get());
+        ItemStack controller = new ItemStack(Content.PIPE_CONTROLLER.get());
         player.setItemInHand(InteractionHand.MAIN_HAND, controller);
 
         helper.getBlockState(relative).useItemOn(controller, helper.getLevel(), player, InteractionHand.MAIN_HAND, hit(helper, relative));
@@ -263,9 +263,9 @@ public class UpgradeGameTest {
     public static void stackExtractionUpgradeMovesAWholeStackAtOnce(GameTestHelper helper) {
         GameTestPower.supply(helper);
         BlockPos chassisPos = new BlockPos(0, 1, 1);
-        helper.setBlock(chassisPos, RoutedPipes.CHASSIS_PIPES.get(1).get());
+        helper.setBlock(chassisPos, Content.CHASSIS_PIPES.get(1).get());
         PipeBlockEntity chassis = helper.getBlockEntity(chassisPos);
-        chassis.modules().setItem(0, new ItemStack(RoutedPipes.MODULES.get(ModuleKind.EXTRACTOR).get()));
+        chassis.modules().setItem(0, new ItemStack(Content.MODULES.get(ModuleKind.EXTRACTOR).get()));
         chassis.moduleUpgrades().setItem(0, upgrade(UpgradeKind.ITEM_STACK_EXTRACTION, 1));
         BlockPos source = new BlockPos(0, 2, 1);
         helper.setBlock(source, Blocks.CHEST);

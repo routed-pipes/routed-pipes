@@ -1,5 +1,6 @@
-package routedpipes.adapter.neoforge;
+package routedpipes.adapter.minecraft.network;
 
+import routedpipes.adapter.minecraft.content.Content;
 import java.util.List;
 
 import routedpipes.adapter.minecraft.menu.MenuRequests;
@@ -16,7 +17,7 @@ public record AskIngredientsPayload(int containerId, int question, List<List<Ite
         implements CustomPacketPayload {
 
     public static final Type<AskIngredientsPayload> TYPE =
-            new Type<>(ResourceLocation.fromNamespaceAndPath(RoutedPipes.MODID, "ask_ingredients"));
+            new Type<>(ResourceLocation.fromNamespaceAndPath(Content.MODID, "ask_ingredients"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, AskIngredientsPayload> CODEC = StreamCodec.composite(
             ByteBufCodecs.VAR_INT, AskIngredientsPayload::containerId,

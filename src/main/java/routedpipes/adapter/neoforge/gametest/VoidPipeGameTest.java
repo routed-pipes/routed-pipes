@@ -1,11 +1,11 @@
 package routedpipes.adapter.neoforge.gametest;
 
+import routedpipes.adapter.minecraft.content.Content;
 import java.util.Set;
 
 import routedpipes.adapter.minecraft.McItemType;
 import routedpipes.adapter.minecraft.PipeBlockEntity;
 import routedpipes.adapter.minecraft.menu.PipeConfigMenu;
-import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.domain.logistics.PipeKind;
 import routedpipes.domain.logistics.VoidSink;
 import routedpipes.domain.statistics.PipeStatistics;
@@ -22,7 +22,7 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 // a basic pipe that takes nothing at x 0 where items come in, a void pipe further along the row
-@GameTestHolder(RoutedPipes.MODID)
+@GameTestHolder(Content.MODID)
 @PrefixGameTestTemplate(false)
 public class VoidPipeGameTest {
 
@@ -31,13 +31,13 @@ public class VoidPipeGameTest {
 
     private static PipeBlockEntity pipe(GameTestHelper helper, PipeKind kind, int x) {
         BlockPos pos = new BlockPos(x, 1, 1);
-        helper.setBlock(pos, RoutedPipes.pipe(kind));
+        helper.setBlock(pos, Content.pipe(kind));
         return helper.getBlockEntity(pos);
     }
 
     private static void transport(GameTestHelper helper, int fromX, int toX) {
         for (int x = fromX; x <= toX; x++) {
-            helper.setBlock(new BlockPos(x, 1, 1), RoutedPipes.TRANSPORT_PIPE.get());
+            helper.setBlock(new BlockPos(x, 1, 1), Content.TRANSPORT_PIPE.get());
         }
     }
 
@@ -142,9 +142,9 @@ public class VoidPipeGameTest {
 
     @GameTest(template = EMPTY)
     public static void itIsCraftedFromABasicPipeAnInkSacAndRedstone(GameTestHelper helper) {
-        ItemStack crafted = RecipeGameTest.crafted(helper, 3, 1, RoutedPipes.pipe(PipeKind.BASIC).asItem(), Items.INK_SAC, Items.REDSTONE);
+        ItemStack crafted = RecipeGameTest.crafted(helper, 3, 1, Content.pipe(PipeKind.BASIC).asItem(), Items.INK_SAC, Items.REDSTONE);
 
-        helper.assertTrue(crafted.is(RoutedPipes.pipe(PipeKind.VOID).asItem()) && crafted.getCount() == 1, "got " + crafted);
+        helper.assertTrue(crafted.is(Content.pipe(PipeKind.VOID).asItem()) && crafted.getCount() == 1, "got " + crafted);
         helper.succeed();
     }
 }
