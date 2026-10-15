@@ -1,5 +1,7 @@
 package routedpipes.adapter.minecraft;
 
+import java.util.Map;
+
 import routedpipes.adapter.minecraft.menu.ChassisMenu;
 import routedpipes.adapter.minecraft.menu.FirewallMenu;
 import routedpipes.adapter.minecraft.menu.FrequencyCardMenu;
@@ -9,6 +11,7 @@ import routedpipes.adapter.minecraft.menu.RequestTableMenu;
 import routedpipes.adapter.minecraft.menu.UpgradeMenu;
 import routedpipes.application.RequestOutcome;
 import routedpipes.domain.item.ItemBatch;
+import routedpipes.domain.item.ItemType;
 import routedpipes.domain.logistics.PipeKind;
 import routedpipes.domain.logistics.UpgradeKind;
 import routedpipes.domain.security.Permission;
@@ -91,16 +94,43 @@ final class PipeMenus {
             }
 
             @Override
-            public void craft() {
-                table.craft();
+            public ItemStack craftOne() {
+                return table.craftOne();
             }
 
             @Override
-            public void order(Player player, int crafts, boolean missingOnly) {
+            public void keep(ItemStack stack) {
+                table.keep(stack);
+            }
+
+            @Override
+            public int pending() {
+                return table.pending();
+            }
+
+            @Override
+            public Map<ItemType, Integer> missing(int crafts) {
+                return table.missing(crafts);
+            }
+
+            @Override
+            public void order(Player player, int crafts) {
                 // opening the table needs the settings permission, ordering from it the one for requests
                 if (security.allows(player, Permission.ACTIVE_REQUESTING)) {
-                    tellWhatIsMissing(player, table.orderIngredients(crafts, missingOnly));
+                    tellWhatIsMissing(player, table.orderIngredients(crafts, true));
                 }
+            }
+
+            @Override
+            public void orderAndCraft(Player player, int crafts) {
+                if (security.allows(player, Permission.ACTIVE_REQUESTING)) {
+                    tellWhatIsMissing(player, table.orderAndCraft(crafts));
+                }
+            }
+
+            @Override
+            public void storeAll() {
+                table.storeAll();
             }
 
             @Override

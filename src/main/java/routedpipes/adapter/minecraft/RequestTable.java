@@ -35,11 +35,14 @@ public final class RequestTable {
     private RecipeHolder<CraftingRecipe> recipe;
     private boolean recipeKnown;
     private int sortWait;
+    // crafts still to make once their ingredients have arrived
+    private int pending;
 
     RequestTable(PipeBlockEntity pipe) {
         this.pipe = pipe;
         grid.addListener(container -> {
             recipeKnown = false;
+            pending = 0;
             pipe.setChanged();
         });
         buffer.addListener(container -> pipe.setChanged());
@@ -103,11 +106,19 @@ public final class RequestTable {
 
     // crafts once out of the buffer, the result goes into the buffer too, false if something is missing
     public boolean craft() {
+        ItemStack result = craftOne();
+        pipe.popOut(buffer.addItem(result));
+        return !result.isEmpty();
+    }
+
+    // crafts once out of the buffer and hands out the result, empty if something is missing
+    // leftovers like empty buckets stay in the buffer
+    public ItemStack craftOne() {
         ItemStack result = result();
         Map<ItemType, Integer> stock = stock();
         boolean enough = ingredients(1).entrySet().stream().allMatch(entry -> stock.getOrDefault(entry.getKey(), 0) >= entry.getValue());
         if (result.isEmpty() || !enough) {
-            return false;
+            return ItemStack.EMPTY;
         }
         NonNullList<ItemStack> remaining = recipe().orElseThrow().value().getRemainingItems(input());
         for (int slot = 0; slot < GRID_SLOTS; slot++) {
@@ -119,10 +130,14 @@ public final class RequestTable {
                 }
             }
         }
-        pipe.popOut(buffer.addItem(result));
         // things like empty buckets
         remaining.forEach(left -> pipe.popOut(buffer.addItem(left)));
-        return true;
+        return result;
+    }
+
+    // puts a stack into the buffer, what does not fit lands on top of the table
+    public void keep(ItemStack stack) {
+        pipe.popOut(buffer.addItem(stack));
     }
 
     // orders the ingredients for that many crafts into the buffer, all of them or nothing
@@ -131,12 +146,45 @@ public final class RequestTable {
         return pipe.requestShortfall(ingredients(crafts), missingOnly ? stock() : Map.of(), false);
     }
 
+    // orders what the buffer lacks for that many crafts and makes them as soon as everything is there
+    public RequestOutcome orderAndCraft(int crafts) {
+        RequestOutcome outcome = orderIngredients(crafts, true);
+        if (outcome.started()) {
+            pending = crafts;
+        }
+        return outcome;
+    }
+
+    public int pending() {
+        return pending;
+    }
+
+    // what the network cannot bring for that many crafts beyond what the buffer holds
+    public Map<ItemType, Integer> missing(int crafts) {
+        if (result().isEmpty()) {
+            return Map.of();
+        }
+        return pipe.requestShortfall(ingredients(crafts), stock(), true).missing();
+    }
+
+    // sends everything in the buffer back into the network, what nobody takes stays
+    public void storeAll() {
+        for (int slot = 0; slot < BUFFER_SLOTS; slot++) {
+            if (!buffer.getItem(slot).isEmpty() && pipe.sendOff(buffer.getItem(slot))) {
+                buffer.setItem(slot, ItemStack.EMPTY);
+            }
+        }
+    }
+
     // what was ordered arrives here, returns what did not fit
     ItemStack takeIn(ItemStack stack) {
         return buffer.addItem(stack);
     }
 
     void tick() {
+        if (pending > 0 && craft()) {
+            pending--;
+        }
         ItemStack waiting = sort.getItem(0);
         if (waiting.isEmpty()) {
             sortWait = 0;
@@ -160,6 +208,7 @@ public final class RequestTable {
         tag.put("Grid", ContainerTags.save(grid, registries));
         tag.put("Buffer", ContainerTags.save(buffer, registries));
         tag.put("Sort", ContainerTags.save(sort, registries));
+        tag.putInt("Pending", pending);
         return tag;
     }
 
@@ -167,5 +216,6 @@ public final class RequestTable {
         ContainerTags.load(grid, tag.getCompound("Grid"), registries);
         ContainerTags.load(buffer, tag.getCompound("Buffer"), registries);
         ContainerTags.load(sort, tag.getCompound("Sort"), registries);
+        pending = tag.getInt("Pending");
     }
 }

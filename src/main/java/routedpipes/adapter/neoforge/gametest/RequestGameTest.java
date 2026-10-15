@@ -697,7 +697,17 @@ public class RequestGameTest {
                 "the grid remembers the log without taking it");
         player.containerMenu.setCarried(ItemStack.EMPTY);
         player.containerMenu.clicked(routedpipes.adapter.minecraft.menu.RequestTableMenu.RESULT_SLOT, 0, ClickType.PICKUP, player);
-        helper.assertTrue(table.buffer().countItem(Items.OAK_PLANKS) == 4, "a click on the result crafts into the buffer");
+        helper.assertTrue(player.containerMenu.getCarried().is(Items.OAK_PLANKS) && player.containerMenu.getCarried().getCount() == 4,
+                "a click on the result crafts onto the cursor");
+        player.containerMenu.clicked(routedpipes.adapter.minecraft.menu.RequestTableMenu.RESULT_SLOT, 0, ClickType.PICKUP, player);
+        helper.assertTrue(player.containerMenu.getCarried().getCount() == 8 && table.buffer().countItem(Items.OAK_LOG) == 0,
+                "a second click adds to what the cursor holds");
+        player.containerMenu.setCarried(ItemStack.EMPTY);
+        table.buffer().setItem(4, new ItemStack(Items.OAK_LOG, 3));
+        player.containerMenu.clicked(routedpipes.adapter.minecraft.menu.RequestTableMenu.RESULT_SLOT, 0, ClickType.QUICK_MOVE, player);
+        helper.assertTrue(player.getInventory().countItem(Items.OAK_PLANKS) == 12 && table.buffer().countItem(Items.OAK_LOG) == 0,
+                "shift crafts as often as the buffer allows into the inventory");
+        table.buffer().setItem(4, new ItemStack(Items.OAK_PLANKS, 4));
 
         PipeBlockEntity loaded = pipe(helper, PipeKind.REQUEST_TABLE, 3, 1);
         loaded.loadWithComponents(pipe.saveWithoutMetadata(helper.getLevel().registryAccess()), helper.getLevel().registryAccess());
@@ -733,15 +743,78 @@ public class RequestGameTest {
 
         helper.runAfterDelay(SETTLE + 15, () -> {
             stranger.openMenu(pipe.menuProvider());
-            stranger.containerMenu.clickMenuButton(stranger, routedpipes.adapter.minecraft.menu.RequestTableMenu.BUTTON_ORDER_ONE);
+            stranger.containerMenu.clickMenuButton(stranger, routedpipes.adapter.minecraft.menu.RequestTableMenu.BUTTON_ORDER);
             assertCount(helper, source, Items.OAK_LOG, 8);
             stranger.containerMenu.clickMenuButton(stranger, routedpipes.adapter.minecraft.menu.RequestTableMenu.BUTTON_LIST);
             helper.assertTrue(!(stranger.containerMenu instanceof RequestMenu), "no item list without the permission to request");
 
             settings.set(stranger.getUUID(), routedpipes.domain.security.Permission.ACTIVE_REQUESTING, true);
             stranger.openMenu(pipe.menuProvider());
-            stranger.containerMenu.clickMenuButton(stranger, routedpipes.adapter.minecraft.menu.RequestTableMenu.BUTTON_ORDER_ONE);
+            stranger.containerMenu.clickMenuButton(stranger, routedpipes.adapter.minecraft.menu.RequestTableMenu.BUTTON_ORDER);
             assertCount(helper, source, Items.OAK_LOG, 7);
+            helper.succeed();
+        });
+    }
+
+    // the chosen amount is ordered, crafted as the logs come in, and the screen tells what was missing before
+    @GameTest(template = EMPTY, timeoutTicks = 300)
+    public static void requestTableCraftsTheChosenAmountOnceItsIngredientsArrive(GameTestHelper helper) {
+        GameTestPower.supply(helper);
+        PipeBlockEntity pipe = pipe(helper, PipeKind.REQUEST_TABLE, 0, 1);
+        routedpipes.adapter.minecraft.RequestTable table = pipe.requestTable();
+        pipe(helper, PipeKind.PROVIDER, 1, 1);
+        BlockPos source = chest(helper, 1, 2, new ItemStack(Items.OAK_LOG, 2));
+        table.grid().setItem(0, new ItemStack(Items.OAK_LOG));
+        TestPlayer player = TestPlayer.in(helper);
+
+        helper.runAfterDelay(SETTLE + 15, () -> {
+            player.openMenu(pipe.menuProvider());
+            routedpipes.adapter.minecraft.menu.RequestTableMenu menu = (routedpipes.adapter.minecraft.menu.RequestTableMenu) player.containerMenu;
+            MenuRequests.applyText(player, menu.containerId, routedpipes.adapter.minecraft.menu.RequestTableMenu.TEXT_AMOUNT, "5");
+            menu.broadcastChanges();
+            helper.assertTrue(menu.amount() == 5, "five crafts are chosen");
+            helper.assertTrue(menu.missing().size() == 1 && menu.missing().get(0).is(Items.OAK_LOG)
+                    && routedpipes.adapter.minecraft.menu.Shortfall.count(menu.missing().get(0)) == 3, "three logs short for five crafts");
+            menu.clickMenuButton(player, routedpipes.adapter.minecraft.menu.RequestTableMenu.BUTTON_CRAFT);
+            assertCount(helper, source, Items.OAK_LOG, 2);
+
+            MenuRequests.applyText(player, menu.containerId, routedpipes.adapter.minecraft.menu.RequestTableMenu.TEXT_AMOUNT, "2");
+            menu.broadcastChanges();
+            helper.assertTrue(menu.missing().isEmpty(), "nothing is missing for two crafts");
+            menu.clickMenuButton(player, routedpipes.adapter.minecraft.menu.RequestTableMenu.BUTTON_CRAFT);
+            helper.assertTrue(table.pending() == 2, "two crafts wait for their logs");
+        });
+        helper.runAfterDelay(150, () -> {
+            helper.assertTrue(table.buffer().countItem(Items.OAK_PLANKS) == 8 && table.buffer().countItem(Items.OAK_LOG) == 0,
+                    "both logs became planks");
+            helper.assertTrue(table.pending() == 0, "nothing left to craft");
+            helper.succeed();
+        });
+    }
+
+    // store all sends the buffer back, what nobody takes stays
+    @GameTest(template = EMPTY, timeoutTicks = 300)
+    public static void requestTableStoresItsWholeBuffer(GameTestHelper helper) {
+        GameTestPower.supply(helper);
+        PipeBlockEntity pipe = pipe(helper, PipeKind.REQUEST_TABLE, 0, 1);
+        routedpipes.adapter.minecraft.RequestTable table = pipe.requestTable();
+        PipeBlockEntity sink = pipe(helper, PipeKind.BASIC, 1, 1);
+        sink.setDefaultRoute(false);
+        sink.config().setItem(0, new ItemStack(Items.COAL));
+        BlockPos target = chest(helper, 1, 2);
+        table.buffer().setItem(0, new ItemStack(Items.COAL, 5));
+        table.buffer().setItem(1, new ItemStack(Items.DIAMOND, 3));
+        table.buffer().setItem(7, new ItemStack(Items.COAL, 2));
+        TestPlayer player = TestPlayer.in(helper);
+
+        helper.runAfterDelay(SETTLE + 15, () -> {
+            player.openMenu(pipe.menuProvider());
+            player.containerMenu.clickMenuButton(player, routedpipes.adapter.minecraft.menu.RequestTableMenu.BUTTON_STORE_ALL);
+            helper.assertTrue(table.buffer().countItem(Items.COAL) == 0, "the coal leaves");
+            helper.assertTrue(table.buffer().countItem(Items.DIAMOND) == 3, "nobody takes diamonds, so they stay");
+        });
+        helper.runAfterDelay(200, () -> {
+            assertCount(helper, target, Items.COAL, 7);
             helper.succeed();
         });
     }

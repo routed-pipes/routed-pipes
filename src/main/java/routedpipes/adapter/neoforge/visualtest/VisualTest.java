@@ -361,6 +361,8 @@ public final class VisualTest {
         screenShot("gui_supplier", SUPPLIER, "4.5 -60 6.5 90 0");
         screenShot("gui_basic", new BlockPos(0, -59, 6), "2.5 -60 6.5 90 0");
         screenShot("gui_provider", new BlockPos(0, -59, 11), "2.5 -60 11.5 90 0");
+        // a recipe in the grid so the screen shows what is missing for it
+        step(2, () -> onServer(server -> pipe(server, new BlockPos(-1, -59, 2)).requestTable().grid().setItem(0, new ItemStack(Items.IRON_BLOCK))));
         screenShot("gui_request_table", new BlockPos(-1, -59, 2), "2.5 -60 2.5 90 0");
         screenShot("gui_firewall", new BlockPos(-1, -59, 6), "2.5 -60 6.5 90 0");
         screenShot("gui_security_station", new BlockPos(0, -60, 50), "0.5 -60 53.5 180 0");

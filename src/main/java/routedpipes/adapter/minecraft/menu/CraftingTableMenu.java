@@ -1,19 +1,13 @@
 package routedpipes.adapter.minecraft.menu;
 
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 import routedpipes.adapter.minecraft.CraftingTableBlockEntity;
-import routedpipes.adapter.minecraft.McItemType;
 import routedpipes.application.RequestOutcome;
-import routedpipes.domain.item.ItemBatch;
 import routedpipes.domain.item.ItemType;
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.component.DataComponents;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -26,33 +20,10 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.CustomData;
 
 // recipe grid of markers, a preview of the result and the ingredient storage
 // slots that are never shown carry what the network said about the ingredients a recipe viewer asked about
 public class CraftingTableMenu extends AbstractContainerMenu implements MarkerMenu {
-
-    // only there to be sent to the client
-    private static final class HiddenSlot extends Slot {
-        private HiddenSlot(Container container, int slot) {
-            super(container, slot, 0, 0);
-        }
-
-        @Override
-        public boolean mayPlace(ItemStack stack) {
-            return false;
-        }
-
-        @Override
-        public boolean mayPickup(Player player) {
-            return false;
-        }
-
-        @Override
-        public boolean isActive() {
-            return false;
-        }
-    }
 
     // no pipe next to the table can order
     public static final int NETWORK_NONE = 0;
@@ -69,8 +40,6 @@ public class CraftingTableMenu extends AbstractContainerMenu implements MarkerMe
     private static final int DATA_NETWORK = 0;
     // sent last, so a client that sees the number of its question has the rest of the answer too
     private static final int DATA_QUESTION = 1;
-    // a missing item carries how many are missing in here, the stack count is always 1
-    private static final String COUNT_TAG = "LogisticsPipesCount";
 
     private final Container preview = new SimpleContainer(1);
     private final Container shortfall = new SimpleContainer(SHORTFALL_SLOTS);
@@ -119,17 +88,8 @@ public class CraftingTableMenu extends AbstractContainerMenu implements MarkerMe
             return;
         }
         Optional<RequestOutcome> outcome = table.orderIngredients(player, ingredients, !order);
-        List<Map.Entry<ItemType, Integer>> missing = new ArrayList<>(outcome.map(RequestOutcome::missing).orElse(Map.of()).entrySet());
-        missing.sort(Comparator.comparing(entry -> BuiltInRegistries.ITEM.getKey(((McItemType) entry.getKey()).item())));
-        for (int slot = 0; slot < SHORTFALL_SLOTS; slot++) {
-            ItemStack stack = ItemStack.EMPTY;
-            if (slot < missing.size()) {
-                int count = missing.get(slot).getValue();
-                stack = McItemType.stackOf(new ItemBatch(missing.get(slot).getKey(), 1));
-                CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.putInt(COUNT_TAG, count));
-            }
-            shortfall.setItem(slot, stack);
-        }
+        Map<ItemType, Integer> missing = outcome.map(RequestOutcome::missing).orElse(Map.of());
+        Shortfall.write(shortfall, missing);
         answer.set(DATA_NETWORK, outcome.isEmpty() ? NETWORK_NONE : missing.isEmpty() ? NETWORK_SUPPLIES : NETWORK_MISSING);
         answer.set(DATA_QUESTION, question);
         if (order && outcome.isPresent() && !outcome.get().powered()) {
@@ -148,17 +108,7 @@ public class CraftingTableMenu extends AbstractContainerMenu implements MarkerMe
 
     // what the network cannot bring, at most nine kinds
     public List<ItemStack> shortfall() {
-        List<ItemStack> stacks = new ArrayList<>();
-        for (int slot = 0; slot < SHORTFALL_SLOTS; slot++) {
-            if (!shortfall.getItem(slot).isEmpty()) {
-                stacks.add(shortfall.getItem(slot).copy());
-            }
-        }
-        return stacks;
-    }
-
-    public static int shortfallCount(ItemStack stack) {
-        return stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getInt(COUNT_TAG);
+        return Shortfall.read(shortfall);
     }
 
     @Override

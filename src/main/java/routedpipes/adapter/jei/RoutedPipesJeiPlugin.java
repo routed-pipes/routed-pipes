@@ -16,6 +16,7 @@ import routedpipes.adapter.minecraft.menu.CraftingTableMenu;
 import routedpipes.adapter.minecraft.menu.IngredientQuestions;
 import routedpipes.adapter.minecraft.menu.PipeConfigMenu;
 import routedpipes.adapter.minecraft.menu.RequestTableMenu;
+import routedpipes.adapter.minecraft.menu.Shortfall;
 import routedpipes.domain.logistics.PipeKind;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
@@ -125,7 +126,7 @@ public class RoutedPipesJeiPlugin implements IModPlugin {
                 tooltip.add(Component.translatable("routedpipes.jei.network_cannot_supply").withStyle(ChatFormatting.RED));
                 for (ItemStack stack : shortfall) {
                     tooltip.add(Component.translatable("routedpipes.request.missing_entry",
-                            CraftingTableMenu.shortfallCount(stack), stack.getHoverName()));
+                            Shortfall.count(stack), stack.getHoverName()));
                 }
             }
         }

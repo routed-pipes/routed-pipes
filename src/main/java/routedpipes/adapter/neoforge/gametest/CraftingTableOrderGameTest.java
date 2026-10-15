@@ -9,6 +9,7 @@ import routedpipes.adapter.minecraft.PipeBlockEntity;
 import routedpipes.adapter.minecraft.menu.CraftingTableMenu;
 import routedpipes.adapter.minecraft.menu.IngredientQuestions;
 import routedpipes.adapter.minecraft.menu.MenuRequests;
+import routedpipes.adapter.minecraft.menu.Shortfall;
 import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.domain.logistics.PipeKind;
 import net.minecraft.core.BlockPos;
@@ -118,8 +119,8 @@ public class CraftingTableOrderGameTest {
             MenuRequests.askIngredients(player, menu.containerId, 3, torchesAndMore, false);
             List<ItemStack> shortfall = menu.shortfall();
             helper.assertTrue(menu.answeredQuestion() == 3 && menu.network() == CraftingTableMenu.NETWORK_MISSING, "something is missing");
-            helper.assertTrue(shortfall.size() == 2 && shortfall.get(0).is(Items.OAK_PLANKS) && CraftingTableMenu.shortfallCount(shortfall.get(0)) == 2
-                    && shortfall.get(1).is(Items.STICK) && CraftingTableMenu.shortfallCount(shortfall.get(1)) == 1,
+            helper.assertTrue(shortfall.size() == 2 && shortfall.get(0).is(Items.OAK_PLANKS) && Shortfall.count(shortfall.get(0)) == 2
+                    && shortfall.get(1).is(Items.STICK) && Shortfall.count(shortfall.get(1)) == 1,
                     "two planks and a stick are missing, got " + shortfall);
 
             MenuRequests.askIngredients(player, menu.containerId, 0, torchesAndMore, true);
@@ -242,7 +243,7 @@ public class CraftingTableOrderGameTest {
             Optional<IngredientQuestions.Answer> sticks = questions.answer(menu, STICKS);
             helper.assertTrue(sticks.isPresent() && sticks.get().network() == CraftingTableMenu.NETWORK_MISSING
                     && sticks.get().shortfall().size() == 1 && sticks.get().shortfall().get(0).is(Items.OAK_PLANKS)
-                    && CraftingTableMenu.shortfallCount(sticks.get().shortfall().get(0)) == 1, "the next look has the answer: one plank short");
+                    && Shortfall.count(sticks.get().shortfall().get(0)) == 1, "the next look has the answer: one plank short");
             helper.assertTrue(asked.size() == 1, "a fresh answer is not asked for again");
 
             helper.assertTrue(questions.answer(menu, coal).isEmpty() && asked.equals(List.of(1, 2)), "another recipe is asked about on its own");
