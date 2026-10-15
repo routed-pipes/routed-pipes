@@ -1,5 +1,7 @@
 package routedpipes.adapter.neoforge.gametest;
 
+import java.util.List;
+
 import routedpipes.adapter.minecraft.McItemType;
 import routedpipes.adapter.minecraft.PipeBlockEntity;
 import routedpipes.adapter.minecraft.PowerJunctionBlockEntity;
@@ -815,6 +817,34 @@ public class RequestGameTest {
         });
         helper.runAfterDelay(200, () -> {
             assertCount(helper, target, Items.COAL, 7);
+            helper.succeed();
+        });
+    }
+
+    // a recipe viewer slot that takes any planks gets the planks the network has, and the shown ones when it has none
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void markerChoicesPickWhatTheNetworkHas(GameTestHelper helper) {
+        GameTestPower.supply(helper);
+        PipeBlockEntity table = pipe(helper, PipeKind.REQUEST_TABLE, 0, 1);
+        PipeBlockEntity crafting = pipe(helper, PipeKind.CRAFTING, 2, 1);
+        pipe(helper, PipeKind.PROVIDER, 1, 1);
+        chest(helper, 1, 2, new ItemStack(Items.BIRCH_PLANKS, 4));
+        TestPlayer player = TestPlayer.in(helper);
+        List<ItemStack> planks = List.of(new ItemStack(Items.OAK_PLANKS), new ItemStack(Items.BIRCH_PLANKS));
+        List<ItemStack> wood = List.of(new ItemStack(Items.OAK_PLANKS), new ItemStack(Items.ACACIA_PLANKS));
+
+        helper.runAfterDelay(SETTLE + 15, () -> {
+            player.openMenu(table.menuProvider());
+            MenuRequests.choose(player, player.containerMenu.containerId, 0, planks);
+            MenuRequests.choose(player, player.containerMenu.containerId, 1, wood);
+            helper.assertTrue(table.requestTable().grid().getItem(0).is(Items.BIRCH_PLANKS), "the network has birch planks");
+            helper.assertTrue(table.requestTable().grid().getItem(1).is(Items.OAK_PLANKS), "with neither the shown oak stays");
+
+            player.openMenu(crafting.menuProvider());
+            MenuRequests.choose(player, player.containerMenu.containerId, 0,
+                    planks.stream().map(stack -> stack.copyWithCount(3)).toList());
+            helper.assertTrue(crafting.config().getItem(0).is(Items.BIRCH_PLANKS) && crafting.config().getItem(0).getCount() == 3,
+                    "a crafting pipe picks the same way and keeps the count");
             helper.succeed();
         });
     }

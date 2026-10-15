@@ -111,6 +111,11 @@ public class RoutedPipesClient {
             }
 
             @Override
+            public void chooseMarker(int containerId, int slot, List<ItemStack> choices) {
+                PacketDistributor.sendToServer(new ChooseMarkerPayload(containerId, slot, choices));
+            }
+
+            @Override
             public void setText(int containerId, int field, String text) {
                 PacketDistributor.sendToServer(new SetMenuTextPayload(containerId, field, text));
             }

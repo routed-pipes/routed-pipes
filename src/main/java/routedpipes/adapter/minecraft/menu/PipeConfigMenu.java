@@ -2,13 +2,16 @@ package routedpipes.adapter.minecraft.menu;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import routedpipes.adapter.minecraft.FluidContainerItem;
 import routedpipes.adapter.minecraft.PipeBlockEntity;
 import routedpipes.domain.crafting.FluidSlots;
 import routedpipes.domain.crafting.SatelliteName;
 import routedpipes.domain.item.FuzzyFlags;
+import routedpipes.domain.item.ItemType;
 import routedpipes.domain.logistics.PipeKind;
 import routedpipes.domain.logistics.ProviderMode;
 import routedpipes.domain.logistics.SupplyMode;
@@ -92,6 +95,7 @@ public class PipeConfigMenu extends AbstractContainerMenu implements MarkerMenu,
     private final SatelliteNames names;
     private final ContainerData fluids;
     private final Player player;
+    private final Supplier<Map<ItemType, Integer>> reachable;
 
     // client side
     public PipeConfigMenu(MenuType<?> type, int id, Inventory inventory, PipeKind kind) {
@@ -120,7 +124,15 @@ public class PipeConfigMenu extends AbstractContainerMenu implements MarkerMenu,
     public PipeConfigMenu(MenuType<?> type, int id, Inventory inventory, PipeKind kind, Container config,
             ContainerData data, ContainerData extras, Predicate<Player> usable, Runnable importRecipe,
             SatelliteNames.Source satellites, ContainerData fluids) {
+        this(type, id, inventory, kind, config, data, extras, usable, importRecipe, satellites, fluids, Map::of);
+    }
+
+    // reachable is what the network of the pipe can bring
+    public PipeConfigMenu(MenuType<?> type, int id, Inventory inventory, PipeKind kind, Container config,
+            ContainerData data, ContainerData extras, Predicate<Player> usable, Runnable importRecipe,
+            SatelliteNames.Source satellites, ContainerData fluids, Supplier<Map<ItemType, Integer>> reachable) {
         super(type, id);
+        this.reachable = reachable;
         this.names = new SatelliteNames(satellites);
         this.fluids = fluids;
         this.player = inventory.player;
@@ -273,6 +285,11 @@ public class PipeConfigMenu extends AbstractContainerMenu implements MarkerMenu,
     @Override
     public int markerSlots() {
         return markerSlots;
+    }
+
+    @Override
+    public Map<ItemType, Integer> available() {
+        return reachable.get();
     }
 
     @Override

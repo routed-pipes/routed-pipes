@@ -167,6 +167,13 @@ public final class RequestTable {
         return pipe.requestShortfall(ingredients(crafts), stock(), true).missing();
     }
 
+    // what the buffer holds and the network can bring, craftable items that are out of stock with 0
+    public Map<ItemType, Integer> reachable() {
+        Map<ItemType, Integer> reachable = new LinkedHashMap<>(pipe.available());
+        stock().forEach((type, count) -> reachable.merge(type, count, Integer::sum));
+        return reachable;
+    }
+
     // sends everything in the buffer back into the network, what nobody takes stays
     public void storeAll() {
         for (int slot = 0; slot < BUFFER_SLOTS; slot++) {

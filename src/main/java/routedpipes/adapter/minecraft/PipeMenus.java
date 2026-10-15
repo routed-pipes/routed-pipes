@@ -80,7 +80,7 @@ final class PipeMenus {
                 inventory, kind, settings.config(), settings.data(), settings.slotSettings().data(
                         () -> pipe.upgradeCount(UpgradeKind.PATTERN), () -> pipe.upgradeCount(UpgradeKind.FUZZY)),
                 user -> Container.stillValidBlockEntity(pipe, user), settings::importRecipe, settings.satelliteSettings(),
-                settings.fluidCrafting().data(() -> pipe.upgradeCount(UpgradeKind.FLUID_CRAFTING))), title);
+                settings.fluidCrafting().data(() -> pipe.upgradeCount(UpgradeKind.FLUID_CRAFTING)), pipe::available), title);
     }
 
     private static MenuProvider requestTable(PipeBlockEntity pipe, PipeServices services, Component title) {
@@ -111,6 +111,11 @@ final class PipeMenus {
             @Override
             public Map<ItemType, Integer> missing(int crafts) {
                 return table.missing(crafts);
+            }
+
+            @Override
+            public Map<ItemType, Integer> reachable() {
+                return table.reachable();
             }
 
             @Override

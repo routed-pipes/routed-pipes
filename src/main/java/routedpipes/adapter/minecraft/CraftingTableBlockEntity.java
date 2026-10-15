@@ -119,6 +119,13 @@ public class CraftingTableBlockEntity extends BlockEntity {
         return stock;
     }
 
+    // what the storage holds and the network can bring, craftable items that are out of stock with 0
+    public Map<ItemType, Integer> reachable() {
+        Map<ItemType, Integer> reachable = new LinkedHashMap<>(orderingPipe().map(PipeBlockEntity::available).orElse(Map.of()));
+        stock().forEach((type, count) -> reachable.merge(type, count, Integer::sum));
+        return reachable;
+    }
+
     // the crafting or request pipe that has this table as its inventory, what it orders ends up in the storage
     private Optional<PipeBlockEntity> orderingPipe() {
         InventoryRef self = new InventoryRef(worldPosition.asLong());

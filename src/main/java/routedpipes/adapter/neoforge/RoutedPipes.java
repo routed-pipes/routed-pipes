@@ -562,6 +562,8 @@ public class RoutedPipes {
         PayloadRegistrar registrar = event.registrar("1");
         registrar.playToServer(SetMarkerPayload.TYPE, SetMarkerPayload.CODEC, (payload, context) ->
                 MenuRequests.apply(context.player(), payload.containerId(), payload.slot(), payload.stack()));
+        registrar.playToServer(ChooseMarkerPayload.TYPE, ChooseMarkerPayload.CODEC, (payload, context) ->
+                MenuRequests.choose(context.player(), payload.containerId(), payload.slot(), payload.choices()));
         registrar.playToServer(SetMenuTextPayload.TYPE, SetMenuTextPayload.CODEC, (payload, context) ->
                 MenuRequests.applyText(context.player(), payload.containerId(), payload.field(), payload.text()));
         registrar.playToServer(AskIngredientsPayload.TYPE, AskIngredientsPayload.CODEC, (payload, context) ->

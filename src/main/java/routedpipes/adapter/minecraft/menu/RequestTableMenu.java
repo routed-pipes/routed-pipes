@@ -37,6 +37,8 @@ public class RequestTableMenu extends AbstractContainerMenu implements MarkerMen
 
         Map<ItemType, Integer> missing(int crafts);
 
+        Map<ItemType, Integer> reachable();
+
         void order(Player player, int crafts);
 
         void orderAndCraft(Player player, int crafts);
@@ -150,6 +152,11 @@ public class RequestTableMenu extends AbstractContainerMenu implements MarkerMen
     @Override
     public void setMarker(int slot, ItemStack stack) {
         slots.get(slot).set(stack.copyWithCount(1));
+    }
+
+    @Override
+    public Map<ItemType, Integer> available() {
+        return actions == null ? Map.of() : actions.reachable();
     }
 
     @Override

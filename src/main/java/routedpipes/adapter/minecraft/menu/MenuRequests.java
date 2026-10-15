@@ -11,6 +11,7 @@ public final class MenuRequests {
     private static final int MAX_COUNT = 64;
     private static final int MAX_TEXT = 64;
     private static final int MAX_INGREDIENTS = 9;
+    public static final int MAX_CHOICES = 64;
 
     private MenuRequests() {
     }
@@ -23,6 +24,15 @@ public final class MenuRequests {
             return;
         }
         menu.setMarker(slot, stack.isEmpty() ? ItemStack.EMPTY : stack.copyWithCount(Math.min(stack.getCount(), MAX_COUNT)));
+    }
+
+    // a recipe viewer slot that takes any of these items, the menu picks the one it can get best
+    public static void choose(Player player, int containerId, int slot, List<ItemStack> choices) {
+        if (choices.isEmpty() || choices.size() > MAX_CHOICES || !(player.containerMenu instanceof MarkerMenu menu)
+                || player.containerMenu.containerId != containerId || !player.containerMenu.stillValid(player)) {
+            return;
+        }
+        apply(player, containerId, slot, MarkerChoice.pick(choices, menu.available()));
     }
 
     // a recipe viewer asks whether the network can bring the ingredients of a recipe to the open crafting table

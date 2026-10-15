@@ -111,6 +111,11 @@ public class CraftingTableMenu extends AbstractContainerMenu implements MarkerMe
         return PATTERN_END;
     }
 
+    @Override
+    public Map<ItemType, Integer> available() {
+        return table == null ? Map.of() : table.reachable();
+    }
+
     // the grid only knows which item, never how many
     @Override
     public void setMarker(int slot, ItemStack stack) {

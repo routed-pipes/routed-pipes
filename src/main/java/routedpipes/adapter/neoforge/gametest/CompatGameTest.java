@@ -629,6 +629,10 @@ public class CompatGameTest {
                 senderField.set(null, Proxy.newProxyInstance(senderType.getClassLoader(), new Class<?>[] {senderType}, (proxy, method, arguments) -> {
                     if (method.getName().equals("setMarker")) {
                         MenuRequests.apply(player, (int) arguments[0], (int) arguments[1], (ItemStack) arguments[2]);
+                    } else if (method.getName().equals("chooseMarker")) {
+                        @SuppressWarnings("unchecked")
+                        List<ItemStack> choices = (List<ItemStack>) arguments[2];
+                        MenuRequests.choose(player, (int) arguments[0], (int) arguments[1], choices);
                     } else if (method.getName().equals("askIngredients")) {
                         @SuppressWarnings("unchecked")
                         List<ItemStack> ingredients = (List<ItemStack>) arguments[2];

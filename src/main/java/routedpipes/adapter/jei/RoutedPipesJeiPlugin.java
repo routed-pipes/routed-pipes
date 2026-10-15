@@ -14,6 +14,7 @@ import routedpipes.adapter.minecraft.client.RecipeViewerCheck;
 import routedpipes.adapter.minecraft.client.RequestTableScreen;
 import routedpipes.adapter.minecraft.menu.CraftingTableMenu;
 import routedpipes.adapter.minecraft.menu.IngredientQuestions;
+import routedpipes.adapter.minecraft.menu.MenuRequests;
 import routedpipes.adapter.minecraft.menu.PipeConfigMenu;
 import routedpipes.adapter.minecraft.menu.RequestTableMenu;
 import routedpipes.adapter.minecraft.menu.Shortfall;
@@ -162,15 +163,39 @@ public class RoutedPipesJeiPlugin implements IModPlugin {
             return ingredients;
         }
 
+        // the slots of the grid that take one of several items, like any planks, leave the pick to the server
+        private static void fillGrid(int containerId, IRecipeSlotsView recipeSlots) {
+            List<IRecipeSlotView> inputs = recipeSlots.getSlotViews(RecipeIngredientRole.INPUT);
+            for (int slot = 0; slot < RequestTable.GRID_SLOTS; slot++) {
+                List<ItemStack> choices = slot < inputs.size() ? choices(inputs.get(slot), 1) : List.of();
+                if (choices.isEmpty()) {
+                    ClientMenuLink.setMarker(containerId, slot, ItemStack.EMPTY);
+                } else {
+                    ClientMenuLink.chooseMarker(containerId, slot, choices);
+                }
+            }
+        }
+
+        // what a slot takes with the shown item first, each with that count
+        private static List<ItemStack> choices(IRecipeSlotView view, int count) {
+            List<ItemStack> choices = new ArrayList<>();
+            view.getDisplayedItemStack().ifPresent(choices::add);
+            view.getItemStacks().forEach(stack -> {
+                if (choices.size() < MenuRequests.MAX_CHOICES && choices.stream().noneMatch(known -> ItemStack.isSameItemSameComponents(known, stack))) {
+                    choices.add(stack);
+                }
+            });
+            choices.replaceAll(stack -> stack.copyWithCount(count));
+            return choices;
+        }
+
         // JEI calls this every tick for every recipe on screen to find out what its button should say
         @Override
         public IRecipeTransferError transferRecipe(CraftingTableMenu menu, RecipeHolder<CraftingRecipe> recipe,
                 IRecipeSlotsView recipeSlots, Player player, boolean maxTransfer, boolean doTransfer) {
             List<ItemStack> ingredients = grid(recipeSlots);
             if (doTransfer) {
-                for (int slot = 0; slot < ingredients.size(); slot++) {
-                    ClientMenuLink.setMarker(menu.containerId, slot, ingredients.get(slot));
-                }
+                fillGrid(menu.containerId, recipeSlots);
                 questions.forget();
                 return null;
             }
@@ -201,10 +226,7 @@ public class RoutedPipesJeiPlugin implements IModPlugin {
         public IRecipeTransferError transferRecipe(RequestTableMenu menu, RecipeHolder<CraftingRecipe> recipe,
                 IRecipeSlotsView recipeSlots, Player player, boolean maxTransfer, boolean doTransfer) {
             if (doTransfer) {
-                List<ItemStack> ingredients = TableTransfer.grid(recipeSlots);
-                for (int slot = 0; slot < ingredients.size(); slot++) {
-                    ClientMenuLink.setMarker(menu.containerId, slot, ingredients.get(slot));
-                }
+                TableTransfer.fillGrid(menu.containerId, recipeSlots);
             }
             return null;
         }
@@ -235,36 +257,41 @@ public class RoutedPipesJeiPlugin implements IModPlugin {
             if (menu.kind() != PipeKind.CRAFTING) {
                 return helper.createInternalError();
             }
-            List<ItemStack> inputs = merged(recipeSlots.getSlotViews(RecipeIngredientRole.INPUT));
-            List<ItemStack> outputs = merged(recipeSlots.getSlotViews(RecipeIngredientRole.OUTPUT));
+            List<List<ItemStack>> inputs = merged(recipeSlots.getSlotViews(RecipeIngredientRole.INPUT));
+            List<List<ItemStack>> outputs = merged(recipeSlots.getSlotViews(RecipeIngredientRole.OUTPUT));
             if (inputs.isEmpty() || outputs.isEmpty() || inputs.size() > PipeBlockEntity.OUTPUT_SLOT) {
                 return helper.createUserErrorWithTooltip(Component.translatable("routedpipes.jei.recipe_does_not_fit"));
             }
             if (doTransfer) {
                 for (int slot = 0; slot < PipeBlockEntity.OUTPUT_SLOT; slot++) {
-                    ClientMenuLink.setMarker(menu.containerId, slot, slot < inputs.size() ? inputs.get(slot) : ItemStack.EMPTY);
+                    if (slot < inputs.size()) {
+                        ClientMenuLink.chooseMarker(menu.containerId, slot, inputs.get(slot));
+                    } else {
+                        ClientMenuLink.setMarker(menu.containerId, slot, ItemStack.EMPTY);
+                    }
                 }
-                ClientMenuLink.setMarker(menu.containerId, PipeBlockEntity.OUTPUT_SLOT, outputs.get(0));
+                ClientMenuLink.setMarker(menu.containerId, PipeBlockEntity.OUTPUT_SLOT, outputs.get(0).get(0));
             }
             return null;
         }
 
-        // the shown item of every slot, the same item in several slots added up
-        private static List<ItemStack> merged(List<IRecipeSlotView> views) {
-            List<ItemStack> stacks = new ArrayList<>();
+        // what every slot takes with the shown item first, slots that show the same item added up
+        private static List<List<ItemStack>> merged(List<IRecipeSlotView> views) {
+            List<List<ItemStack>> merged = new ArrayList<>();
             for (IRecipeSlotView view : views) {
                 ItemStack shown = view.getDisplayedItemStack().orElse(ItemStack.EMPTY);
                 if (shown.isEmpty()) {
                     continue;
                 }
-                Optional<ItemStack> same = stacks.stream().filter(stack -> ItemStack.isSameItemSameComponents(stack, shown)).findFirst();
+                Optional<List<ItemStack>> same = merged.stream().filter(choices -> ItemStack.isSameItemSameComponents(choices.get(0), shown)).findFirst();
                 if (same.isPresent()) {
-                    same.get().grow(shown.getCount());
+                    int count = same.get().get(0).getCount() + shown.getCount();
+                    same.get().replaceAll(stack -> stack.copyWithCount(count));
                 } else {
-                    stacks.add(shown.copy());
+                    merged.add(TableTransfer.choices(view, shown.getCount()));
                 }
             }
-            return stacks;
+            return merged;
         }
     }
 

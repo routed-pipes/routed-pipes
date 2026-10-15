@@ -10,6 +10,9 @@ public final class ClientMenuLink {
     public interface Sender {
         void setMarker(int containerId, int slot, ItemStack stack);
 
+        // the server picks one of the choices, the first is the one the player saw
+        void chooseMarker(int containerId, int slot, List<ItemStack> choices);
+
         void setText(int containerId, int field, String text);
 
         void openRemoteOrderer();
@@ -21,6 +24,10 @@ public final class ClientMenuLink {
     private static Sender sender = new Sender() {
         @Override
         public void setMarker(int containerId, int slot, ItemStack stack) {
+        }
+
+        @Override
+        public void chooseMarker(int containerId, int slot, List<ItemStack> choices) {
         }
 
         @Override
@@ -45,6 +52,10 @@ public final class ClientMenuLink {
 
     public static void setMarker(int containerId, int slot, ItemStack stack) {
         sender.setMarker(containerId, slot, stack);
+    }
+
+    public static void chooseMarker(int containerId, int slot, List<ItemStack> choices) {
+        sender.chooseMarker(containerId, slot, choices);
     }
 
     public static void setText(int containerId, int field, String text) {

@@ -266,4 +266,21 @@ public class CraftingTableOrderGameTest {
             helper.succeed();
         });
     }
+
+    // planks in the storage of the table count as much as planks in the network
+    @GameTest(template = EMPTY)
+    public static void markerChoicesPickWhatTheStorageHolds(GameTestHelper helper) {
+        GameTestPower.supply(helper);
+        pipe(helper, PipeKind.CRAFTING, 1);
+        CraftingTableBlockEntity table = table(helper, 1);
+        table.storage().setItem(0, new ItemStack(Items.SPRUCE_PLANKS, 2));
+
+        helper.runAfterDelay(SETTLE, () -> {
+            TestPlayer player = playerAtTable(helper, 1);
+            MenuRequests.choose(player, player.containerMenu.containerId, 4,
+                    List.of(new ItemStack(Items.OAK_PLANKS), new ItemStack(Items.SPRUCE_PLANKS)));
+            helper.assertTrue(table.pattern().getItem(4).is(Items.SPRUCE_PLANKS), "the table holds spruce planks");
+            helper.succeed();
+        });
+    }
 }
