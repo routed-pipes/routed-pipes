@@ -94,18 +94,32 @@ public class CraftingTableBlockEntity extends BlockEntity {
         return recipe().map(found -> found.value().assemble(input(), level.registryAccess())).orElse(ItemStack.EMPTY);
     }
 
-    private int runsPossible() {
-        List<ItemBatch> inputs = new ArrayList<>();
+    private List<ItemStack> patternStacks() {
+        List<ItemStack> stacks = new ArrayList<>();
         for (int slot = 0; slot < PATTERN_SLOTS; slot++) {
-            if (!pattern.getItem(slot).isEmpty()) {
-                inputs.add(McItemType.batchOf(pattern.getItem(slot).copyWithCount(1)));
-            }
+            stacks.add(pattern.getItem(slot).copyWithCount(1));
         }
+        return stacks;
+    }
+
+    // what comes out of a craft unchanged, like a programmer, it stays in storage
+    public List<ItemStack> kept() {
+        return recipe().map(found -> KeptIngredients.of(found.value(), input())).orElse(List.of());
+    }
+
+    // whether the storage has one like that
+    public boolean holds(ItemStack stack) {
+        return storage.hasAnyMatching(stored -> ItemStack.isSameItemSameComponents(stored, stack));
+    }
+
+    private int runsPossible() {
         ItemStack result = result();
+        List<ItemStack> kept = kept();
+        List<ItemBatch> inputs = KeptIngredients.without(patternStacks(), kept).stream().map(McItemType::batchOf).toList();
         if (result.isEmpty() || inputs.isEmpty()) {
             return 0;
         }
-        return new Recipe(inputs, McItemType.batchOf(result)).runsPossible(stock());
+        return new Recipe(inputs, McItemType.batchOf(result), kept.stream().map(McItemType::batchOf).toList()).runsPossible(stock());
     }
 
     private Map<ItemType, Integer> stock() {
@@ -187,16 +201,12 @@ public class CraftingTableBlockEntity extends BlockEntity {
     }
 
     private void craftOnce() {
-        CraftingInput input = input();
-        NonNullList<ItemStack> remaining = recipe().orElseThrow().value().getRemainingItems(input);
-        for (int slot = 0; slot < PATTERN_SLOTS; slot++) {
-            ItemStack needed = pattern.getItem(slot);
-            if (!needed.isEmpty()) {
-                consume(needed);
-            }
-        }
+        List<ItemStack> kept = kept();
+        NonNullList<ItemStack> remaining = recipe().orElseThrow().value().getRemainingItems(input());
+        // kept ingredients are not touched
+        KeptIngredients.without(patternStacks(), kept).forEach(this::consume);
         // things like empty buckets go back into storage
-        for (ItemStack left : remaining) {
+        for (ItemStack left : KeptIngredients.without(remaining, kept)) {
             if (!left.isEmpty()) {
                 ItemStack rest = storage.addItem(left);
                 if (!rest.isEmpty()) {

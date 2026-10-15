@@ -65,6 +65,14 @@ class OutputOrdersTest {
     }
 
     @Test
+    void aKeptInputHasToBeThereOnceForAnyNumberOfRuns() {
+        Recipe recipe = new Recipe(java.util.List.of(batch("chip", 1)), batch("pipe", 1), java.util.List.of(batch("programmer", 1)));
+
+        assertThat(recipe.runsPossible(java.util.Map.of(batch("chip", 1).type(), 5, batch("programmer", 1).type(), 1))).isEqualTo(5);
+        assertThat(recipe.runsPossible(java.util.Map.of(batch("chip", 1).type(), 5))).isZero();
+    }
+
+    @Test
     void dropsAnOrderThatMadeNoProgressForTooLong() {
         orders.add(new OutputOrder(router(1), batch("ingot", 8), 100));
 

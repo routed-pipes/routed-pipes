@@ -10,11 +10,13 @@ import routedpipes.domain.routing.RouterId;
 
 // a crafting pipe as the planner sees it: what one run makes, which ingredients go to the pipe itself
 // and which to its satellites, and how much work it already has
+// kept ingredients go to the crafting pipe once per job and come out of every run unchanged
 public record Crafter(RouterId router, ItemBatch output, Map<ItemType, Integer> ownInputs,
-        Map<RouterId, Map<ItemType, Integer>> satelliteInputs, int backlog, int priority) {
+        Map<RouterId, Map<ItemType, Integer>> satelliteInputs, int backlog, int priority, Map<ItemType, Integer> kept) {
 
     public Crafter {
         ownInputs = Map.copyOf(new LinkedHashMap<>(ownInputs));
+        kept = Map.copyOf(kept);
         Map<RouterId, Map<ItemType, Integer>> copy = new LinkedHashMap<>();
         satelliteInputs.forEach((satellite, inputs) -> copy.put(satellite, Map.copyOf(inputs)));
         satelliteInputs = java.util.Collections.unmodifiableMap(copy);
@@ -22,7 +24,7 @@ public record Crafter(RouterId router, ItemBatch output, Map<ItemType, Integer> 
 
     // everything is delivered to the crafting pipe
     public static Crafter of(RouterId router, Recipe recipe) {
-        return new Crafter(router, recipe.output(), recipe.inputTotals(), Map.of(), 0, 0);
+        return new Crafter(router, recipe.output(), recipe.inputTotals(), Map.of(), 0, 0, recipe.keptTotals());
     }
 
     // the given part of the recipe is delivered to the satellite, the rest to the crafting pipe
@@ -41,15 +43,15 @@ public record Crafter(RouterId router, ItemBatch output, Map<ItemType, Integer> 
                 own.remove(type);
             }
         }));
-        return new Crafter(router, recipe.output(), own, satelliteInputs, backlog, 0);
+        return new Crafter(router, recipe.output(), own, satelliteInputs, backlog, 0, recipe.keptTotals());
     }
 
     // crafters with a higher priority are used up before any other is asked
     public Crafter withPriority(int value) {
-        return new Crafter(router, output, ownInputs, satelliteInputs, backlog, value);
+        return new Crafter(router, output, ownInputs, satelliteInputs, backlog, value, kept);
     }
 
     public Crafter withBacklog(int items) {
-        return new Crafter(router, output, ownInputs, satelliteInputs, items, priority);
+        return new Crafter(router, output, ownInputs, satelliteInputs, items, priority, kept);
     }
 }

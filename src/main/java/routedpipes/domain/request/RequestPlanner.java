@@ -32,6 +32,8 @@ public final class RequestPlanner {
         private final Map<ItemType, List<Holding>> holders = new HashMap<>();
         private final List<Provision> provisions = new ArrayList<>();
         private final List<CraftJob> crafts = new ArrayList<>();
+        // crafters whose kept ingredients are already planned
+        private final Set<RouterId> equipped = new HashSet<>();
         private Map<ItemType, Integer> missing = new LinkedHashMap<>();
         private final List<Runnable> undo = new ArrayList<>();
         // how many tries this is inside of, in a try anything that cannot be had ends it
@@ -114,6 +116,14 @@ public final class RequestPlanner {
         private void craft(CraftJob job) {
             crafts.add(job);
             undo.add(() -> crafts.remove(crafts.size() - 1));
+        }
+
+        private boolean equip(RouterId crafter) {
+            if (!equipped.add(crafter)) {
+                return false;
+            }
+            undo.add(() -> equipped.remove(crafter));
+            return true;
         }
 
         private void miss(ItemType type, int count) {
@@ -290,6 +300,7 @@ public final class RequestPlanner {
     // a provider never sends to itself, so one that sits on stock is not like any other
     private static boolean alike(Draft draft, Crafter one, Crafter other) {
         return one == other || one.output().equals(other.output()) && one.ownInputs().equals(other.ownInputs())
+                && one.kept().equals(other.kept())
                 && List.copyOf(one.satelliteInputs().values()).equals(List.copyOf(other.satelliteInputs().values()))
                 && !onStock(draft, one) && !onStock(draft, other);
     }
@@ -350,6 +361,13 @@ public final class RequestPlanner {
     }
 
     private void resolveInputs(Draft draft, Crafter crafter, int runs, Set<ItemType> crafting) {
+        if (!crafter.kept().isEmpty() && draft.equip(crafter.router())) {
+            crafter.kept().forEach((type, count) -> {
+                if (!draft.cannot) {
+                    resolve(draft, crafter.router(), type, count, crafting);
+                }
+            });
+        }
         for (Map.Entry<ItemType, Integer> input : crafter.ownInputs().entrySet()) {
             if (!draft.cannot) {
                 resolve(draft, crafter.router(), input.getKey(), times(input.getValue(), runs), crafting);

@@ -83,13 +83,28 @@ public final class RequestTable {
         return recipe().map(found -> found.value().assemble(input(), pipe.getLevel().registryAccess())).orElse(ItemStack.EMPTY);
     }
 
-    // the grid as items with counts, for that many crafts
+    private List<ItemStack> gridStacks() {
+        List<ItemStack> stacks = new ArrayList<>();
+        for (int slot = 0; slot < GRID_SLOTS; slot++) {
+            stacks.add(grid.getItem(slot));
+        }
+        return stacks;
+    }
+
+    // what comes out of a craft unchanged, like a programmer
+    private List<ItemStack> kept() {
+        return recipe().map(found -> KeptIngredients.of(found.value(), input())).orElse(List.of());
+    }
+
+    // the grid as items with counts, for that many crafts, what is kept is needed only once
     private Map<ItemType, Integer> ingredients(int crafts) {
         Map<ItemType, Integer> needed = new LinkedHashMap<>();
-        for (int slot = 0; slot < GRID_SLOTS; slot++) {
-            if (!grid.getItem(slot).isEmpty()) {
-                needed.merge(McItemType.batchOf(grid.getItem(slot)).type(), crafts, Integer::sum);
-            }
+        List<ItemStack> kept = kept();
+        for (ItemStack stack : KeptIngredients.without(gridStacks(), kept)) {
+            needed.merge(McItemType.batchOf(stack).type(), crafts, Integer::sum);
+        }
+        for (ItemStack stack : kept) {
+            needed.merge(McItemType.batchOf(stack).type(), 1, Integer::sum);
         }
         return needed;
     }
@@ -112,7 +127,7 @@ public final class RequestTable {
     }
 
     // crafts once out of the buffer and hands out the result, empty if something is missing
-    // leftovers like empty buckets stay in the buffer
+    // leftovers like empty buckets and kept ingredients stay in the buffer
     public ItemStack craftOne() {
         ItemStack result = result();
         Map<ItemType, Integer> stock = stock();
@@ -120,10 +135,11 @@ public final class RequestTable {
         if (result.isEmpty() || !enough) {
             return ItemStack.EMPTY;
         }
+        List<ItemStack> kept = kept();
         NonNullList<ItemStack> remaining = recipe().orElseThrow().value().getRemainingItems(input());
-        for (int slot = 0; slot < GRID_SLOTS; slot++) {
-            ItemStack needed = grid.getItem(slot);
-            for (int from = 0; from < BUFFER_SLOTS && !needed.isEmpty(); from++) {
+        // kept ingredients just stay in the buffer
+        for (ItemStack needed : KeptIngredients.without(gridStacks(), kept)) {
+            for (int from = 0; from < BUFFER_SLOTS; from++) {
                 if (ItemStack.isSameItemSameComponents(buffer.getItem(from), needed)) {
                     buffer.removeItem(from, 1);
                     break;
@@ -131,7 +147,7 @@ public final class RequestTable {
             }
         }
         // things like empty buckets
-        remaining.forEach(left -> pipe.popOut(buffer.addItem(left)));
+        KeptIngredients.without(remaining, kept).forEach(left -> pipe.popOut(buffer.addItem(left)));
         return result;
     }
 

@@ -653,6 +653,7 @@ public final class LogisticsNetwork {
                 Set<InventoryRef> machine = found.machine.computeIfAbsent(station, key -> new HashSet<>());
                 machine.addAll(node.inventories().values());
                 Map<ItemType, Integer> own = new LinkedHashMap<>(craft.recipe().inputTotals());
+                craft.recipe().keptTotals().forEach((type, count) -> own.merge(type, count, Integer::sum));
                 craft.bySatellite().forEach((name, inputs) -> {
                     List<ItemType> types = inputs.stream().map(ItemBatch::type).toList();
                     inputs.forEach(input -> own.computeIfPresent(input.type(), (type, count) -> count > input.count() ? count - input.count() : null));

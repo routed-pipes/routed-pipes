@@ -220,17 +220,35 @@ final class PipeSettings {
     }
 
     void importRecipe(Container target) {
+        table().ifPresent(table -> {
+            for (int slot = 0; slot < PipeBlockEntity.OUTPUT_SLOT; slot++) {
+                target.setItem(slot, table.pattern().getItem(slot).copy());
+            }
+            target.setItem(PipeBlockEntity.OUTPUT_SLOT, table.result());
+        });
+    }
+
+    private Optional<CraftingTableBlockEntity> table() {
         Level level = pipe.getLevel();
+        if (level == null) {
+            return Optional.empty();
+        }
         for (Direction side : Direction.values()) {
             BlockPos neighbour = pipe.getBlockPos().relative(side);
             if (level.isLoaded(neighbour) && level.getBlockEntity(neighbour) instanceof CraftingTableBlockEntity table) {
-                for (int slot = 0; slot < PipeBlockEntity.OUTPUT_SLOT; slot++) {
-                    target.setItem(slot, table.pattern().getItem(slot).copy());
-                }
-                target.setItem(PipeBlockEntity.OUTPUT_SLOT, table.result());
-                return;
+                return Optional.of(table);
             }
         }
+        return Optional.empty();
+    }
+
+    private static int keptIndex(List<ItemStack> kept, ItemStack stack) {
+        for (int index = 0; index < kept.size(); index++) {
+            if (ItemStack.isSameItemSameComponents(kept.get(index), stack)) {
+                return index;
+            }
+        }
+        return -1;
     }
 
     // a recipe slot as the planner sees it, with fuzzy flags it stands for everything that matches
@@ -319,16 +337,26 @@ final class PipeSettings {
 
     Optional<Recipe> recipe() {
         ItemStack output = config.getItem(PipeBlockEntity.OUTPUT_SLOT);
+        // a crafting table next to the pipe keeps things like a programmer, they are brought once and only when it has none
+        List<ItemStack> kept = new ArrayList<>(table().map(CraftingTableBlockEntity::kept).orElse(List.of()));
         List<ItemBatch> inputs = new ArrayList<>();
+        List<ItemBatch> keptInputs = new ArrayList<>();
         for (int slot = 0; slot < PipeBlockEntity.OUTPUT_SLOT; slot++) {
-            if (!config.getItem(slot).isEmpty()) {
+            ItemStack stack = config.getItem(slot);
+            if (stack.isEmpty()) {
+                continue;
+            }
+            int match = keptIndex(kept, stack);
+            if (match < 0) {
                 inputs.add(marked(slot));
+            } else if (!table().orElseThrow().holds(kept.remove(match))) {
+                keptInputs.add(marked(slot));
             }
         }
         if (output.isEmpty() || inputs.isEmpty()) {
             return Optional.empty();
         }
-        return Optional.of(new Recipe(inputs, marked(PipeBlockEntity.OUTPUT_SLOT)));
+        return Optional.of(new Recipe(inputs, marked(PipeBlockEntity.OUTPUT_SLOT), keptInputs));
     }
 
     // with a satellite chosen the bottom row of the recipe goes there, the rest to this pipe

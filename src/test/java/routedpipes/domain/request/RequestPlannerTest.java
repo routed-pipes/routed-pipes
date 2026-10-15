@@ -347,4 +347,49 @@ class RequestPlannerTest {
                 .mapToInt(job -> job.output().count()).sum();
         assertThat(made).isLessThanOrEqualTo(5);
     }
+
+    private static final Recipe PROGRAMMED = new Recipe(List.of(batch("chip", 1)), batch("pipe", 1), List.of(batch("programmer", 1)));
+
+    @Test
+    void bringsAKeptIngredientOnceForAllRuns() {
+        RequestPlan plan = new RequestPlanner(List.of(new Stock(NEAR, Map.of(item("chip"), 64, item("programmer"), 5))),
+                List.of(crafter(CRAFTER, PROGRAMMED)))
+                .plan(REQUESTER, batch("pipe", 6));
+
+        assertThat(plan.complete()).isTrue();
+        assertThat(plan.provisions()).containsExactlyInAnyOrder(
+                new Provision(NEAR, CRAFTER, batch("programmer", 1)),
+                new Provision(NEAR, CRAFTER, batch("chip", 6)));
+    }
+
+    @Test
+    void aMissingKeptIngredientIsReportedOnce() {
+        RequestPlan plan = new RequestPlanner(List.of(stock(NEAR, "chip", 64)), List.of(crafter(CRAFTER, PROGRAMMED)))
+                .plan(REQUESTER, batch("pipe", 6));
+
+        assertThat(plan.missing()).containsOnly(Map.entry(item("programmer"), 1));
+    }
+
+    @Test
+    void everyCrafterNeedsItsOwnKeptIngredient() {
+        RequestPlan plan = new RequestPlanner(List.of(new Stock(NEAR, Map.of(item("chip"), 64, item("programmer"), 5))),
+                List.of(crafter(CRAFTER, PROGRAMMED), crafter(OTHER_CRAFTER, PROGRAMMED)))
+                .plan(REQUESTER, batch("pipe", 6));
+
+        assertThat(plan.provisions()).filteredOn(provision -> provision.batch().type().equals(item("programmer")))
+                .containsExactlyInAnyOrder(
+                        new Provision(NEAR, CRAFTER, batch("programmer", 1)),
+                        new Provision(NEAR, OTHER_CRAFTER, batch("programmer", 1)));
+    }
+
+    @Test
+    void aSecondItemInTheSamePlanDoesNotBringTheKeptIngredientAgain() {
+        RequestPlan plan = new RequestPlanner(List.of(new Stock(NEAR, Map.of(item("chip"), 64, item("programmer"), 5))),
+                List.of(crafter(CRAFTER, PROGRAMMED)))
+                .plan(REQUESTER, List.of(batch("pipe", 2), batch("pipe", 3)));
+
+        assertThat(plan.provisions()).containsExactlyInAnyOrder(
+                new Provision(NEAR, CRAFTER, batch("programmer", 1)),
+                new Provision(NEAR, CRAFTER, batch("chip", 5)));
+    }
 }
