@@ -41,6 +41,8 @@
   "block.routedpipes.gain_tube": "High Speed Gain Tube",
   "block.routedpipes.logistics_crafting_table": "Logistics Crafting Table",
   "routedpipes.gui.import": "Import",
+  "routedpipes.gui.import.recipe": "Copy the recipe of the crafting table beside the pipe",
+  "routedpipes.gui.differs_from_table": "Not the recipe of the table beside the pipe, Import copies it",
   "routedpipes.gui.default_route.on": "Default: yes",
   "routedpipes.gui.default_route.off": "Default: no",
   "routedpipes.gui.pointed": "Inventory: %s",

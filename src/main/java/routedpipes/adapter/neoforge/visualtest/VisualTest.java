@@ -411,6 +411,10 @@ public final class VisualTest {
         step(5, () -> onServer(server -> server.getPlayerList().getPlayers().get(0).closeContainer()));
         screenShot("gui_crafting_table", TABLE, "2.5 -60 17.5 90 0");
         screenShot("gui_crafting_imported", TABLE_PIPE, "2.5 -60 17.5 90 0");
+        // a recipe that is not the one of the table shows the warning, the import puts it right again
+        step(2, () -> onServer(server -> pipe(server, TABLE_PIPE).config().setItem(0, new ItemStack(Items.BIRCH_PLANKS))));
+        screenShot("gui_crafting_differs", TABLE_PIPE, "2.5 -60 17.5 90 0");
+        step(2, () -> onServer(server -> pipe(server, TABLE_PIPE).importRecipe()));
 
         recipeViewerCheck();
 

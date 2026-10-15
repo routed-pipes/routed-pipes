@@ -9,6 +9,7 @@ import routedpipes.adapter.minecraft.PipeBlockEntity;
 import routedpipes.adapter.minecraft.menu.CraftingTableMenu;
 import routedpipes.adapter.minecraft.menu.IngredientQuestions;
 import routedpipes.adapter.minecraft.menu.MenuRequests;
+import routedpipes.adapter.minecraft.menu.PipeConfigMenu;
 import routedpipes.adapter.minecraft.menu.Shortfall;
 import routedpipes.adapter.neoforge.RoutedPipes;
 import routedpipes.domain.logistics.PipeKind;
@@ -305,6 +306,49 @@ public class CraftingTableOrderGameTest {
                     "with neither around the shown oak is missing");
             helper.succeed();
         });
+    }
+
+    // what the storage of the table holds is not missing, even when the network has none of it
+    @GameTest(template = EMPTY)
+    public static void questionsCountWhatTheStorageHolds(GameTestHelper helper) {
+        GameTestPower.supply(helper);
+        pipe(helper, PipeKind.CRAFTING, 1);
+        CraftingTableBlockEntity table = table(helper, 1);
+        table.storage().setItem(3, new ItemStack(Items.OAK_PLANKS, 2));
+
+        helper.runAfterDelay(SETTLE, () -> {
+            TestPlayer player = playerAtTable(helper, 1);
+            CraftingTableMenu menu = (CraftingTableMenu) player.containerMenu;
+            MenuRequests.askIngredients(player, menu.containerId, 1, each(STICKS));
+            helper.assertTrue(menu.network() == CraftingTableMenu.NETWORK_SUPPLIES, "the planks are in the table, got " + menu.shortfall());
+            helper.succeed();
+        });
+    }
+
+    // the pipe tells when its recipe is not the one of the table beside it, the same items in other slots are fine
+    @GameTest(template = EMPTY)
+    public static void aCraftingPipeTellsWhenItsRecipeIsNotTheTables(GameTestHelper helper) {
+        PipeBlockEntity crafting = pipe(helper, PipeKind.CRAFTING, 1);
+        CraftingTableBlockEntity table = table(helper, 1);
+        table.pattern().setItem(1, new ItemStack(Items.OAK_PLANKS));
+        table.pattern().setItem(4, new ItemStack(Items.OAK_PLANKS));
+        TestPlayer player = TestPlayer.in(helper);
+        player.openMenu(crafting.menuProvider());
+        PipeConfigMenu menu = (PipeConfigMenu) player.containerMenu;
+
+        crafting.config().setItem(0, new ItemStack(Items.BIRCH_PLANKS, 2));
+        crafting.config().setItem(PipeBlockEntity.OUTPUT_SLOT, new ItemStack(Items.STICK, 4));
+        helper.assertTrue(menu.differsFromTable(), "birch planks are not the oak planks of the table");
+
+        crafting.config().setItem(0, new ItemStack(Items.OAK_PLANKS, 2));
+        helper.assertTrue(!menu.differsFromTable(), "two oak planks in one slot is what the table needs");
+
+        crafting.config().setItem(PipeBlockEntity.OUTPUT_SLOT, new ItemStack(Items.STICK, 1));
+        helper.assertTrue(menu.differsFromTable(), "the table makes four sticks, not one");
+
+        crafting.importRecipe();
+        helper.assertTrue(!menu.differsFromTable(), "the import copies the recipe of the table");
+        helper.succeed();
     }
 
     // every slot as a recipe viewer slot that takes only that item

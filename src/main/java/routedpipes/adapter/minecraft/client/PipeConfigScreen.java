@@ -12,16 +12,19 @@ import routedpipes.domain.item.FuzzyFlags;
 import routedpipes.domain.logistics.PipeKind;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 
 public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> implements MarkerScreen {
 
     private static final int TEXT = 0x404040;
+    private static final int WARNING = 0xA02020;
     private static final int SATELLITE_TINT = 0xFF6F8FBF;
     private static final int SELECTED = 0xFFFFD040;
     private static final int PATTERN_NUMBER = 0xFFFF55;
@@ -112,7 +115,8 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> im
             addRenderableWidget(Button.builder(Component.literal(">"), button -> press(PipeConfigMenu.BUTTON_PRIORITY_UP))
                     .bounds(leftPos + 132, topPos + 74, 14, 14).build());
             addRenderableWidget(Button.builder(Component.translatable("routedpipes.gui.import"),
-                    button -> press(PipeConfigMenu.BUTTON_IMPORT_RECIPE)).bounds(leftPos + 85, topPos + 25, 38, 14).build());
+                    button -> press(PipeConfigMenu.BUTTON_IMPORT_RECIPE)).bounds(leftPos + 85, topPos + 25, 38, 14)
+                    .tooltip(Tooltip.create(Component.translatable("routedpipes.gui.import.recipe"))).build());
         }
         if (!hasSatelliteControls()) {
             return;
@@ -442,6 +446,12 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> im
             graphics.drawString(font, Component.translatable("routedpipes.gui.priority"), 30, 77, TEXT, false);
             String priority = Integer.toString(menu.priority());
             graphics.drawString(font, priority, 121 - font.width(priority) / 2, 77, TEXT, false);
+        }
+        if (menu.kind() == PipeKind.CRAFTING && menu.differsFromTable()) {
+            List<FormattedCharSequence> lines = font.split(Component.translatable("routedpipes.gui.differs_from_table"), 108);
+            for (int line = 0; line < lines.size(); line++) {
+                graphics.drawString(font, lines.get(line), 8, 96 + line * 10, WARNING, false);
+            }
         }
         if (menu.patterned()) {
             patternLabels(graphics);

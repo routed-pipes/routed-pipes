@@ -47,7 +47,9 @@ public class PipeConfigMenu extends AbstractContainerMenu implements MarkerMenu,
     // whether there is a slot for what else the machine puts out, and how many cleanup upgrades there are
     public static final int DATA_BYPRODUCT = 5;
     public static final int DATA_CLEANUP = 6;
-    public static final int DATA_COUNT = 7;
+    // a crafting pipe whose recipe is not the one of the table beside it
+    public static final int DATA_DIFFERS_FROM_TABLE = 7;
+    public static final int DATA_COUNT = 8;
     public static final int BUTTON_IMPORT_CLEANUP = 8;
     public static final int CLEANUP_PER_UPGRADE = 3;
     public static final int BUTTON_PRIORITY_DOWN = 6;
@@ -321,6 +323,10 @@ public class PipeConfigMenu extends AbstractContainerMenu implements MarkerMenu,
 
     public boolean hasByproduct() {
         return data.get(DATA_BYPRODUCT) != 0;
+    }
+
+    public boolean differsFromTable() {
+        return data.get(DATA_DIFFERS_FROM_TABLE) != 0;
     }
 
     public int cleanupSlots() {

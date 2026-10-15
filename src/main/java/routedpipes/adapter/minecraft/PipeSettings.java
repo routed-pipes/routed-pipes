@@ -68,6 +68,7 @@ final class PipeSettings {
                 case PipeConfigMenu.DATA_PRIORITY -> priority;
                 case PipeConfigMenu.DATA_BYPRODUCT -> pipe.upgradeCount(UpgradeKind.CRAFTING_BYPRODUCT);
                 case PipeConfigMenu.DATA_CLEANUP -> pipe.upgradeCount(UpgradeKind.CRAFTING_CLEANUP);
+                case PipeConfigMenu.DATA_DIFFERS_FROM_TABLE -> differsFromTable() ? 1 : 0;
                 default -> pipe.upgradeCount(UpgradeKind.ADVANCED_SATELLITE);
             };
         }
@@ -212,6 +213,34 @@ final class PipeSettings {
     }
 
     // copies the recipe of a crafting table next to the pipe into the pipe settings
+    // the recipe is not what the table beside the pipe crafts, so what the pipe has brought the table cannot use
+    // the same items in other slots are fine, the table goes by its own grid
+    boolean differsFromTable() {
+        if (pipe.kind() != PipeKind.CRAFTING) {
+            return false;
+        }
+        return CraftingTableBlockEntity.beside(pipe.getLevel(), pipe.getBlockPos()).map(table -> {
+            ItemStack result = table.result();
+            if (result.isEmpty()) {
+                return false;
+            }
+            Map<ItemType, Integer> wanted = new LinkedHashMap<>();
+            Map<ItemType, Integer> marked = new LinkedHashMap<>();
+            for (int slot = 0; slot < PipeBlockEntity.OUTPUT_SLOT; slot++) {
+                ItemStack pattern = table.pattern().getItem(slot);
+                ItemStack input = config.getItem(slot);
+                if (!pattern.isEmpty()) {
+                    wanted.merge(McItemType.batchOf(pattern).type(), 1, Integer::sum);
+                }
+                if (!input.isEmpty()) {
+                    marked.merge(McItemType.batchOf(input).type(), input.getCount(), Integer::sum);
+                }
+            }
+            ItemStack output = config.getItem(PipeBlockEntity.OUTPUT_SLOT);
+            return !wanted.equals(marked) || !ItemStack.isSameItemSameComponents(output, result) || output.getCount() != result.getCount();
+        }).orElse(false);
+    }
+
     void importRecipe() {
         importRecipe(config);
     }
