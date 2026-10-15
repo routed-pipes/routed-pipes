@@ -150,23 +150,22 @@ public class RoutedPipesJeiPlugin implements IModPlugin {
             return RecipeTypes.CRAFTING;
         }
 
-        // the shown item of every input slot of a crafting recipe, one each, in the order of the 3x3 grid
+        // what every input slot of a crafting recipe takes, one each, in the order of the 3x3 grid, empty for an empty slot
         // a static of this class and not of the plugin, the game test loads this class on a server
-        private static List<ItemStack> grid(IRecipeSlotsView recipeSlots) {
+        private static List<List<ItemStack>> grid(IRecipeSlotsView recipeSlots) {
             List<IRecipeSlotView> inputs = recipeSlots.getSlotViews(RecipeIngredientRole.INPUT);
-            List<ItemStack> ingredients = new ArrayList<>();
+            List<List<ItemStack>> grid = new ArrayList<>();
             for (int slot = 0; slot < RequestTable.GRID_SLOTS; slot++) {
-                ItemStack stack = slot < inputs.size() ? inputs.get(slot).getDisplayedItemStack().orElse(ItemStack.EMPTY) : ItemStack.EMPTY;
-                ingredients.add(stack.copyWithCount(stack.isEmpty() ? 0 : 1));
+                grid.add(slot < inputs.size() ? choices(inputs.get(slot), 1) : List.of());
             }
-            return ingredients;
+            return grid;
         }
 
         // the slots of the grid that take one of several items, like any planks, leave the pick to the server
         private static void fillGrid(int containerId, IRecipeSlotsView recipeSlots) {
-            List<IRecipeSlotView> inputs = recipeSlots.getSlotViews(RecipeIngredientRole.INPUT);
-            for (int slot = 0; slot < RequestTable.GRID_SLOTS; slot++) {
-                List<ItemStack> choices = slot < inputs.size() ? choices(inputs.get(slot), 1) : List.of();
+            List<List<ItemStack>> grid = grid(recipeSlots);
+            for (int slot = 0; slot < grid.size(); slot++) {
+                List<ItemStack> choices = grid.get(slot);
                 if (choices.isEmpty()) {
                     ClientMenuLink.setMarker(containerId, slot, ItemStack.EMPTY);
                 } else {
@@ -192,13 +191,12 @@ public class RoutedPipesJeiPlugin implements IModPlugin {
         @Override
         public IRecipeTransferError transferRecipe(CraftingTableMenu menu, RecipeHolder<CraftingRecipe> recipe,
                 IRecipeSlotsView recipeSlots, Player player, boolean maxTransfer, boolean doTransfer) {
-            List<ItemStack> ingredients = grid(recipeSlots);
             if (doTransfer) {
                 fillGrid(menu.containerId, recipeSlots);
                 questions.forget();
                 return null;
             }
-            return questions.answer(menu, ingredients).filter(answer -> answer.network() == IngredientMenu.NETWORK_MISSING)
+            return questions.answer(menu, grid(recipeSlots)).filter(answer -> answer.network() == IngredientMenu.NETWORK_MISSING)
                     .<IRecipeTransferError>map(answer -> new NetworkShortfall(answer.shortfall())).orElse(null);
         }
     }

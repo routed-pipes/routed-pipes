@@ -1,6 +1,9 @@
 package routedpipes.adapter.minecraft.menu;
 
 import java.util.List;
+import java.util.Map;
+
+import routedpipes.domain.item.ItemType;
 
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -36,12 +39,16 @@ public final class MenuRequests {
     }
 
     // a recipe viewer asks whether the network can bring the ingredients of a recipe to the open table
-    public static void askIngredients(Player player, int containerId, int question, List<ItemStack> ingredients) {
+    // every slot comes with what it takes, picked the same way as when the recipe is moved into the grid
+    public static void askIngredients(Player player, int containerId, int question, List<List<ItemStack>> choices) {
         if (player.containerMenu.containerId != containerId || !(player.containerMenu instanceof IngredientMenu menu)
-                || !player.containerMenu.stillValid(player) || ingredients.size() > MAX_INGREDIENTS) {
+                || !(player.containerMenu instanceof MarkerMenu markers) || !player.containerMenu.stillValid(player)
+                || choices.size() > MAX_INGREDIENTS || choices.stream().anyMatch(slot -> slot.size() > MAX_CHOICES)) {
             return;
         }
-        menu.askIngredients(question, ingredients);
+        boolean picking = choices.stream().anyMatch(slot -> slot.size() > 1);
+        Map<ItemType, Integer> available = picking ? markers.available() : Map.of();
+        menu.askIngredients(question, choices.stream().map(slot -> slot.isEmpty() ? ItemStack.EMPTY : MarkerChoice.pick(slot, available)).toList());
     }
 
     public static void applyText(Player player, int containerId, int field, String text) {

@@ -635,7 +635,7 @@ public class CompatGameTest {
                         MenuRequests.choose(player, (int) arguments[0], (int) arguments[1], choices);
                     } else if (method.getName().equals("askIngredients")) {
                         @SuppressWarnings("unchecked")
-                        List<ItemStack> ingredients = (List<ItemStack>) arguments[2];
+                        List<List<ItemStack>> ingredients = (List<List<ItemStack>>) arguments[2];
                         questions.add((int) arguments[1]);
                         MenuRequests.askIngredients(player, (int) arguments[0], (int) arguments[1], ingredients);
                     }
@@ -666,7 +666,7 @@ public class CompatGameTest {
                     helper.assertTrue(table.pattern().isEmpty() && questions.equals(List.of(1)), "it sets the recipe grid and orders nothing");
 
                     // the error for a recipe the network cannot serve, with what the server really reports as missing
-                    MenuRequests.askIngredients(player, menu.containerId, 5, List.of(new ItemStack(Items.OAK_PLANKS), new ItemStack(Items.OAK_PLANKS)));
+                    MenuRequests.askIngredients(player, menu.containerId, 5, List.of(List.of(new ItemStack(Items.OAK_PLANKS)), List.of(new ItemStack(Items.OAK_PLANKS))));
                     Constructor<?> errorConstructor = Class.forName("routedpipes.adapter.jei.RoutedPipesJeiPlugin$TableTransfer$NetworkShortfall")
                             .getDeclaredConstructor(List.class);
                     errorConstructor.setAccessible(true);

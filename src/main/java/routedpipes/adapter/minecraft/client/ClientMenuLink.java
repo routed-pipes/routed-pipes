@@ -17,7 +17,7 @@ public final class ClientMenuLink {
 
         void openRemoteOrderer();
 
-        void askIngredients(int containerId, int question, List<ItemStack> ingredients);
+        void askIngredients(int containerId, int question, List<List<ItemStack>> choices);
     }
 
     // recipe viewer plugins are created by the viewer, so they cannot be handed this any other way
@@ -39,7 +39,7 @@ public final class ClientMenuLink {
         }
 
         @Override
-        public void askIngredients(int containerId, int question, List<ItemStack> ingredients) {
+        public void askIngredients(int containerId, int question, List<List<ItemStack>> choices) {
         }
     };
 
@@ -66,7 +66,7 @@ public final class ClientMenuLink {
         sender.openRemoteOrderer();
     }
 
-    public static void askIngredients(int containerId, int question, List<ItemStack> ingredients) {
-        sender.askIngredients(containerId, question, ingredients);
+    public static void askIngredients(int containerId, int question, List<List<ItemStack>> choices) {
+        sender.askIngredients(containerId, question, choices);
     }
 }

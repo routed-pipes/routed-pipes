@@ -83,7 +83,7 @@ public class CraftingTableOrderGameTest {
             TestPlayer player = playerAtTable(helper, 1);
             CraftingTableMenu menu = (CraftingTableMenu) player.containerMenu;
 
-            MenuRequests.askIngredients(player, menu.containerId, 7, STICKS);
+            MenuRequests.askIngredients(player, menu.containerId, 7, each(STICKS));
             helper.assertTrue(menu.answeredQuestion() == 7, "the answer carries the number of the question");
             helper.assertTrue(menu.network() == CraftingTableMenu.NETWORK_SUPPLIES && menu.shortfall().isEmpty(), "the network has the planks");
             helper.assertTrue(source.countItem(Items.OAK_PLANKS) == 16, "asking orders nothing");
@@ -114,17 +114,17 @@ public class CraftingTableOrderGameTest {
             TestPlayer player = playerAtTable(helper, 1);
             CraftingTableMenu menu = (CraftingTableMenu) player.containerMenu;
 
-            MenuRequests.askIngredients(player, menu.containerId, 3, torchesAndMore);
+            MenuRequests.askIngredients(player, menu.containerId, 3, each(torchesAndMore));
             List<ItemStack> shortfall = menu.shortfall();
             helper.assertTrue(menu.answeredQuestion() == 3 && menu.network() == CraftingTableMenu.NETWORK_MISSING, "something is missing");
             helper.assertTrue(shortfall.size() == 2 && shortfall.get(0).is(Items.OAK_PLANKS) && Shortfall.count(shortfall.get(0)) == 2
                     && shortfall.get(1).is(Items.STICK) && Shortfall.count(shortfall.get(1)) == 1,
                     "two planks and a stick are missing, got " + shortfall);
 
-            MenuRequests.askIngredients(player, menu.containerId + 1, 9, torchesAndMore);
+            MenuRequests.askIngredients(player, menu.containerId + 1, 9, each(torchesAndMore));
             helper.assertTrue(menu.answeredQuestion() == 3, "a question for another menu is ignored");
             player.containerMenu = player.inventoryMenu;
-            MenuRequests.askIngredients(player, menu.containerId, 9, torchesAndMore);
+            MenuRequests.askIngredients(player, menu.containerId, 9, each(torchesAndMore));
             helper.assertTrue(menu.answeredQuestion() == 3, "and so is one for a menu that was closed");
         });
 
@@ -150,7 +150,7 @@ public class CraftingTableOrderGameTest {
         helper.runAfterDelay(SETTLE, () -> {
             TestPlayer player = playerAtTable(helper, 1);
             CraftingTableMenu menu = (CraftingTableMenu) player.containerMenu;
-            MenuRequests.askIngredients(player, menu.containerId, 1, STICKS);
+            MenuRequests.askIngredients(player, menu.containerId, 1, each(STICKS));
             helper.assertTrue(menu.network() == CraftingTableMenu.NETWORK_SUPPLIES, "planks can be crafted, missing " + menu.shortfall());
             helper.assertTrue(table.storage().isEmpty() && source.countItem(Items.OAK_LOG) == 8, "and nothing is crafted for asking");
             helper.succeed();
@@ -167,7 +167,7 @@ public class CraftingTableOrderGameTest {
         TestPlayer player = playerAtTable(helper, 3);
         CraftingTableMenu menu = (CraftingTableMenu) player.containerMenu;
 
-        MenuRequests.askIngredients(player, menu.containerId, 5, STICKS);
+        MenuRequests.askIngredients(player, menu.containerId, 5, each(STICKS));
 
         helper.assertTrue(menu.answeredQuestion() == 5 && menu.network() == CraftingTableMenu.NETWORK_NONE && menu.shortfall().isEmpty(),
                 "no network, so nothing to report");
@@ -183,7 +183,7 @@ public class CraftingTableOrderGameTest {
         helper.runAfterDelay(SETTLE, () -> {
             TestPlayer player = playerAtTable(helper, 1);
             CraftingTableMenu menu = (CraftingTableMenu) player.containerMenu;
-            MenuRequests.askIngredients(player, menu.containerId, 1, STICKS);
+            MenuRequests.askIngredients(player, menu.containerId, 1, each(STICKS));
             int answerSlot = 9 + 1 + CraftingTableBlockEntity.STORAGE_SLOTS;
             helper.assertTrue(menu.getSlot(answerSlot).getItem().is(Items.OAK_PLANKS) && !menu.getSlot(answerSlot).isActive(),
                     "the missing planks sit in a slot no screen shows");
@@ -230,38 +230,38 @@ public class CraftingTableOrderGameTest {
                 MenuRequests.askIngredients(player, containerId, question, ingredients);
             }, () -> clock[0]);
 
-            helper.assertTrue(questions.answer(menu, STICKS).isEmpty() && asked.equals(List.of(1)), "the first look asks and knows nothing yet");
-            Optional<IngredientQuestions.Answer> sticks = questions.answer(menu, STICKS);
+            helper.assertTrue(questions.answer(menu, each(STICKS)).isEmpty() && asked.equals(List.of(1)), "the first look asks and knows nothing yet");
+            Optional<IngredientQuestions.Answer> sticks = questions.answer(menu, each(STICKS));
             helper.assertTrue(sticks.isPresent() && sticks.get().network() == CraftingTableMenu.NETWORK_MISSING
                     && sticks.get().shortfall().size() == 1 && sticks.get().shortfall().get(0).is(Items.OAK_PLANKS)
                     && Shortfall.count(sticks.get().shortfall().get(0)) == 1, "the next look has the answer: one plank short");
             helper.assertTrue(asked.size() == 1, "a fresh answer is not asked for again");
 
-            helper.assertTrue(questions.answer(menu, coal).isEmpty() && asked.equals(List.of(1, 2)), "another recipe is asked about on its own");
-            helper.assertTrue(questions.answer(menu, coal).orElseThrow().network() == CraftingTableMenu.NETWORK_SUPPLIES, "the network has coal");
-            helper.assertTrue(questions.answer(menu, STICKS).orElseThrow().network() == CraftingTableMenu.NETWORK_MISSING && asked.size() == 2,
+            helper.assertTrue(questions.answer(menu, each(coal)).isEmpty() && asked.equals(List.of(1, 2)), "another recipe is asked about on its own");
+            helper.assertTrue(questions.answer(menu, each(coal)).orElseThrow().network() == CraftingTableMenu.NETWORK_SUPPLIES, "the network has coal");
+            helper.assertTrue(questions.answer(menu, each(STICKS)).orElseThrow().network() == CraftingTableMenu.NETWORK_MISSING && asked.size() == 2,
                     "the answer for the sticks is still there");
 
             source.setItem(0, new ItemStack(Items.OAK_PLANKS, 5));
             clock[0] = IngredientQuestions.REFRESH_MILLIS - 1;
-            helper.assertTrue(questions.answer(menu, STICKS).orElseThrow().network() == CraftingTableMenu.NETWORK_MISSING && asked.size() == 2,
+            helper.assertTrue(questions.answer(menu, each(STICKS)).orElseThrow().network() == CraftingTableMenu.NETWORK_MISSING && asked.size() == 2,
                     "not old enough to ask again");
             clock[0] = IngredientQuestions.REFRESH_MILLIS;
-            helper.assertTrue(questions.answer(menu, STICKS).orElseThrow().network() == CraftingTableMenu.NETWORK_MISSING
+            helper.assertTrue(questions.answer(menu, each(STICKS)).orElseThrow().network() == CraftingTableMenu.NETWORK_MISSING
                     && asked.equals(List.of(1, 2, 3)), "an old answer is shown until the new one is in");
-            helper.assertTrue(questions.answer(menu, STICKS).orElseThrow().network() == CraftingTableMenu.NETWORK_SUPPLIES, "now there are enough planks");
+            helper.assertTrue(questions.answer(menu, each(STICKS)).orElseThrow().network() == CraftingTableMenu.NETWORK_SUPPLIES, "now there are enough planks");
 
             questions.forget();
-            helper.assertTrue(questions.answer(menu, STICKS).isEmpty() && asked.size() == 4, "after an order everything is asked anew");
+            helper.assertTrue(questions.answer(menu, each(STICKS)).isEmpty() && asked.size() == 4, "after an order everything is asked anew");
 
             // a server that never answers is asked one question at a time, and again after a while
             List<Integer> unanswered = new ArrayList<>();
             IngredientQuestions lonely = new IngredientQuestions((containerId, question, ingredients) -> unanswered.add(question), () -> clock[0]);
-            lonely.answer(menu, STICKS);
-            lonely.answer(menu, coal);
-            helper.assertTrue(lonely.answer(menu, STICKS).isEmpty() && unanswered.size() == 1, "only one question is open at a time");
+            lonely.answer(menu, each(STICKS));
+            lonely.answer(menu, each(coal));
+            helper.assertTrue(lonely.answer(menu, each(STICKS)).isEmpty() && unanswered.size() == 1, "only one question is open at a time");
             clock[0] += IngredientQuestions.REFRESH_MILLIS;
-            lonely.answer(menu, coal);
+            lonely.answer(menu, each(coal));
             helper.assertTrue(unanswered.equals(List.of(1, 2)), "a question without an answer is given up after a while");
             helper.succeed();
         });
@@ -282,5 +282,33 @@ public class CraftingTableOrderGameTest {
             helper.assertTrue(table.pattern().getItem(4).is(Items.SPRUCE_PLANKS), "the table holds spruce planks");
             helper.succeed();
         });
+    }
+
+    // a slot that takes any planks is answered for the planks the network has, the same pick as moving the recipe in
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void questionsPickTheFlavourTheNetworkHas(GameTestHelper helper) {
+        GameTestPower.supply(helper);
+        pipe(helper, PipeKind.PROVIDER, 0);
+        chest(helper, 0, new ItemStack(Items.BIRCH_PLANKS, 2));
+        pipe(helper, PipeKind.CRAFTING, 1);
+        table(helper, 1);
+        List<ItemStack> anyPlanks = List.of(new ItemStack(Items.OAK_PLANKS), new ItemStack(Items.BIRCH_PLANKS));
+        List<ItemStack> oakOrAcacia = List.of(new ItemStack(Items.OAK_PLANKS), new ItemStack(Items.ACACIA_PLANKS));
+
+        helper.runAfterDelay(SETTLE, () -> {
+            TestPlayer player = playerAtTable(helper, 1);
+            CraftingTableMenu menu = (CraftingTableMenu) player.containerMenu;
+            MenuRequests.askIngredients(player, menu.containerId, 1, List.of(anyPlanks, List.of(), List.of(), anyPlanks));
+            helper.assertTrue(menu.network() == CraftingTableMenu.NETWORK_SUPPLIES, "the shown oak is missing but birch is there, got " + menu.shortfall());
+            MenuRequests.askIngredients(player, menu.containerId, 2, List.of(oakOrAcacia, List.of(), List.of(), oakOrAcacia));
+            helper.assertTrue(menu.network() == CraftingTableMenu.NETWORK_MISSING && menu.shortfall().get(0).is(Items.OAK_PLANKS),
+                    "with neither around the shown oak is missing");
+            helper.succeed();
+        });
+    }
+
+    // every slot as a recipe viewer slot that takes only that item
+    private static List<List<ItemStack>> each(List<ItemStack> stacks) {
+        return stacks.stream().map(stack -> stack.isEmpty() ? List.<ItemStack>of() : List.of(stack)).toList();
     }
 }

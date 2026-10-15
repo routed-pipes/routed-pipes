@@ -126,8 +126,8 @@ public class RoutedPipesClient {
             }
 
             @Override
-            public void askIngredients(int containerId, int question, List<ItemStack> ingredients) {
-                PacketDistributor.sendToServer(new AskIngredientsPayload(containerId, question, ingredients));
+            public void askIngredients(int containerId, int question, List<List<ItemStack>> choices) {
+                PacketDistributor.sendToServer(new AskIngredientsPayload(containerId, question, choices));
             }
         });
         GuideBookItem.setOpener(() -> Minecraft.getInstance().setScreen(new GuideBookScreen()));

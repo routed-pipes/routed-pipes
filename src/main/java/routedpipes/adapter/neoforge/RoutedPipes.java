@@ -567,7 +567,7 @@ public class RoutedPipes {
         registrar.playToServer(SetMenuTextPayload.TYPE, SetMenuTextPayload.CODEC, (payload, context) ->
                 MenuRequests.applyText(context.player(), payload.containerId(), payload.field(), payload.text()));
         registrar.playToServer(AskIngredientsPayload.TYPE, AskIngredientsPayload.CODEC, (payload, context) ->
-                MenuRequests.askIngredients(context.player(), payload.containerId(), payload.question(), payload.ingredients()));
+                MenuRequests.askIngredients(context.player(), payload.containerId(), payload.question(), payload.choices()));
         registrar.playToServer(OpenRemoteOrdererPayload.TYPE, OpenRemoteOrdererPayload.CODEC, (payload, context) ->
                 RemoteOrdererItem.openFromInventory(context.player()));
         registrar.playToClient(HudPanelsPayload.TYPE, HudPanelsPayload.CODEC, (payload, context) ->

@@ -864,7 +864,7 @@ public class RequestGameTest {
         helper.runAfterDelay(SETTLE + 15, () -> {
             player.openMenu(table.menuProvider());
             routedpipes.adapter.minecraft.menu.RequestTableMenu menu = (routedpipes.adapter.minecraft.menu.RequestTableMenu) player.containerMenu;
-            MenuRequests.askIngredients(player, menu.containerId, 4, torch);
+            MenuRequests.askIngredients(player, menu.containerId, 4, each(torch));
             helper.assertTrue(menu.answeredQuestion() == 4 && menu.network() == routedpipes.adapter.minecraft.menu.IngredientMenu.NETWORK_MISSING,
                     "something is missing");
             List<ItemStack> shortfall = menu.shortfall();
@@ -900,5 +900,10 @@ public class RequestGameTest {
             helper.assertTrue(table.buffer().countItem(Items.STICK) == 4, "four sticks from crafted planks");
             assertCount(helper, source, Items.OAK_LOG, 7);
         });
+    }
+
+    // every slot as a recipe viewer slot that takes only that item
+    private static List<List<ItemStack>> each(List<ItemStack> stacks) {
+        return stacks.stream().map(stack -> stack.isEmpty() ? List.<ItemStack>of() : List.of(stack)).toList();
     }
 }

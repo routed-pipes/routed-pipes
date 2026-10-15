@@ -18,7 +18,7 @@ import net.minecraft.world.item.ItemStack;
 public final class IngredientQuestions {
 
     public interface Asker {
-        void ask(int containerId, int question, List<ItemStack> ingredients);
+        void ask(int containerId, int question, List<List<ItemStack>> choices);
     }
 
     // what the server said about the ingredients of a recipe and when
@@ -32,10 +32,10 @@ public final class IngredientQuestions {
 
     private final Asker asker;
     private final LongSupplier clock;
-    private final Map<List<ItemType>, Answer> answers = new HashMap<>();
+    private final Map<List<List<ItemType>>, Answer> answers = new HashMap<>();
     private int containerId = -1;
     // the one question the server has not answered yet
-    private List<ItemType> asking;
+    private List<List<ItemType>> asking;
     private int question;
     private long askedAt;
 
@@ -45,8 +45,9 @@ public final class IngredientQuestions {
     }
 
     // the last thing the server said about these ingredients, empty until it has answered
+    // every slot comes with what it takes, the server picks among them
     // asks the server when there is nothing fresh, one question at a time
-    public <M extends AbstractContainerMenu & IngredientMenu> Optional<Answer> answer(M menu, List<ItemStack> ingredients) {
+    public <M extends AbstractContainerMenu & IngredientMenu> Optional<Answer> answer(M menu, List<List<ItemStack>> choices) {
         long now = clock.getAsLong();
         if (menu.containerId != containerId) {
             containerId = menu.containerId;
@@ -56,9 +57,9 @@ public final class IngredientQuestions {
             answers.put(asking, new Answer(menu.network(), menu.shortfall(), now));
             asking = null;
         }
-        List<ItemType> key = new ArrayList<>();
-        for (ItemStack stack : ingredients) {
-            key.add(stack.isEmpty() ? null : McItemType.batchOf(stack).type());
+        List<List<ItemType>> key = new ArrayList<>();
+        for (List<ItemStack> slot : choices) {
+            key.add(slot.stream().map(stack -> McItemType.batchOf(stack).type()).toList());
         }
         Answer known = answers.get(key);
         boolean stale = known == null || now - known.at() >= REFRESH_MILLIS;
@@ -66,7 +67,7 @@ public final class IngredientQuestions {
             asking = key;
             question = question % MAX_QUESTION + 1;
             askedAt = now;
-            asker.ask(containerId, question, ingredients);
+            asker.ask(containerId, question, choices);
         }
         return Optional.ofNullable(known);
     }
