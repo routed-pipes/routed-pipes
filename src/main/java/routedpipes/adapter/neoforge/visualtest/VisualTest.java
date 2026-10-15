@@ -421,13 +421,14 @@ public final class VisualTest {
         }));
     }
 
-    // with a recipe viewer installed: let it fill an empty crafting table and an empty crafting pipe,
+    // with a recipe viewer installed: let it fill an empty crafting table, request table and crafting pipe,
     // then look on the server whether the recipes arrived
     private void recipeViewerCheck() {
         BlockPos table = new BlockPos(0, -59, 21);
         BlockPos craftingPipe = new BlockPos(0, -59, 23);
+        BlockPos requestTable = new BlockPos(-1, -59, 2);
         String[] problem = {null};
-        for (BlockPos target : new BlockPos[] {table, craftingPipe}) {
+        for (BlockPos target : new BlockPos[] {table, requestTable, craftingPipe}) {
             step(10, () -> command("tp @p 2.5 -60 " + (target.getZ() + 0.5) + " 90 0"));
             step(15, () -> onServer(server -> {
                 ServerLevel level = server.overworld();
@@ -443,14 +444,15 @@ public final class VisualTest {
             }
             onServer(server -> {
                 ItemStack crafted = ((CraftingTableBlockEntity) server.overworld().getBlockEntity(table)).result();
+                ItemStack requested = pipe(server, requestTable).requestTable().result();
                 PipeBlockEntity pipe = pipe(server, craftingPipe);
                 boolean smelting = pipe.config().getItem(0).is(Items.RAW_IRON) && pipe.config().getItem(PipeBlockEntity.OUTPUT_SLOT).is(Items.IRON_INGOT);
                 boolean dragged = pipe.config().getItem(2).is(Items.DIAMOND);
-                if (problem[0] == null && crafted.is(Items.STICK) && smelting && dragged) {
+                if (problem[0] == null && crafted.is(Items.STICK) && requested.is(Items.STICK) && smelting && dragged) {
                     LOGGER.info("recipe viewer check passed");
                 } else {
-                    LOGGER.error("recipe viewer check failed: {} table makes {}, pipe recipe set {}, dragged marker set {}",
-                            problem[0] == null ? "" : problem[0] + ",", crafted, smelting, dragged);
+                    LOGGER.error("recipe viewer check failed: {} table makes {}, request table makes {}, pipe recipe set {}, dragged marker set {}",
+                            problem[0] == null ? "" : problem[0] + ",", crafted, requested, smelting, dragged);
                 }
             });
         });

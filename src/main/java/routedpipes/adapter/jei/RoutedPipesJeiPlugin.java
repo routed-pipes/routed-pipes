@@ -5,14 +5,17 @@ import java.util.List;
 import java.util.Optional;
 
 import routedpipes.adapter.minecraft.PipeBlockEntity;
+import routedpipes.adapter.minecraft.RequestTable;
 import routedpipes.adapter.minecraft.client.ClientMenuLink;
 import routedpipes.adapter.minecraft.client.CraftingTableScreen;
 import routedpipes.adapter.minecraft.client.MarkerScreen;
 import routedpipes.adapter.minecraft.client.PipeConfigScreen;
 import routedpipes.adapter.minecraft.client.RecipeViewerCheck;
+import routedpipes.adapter.minecraft.client.RequestTableScreen;
 import routedpipes.adapter.minecraft.menu.CraftingTableMenu;
 import routedpipes.adapter.minecraft.menu.IngredientQuestions;
 import routedpipes.adapter.minecraft.menu.PipeConfigMenu;
+import routedpipes.adapter.minecraft.menu.RequestTableMenu;
 import routedpipes.domain.logistics.PipeKind;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
@@ -150,12 +153,7 @@ public class RoutedPipesJeiPlugin implements IModPlugin {
         @Override
         public IRecipeTransferError transferRecipe(CraftingTableMenu menu, RecipeHolder<CraftingRecipe> recipe,
                 IRecipeSlotsView recipeSlots, Player player, boolean maxTransfer, boolean doTransfer) {
-            List<IRecipeSlotView> inputs = recipeSlots.getSlotViews(RecipeIngredientRole.INPUT);
-            List<ItemStack> ingredients = new ArrayList<>();
-            for (int slot = 0; slot < menu.markerSlots(); slot++) {
-                ItemStack stack = slot < inputs.size() ? inputs.get(slot).getDisplayedItemStack().orElse(ItemStack.EMPTY) : ItemStack.EMPTY;
-                ingredients.add(stack.copyWithCount(stack.isEmpty() ? 0 : 1));
-            }
+            List<ItemStack> ingredients = grid(recipeSlots);
             if (doTransfer) {
                 for (int slot = 0; slot < ingredients.size(); slot++) {
                     ClientMenuLink.setMarker(menu.containerId, slot, ingredients.get(slot));
@@ -168,6 +166,48 @@ public class RoutedPipesJeiPlugin implements IModPlugin {
             return questions.answer(menu, ingredients).filter(answer -> answer.network() == CraftingTableMenu.NETWORK_MISSING)
                     .<IRecipeTransferError>map(answer -> new NetworkShortfall(answer.shortfall())).orElse(null);
         }
+    }
+
+    // the plus button on a crafting recipe fills the grid of an open request table
+    private static final class RequestTableTransfer implements IRecipeTransferHandler<RequestTableMenu, RecipeHolder<CraftingRecipe>> {
+
+        @Override
+        public Class<? extends RequestTableMenu> getContainerClass() {
+            return RequestTableMenu.class;
+        }
+
+        @Override
+        public Optional<MenuType<RequestTableMenu>> getMenuType() {
+            return Optional.empty();
+        }
+
+        @Override
+        public RecipeType<RecipeHolder<CraftingRecipe>> getRecipeType() {
+            return RecipeTypes.CRAFTING;
+        }
+
+        @Override
+        public IRecipeTransferError transferRecipe(RequestTableMenu menu, RecipeHolder<CraftingRecipe> recipe,
+                IRecipeSlotsView recipeSlots, Player player, boolean maxTransfer, boolean doTransfer) {
+            if (doTransfer) {
+                List<ItemStack> ingredients = grid(recipeSlots);
+                for (int slot = 0; slot < ingredients.size(); slot++) {
+                    ClientMenuLink.setMarker(menu.containerId, slot, ingredients.get(slot));
+                }
+            }
+            return null;
+        }
+    }
+
+    // the shown item of every input slot of a crafting recipe, one each, in the order of the 3x3 grid
+    private static List<ItemStack> grid(IRecipeSlotsView recipeSlots) {
+        List<IRecipeSlotView> inputs = recipeSlots.getSlotViews(RecipeIngredientRole.INPUT);
+        List<ItemStack> ingredients = new ArrayList<>();
+        for (int slot = 0; slot < RequestTable.GRID_SLOTS; slot++) {
+            ItemStack stack = slot < inputs.size() ? inputs.get(slot).getDisplayedItemStack().orElse(ItemStack.EMPTY) : ItemStack.EMPTY;
+            ingredients.add(stack.copyWithCount(stack.isEmpty() ? 0 : 1));
+        }
+        return ingredients;
     }
 
     // the plus button on any recipe sets inputs and output of an open crafting pipe, that also covers machines
@@ -232,11 +272,13 @@ public class RoutedPipesJeiPlugin implements IModPlugin {
     public void registerGuiHandlers(IGuiHandlerRegistration registration) {
         registration.addGhostIngredientHandler(PipeConfigScreen.class, new MarkerTargets<>());
         registration.addGhostIngredientHandler(CraftingTableScreen.class, new MarkerTargets<>());
+        registration.addGhostIngredientHandler(RequestTableScreen.class, new MarkerTargets<>());
     }
 
     @Override
     public void registerRecipeTransferHandlers(IRecipeTransferRegistration registration) {
         registration.addRecipeTransferHandler(new TableTransfer(), RecipeTypes.CRAFTING);
+        registration.addRecipeTransferHandler(new RequestTableTransfer(), RecipeTypes.CRAFTING);
         registration.addUniversalRecipeTransferHandler(new PipeTransfer(registration.getTransferHelper()));
     }
 
@@ -277,7 +319,7 @@ public class RoutedPipesJeiPlugin implements IModPlugin {
         }
         AbstractContainerMenu menu = containerScreen.getMenu();
         Player player = Minecraft.getInstance().player;
-        if (menu instanceof CraftingTableMenu) {
+        if (menu instanceof CraftingTableMenu || menu instanceof RequestTableMenu) {
             return transfer(runtime, menu, player, RecipeTypes.CRAFTING, "minecraft:stick");
         }
         String problem = transfer(runtime, menu, player, RecipeTypes.SMELTING, "minecraft:iron_ingot_from_smelting_raw_iron");
