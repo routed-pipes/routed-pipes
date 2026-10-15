@@ -217,4 +217,44 @@ public class RecipeGameTest {
         }
         helper.succeed();
     }
+
+    // two recipes for the same grid make one of them impossible to craft, like the blank module and the frequency card once were
+    // every plain crafting recipe of the mod, laid out with the first item of each ingredient, may match only itself
+    @GameTest(template = EMPTY)
+    public static void noTwoRecipesShareAGrid(GameTestHelper helper) {
+        List<String> clashes = new ArrayList<>();
+        var recipes = helper.getLevel().getRecipeManager();
+        for (RecipeHolder<CraftingRecipe> holder : recipes.getAllRecipesFor(RecipeType.CRAFTING)) {
+            if (!holder.id().getNamespace().equals(RoutedPipes.MODID) || holder.value() instanceof ProgrammedRecipe) {
+                continue;
+            }
+            CraftingInput input;
+            if (holder.value() instanceof net.minecraft.world.item.crafting.ShapedRecipe shaped) {
+                List<ItemStack> grid = new ArrayList<>();
+                shaped.getIngredients().forEach(ingredient -> grid.add(first(ingredient)));
+                input = CraftingInput.of(shaped.getWidth(), shaped.getHeight(), grid);
+            } else if (holder.value() instanceof net.minecraft.world.item.crafting.ShapelessRecipe shapeless) {
+                List<ItemStack> grid = new ArrayList<>();
+                shapeless.getIngredients().forEach(ingredient -> grid.add(first(ingredient)));
+                while (grid.size() < 9) {
+                    grid.add(ItemStack.EMPTY);
+                }
+                input = CraftingInput.of(3, 3, grid);
+            } else {
+                continue;
+            }
+            List<String> matching = recipes.getRecipesFor(RecipeType.CRAFTING, input, helper.getLevel()).stream()
+                    .map(found -> found.id().toString()).toList();
+            if (matching.size() != 1) {
+                clashes.add(holder.id() + " also matches " + matching);
+            }
+        }
+        helper.assertTrue(clashes.isEmpty(), "recipes share a grid: " + clashes);
+        helper.succeed();
+    }
+
+    private static ItemStack first(net.minecraft.world.item.crafting.Ingredient ingredient) {
+        ItemStack[] items = ingredient.getItems();
+        return items.length == 0 ? ItemStack.EMPTY : items[0].copy();
+    }
 }

@@ -205,7 +205,8 @@ RECIPES = [
     programmed("module_bulk_storage_sink", MODULE_UPGRADE_2, "module_polymorphic_item_sink"),
 
     # no recipe in the original, or none that needs a program
-    shapeless("frequency_card", ["paper", "redstone", "gold_nugget"], count=2),
+    # an ender pearl instead of the gold nugget, the shapeless card took the grid of the blank module
+    shapeless("frequency_card", ["paper", "redstone", "ender_pearl"], count=2),
     shapeless("settings_copier", ["paper", "redstone", "ink_sac"]),
     shapeless("power_provider_rf", ["redstone_block", "basic_logistics_pipe", "copper_block"]),
     shapeless("upgrade_cc_remote_control", ["paper", "redstone", "gold", "comparator"]),
