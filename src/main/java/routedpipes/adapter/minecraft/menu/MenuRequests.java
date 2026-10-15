@@ -25,14 +25,13 @@ public final class MenuRequests {
         menu.setMarker(slot, stack.isEmpty() ? ItemStack.EMPTY : stack.copyWithCount(Math.min(stack.getCount(), MAX_COUNT)));
     }
 
-    // a recipe viewer asks whether the network can bring the ingredients of a recipe to the open crafting table,
-    // or with order has them brought
-    public static void askIngredients(Player player, int containerId, int question, List<ItemStack> ingredients, boolean order) {
+    // a recipe viewer asks whether the network can bring the ingredients of a recipe to the open crafting table
+    public static void askIngredients(Player player, int containerId, int question, List<ItemStack> ingredients) {
         if (player.containerMenu.containerId != containerId || !(player.containerMenu instanceof CraftingTableMenu menu)
                 || !player.containerMenu.stillValid(player) || ingredients.size() > MAX_INGREDIENTS) {
             return;
         }
-        menu.askIngredients(player, question, ingredients, order);
+        menu.askIngredients(question, ingredients);
     }
 
     public static void applyText(Player player, int containerId, int field, String text) {

@@ -619,7 +619,7 @@ public class CompatGameTest {
             helper.getBlockState(tablePos).useWithoutItem(helper.getLevel(), player, new BlockHitResult(
                     Vec3.atCenterOf(helper.absolutePos(tablePos)), Direction.UP, helper.absolutePos(tablePos), false));
             CraftingTableMenu menu = (CraftingTableMenu) player.containerMenu;
-            List<Boolean> orders = new ArrayList<>();
+            List<Integer> questions = new ArrayList<>();
             try {
                 // what the client would send goes to the server half directly
                 Class<?> senderType = Class.forName("routedpipes.adapter.minecraft.client.ClientMenuLink$Sender");
@@ -632,8 +632,8 @@ public class CompatGameTest {
                     } else if (method.getName().equals("askIngredients")) {
                         @SuppressWarnings("unchecked")
                         List<ItemStack> ingredients = (List<ItemStack>) arguments[2];
-                        orders.add((boolean) arguments[3]);
-                        MenuRequests.askIngredients(player, (int) arguments[0], (int) arguments[1], ingredients, (boolean) arguments[3]);
+                        questions.add((int) arguments[1]);
+                        MenuRequests.askIngredients(player, (int) arguments[0], (int) arguments[1], ingredients);
                     }
                     return null;
                 }));
@@ -655,14 +655,14 @@ public class CompatGameTest {
                     transfer.setAccessible(true);
 
                     helper.assertTrue(transfer.invoke(handler, menu, null, slots, player, false, false) == null, "looking at a recipe is no error");
-                    helper.assertTrue(orders.equals(List.of(false)) && menu.answeredQuestion() == 1
+                    helper.assertTrue(questions.equals(List.of(1)) && menu.answeredQuestion() == 1
                             && menu.network() == CraftingTableMenu.NETWORK_SUPPLIES, "the look asked the server, which had nothing to bring");
                     helper.assertTrue(table.pattern().getItem(4).is(Items.OAK_LOG), "and changed nothing");
                     helper.assertTrue(transfer.invoke(handler, menu, null, slots, player, false, true) == null, "the transfer goes through");
-                    helper.assertTrue(table.pattern().isEmpty() && orders.equals(List.of(false, true)), "it sets the recipe grid and orders");
+                    helper.assertTrue(table.pattern().isEmpty() && questions.equals(List.of(1)), "it sets the recipe grid and orders nothing");
 
                     // the error for a recipe the network cannot serve, with what the server really reports as missing
-                    MenuRequests.askIngredients(player, menu.containerId, 5, List.of(new ItemStack(Items.OAK_PLANKS), new ItemStack(Items.OAK_PLANKS)), false);
+                    MenuRequests.askIngredients(player, menu.containerId, 5, List.of(new ItemStack(Items.OAK_PLANKS), new ItemStack(Items.OAK_PLANKS)));
                     Constructor<?> errorConstructor = Class.forName("routedpipes.adapter.jei.RoutedPipesJeiPlugin$TableTransfer$NetworkShortfall")
                             .getDeclaredConstructor(List.class);
                     errorConstructor.setAccessible(true);

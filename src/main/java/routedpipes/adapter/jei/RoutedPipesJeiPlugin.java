@@ -109,11 +109,11 @@ public class RoutedPipesJeiPlugin implements IModPlugin {
         }
     }
 
-    // the plus button on a crafting recipe fills the grid of an open logistics crafting table and has the network
-    // bring the ingredients its storage lacks, hovering the button tells which of them the network cannot bring
+    // the plus button on a crafting recipe fills the grid of an open logistics crafting table without ordering anything,
+    // hovering the button tells which ingredients the network cannot bring
     private static final class TableTransfer implements IRecipeTransferHandler<CraftingTableMenu, RecipeHolder<CraftingRecipe>> {
 
-        // the button still sets the grid, nothing is ordered until the network has everything
+        // the button still sets the grid
         private record NetworkShortfall(List<ItemStack> shortfall) implements IRecipeTransferError {
 
             @Override
@@ -132,7 +132,7 @@ public class RoutedPipesJeiPlugin implements IModPlugin {
         }
 
         private final IngredientQuestions questions = new IngredientQuestions(
-                (containerId, question, ingredients) -> ClientMenuLink.askIngredients(containerId, question, ingredients, false),
+                (containerId, question, ingredients) -> ClientMenuLink.askIngredients(containerId, question, ingredients),
                 Util::getMillis);
 
         @Override
@@ -150,6 +150,18 @@ public class RoutedPipesJeiPlugin implements IModPlugin {
             return RecipeTypes.CRAFTING;
         }
 
+        // the shown item of every input slot of a crafting recipe, one each, in the order of the 3x3 grid
+        // a static of this class and not of the plugin, the game test loads this class on a server
+        private static List<ItemStack> grid(IRecipeSlotsView recipeSlots) {
+            List<IRecipeSlotView> inputs = recipeSlots.getSlotViews(RecipeIngredientRole.INPUT);
+            List<ItemStack> ingredients = new ArrayList<>();
+            for (int slot = 0; slot < RequestTable.GRID_SLOTS; slot++) {
+                ItemStack stack = slot < inputs.size() ? inputs.get(slot).getDisplayedItemStack().orElse(ItemStack.EMPTY) : ItemStack.EMPTY;
+                ingredients.add(stack.copyWithCount(stack.isEmpty() ? 0 : 1));
+            }
+            return ingredients;
+        }
+
         // JEI calls this every tick for every recipe on screen to find out what its button should say
         @Override
         public IRecipeTransferError transferRecipe(CraftingTableMenu menu, RecipeHolder<CraftingRecipe> recipe,
@@ -159,8 +171,6 @@ public class RoutedPipesJeiPlugin implements IModPlugin {
                 for (int slot = 0; slot < ingredients.size(); slot++) {
                     ClientMenuLink.setMarker(menu.containerId, slot, ingredients.get(slot));
                 }
-                // nobody waits for the answer to this one, the next look at the button asks again
-                ClientMenuLink.askIngredients(menu.containerId, 0, ingredients, true);
                 questions.forget();
                 return null;
             }
@@ -191,24 +201,13 @@ public class RoutedPipesJeiPlugin implements IModPlugin {
         public IRecipeTransferError transferRecipe(RequestTableMenu menu, RecipeHolder<CraftingRecipe> recipe,
                 IRecipeSlotsView recipeSlots, Player player, boolean maxTransfer, boolean doTransfer) {
             if (doTransfer) {
-                List<ItemStack> ingredients = grid(recipeSlots);
+                List<ItemStack> ingredients = TableTransfer.grid(recipeSlots);
                 for (int slot = 0; slot < ingredients.size(); slot++) {
                     ClientMenuLink.setMarker(menu.containerId, slot, ingredients.get(slot));
                 }
             }
             return null;
         }
-    }
-
-    // the shown item of every input slot of a crafting recipe, one each, in the order of the 3x3 grid
-    private static List<ItemStack> grid(IRecipeSlotsView recipeSlots) {
-        List<IRecipeSlotView> inputs = recipeSlots.getSlotViews(RecipeIngredientRole.INPUT);
-        List<ItemStack> ingredients = new ArrayList<>();
-        for (int slot = 0; slot < RequestTable.GRID_SLOTS; slot++) {
-            ItemStack stack = slot < inputs.size() ? inputs.get(slot).getDisplayedItemStack().orElse(ItemStack.EMPTY) : ItemStack.EMPTY;
-            ingredients.add(stack.copyWithCount(stack.isEmpty() ? 0 : 1));
-        }
-        return ingredients;
     }
 
     // the plus button on any recipe sets inputs and output of an open crafting pipe, that also covers machines

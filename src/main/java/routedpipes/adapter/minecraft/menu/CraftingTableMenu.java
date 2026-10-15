@@ -7,8 +7,6 @@ import java.util.Optional;
 import routedpipes.adapter.minecraft.CraftingTableBlockEntity;
 import routedpipes.application.RequestOutcome;
 import routedpipes.domain.item.ItemType;
-import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -81,20 +79,17 @@ public class CraftingTableMenu extends AbstractContainerMenu implements MarkerMe
         addDataSlots(answer);
     }
 
-    // finds out whether the network can bring what these ingredients need beyond the storage, with order it is told to
+    // finds out whether the network can bring what these ingredients need beyond the storage
     // the client reads the answer from the menu once it carries the number of its question
-    public void askIngredients(Player player, int question, List<ItemStack> ingredients, boolean order) {
+    public void askIngredients(int question, List<ItemStack> ingredients) {
         if (table == null) {
             return;
         }
-        Optional<RequestOutcome> outcome = table.orderIngredients(player, ingredients, !order);
+        Optional<RequestOutcome> outcome = table.askIngredients(ingredients);
         Map<ItemType, Integer> missing = outcome.map(RequestOutcome::missing).orElse(Map.of());
         Shortfall.write(shortfall, missing);
         answer.set(DATA_NETWORK, outcome.isEmpty() ? NETWORK_NONE : missing.isEmpty() ? NETWORK_SUPPLIES : NETWORK_MISSING);
         answer.set(DATA_QUESTION, question);
-        if (order && outcome.isPresent() && !outcome.get().powered()) {
-            player.displayClientMessage(Component.translatable("routedpipes.request.no_power").withStyle(ChatFormatting.RED), false);
-        }
     }
 
     // the number of the question the menu holds the answer to

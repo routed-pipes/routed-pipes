@@ -69,8 +69,9 @@ public class CraftingTableOrderGameTest {
         return player;
     }
 
+    // setting up a recipe never orders, the table only tells what the network could bring
     @GameTest(template = EMPTY, timeoutTicks = 300)
-    public static void ordersTheIngredientsThatAreNotInStorage(GameTestHelper helper) {
+    public static void askingAboutTheIngredientsOrdersNothing(GameTestHelper helper) {
         GameTestPower.supply(helper);
         pipe(helper, PipeKind.PROVIDER, 0);
         Container source = chest(helper, 0, new ItemStack(Items.OAK_PLANKS, 16));
@@ -82,28 +83,25 @@ public class CraftingTableOrderGameTest {
             TestPlayer player = playerAtTable(helper, 1);
             CraftingTableMenu menu = (CraftingTableMenu) player.containerMenu;
 
-            MenuRequests.askIngredients(player, menu.containerId, 7, STICKS, false);
+            MenuRequests.askIngredients(player, menu.containerId, 7, STICKS);
             helper.assertTrue(menu.answeredQuestion() == 7, "the answer carries the number of the question");
             helper.assertTrue(menu.network() == CraftingTableMenu.NETWORK_SUPPLIES && menu.shortfall().isEmpty(), "the network has the planks");
             helper.assertTrue(source.countItem(Items.OAK_PLANKS) == 16, "asking orders nothing");
-
-            MenuRequests.askIngredients(player, menu.containerId, 0, STICKS, true);
-            helper.assertTrue(source.countItem(Items.OAK_PLANKS) == 15, "one plank was in storage, one is ordered");
-            MenuRequests.askIngredients(player, menu.containerId, 0, STICKS, true);
-            helper.assertTrue(source.countItem(Items.OAK_PLANKS) == 15, "the plank on its way is not ordered again");
+            for (int slot = 0; slot < STICKS.size(); slot++) {
+                MenuRequests.apply(player, menu.containerId, slot, STICKS.get(slot));
+            }
         });
 
         helper.runAfterDelay(150, () -> {
-            helper.assertTrue(table.storage().countItem(Items.OAK_PLANKS) == 2, "the ordered plank arrives in the storage of the table, found "
-                    + table.storage().countItem(Items.OAK_PLANKS));
-            helper.assertTrue(table.result().isEmpty(), "only the markers set the recipe grid");
-            helper.assertTrue(source.countItem(Items.OAK_PLANKS) == 15, "nothing else was taken");
+            helper.assertTrue(table.result().is(Items.STICK), "the grid makes sticks");
+            helper.assertTrue(table.storage().countItem(Items.OAK_PLANKS) == 1 && source.countItem(Items.OAK_PLANKS) == 16,
+                    "setting the recipe ordered nothing");
             helper.succeed();
         });
     }
 
     @GameTest(template = EMPTY, timeoutTicks = 200)
-    public static void tellsWhatTheNetworkCannotBringAndThenOrdersNothing(GameTestHelper helper) {
+    public static void tellsWhatTheNetworkCannotBring(GameTestHelper helper) {
         GameTestPower.supply(helper);
         pipe(helper, PipeKind.PROVIDER, 0);
         Container source = chest(helper, 0, new ItemStack(Items.OAK_PLANKS, 1), new ItemStack(Items.COAL, 5));
@@ -116,33 +114,30 @@ public class CraftingTableOrderGameTest {
             TestPlayer player = playerAtTable(helper, 1);
             CraftingTableMenu menu = (CraftingTableMenu) player.containerMenu;
 
-            MenuRequests.askIngredients(player, menu.containerId, 3, torchesAndMore, false);
+            MenuRequests.askIngredients(player, menu.containerId, 3, torchesAndMore);
             List<ItemStack> shortfall = menu.shortfall();
             helper.assertTrue(menu.answeredQuestion() == 3 && menu.network() == CraftingTableMenu.NETWORK_MISSING, "something is missing");
             helper.assertTrue(shortfall.size() == 2 && shortfall.get(0).is(Items.OAK_PLANKS) && Shortfall.count(shortfall.get(0)) == 2
                     && shortfall.get(1).is(Items.STICK) && Shortfall.count(shortfall.get(1)) == 1,
                     "two planks and a stick are missing, got " + shortfall);
 
-            MenuRequests.askIngredients(player, menu.containerId, 0, torchesAndMore, true);
-            helper.assertTrue(menu.network() == CraftingTableMenu.NETWORK_MISSING, "ordering says the same");
-
-            MenuRequests.askIngredients(player, menu.containerId + 1, 9, torchesAndMore, false);
-            helper.assertTrue(menu.answeredQuestion() == 0, "a question for another menu is ignored");
+            MenuRequests.askIngredients(player, menu.containerId + 1, 9, torchesAndMore);
+            helper.assertTrue(menu.answeredQuestion() == 3, "a question for another menu is ignored");
             player.containerMenu = player.inventoryMenu;
-            MenuRequests.askIngredients(player, menu.containerId, 9, torchesAndMore, false);
-            helper.assertTrue(menu.answeredQuestion() == 0, "and so is one for a menu that was closed");
+            MenuRequests.askIngredients(player, menu.containerId, 9, torchesAndMore);
+            helper.assertTrue(menu.answeredQuestion() == 3, "and so is one for a menu that was closed");
         });
 
         helper.runAfterDelay(100, () -> {
-            helper.assertTrue(table.storage().isEmpty(), "not even the coal the network has is brought");
+            helper.assertTrue(table.storage().isEmpty(), "nothing is brought");
             helper.assertTrue(source.countItem(Items.COAL) == 5 && source.countItem(Items.OAK_PLANKS) == 1, "the chest keeps everything");
             helper.succeed();
         });
     }
 
-    // the planks are not in any chest, another crafting pipe makes them from logs
+    // the planks are not in any chest, another crafting pipe could make them from logs
     @GameTest(template = EMPTY, timeoutTicks = 400)
-    public static void missingIngredientsAreCraftedElsewhereInTheNetwork(GameTestHelper helper) {
+    public static void ingredientsTheNetworkCanCraftAreNotMissing(GameTestHelper helper) {
         GameTestPower.supply(helper);
         pipe(helper, PipeKind.PROVIDER, 0);
         Container source = chest(helper, 0, new ItemStack(Items.OAK_LOG, 8));
@@ -155,14 +150,10 @@ public class CraftingTableOrderGameTest {
         helper.runAfterDelay(SETTLE, () -> {
             TestPlayer player = playerAtTable(helper, 1);
             CraftingTableMenu menu = (CraftingTableMenu) player.containerMenu;
-            MenuRequests.askIngredients(player, menu.containerId, 1, STICKS, false);
+            MenuRequests.askIngredients(player, menu.containerId, 1, STICKS);
             helper.assertTrue(menu.network() == CraftingTableMenu.NETWORK_SUPPLIES, "planks can be crafted, missing " + menu.shortfall());
-            MenuRequests.askIngredients(player, menu.containerId, 0, STICKS, true);
-        });
-
-        helper.succeedWhen(() -> {
-            helper.assertTrue(table.storage().countItem(Items.OAK_PLANKS) == 2, "two planks are crafted and brought to the table");
-            helper.assertTrue(source.countItem(Items.OAK_LOG) == 7, "from one log");
+            helper.assertTrue(table.storage().isEmpty() && source.countItem(Items.OAK_LOG) == 8, "and nothing is crafted for asking");
+            helper.succeed();
         });
     }
 
@@ -176,7 +167,7 @@ public class CraftingTableOrderGameTest {
         TestPlayer player = playerAtTable(helper, 3);
         CraftingTableMenu menu = (CraftingTableMenu) player.containerMenu;
 
-        MenuRequests.askIngredients(player, menu.containerId, 5, STICKS, true);
+        MenuRequests.askIngredients(player, menu.containerId, 5, STICKS);
 
         helper.assertTrue(menu.answeredQuestion() == 5 && menu.network() == CraftingTableMenu.NETWORK_NONE && menu.shortfall().isEmpty(),
                 "no network, so nothing to report");
@@ -192,7 +183,7 @@ public class CraftingTableOrderGameTest {
         helper.runAfterDelay(SETTLE, () -> {
             TestPlayer player = playerAtTable(helper, 1);
             CraftingTableMenu menu = (CraftingTableMenu) player.containerMenu;
-            MenuRequests.askIngredients(player, menu.containerId, 1, STICKS, false);
+            MenuRequests.askIngredients(player, menu.containerId, 1, STICKS);
             int answerSlot = 9 + 1 + CraftingTableBlockEntity.STORAGE_SLOTS;
             helper.assertTrue(menu.getSlot(answerSlot).getItem().is(Items.OAK_PLANKS) && !menu.getSlot(answerSlot).isActive(),
                     "the missing planks sit in a slot no screen shows");
@@ -236,7 +227,7 @@ public class CraftingTableOrderGameTest {
             List<Integer> asked = new ArrayList<>();
             IngredientQuestions questions = new IngredientQuestions((containerId, question, ingredients) -> {
                 asked.add(question);
-                MenuRequests.askIngredients(player, containerId, question, ingredients, false);
+                MenuRequests.askIngredients(player, containerId, question, ingredients);
             }, () -> clock[0]);
 
             helper.assertTrue(questions.answer(menu, STICKS).isEmpty() && asked.equals(List.of(1)), "the first look asks and knows nothing yet");
@@ -272,38 +263,6 @@ public class CraftingTableOrderGameTest {
             clock[0] += IngredientQuestions.REFRESH_MILLIS;
             lonely.answer(menu, coal);
             helper.assertTrue(unanswered.equals(List.of(1, 2)), "a question without an answer is given up after a while");
-            helper.succeed();
-        });
-    }
-
-    // the network is locked by a station, the player at the table may not request there
-    @GameTest(template = EMPTY, timeoutTicks = 200)
-    public static void theTableOrdersOnlyForPlayersWhoMayRequest(GameTestHelper helper) {
-        GameTestPower.supply(helper);
-        PipeBlockEntity provider = pipe(helper, PipeKind.PROVIDER, 0);
-        Container source = chest(helper, 0, new ItemStack(Items.OAK_PLANKS, 16));
-        PipeBlockEntity crafting = pipe(helper, PipeKind.CRAFTING, 1);
-        table(helper, 1);
-        BlockPos stationPos = new BlockPos(3, 1, 1);
-        helper.setBlock(stationPos, RoutedPipes.SECURITY_STATION.get());
-        routedpipes.adapter.minecraft.SecurityStationBlockEntity station = helper.getBlockEntity(stationPos);
-        TestPlayer owner = TestPlayer.in(helper);
-        helper.getBlockState(stationPos).getBlock().setPlacedBy(helper.getLevel(), helper.absolutePos(stationPos),
-                helper.getBlockState(stationPos), owner, ItemStack.EMPTY);
-        ItemStack card = RoutedPipes.SECURITY_CARD.get().cardFor(station.id());
-        provider.security().card().setItem(0, card.copy());
-        crafting.security().card().setItem(0, card.copy());
-
-        helper.runAfterDelay(SETTLE, () -> {
-            TestPlayer stranger = playerAtTable(helper, 1);
-            CraftingTableMenu menu = (CraftingTableMenu) stranger.containerMenu;
-
-            MenuRequests.askIngredients(stranger, menu.containerId, 0, STICKS, true);
-            helper.assertTrue(source.countItem(Items.OAK_PLANKS) == 16, "a player who may not request orders nothing");
-
-            station.station().settings().set(stranger.getUUID(), routedpipes.domain.security.Permission.ACTIVE_REQUESTING, true);
-            MenuRequests.askIngredients(stranger, menu.containerId, 0, STICKS, true);
-            helper.assertTrue(source.countItem(Items.OAK_PLANKS) == 14, "with the permission the planks are ordered");
             helper.succeed();
         });
     }

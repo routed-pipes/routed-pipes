@@ -13,7 +13,6 @@ import routedpipes.domain.item.ItemBatch;
 import routedpipes.domain.item.ItemType;
 import routedpipes.domain.logistics.InventoryRef;
 import routedpipes.domain.logistics.PipeKind;
-import routedpipes.domain.security.Permission;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -23,7 +22,6 @@ import net.minecraft.world.Container;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.SimpleMenuProvider;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
@@ -135,25 +133,16 @@ public class CraftingTableBlockEntity extends BlockEntity {
         return Optional.empty();
     }
 
-    // has the network bring the ingredients of one craft that are not in storage or on their way, all of them or none
-    // empty when no pipe next to the table can order, with simulate it only finds out what would be missing
-    // the player has to be allowed to request at the pipe that orders, asking what would be missing costs nothing
-    public Optional<RequestOutcome> orderIngredients(Player player, List<ItemStack> ingredients, boolean simulate) {
-        Optional<PipeBlockEntity> pipe = orderingPipe();
-        if (!simulate && pipe.isPresent() && !pipe.get().security().allows(player, Permission.ACTIVE_REQUESTING)) {
-            return Optional.empty();
-        }
-        return orderIngredients(ingredients, simulate);
-    }
-
-    public Optional<RequestOutcome> orderIngredients(List<ItemStack> ingredients, boolean simulate) {
+    // what the network could not bring of the ingredients of one craft that are not in storage or on their way
+    // nothing is ordered, empty when no pipe next to the table can order
+    public Optional<RequestOutcome> askIngredients(List<ItemStack> ingredients) {
         Map<ItemType, Integer> needed = new LinkedHashMap<>();
         for (ItemStack ingredient : ingredients) {
             if (!ingredient.isEmpty()) {
                 needed.merge(McItemType.batchOf(ingredient).type(), 1, Integer::sum);
             }
         }
-        return orderingPipe().map(pipe -> pipe.requestShortfall(needed, stock(), simulate));
+        return orderingPipe().map(pipe -> pipe.requestShortfall(needed, stock(), true));
     }
 
     // what could be taken out right now, capped at one stack
