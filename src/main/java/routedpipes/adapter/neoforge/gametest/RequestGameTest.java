@@ -906,4 +906,26 @@ public class RequestGameTest {
     private static List<List<ItemStack>> each(List<ItemStack> stacks) {
         return stacks.stream().map(stack -> stack.isEmpty() ? List.<ItemStack>of() : List.of(stack)).toList();
     }
+
+    // no planks anywhere, but a crafting pipe makes oak planks: a slot that shows birch first still gets oak
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void markerChoicesPreferWhatTheNetworkCanCraftOverWhatIsNowhere(GameTestHelper helper) {
+        GameTestPower.supply(helper);
+        PipeBlockEntity piston = pipe(helper, PipeKind.CRAFTING, 0, 1);
+        PipeBlockEntity planks = pipe(helper, PipeKind.CRAFTING, 1, 1);
+        helper.setBlock(new BlockPos(1, 2, 1), RoutedPipes.CRAFTING_TABLE.get());
+        ((routedpipes.adapter.minecraft.CraftingTableBlockEntity) helper.getBlockEntity(new BlockPos(1, 2, 1))).pattern()
+                .setItem(0, new ItemStack(Items.OAK_LOG));
+        planks.importRecipe();
+        TestPlayer player = TestPlayer.in(helper);
+
+        helper.runAfterDelay(SETTLE + 15, () -> {
+            player.openMenu(piston.menuProvider());
+            MenuRequests.choose(player, player.containerMenu.containerId, 0,
+                    List.of(new ItemStack(Items.BIRCH_PLANKS), new ItemStack(Items.OAK_PLANKS), new ItemStack(Items.SPRUCE_PLANKS)));
+            helper.assertTrue(piston.config().getItem(0).is(Items.OAK_PLANKS), "oak can be crafted, birch is nowhere, got "
+                    + piston.config().getItem(0));
+            helper.succeed();
+        });
+    }
 }
