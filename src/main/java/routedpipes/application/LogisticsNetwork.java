@@ -14,7 +14,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.Set;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 import routedpipes.application.port.PowerSource;
@@ -931,7 +933,7 @@ public final class LogisticsNetwork {
             stock.add(new Stock(entry.provider(), items));
         }
         FluidIngredients fluidIngredients = reach.fluids();
-        RequestPlan plan = new RequestPlanner(stock, reach.crafters()).plan(requester, wanted);
+        RequestPlan plan = new RequestPlanner(stock, equipped(reach.crafters(), now)).plan(requester, wanted);
         if (!plan.complete()) {
             return new RequestOutcome(plan, true);
         }
@@ -1069,7 +1071,7 @@ public final class LogisticsNetwork {
             boolean simulate, boolean shared) {
         Reach reach = shared ? reach(requester, now) : lookUpReach(requester, false);
         FluidIngredients fluidIngredients = reach.fluids();
-        RequestPlan plan = new RequestPlanner(reach.stock(), reach.crafters()).plan(requester, wanted);
+        RequestPlan plan = new RequestPlanner(reach.stock(), equipped(reach.crafters(), now)).plan(requester, wanted);
         boolean nothing = plan.provisions().isEmpty() && plan.crafts().isEmpty();
         if (simulate || !plan.complete() && (!partial || nothing)) {
             return new RequestOutcome(plan, true);
@@ -1559,6 +1561,27 @@ public final class LogisticsNetwork {
         return owed;
     }
 
+    // a kept ingredient like a programmer that is already on its way to the crafter is not brought again
+    private List<Crafter> equipped(List<Crafter> crafters, long now) {
+        List<Crafter> equipped = new ArrayList<>(crafters.size());
+        for (Crafter crafter : crafters) {
+            equipped.add(crafter.kept().isEmpty() ? crafter
+                    : crafter.withKept(lacking(crafter.kept(), type -> pending.expected(crafter.router(), type, now))));
+        }
+        return equipped;
+    }
+
+    private static Map<ItemType, Integer> lacking(Map<ItemType, Integer> needed, Function<ItemType, Integer> there) {
+        Map<ItemType, Integer> lacking = new LinkedHashMap<>();
+        needed.forEach((type, count) -> {
+            int missing = count - Objects.requireNonNullElse(there.apply(type), 0);
+            if (missing > 0) {
+                lacking.put(type, missing);
+            }
+        });
+        return lacking;
+    }
+
     private record Candidate(Crafter crafter, int priority) {
     }
 
@@ -1590,7 +1613,8 @@ public final class LogisticsNetwork {
                 }
                 // without its satellites the pipe cannot get its ingredients to the right place
                 if (allFound) {
-                    candidates.add(new Candidate(Crafter.of(id, craft.recipe(), forSatellites, backlog).withPriority(craft.priority()),
+                    Crafter crafter = Crafter.of(id, craft.recipe(), forSatellites, backlog).withPriority(craft.priority());
+                    candidates.add(new Candidate(craft.held().isEmpty() ? crafter : crafter.withKept(lacking(crafter.kept(), craft.held()::get)),
                             craft.priority()));
                 }
             }

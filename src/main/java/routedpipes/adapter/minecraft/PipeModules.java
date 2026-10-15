@@ -117,7 +117,8 @@ final class PipeModules {
             }
             ModuleItem.craftingOf(slots.getItem(slot), upgradeCount(slot, UpgradeKind.CRAFTING_BYPRODUCT) > 0,
                     upgradeCount(slot, UpgradeKind.ADVANCED_SATELLITE) > 0, upgradeCount(slot, UpgradeKind.FUZZY) > 0,
-                    upgradeCount(slot, UpgradeKind.FLUID_CRAFTING)).ifPresent(crafts::add);
+                    upgradeCount(slot, UpgradeKind.FLUID_CRAFTING))
+                    .map(pipe::forTable).ifPresent(crafts::add);
         }
         return crafts;
     }

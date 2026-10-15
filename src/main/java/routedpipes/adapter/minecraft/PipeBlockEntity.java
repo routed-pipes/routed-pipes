@@ -826,6 +826,11 @@ public class PipeBlockEntity extends BlockEntity implements RouterNode {
         return settings.recipe();
     }
 
+    // with a crafting table next to the pipe, what the table hands back is brought once and only when it has none
+    CraftingSetup forTable(CraftingSetup setup) {
+        return CraftingTableBlockEntity.beside(level, worldPosition).map(table -> KeptIngredients.forTable(setup, table)).orElse(setup);
+    }
+
     // with a satellite chosen the bottom row of the recipe goes there, the rest to this pipe
     @Override
     public List<ItemBatch> satelliteInputs() {

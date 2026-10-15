@@ -51,6 +51,10 @@ public record Crafter(RouterId router, ItemBatch output, Map<ItemType, Integer> 
         return new Crafter(router, output, ownInputs, satelliteInputs, backlog, value, kept);
     }
 
+    public Crafter withKept(Map<ItemType, Integer> items) {
+        return new Crafter(router, output, ownInputs, satelliteInputs, backlog, priority, items);
+    }
+
     public Crafter withBacklog(int items) {
         return new Crafter(router, output, ownInputs, satelliteInputs, items, priority, kept);
     }

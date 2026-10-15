@@ -30,8 +30,6 @@ import routedpipes.domain.logistics.Supply;
 import routedpipes.domain.logistics.SupplyMode;
 import routedpipes.domain.logistics.UpgradeKind;
 import routedpipes.domain.logistics.VoidSink;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
@@ -40,7 +38,6 @@ import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 
 // what is set on the pipe itself and not on a module: its marker slots, the satellites it names
 // and the switches of its settings screen, and what a pipe without modules does with them
@@ -220,35 +217,12 @@ final class PipeSettings {
     }
 
     void importRecipe(Container target) {
-        table().ifPresent(table -> {
+        CraftingTableBlockEntity.beside(pipe.getLevel(), pipe.getBlockPos()).ifPresent(table -> {
             for (int slot = 0; slot < PipeBlockEntity.OUTPUT_SLOT; slot++) {
                 target.setItem(slot, table.pattern().getItem(slot).copy());
             }
             target.setItem(PipeBlockEntity.OUTPUT_SLOT, table.result());
         });
-    }
-
-    private Optional<CraftingTableBlockEntity> table() {
-        Level level = pipe.getLevel();
-        if (level == null) {
-            return Optional.empty();
-        }
-        for (Direction side : Direction.values()) {
-            BlockPos neighbour = pipe.getBlockPos().relative(side);
-            if (level.isLoaded(neighbour) && level.getBlockEntity(neighbour) instanceof CraftingTableBlockEntity table) {
-                return Optional.of(table);
-            }
-        }
-        return Optional.empty();
-    }
-
-    private static int keptIndex(List<ItemStack> kept, ItemStack stack) {
-        for (int index = 0; index < kept.size(); index++) {
-            if (ItemStack.isSameItemSameComponents(kept.get(index), stack)) {
-                return index;
-            }
-        }
-        return -1;
     }
 
     // a recipe slot as the planner sees it, with fuzzy flags it stands for everything that matches
@@ -263,7 +237,7 @@ final class PipeSettings {
                 ? Optional.empty() : Optional.of(McItemType.batchOf(extra));
         List<FluidInput> fluids = fluidCrafting.inputs(config, pipe.upgradeCount(UpgradeKind.FLUID_CRAFTING),
                 pipe.hasUpgrade(UpgradeKind.ADVANCED_SATELLITE));
-        return recipe().map(recipe -> List.of(new CraftingSetup(recipe, bySatellite(), priority, byproduct, fluids)))
+        return recipe().map(recipe -> List.of(pipe.forTable(new CraftingSetup(recipe, bySatellite(), priority, byproduct, fluids))))
                 .orElse(List.of());
     }
 
@@ -337,26 +311,16 @@ final class PipeSettings {
 
     Optional<Recipe> recipe() {
         ItemStack output = config.getItem(PipeBlockEntity.OUTPUT_SLOT);
-        // a crafting table next to the pipe keeps things like a programmer, they are brought once and only when it has none
-        List<ItemStack> kept = new ArrayList<>(table().map(CraftingTableBlockEntity::kept).orElse(List.of()));
         List<ItemBatch> inputs = new ArrayList<>();
-        List<ItemBatch> keptInputs = new ArrayList<>();
         for (int slot = 0; slot < PipeBlockEntity.OUTPUT_SLOT; slot++) {
-            ItemStack stack = config.getItem(slot);
-            if (stack.isEmpty()) {
-                continue;
-            }
-            int match = keptIndex(kept, stack);
-            if (match < 0) {
+            if (!config.getItem(slot).isEmpty()) {
                 inputs.add(marked(slot));
-            } else if (!table().orElseThrow().holds(kept.remove(match))) {
-                keptInputs.add(marked(slot));
             }
         }
         if (output.isEmpty() || inputs.isEmpty()) {
             return Optional.empty();
         }
-        return Optional.of(new Recipe(inputs, marked(PipeBlockEntity.OUTPUT_SLOT), keptInputs));
+        return Optional.of(new Recipe(inputs, marked(PipeBlockEntity.OUTPUT_SLOT)));
     }
 
     // with a satellite chosen the bottom row of the recipe goes there, the rest to this pipe

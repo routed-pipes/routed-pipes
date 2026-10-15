@@ -16,7 +16,6 @@ import routedpipes.domain.logistics.PipeKind;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.Container;
 import net.minecraft.world.MenuProvider;
@@ -27,6 +26,7 @@ import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -102,14 +102,23 @@ public class CraftingTableBlockEntity extends BlockEntity {
         return stacks;
     }
 
-    // what comes out of a craft unchanged, like a programmer, it stays in storage
+    // what a craft hands back, like a programmer or a tool, it stays in storage
     public List<ItemStack> kept() {
         return recipe().map(found -> KeptIngredients.of(found.value(), input())).orElse(List.of());
     }
 
-    // whether the storage has one like that
-    public boolean holds(ItemStack stack) {
-        return storage.hasAnyMatching(stored -> ItemStack.isSameItemSameComponents(stored, stack));
+    // the table next to that spot, if there is one
+    public static Optional<CraftingTableBlockEntity> beside(Level level, BlockPos pos) {
+        if (level == null) {
+            return Optional.empty();
+        }
+        for (Direction side : Direction.values()) {
+            BlockPos neighbour = pos.relative(side);
+            if (level.isLoaded(neighbour) && level.getBlockEntity(neighbour) instanceof CraftingTableBlockEntity table) {
+                return Optional.of(table);
+            }
+        }
+        return Optional.empty();
     }
 
     private int runsPossible() {
@@ -119,7 +128,13 @@ public class CraftingTableBlockEntity extends BlockEntity {
         if (result.isEmpty() || inputs.isEmpty()) {
             return 0;
         }
-        return new Recipe(inputs, McItemType.batchOf(result), kept.stream().map(McItemType::batchOf).toList()).runsPossible(stock());
+        Map<ItemType, Integer> stock = stock();
+        List<ItemBatch> keptInputs = new ArrayList<>();
+        for (ItemStack stack : kept) {
+            keptInputs.add(new ItemBatch(KeptIngredients.type(stack), 1));
+            stock.put(KeptIngredients.type(stack), KeptIngredients.count(storage, stack));
+        }
+        return new Recipe(inputs, McItemType.batchOf(result), keptInputs).runsPossible(stock);
     }
 
     private Map<ItemType, Integer> stock() {
@@ -192,38 +207,22 @@ public class CraftingTableBlockEntity extends BlockEntity {
         }
         int ready = surplus.getItem(0).getCount();
         ItemStack result = result();
-        while (ready < taken) {
-            craftOnce();
+        // a tool can break before the runs that were counted on are done
+        while (ready < taken && craftOnce()) {
             ready += result.getCount();
         }
+        taken = Math.min(taken, ready);
         surplus.setItem(0, ready == taken ? ItemStack.EMPTY : available.copyWithCount(ready - taken));
         return available.copyWithCount(taken);
     }
 
-    private void craftOnce() {
-        List<ItemStack> kept = kept();
-        NonNullList<ItemStack> remaining = recipe().orElseThrow().value().getRemainingItems(input());
-        // kept ingredients are not touched
-        KeptIngredients.without(patternStacks(), kept).forEach(this::consume);
-        // things like empty buckets go back into storage
-        for (ItemStack left : KeptIngredients.without(remaining, kept)) {
-            if (!left.isEmpty()) {
-                ItemStack rest = storage.addItem(left);
-                if (!rest.isEmpty()) {
-                    Block.popResource(level, worldPosition, rest);
-                }
+    private boolean craftOnce() {
+        return KeptIngredients.craft(recipe().orElseThrow().value(), patternStacks(), storage, left -> {
+            ItemStack rest = storage.addItem(left);
+            if (!rest.isEmpty()) {
+                Block.popResource(level, worldPosition, rest);
             }
-        }
-    }
-
-    private void consume(ItemStack needed) {
-        for (int slot = 0; slot < STORAGE_SLOTS; slot++) {
-            if (ItemStack.isSameItemSameComponents(storage.getItem(slot), needed)) {
-                storage.removeItem(slot, 1);
-                return;
-            }
-        }
-        throw new IllegalStateException("ingredient vanished while crafting: " + needed);
+        });
     }
 
     @Override

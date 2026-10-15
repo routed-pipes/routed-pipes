@@ -72,7 +72,8 @@ final class PendingDeliveries {
         }
         int count = 0;
         for (Map.Entry<ItemType, Deque<Expected>> entry : here.entrySet()) {
-            if (entry.getKey().accepts(type)) {
+            // a fuzzy type asked for counts what it would take, like a worn tool
+            if (entry.getKey().accepts(type) || type.accepts(entry.getKey())) {
                 entry.getValue().removeIf(one -> one.deadline <= now);
                 count += entry.getValue().stream().mapToInt(one -> one.count).sum();
             }

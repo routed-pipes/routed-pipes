@@ -138,6 +138,35 @@ class LogisticsNetworkRequestTest {
     }
 
     @Test
+    void aProgrammerOnItsWayToTheCrafterIsNotSentAgain() {
+        connect();
+        provider.stock("chip", 20);
+        provider.stock("programmer", 5);
+        crafting.recipe = new Recipe(List.of(batch("chip", 1)), batch("pipe", 1), List.of(batch("programmer", 1)));
+
+        assertThat(network.request(REQUEST, batch("pipe", 2), 0).started()).isTrue();
+        assertThat(network.request(REQUEST, batch("pipe", 3), 1).started()).isTrue();
+
+        assertThat(provider.shipments).containsExactly(
+                new Shipment(batch("programmer", 1), CRAFTING),
+                new Shipment(batch("chip", 2), CRAFTING),
+                new Shipment(batch("chip", 3), CRAFTING));
+    }
+
+    @Test
+    void aProgrammerTheMachineHasIsNotSent() {
+        connect();
+        provider.stock("chip", 20);
+        provider.stock("programmer", 5);
+        Recipe recipe = new Recipe(List.of(batch("chip", 1)), batch("pipe", 1), List.of(batch("programmer", 1)));
+        crafting.crafts = List.of(new CraftingSetup(recipe, Map.of(), 0, Optional.empty(), List.of(), Map.of(item("programmer"), 1)));
+
+        assertThat(network.request(REQUEST, batch("pipe", 2), 0).started()).isTrue();
+
+        assertThat(provider.shipments).containsExactly(new Shipment(batch("chip", 2), CRAFTING));
+    }
+
+    @Test
     void craftingPipeShipsOutputAsItAppears() {
         connect();
         provider.stock("log", 20);

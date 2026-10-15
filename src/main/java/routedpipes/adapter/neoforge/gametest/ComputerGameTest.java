@@ -202,7 +202,8 @@ public class ComputerGameTest {
         call(crafting, "reimport");
 
         assertEquals(helper, Map.of("output", item("minecraft:oak_planks", "Oak Planks", 4),
-                "inputs", List.of(item("minecraft:oak_log", "Oak Log", 1)), "priority", 0), call(crafting, "getRecipe")[0]);
+                "inputs", List.of(item("minecraft:oak_log", "Oak Log", 1)), "kept", List.of(), "priority", 0),
+                call(crafting, "getRecipe")[0]);
         assertEquals(helper, List.of(), call(crafting, "getOrders")[0]);
         helper.succeed();
     }

@@ -299,6 +299,8 @@ public final class PipeCommands {
         Map<String, Object> table = new LinkedHashMap<>();
         table.put("output", table(craft.recipe().output()));
         table.put("inputs", craft.recipe().inputs().stream().map(this::table).toList());
+        // what a craft hands back, like a programmer, needed once and not per craft
+        table.put("kept", craft.recipe().kept().stream().map(kept -> table(new ItemBatch(kept.type().exact(), kept.count()))).toList());
         table.put("priority", craft.priority());
         craft.byproduct().ifPresent(extra -> table.put("byproduct", table(extra)));
         return table;

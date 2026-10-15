@@ -9,7 +9,6 @@ import java.util.Optional;
 import routedpipes.application.RequestOutcome;
 import routedpipes.domain.item.ItemType;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
@@ -86,12 +85,12 @@ public final class RequestTable {
     private List<ItemStack> gridStacks() {
         List<ItemStack> stacks = new ArrayList<>();
         for (int slot = 0; slot < GRID_SLOTS; slot++) {
-            stacks.add(grid.getItem(slot));
+            stacks.add(grid.getItem(slot).copyWithCount(1));
         }
         return stacks;
     }
 
-    // what comes out of a craft unchanged, like a programmer
+    // what a craft hands back, like a programmer or a tool
     private List<ItemStack> kept() {
         return recipe().map(found -> KeptIngredients.of(found.value(), input())).orElse(List.of());
     }
@@ -104,7 +103,7 @@ public final class RequestTable {
             needed.merge(McItemType.batchOf(stack).type(), crafts, Integer::sum);
         }
         for (ItemStack stack : kept) {
-            needed.merge(McItemType.batchOf(stack).type(), 1, Integer::sum);
+            needed.merge(KeptIngredients.type(stack), 1, Integer::sum);
         }
         return needed;
     }
@@ -115,6 +114,10 @@ public final class RequestTable {
             if (!buffer.getItem(slot).isEmpty()) {
                 stock.merge(McItemType.batchOf(buffer.getItem(slot)).type(), buffer.getItem(slot).getCount(), Integer::sum);
             }
+        }
+        // a kept one counts however worn
+        for (ItemStack stack : kept()) {
+            stock.put(KeptIngredients.type(stack), KeptIngredients.count(buffer, stack));
         }
         return stock;
     }
@@ -127,27 +130,13 @@ public final class RequestTable {
     }
 
     // crafts once out of the buffer and hands out the result, empty if something is missing
-    // leftovers like empty buckets and kept ingredients stay in the buffer
+    // leftovers like empty buckets, a programmer or a worn tool stay in the buffer
     public ItemStack craftOne() {
         ItemStack result = result();
-        Map<ItemType, Integer> stock = stock();
-        boolean enough = ingredients(1).entrySet().stream().allMatch(entry -> stock.getOrDefault(entry.getKey(), 0) >= entry.getValue());
-        if (result.isEmpty() || !enough) {
+        if (result.isEmpty() || !KeptIngredients.craft(recipe().orElseThrow().value(), gridStacks(), buffer,
+                left -> pipe.popOut(buffer.addItem(left)))) {
             return ItemStack.EMPTY;
         }
-        List<ItemStack> kept = kept();
-        NonNullList<ItemStack> remaining = recipe().orElseThrow().value().getRemainingItems(input());
-        // kept ingredients just stay in the buffer
-        for (ItemStack needed : KeptIngredients.without(gridStacks(), kept)) {
-            for (int from = 0; from < BUFFER_SLOTS; from++) {
-                if (ItemStack.isSameItemSameComponents(buffer.getItem(from), needed)) {
-                    buffer.removeItem(from, 1);
-                    break;
-                }
-            }
-        }
-        // things like empty buckets
-        KeptIngredients.without(remaining, kept).forEach(left -> pipe.popOut(buffer.addItem(left)));
         return result;
     }
 

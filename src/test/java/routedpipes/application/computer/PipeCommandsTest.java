@@ -337,7 +337,7 @@ class PipeCommandsTest {
         PipeCommands commands = commands(new FakeComputerPipe(OWN, crafting));
 
         assertThat(call(commands, "getRecipe")).containsExactly(Map.of("output", item("planks", 4),
-                "inputs", List.of(item("log", 1), item("stick", 2)), "priority", 0));
+                "inputs", List.of(item("log", 1), item("stick", 2)), "kept", List.of(), "priority", 0));
         assertThat(call(commands, "getOrders")).containsExactly(List.of(
                 Map.of("name", "planks", "count", 8, "destination", NEAR.value().toString()), item("bark", 1)));
     }
@@ -357,7 +357,16 @@ class PipeCommandsTest {
         PipeCommands commands = commands(new FakeComputerPipe(OWN, crafting));
 
         assertThat(call(commands, "getRecipe")).containsExactly(Map.of("output", item("planks", 4),
-                "inputs", List.of(item("log", 1)), "priority", 3, "byproduct", item("bark", 1)));
+                "inputs", List.of(item("log", 1)), "kept", List.of(), "priority", 3, "byproduct", item("bark", 1)));
+    }
+
+    @Test
+    void theRecipeListsWhatACraftHandsBack() {
+        crafting.recipe = new Recipe(List.of(batch("chip", 1)), batch("pipe", 1), List.of(batch("programmer", 1)));
+        PipeCommands commands = commands(new FakeComputerPipe(OWN, crafting));
+
+        assertThat(call(commands, "getRecipe")).containsExactly(Map.of("output", item("pipe", 1),
+                "inputs", List.of(item("chip", 1)), "kept", List.of(item("programmer", 1)), "priority", 0));
     }
 
     @Test
