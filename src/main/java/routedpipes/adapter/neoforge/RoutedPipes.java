@@ -18,8 +18,7 @@ import routedpipes.adapter.minecraft.network.OpenRemoteOrdererPayload;
 import routedpipes.adapter.minecraft.network.SetMarkerPayload;
 import routedpipes.adapter.minecraft.network.SetMenuTextPayload;
 import routedpipes.adapter.neoforge.benchmark.Benchmark;
-import routedpipes.adapter.neoforge.gametest.TestBattery;
-import routedpipes.adapter.neoforge.gametest.TestTank;
+import routedpipes.adapter.neoforge.gametest.NeoForgeGameTestPlatform;
 import routedpipes.adapter.neoforge.gametest.TestsWaitForTicking;
 import routedpipes.domain.logistics.PipeKind;
 import com.mojang.logging.LogUtils;
@@ -89,6 +88,7 @@ public class RoutedPipes {
         SecurityEvents.register();
         ComputerCraftSupport.registerIfInstalled(modEventBus);
         Benchmark.registerIfRequested();
+        NeoForgeGameTestPlatform.registerIfTesting(modEventBus);
         TestsWaitForTicking.register();
     }
 
@@ -137,8 +137,6 @@ public class RoutedPipes {
         event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, Content.PIPE_BLOCK_ENTITY.get(),
                 (pipe, side) -> side == null || pipe.fluidPipe() == null || !pipe.fluidPipe().receives()
                         ? null : new PipeFluidHandler(pipe.fluidPipe(), side));
-        TestTank.registerIfTesting(event);
-        TestBattery.registerIfTesting(event);
         event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, Content.CRAFTING_TABLE_BLOCK_ENTITY.get(),
                 (table, side) -> new CraftingTableItemHandler(table));
         event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, Content.POWER_JUNCTION_BLOCK_ENTITY.get(),

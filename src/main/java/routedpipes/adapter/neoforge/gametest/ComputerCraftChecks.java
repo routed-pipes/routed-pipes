@@ -1,5 +1,9 @@
 package routedpipes.adapter.neoforge.gametest;
 
+import routedpipes.adapter.minecraft.gametest.GameTestPower;
+import routedpipes.adapter.minecraft.gametest.TestPlayer;
+import routedpipes.adapter.minecraft.gametest.PowerSupplierGameTest;
+import routedpipes.adapter.minecraft.gametest.ComputerGameTest;
 import routedpipes.adapter.minecraft.content.Content;
 import java.io.IOException;
 import java.io.UncheckedIOException;

@@ -1,5 +1,10 @@
 package routedpipes.adapter.neoforge.gametest;
 
+import routedpipes.adapter.minecraft.gametest.TestTank;
+import routedpipes.adapter.minecraft.gametest.GameTestPower;
+import routedpipes.adapter.minecraft.gametest.TestPlayer;
+import routedpipes.adapter.minecraft.gametest.PowerSupplierGameTest;
+import routedpipes.adapter.minecraft.gametest.ComputerGameTest;
 import routedpipes.adapter.minecraft.content.Content;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -60,7 +65,6 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.energy.IEnergyStorage;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import net.neoforged.neoforge.items.IItemHandler;
@@ -162,7 +166,7 @@ public class CompatGameTest {
     private static void ordersFromTank(GameTestHelper helper, Block tank) {
         GameTestPower.supply(helper);
         PipeBlockEntity request = pipe(helper, PipeKind.FLUID_REQUEST, 0, 1);
-        FluidTank target = TestTank.place(helper, new BlockPos(0, 2, 1), Fluids.EMPTY, 0);
+        TestTank target = TestTank.place(helper, new BlockPos(0, 2, 1), Fluids.EMPTY, 0);
         pipe(helper, PipeKind.FLUID_PROVIDER, 1, 1);
         BlockPos source = new BlockPos(1, 1, 0);
         helper.setBlock(source, tank);
@@ -172,7 +176,7 @@ public class CompatGameTest {
         helper.runAfterDelay(10, () -> helper.assertTrue(
                 request.fluidPipe().request(new FluidBatch(new McFluidType(Fluids.WATER), 2500)).started(), "request should be possible"));
 
-        helper.succeedWhen(() -> helper.assertTrue(target.getFluidAmount() == 2500, "only " + target.getFluidAmount() + " mB arrived"));
+        helper.succeedWhen(() -> helper.assertTrue(target.amount() == 2500, "only " + target.amount() + " mB arrived"));
     }
 
     // an extractor pipe empties the tank of the other mod
@@ -182,11 +186,11 @@ public class CompatGameTest {
         BlockPos source = new BlockPos(0, 1, 0);
         helper.setBlock(source, tank);
         fluidFilter(pipe(helper, PipeKind.FLUID_BASIC, 1, 1), Fluids.WATER);
-        FluidTank target = TestTank.place(helper, new BlockPos(1, 2, 1), Fluids.EMPTY, 0);
+        TestTank target = TestTank.place(helper, new BlockPos(1, 2, 1), Fluids.EMPTY, 0);
         helper.assertTrue(tankAt(helper, source).fill(new FluidStack(Fluids.WATER, 2000), IFluidHandler.FluidAction.EXECUTE) == 2000,
                 "could not fill the tank");
 
-        helper.succeedWhen(() -> helper.assertTrue(target.getFluidAmount() == 2000, "only " + target.getFluidAmount() + " mB came out"));
+        helper.succeedWhen(() -> helper.assertTrue(target.amount() == 2000, "only " + target.amount() + " mB came out"));
     }
 
     // tests that need a working machine or network of another mod
@@ -244,7 +248,7 @@ public class CompatGameTest {
                 "could not fill the mekanism tank");
         ItemStack container = handler.getContainer().copy();
         PipeBlockEntity supplier = pipe(helper, PipeKind.FLUID_CONTAINER_SUPPLIER, 0, 1);
-        FluidTank target = TestTank.place(helper, new BlockPos(0, 2, 1), Fluids.EMPTY, 0);
+        TestTank target = TestTank.place(helper, new BlockPos(0, 2, 1), Fluids.EMPTY, 0);
         pipe(helper, PipeKind.PROVIDER, 1, 1);
         BlockPos fullChest = new BlockPos(1, 2, 1);
         helper.setBlock(fullChest, Blocks.CHEST);
@@ -255,7 +259,7 @@ public class CompatGameTest {
         supplier.config().setItem(0, container.copy());
 
         helper.runAfterDelay(320, () -> {
-            helper.assertTrue(target.getFluidAmount() == 1000, "the water should be in the tank, it holds " + target.getFluidAmount());
+            helper.assertTrue(target.amount() == 1000, "the water should be in the tank, it holds " + target.amount());
             int tanks = 0;
             for (BlockPos chest : List.of(fullChest, emptyChest)) {
                 Container inventory = (Container) helper.getBlockEntity(chest);
